@@ -14,7 +14,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "duplication": "jscpd src/ --config .jscpd.json",
-    "validate": "npm run typecheck && npm run lint && npm run duplication && npm run test",
+	    "semgrep": "semgrep scan --config auto --config .semgrep.yml",
+
+    "validate": "npm run typecheck && npm run lint && npm run duplication && npm run semgrep && npm run test",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts"
