@@ -1,0 +1,89 @@
+{
+  "common": {
+    "appName": "GVI Finance",
+    "signOut": "Se déconnecter",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "darkMode": "Mode sombre",
+    "lightMode": "Mode clair",
+    "saving": "Enregistrement..."
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "users": "Gestion des utilisateurs"
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "signInAzure": "Se connecter avec Azure",
+    "localAccount": "Compte local",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "signingIn": "Connexion...",
+    "loginFailed": "Échec de la connexion. Veuillez réessayer.",
+    "description": "Utilisez Azure SSO ou un compte local créé par un administrateur.",
+    "ssoRevoked": "Votre accès SSO a été révoqué. Veuillez contacter un administrateur.",
+    "ssoNotConfigured": "Azure SSO n'est pas encore configuré. Définissez les variables d'environnement Azure AD et réessayez.",
+    "authFailed": "Échec de l'authentification. Veuillez réessayer.",
+    "changePassword": "Changer votre mot de passe",
+    "changePasswordDescription": "Les comptes locaux doivent définir un nouveau mot de passe avant d'accéder au tableau de bord.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "saveNewPassword": "Enregistrer le nouveau mot de passe",
+    "passwordChanged": "Mot de passe modifié avec succès",
+    "couldNotUpdatePassword": "Impossible de mettre à jour le mot de passe",
+    "firstLogin": "Première connexion"
+  },
+  "pending": {
+    "title": "Votre compte est en attente d'approbation de l'administrateur.",
+    "description": "Vous pouvez vous connecter avec Azure maintenant, mais vous ne pourrez pas accéder à l'application tant qu'un administrateur n'aura pas approuvé votre accès.",
+    "label": "En attente d'approbation"
+  },
+  "dashboard": {
+    "label": "Tableau de bord",
+    "welcomeBack": "Bienvenue, {name}.",
+    "role": "Rôle",
+    "status": "Statut",
+    "theme": "Thème"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "createUser": "Créer un utilisateur local",
+    "emailPlaceholder": "E-mail",
+    "namePlaceholder": "Nom",
+    "temporaryPassword": "Mot de passe temporaire",
+    "createButton": "Créer l'utilisateur",
+    "userCreated": "Utilisateur créé",
+    "couldNotCreate": "Impossible de créer l'utilisateur",
+    "notAuthorized": "Vous n'êtes pas autorisé à accéder à cette page.",
+    "name": "Nom",
+    "email": "E-mail",
+    "role": "Rôle",
+    "statusLabel": "Statut",
+    "auth": "Auth",
+    "actions": "Actions",
+    "approve": "Approuver",
+    "deactivate": "Désactiver",
+    "reactivate": "Réactiver",
+    "userApproved": "Utilisateur approuvé",
+    "userDeactivated": "Utilisateur désactivé",
+    "userReactivated": "Utilisateur réactivé",
+    "roleUpdated": "Rôle mis à jour en {role}",
+    "couldNotUpdate": "Impossible de mettre à jour l'utilisateur",
+    "roles": {
+      "ADMIN": "Admin",
+      "MARKETER_LEAD": "Marketer Lead",
+      "MARKETER": "Marketer",
+      "REVIEWER": "Reviewer"
+    },
+    "statuses": {
+      "ACTIVE": "Actif",
+      "INACTIVE": "Inactif",
+      "PENDING_APPROVAL": "En attente d'approbation"
+    }
+  },
+  "theme": {
+    "switchedTo": "Thème changé en mode {theme}"
+  }
+}

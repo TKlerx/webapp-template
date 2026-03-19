@@ -1,0 +1,120 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { prismaMock } from "@/lib/__mocks__/db";
+import { AuthMethod, Role, ThemePreference, UserStatus } from "../../../generated/prisma/enums";
+
+const { requireApiUserWithRoles, hashPassword, validatePasswordComplexity } = vi.hoisted(() => ({
+  requireApiUserWithRoles: vi.fn(),
+  hashPassword: vi.fn(),
+  validatePasswordComplexity: vi.fn(),
+}));
+
+vi.mock("@/lib/db", () => ({
+  prisma: prismaMock,
+}));
+
+vi.mock("@/lib/route-auth", () => ({
+  requireApiUserWithRoles,
+}));
+
+vi.mock("@/lib/auth", () => ({
+  hashPassword,
+  validatePasswordComplexity,
+}));
+
+import { POST } from "@/app/api/users/route";
+
+describe("create user route", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("creates a local user with expected defaults", async () => {
+    requireApiUserWithRoles.mockResolvedValue({
+      user: { id: "admin_1", role: Role.ADMIN },
+    });
+    validatePasswordComplexity.mockReturnValue(true);
+    hashPassword.mockResolvedValue("hashed-password");
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.user.create.mockResolvedValue({
+      id: "user_1",
+      email: "reviewer@example.com",
+      name: "Review Person",
+      role: Role.REVIEWER,
+      status: UserStatus.ACTIVE,
+      authMethod: AuthMethod.LOCAL,
+      mustChangePassword: true,
+    } as never);
+
+    const response = await POST(
+      new Request("http://localhost/api/users", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "Reviewer@Example.com",
+          name: "Review Person",
+          role: Role.REVIEWER,
+          temporaryPassword: "TempPass123",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    expect(validatePasswordComplexity).toHaveBeenCalledWith("TempPass123");
+    expect(hashPassword).toHaveBeenCalledWith("TempPass123");
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+      where: { email: "reviewer@example.com" },
+    });
+    expect(prismaMock.user.create).toHaveBeenCalledWith({
+      data: {
+        email: "reviewer@example.com",
+        emailVerified: true,
+        name: "Review Person",
+        role: Role.REVIEWER,
+        status: UserStatus.ACTIVE,
+        authMethod: AuthMethod.LOCAL,
+        passwordHash: "hashed-password",
+        mustChangePassword: true,
+        themePreference: ThemePreference.LIGHT,
+        accounts: {
+          create: {
+            providerId: "credential",
+            accountId: "reviewer@example.com",
+            password: "hashed-password",
+          },
+        },
+      },
+    });
+    if (!response) {
+      throw new Error("Expected response");
+    }
+    expect(response.status).toBe(201);
+  });
+
+  it("rejects duplicate email addresses", async () => {
+    requireApiUserWithRoles.mockResolvedValue({
+      user: { id: "admin_1", role: Role.ADMIN },
+    });
+    validatePasswordComplexity.mockReturnValue(true);
+    prismaMock.user.findUnique.mockResolvedValue({ id: "existing_user" } as never);
+
+    const response = await POST(
+      new Request("http://localhost/api/users", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "existing@example.com",
+          name: "Existing User",
+          role: Role.MARKETER,
+          temporaryPassword: "TempPass123",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    if (!response) {
+      throw new Error("Expected response");
+    }
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({
+      error: "A user with this email already exists",
+    });
+  });
+});

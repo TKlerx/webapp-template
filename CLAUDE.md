@@ -1,0 +1,49 @@
+# GVI Finance Development Guidelines
+
+## Tech Stack
+- TypeScript with Next.js 16 (App Router)
+- BetterAuth for authentication (email/password + Azure AD SSO)
+- Prisma 7 ORM with SQLite (future: PostgreSQL or MS SQL)
+- Tailwind CSS 4
+- next-intl for internationalization (en, de, es, fr, pt)
+- bcryptjs for password hashing
+
+## Project Structure
+
+```text
+src/
+  app/           # Next.js App Router pages and API routes
+  components/    # React components (auth, providers, ui)
+  lib/           # Core utilities (auth, db, rbac, base-path)
+  i18n/          # Internationalization (messages, config)
+prisma/          # Database schema and seeds
+tests/           # Unit and E2E tests
+```
+
+## Commands
+
+- `npm run dev` - Start dev server
+- `npm run build` - Production build
+- `npm test` - Run unit tests (vitest)
+- `npm run test:e2e` - Run E2E tests (playwright)
+- `npm run lint` - ESLint
+- `npm run typecheck` - TypeScript check
+- `npm run validate` - Run all checks
+- `npm run prisma:generate` - Generate Prisma client
+- `npm run prisma:migrate` - Run migrations
+- `npm run prisma:seed` - Seed database
+
+## Key Features
+- Dark/light theme with per-user persistence
+- Role-based access control (ADMIN, MARKETER_LEAD, MARKETER, REVIEWER)
+- Custom base path support (reverse-proxy friendly)
+- Azure AD SSO + local password auth
+- i18n with 5 locales, cookie-based locale selection
+- Responsive design (mobile-first with Tailwind breakpoints)
+
+## Code Style
+- TypeScript strict mode
+- Next.js App Router conventions
+- All UI text uses next-intl translation keys (no hardcoded strings in components)
+- CSS variables for theming, Tailwind for layout
+- Dark mode via `dark:` Tailwind variant and `[data-theme="dark"]` CSS

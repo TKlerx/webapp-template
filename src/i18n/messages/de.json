@@ -1,0 +1,89 @@
+{
+  "common": {
+    "appName": "GVI Finance",
+    "signOut": "Abmelden",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten",
+    "darkMode": "Dunkelmodus",
+    "lightMode": "Hellmodus",
+    "saving": "Speichern..."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "users": "Benutzerverwaltung"
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signInAzure": "Mit Azure anmelden",
+    "localAccount": "Lokales Konto",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "signingIn": "Anmeldung...",
+    "loginFailed": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "description": "Verwenden Sie Azure SSO oder ein lokales Konto, das von einem Administrator erstellt wurde.",
+    "ssoRevoked": "Ihr SSO-Zugang wurde widerrufen. Bitte kontaktieren Sie einen Administrator.",
+    "ssoNotConfigured": "Azure SSO ist noch nicht konfiguriert. Setzen Sie die Azure AD Umgebungsvariablen und versuchen Sie es erneut.",
+    "authFailed": "Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "changePassword": "Passwort ändern",
+    "changePasswordDescription": "Lokale Konten müssen ein neues Passwort festlegen, bevor sie das Dashboard betreten können.",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "saveNewPassword": "Neues Passwort speichern",
+    "passwordChanged": "Passwort erfolgreich geändert",
+    "couldNotUpdatePassword": "Passwort konnte nicht aktualisiert werden",
+    "firstLogin": "Erstanmeldung"
+  },
+  "pending": {
+    "title": "Ihr Konto wartet auf die Genehmigung eines Administrators.",
+    "description": "Sie können sich jetzt mit Azure anmelden, aber Sie erreichen die Anwendung erst, wenn ein Administrator Ihren Zugang genehmigt.",
+    "label": "Genehmigung ausstehend"
+  },
+  "dashboard": {
+    "label": "Dashboard",
+    "welcomeBack": "Willkommen zurück, {name}.",
+    "role": "Rolle",
+    "status": "Status",
+    "theme": "Design"
+  },
+  "users": {
+    "title": "Benutzer",
+    "createUser": "Lokalen Benutzer erstellen",
+    "emailPlaceholder": "E-Mail",
+    "namePlaceholder": "Name",
+    "temporaryPassword": "Temporäres Passwort",
+    "createButton": "Benutzer erstellen",
+    "userCreated": "Benutzer erstellt",
+    "couldNotCreate": "Benutzer konnte nicht erstellt werden",
+    "notAuthorized": "Sie sind nicht berechtigt, auf diese Seite zuzugreifen.",
+    "name": "Name",
+    "email": "E-Mail",
+    "role": "Rolle",
+    "statusLabel": "Status",
+    "auth": "Auth",
+    "actions": "Aktionen",
+    "approve": "Genehmigen",
+    "deactivate": "Deaktivieren",
+    "reactivate": "Reaktivieren",
+    "userApproved": "Benutzer genehmigt",
+    "userDeactivated": "Benutzer deaktiviert",
+    "userReactivated": "Benutzer reaktiviert",
+    "roleUpdated": "Rolle aktualisiert auf {role}",
+    "couldNotUpdate": "Benutzer konnte nicht aktualisiert werden",
+    "roles": {
+      "ADMIN": "Admin",
+      "MARKETER_LEAD": "Marketer Lead",
+      "MARKETER": "Marketer",
+      "REVIEWER": "Reviewer"
+    },
+    "statuses": {
+      "ACTIVE": "Aktiv",
+      "INACTIVE": "Inaktiv",
+      "PENDING_APPROVAL": "Genehmigung ausstehend"
+    }
+  },
+  "theme": {
+    "switchedTo": "Design auf {theme}-Modus umgeschaltet"
+  }
+}

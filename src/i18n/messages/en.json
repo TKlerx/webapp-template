@@ -1,0 +1,89 @@
+{
+  "common": {
+    "appName": "GVI Finance",
+    "signOut": "Sign out",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
+    "saving": "Saving..."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "users": "User Management"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signInAzure": "Sign in with Azure",
+    "localAccount": "Local account",
+    "email": "Email",
+    "password": "Password",
+    "signingIn": "Signing in...",
+    "loginFailed": "Login failed. Please try again.",
+    "description": "Use Azure SSO or a local account created by an administrator.",
+    "ssoRevoked": "Your SSO access has been revoked. Please contact an administrator.",
+    "ssoNotConfigured": "Azure SSO is not configured yet. Set the Azure AD env vars and try again.",
+    "authFailed": "Authentication failed. Please try again.",
+    "changePassword": "Change your password",
+    "changePasswordDescription": "Local accounts must set a new password before entering the dashboard.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "saveNewPassword": "Save new password",
+    "passwordChanged": "Password changed successfully",
+    "couldNotUpdatePassword": "Could not update password",
+    "firstLogin": "First login"
+  },
+  "pending": {
+    "title": "Your account is pending Admin approval.",
+    "description": "You can sign in with Azure now, but you will not reach the application until an administrator approves your access.",
+    "label": "Pending approval"
+  },
+  "dashboard": {
+    "label": "Dashboard",
+    "welcomeBack": "Welcome back, {name}.",
+    "role": "Role",
+    "status": "Status",
+    "theme": "Theme"
+  },
+  "users": {
+    "title": "Users",
+    "createUser": "Create local user",
+    "emailPlaceholder": "Email",
+    "namePlaceholder": "Name",
+    "temporaryPassword": "Temporary password",
+    "createButton": "Create user",
+    "userCreated": "User created",
+    "couldNotCreate": "Could not create user",
+    "notAuthorized": "You are not authorized to access this page.",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "statusLabel": "Status",
+    "auth": "Auth",
+    "actions": "Actions",
+    "approve": "Approve",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "userApproved": "User approved",
+    "userDeactivated": "User deactivated",
+    "userReactivated": "User reactivated",
+    "roleUpdated": "Role updated to {role}",
+    "couldNotUpdate": "Could not update user",
+    "roles": {
+      "ADMIN": "Admin",
+      "MARKETER_LEAD": "Marketer Lead",
+      "MARKETER": "Marketer",
+      "REVIEWER": "Reviewer"
+    },
+    "statuses": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "PENDING_APPROVAL": "Pending approval"
+    }
+  },
+  "theme": {
+    "switchedTo": "Theme switched to {theme} mode"
+  }
+}

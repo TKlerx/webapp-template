@@ -1,0 +1,89 @@
+{
+  "common": {
+    "appName": "GVI Finance",
+    "signOut": "Sair",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "darkMode": "Modo escuro",
+    "lightMode": "Modo claro",
+    "saving": "Salvando..."
+  },
+  "nav": {
+    "dashboard": "Painel",
+    "users": "Gestão de utilizadores"
+  },
+  "auth": {
+    "signIn": "Entrar",
+    "signInAzure": "Entrar com Azure",
+    "localAccount": "Conta local",
+    "email": "E-mail",
+    "password": "Palavra-passe",
+    "signingIn": "A entrar...",
+    "loginFailed": "Falha no login. Tente novamente.",
+    "description": "Use Azure SSO ou uma conta local criada por um administrador.",
+    "ssoRevoked": "O seu acesso SSO foi revogado. Contacte um administrador.",
+    "ssoNotConfigured": "Azure SSO ainda não está configurado. Defina as variáveis de ambiente Azure AD e tente novamente.",
+    "authFailed": "Falha na autenticação. Tente novamente.",
+    "changePassword": "Alterar palavra-passe",
+    "changePasswordDescription": "As contas locais devem definir uma nova palavra-passe antes de aceder ao painel.",
+    "currentPassword": "Palavra-passe atual",
+    "newPassword": "Nova palavra-passe",
+    "saveNewPassword": "Guardar nova palavra-passe",
+    "passwordChanged": "Palavra-passe alterada com sucesso",
+    "couldNotUpdatePassword": "Não foi possível atualizar a palavra-passe",
+    "firstLogin": "Primeiro login"
+  },
+  "pending": {
+    "title": "A sua conta está pendente de aprovação do administrador.",
+    "description": "Pode iniciar sessão com Azure agora, mas não poderá aceder à aplicação até que um administrador aprove o seu acesso.",
+    "label": "Aprovação pendente"
+  },
+  "dashboard": {
+    "label": "Painel",
+    "welcomeBack": "Bem-vindo de volta, {name}.",
+    "role": "Função",
+    "status": "Estado",
+    "theme": "Tema"
+  },
+  "users": {
+    "title": "Utilizadores",
+    "createUser": "Criar utilizador local",
+    "emailPlaceholder": "E-mail",
+    "namePlaceholder": "Nome",
+    "temporaryPassword": "Palavra-passe temporária",
+    "createButton": "Criar utilizador",
+    "userCreated": "Utilizador criado",
+    "couldNotCreate": "Não foi possível criar o utilizador",
+    "notAuthorized": "Não está autorizado a aceder a esta página.",
+    "name": "Nome",
+    "email": "E-mail",
+    "role": "Função",
+    "statusLabel": "Estado",
+    "auth": "Auth",
+    "actions": "Ações",
+    "approve": "Aprovar",
+    "deactivate": "Desativar",
+    "reactivate": "Reativar",
+    "userApproved": "Utilizador aprovado",
+    "userDeactivated": "Utilizador desativado",
+    "userReactivated": "Utilizador reativado",
+    "roleUpdated": "Função atualizada para {role}",
+    "couldNotUpdate": "Não foi possível atualizar o utilizador",
+    "roles": {
+      "ADMIN": "Admin",
+      "MARKETER_LEAD": "Marketer Lead",
+      "MARKETER": "Marketer",
+      "REVIEWER": "Reviewer"
+    },
+    "statuses": {
+      "ACTIVE": "Ativo",
+      "INACTIVE": "Inativo",
+      "PENDING_APPROVAL": "Aprovação pendente"
+    }
+  },
+  "theme": {
+    "switchedTo": "Tema alterado para modo {theme}"
+  }
+}
