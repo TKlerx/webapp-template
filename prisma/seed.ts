@@ -18,11 +18,11 @@ const legacyRoleMap = {
 } as const;
 
 async function migrateLegacyRoles() {
-  const roleRows = (await prisma.$queryRawUnsafe(`
+  const roleRows = (await prisma.$queryRaw<Array<{ id: string; role: keyof typeof legacyRoleMap }>>`
     SELECT id, role
     FROM User
     WHERE role IN ('ADMIN', 'MARKETER_LEAD', 'MARKETER', 'REVIEWER')
-  `)) as Array<{ id: string; role: keyof typeof legacyRoleMap }>;
+  `);
 
   for (const row of roleRows) {
     await prisma.user.update({
