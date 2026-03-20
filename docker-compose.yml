@@ -1,0 +1,44 @@
+x-app-image: &app-image
+  build:
+    context: .
+    dockerfile: Dockerfile.app
+    args:
+      BASE_PATH: ${BASE_PATH}
+
+services:
+  migrate:
+    <<: *app-image
+    user: "0:0"
+    env_file: .env
+    environment:
+      DATABASE_URL: "file:/data/dev.db"
+      NODE_ENV: "production"
+      PORT: "3270"
+    volumes:
+      - sqlite_data:/data
+      - uploads_data:/app/uploads
+    command: >
+      sh -c "node scripts/prisma-predeploy-check.js
+      && npx prisma migrate deploy"
+    restart: "no"
+
+  app:
+    <<: *app-image
+    env_file: .env
+    environment:
+      DATABASE_URL: "file:/data/dev.db"
+      NODE_ENV: "production"
+      PORT: "3270"
+    volumes:
+      - sqlite_data:/data
+      - uploads_data:/app/uploads
+    ports:
+      - "${PORT:-3270}:3270"
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  sqlite_data:
+  uploads_data:
