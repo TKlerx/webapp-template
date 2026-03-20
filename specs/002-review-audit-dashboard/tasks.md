@@ -48,23 +48,30 @@
 
 **Independent Test**: Filter receipts by country and status, open a receipt, view the file inline, approve one, flag another with a comment — verify status changes and audit entries are created
 
+> **NOTE on REJECTED→FLAGGED**: Per FR-018, GVI Finance admins can reverse any status including REJECTED→FLAGGED. This re-enables Country Finance response (the receipt re-enters the flag/respond cycle). The transition is covered by the state machine in T003.
+
+### Tests for User Story 1
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+- [ ] T009 [P] [US1] Unit tests for review state machine transitions (all 6 valid transitions + invalid transitions denied), review API route authorization, and comment creation in `tests/unit/review.test.ts`
+- [ ] T010 [P] [US1] E2E test for full review workflow: admin opens review dashboard, filters by country/status, opens a receipt, approves it, opens another, flags it with a comment — verify status changes and audit trail entries in `tests/e2e/review-workflow.spec.ts`
+
 ### API Routes for User Story 1
 
-- [ ] T009 [P] [US1] Implement `POST /api/receipts/[id]/review` (GVI_FINANCE_ADMIN only, validates state transitions, requires comment for flag/reject, creates ReviewComment + AuditEntry) in `src/app/api/receipts/[id]/review/route.ts`
-- [ ] T010 [P] [US1] Implement `GET /api/receipts/[id]/comments` (all roles, country-scoped, chronological order) in `src/app/api/receipts/[id]/comments/route.ts`
-- [ ] T011 [P] [US1] Extend existing `GET /api/receipts` endpoint with review-specific query params (status, review=true for dashboard mode) in `src/app/api/receipts/route.ts`
+- [ ] T011 [P] [US1] Implement `POST /api/receipts/[id]/review` (GVI_FINANCE_ADMIN only, validates state transitions, requires comment for flag/reject, creates ReviewComment + AuditEntry) in `src/app/api/receipts/[id]/review/route.ts`
+- [ ] T012 [P] [US1] Implement `GET /api/receipts/[id]/comments` (all roles, country-scoped, chronological order) in `src/app/api/receipts/[id]/comments/route.ts`
+- [ ] T013 [P] [US1] Extend existing `GET /api/receipts` endpoint with review-specific query params (status, review=true for dashboard mode) and add page/limit query parameters for pagination (required for review dashboard performance) in `src/app/api/receipts/route.ts`
 
 ### UI Components for User Story 1
 
-- [ ] T012 [P] [US1] Create review actions component with Approve/Flag/Reject buttons and comment input (required for flag/reject) in `src/components/review/ReviewActions.tsx`
-- [ ] T013 [P] [US1] Create comment thread component showing all comments chronologically with author name, role badge, and timestamp in `src/components/review/CommentThread.tsx`
-- [ ] T014 [US1] Create review dashboard component with filterable receipt table (columns: country, budget item, amount, date, submitter, status) and filters (country, status, budget item, date range, submitter) in `src/components/review/ReviewDashboard.tsx`
-- [ ] T015 [US1] Create receipt review detail component combining FileViewer, metadata display, CommentThread, and ReviewActions in `src/components/review/ReceiptReviewDetail.tsx`
+- [ ] T014 [P] [US1] Create review actions component with Approve/Flag/Reject buttons and comment input (required for flag/reject) in `src/components/review/ReviewActions.tsx`
+- [ ] T015 [P] [US1] Create comment thread component showing all comments chronologically with author name, role badge, and timestamp in `src/components/review/CommentThread.tsx`
+- [ ] T016 [US1] Create review dashboard component with filterable receipt table (columns: country, budget item, amount, date, submitter, status) and filters (country, status, budget item, date range, submitter) in `src/components/review/ReviewDashboard.tsx`
+- [ ] T017 [US1] Create receipt review detail component combining FileViewer, metadata display, CommentThread, and ReviewActions in `src/components/review/ReceiptReviewDetail.tsx`
 
 ### Pages for User Story 1
 
-- [ ] T016 [US1] Create review dashboard page in `src/app/(dashboard)/review/page.tsx`
-- [ ] T017 [US1] Create receipt review detail page in `src/app/(dashboard)/review/[receiptId]/page.tsx`
+- [ ] T018 [US1] Create review dashboard page in `src/app/(dashboard)/review/page.tsx`
+- [ ] T019 [US1] Create receipt review detail page in `src/app/(dashboard)/review/[receiptId]/page.tsx`
 
 **Checkpoint**: User Story 1 complete — GVI Finance admins can review receipts
 
@@ -76,15 +83,20 @@
 
 **Independent Test**: Flag a receipt as admin, log in as Country Finance, see the flag indicator, add a comment — verify status reverts to Pending Review. Upload a corrected file — verify original is retained and status reverts.
 
+### Tests for User Story 2
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+- [ ] T020 [P] [US2] Unit tests for comment creation by Country Finance (only when FLAGGED, auto-revert to PENDING_REVIEW), revision upload validation (file type/size), and authorization (own receipts only) in `tests/unit/flag-response.test.ts`
+- [ ] T021 [P] [US2] E2E test for flag response workflow: admin flags a receipt with comment, Country Finance user logs in, sees flagged indicator, adds clarification comment (status reverts), uploads corrected file (original retained) — admin re-reviews with full history visible in `tests/e2e/flag-response.spec.ts`
+
 ### API Routes for User Story 2
 
-- [ ] T018 [P] [US2] Implement `POST /api/receipts/[id]/comments` (Country Finance: own receipts only when FLAGGED, auto-reverts status to PENDING_REVIEW, creates AuditEntry) in `src/app/api/receipts/[id]/comments/route.ts` (extend the GET-only route from T010)
-- [ ] T019 [P] [US2] Implement `GET /api/receipts/[id]/revisions` and `POST /api/receipts/[id]/revisions` (Country Finance: own receipts only when FLAGGED, multipart file upload, validates PDF/JPEG/PNG ≤20MB, stores via file-storage service, reverts status to PENDING_REVIEW) in `src/app/api/receipts/[id]/revisions/route.ts`
+- [ ] T022 [P] [US2] Implement `POST /api/receipts/[id]/comments` (Country Finance: own receipts only when FLAGGED, auto-reverts status to PENDING_REVIEW, creates AuditEntry) in `src/app/api/receipts/[id]/comments/route.ts` (extend the GET-only route from T012)
+- [ ] T023 [P] [US2] Implement `GET /api/receipts/[id]/revisions` and `POST /api/receipts/[id]/revisions` (Country Finance: own receipts only when FLAGGED, multipart file upload, validates PDF/JPEG/PNG ≤20MB, stores via file-storage service, reverts status to PENDING_REVIEW) in `src/app/api/receipts/[id]/revisions/route.ts`
 
 ### UI Components for User Story 2
 
-- [ ] T020 [P] [US2] Create file revision viewer component showing original file + all revisions chronologically with upload dates in `src/components/review/FileRevisionViewer.tsx`
-- [ ] T021 [US2] Update Country Finance receipt list view to show flagged receipt indicators with reviewer comments and add response UI (comment input + file upload option) — extend existing receipt detail page or create `src/app/(dashboard)/receipts/[id]/respond/page.tsx`
+- [ ] T024 [P] [US2] Create file revision viewer component showing original file + all revisions chronologically with upload dates in `src/components/review/FileRevisionViewer.tsx`
+- [ ] T025 [US2] Update Country Finance receipt list view to show flagged receipt indicators with reviewer comments and add response UI (comment input + file upload option) — extend existing receipt detail page or create `src/app/(dashboard)/receipts/[id]/respond/page.tsx`
 
 **Checkpoint**: User Story 2 complete — two-way review communication works
 
@@ -96,19 +108,24 @@
 
 **Independent Test**: Perform various actions (upload, review, budget edit), open audit trail, filter by date range and action type, verify entries appear correctly. Export as CSV and PDF.
 
+### Tests for User Story 3
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+- [ ] T026 [P] [US3] Unit tests for audit export service (CSV format correctness, PDF generation, filter application) and audit API endpoint (pagination, filtering by date range/action/entity/country/actor) in `tests/unit/audit-trail.test.ts`
+- [ ] T027 [P] [US3] E2E test for audit trail workflow: perform several actions (upload receipt, review receipt, edit budget), open audit trail page, filter by date range and action type, verify entries appear correctly, export as CSV and verify file download in `tests/e2e/audit-trail.spec.ts`
+
 ### API Routes for User Story 3
 
-- [ ] T022 [P] [US3] Extend Feature 1's `GET /api/audit` endpoint with pagination (page, limit) and review-specific filters (action, entityType, countryId, dateFrom, dateTo, actorId) in `src/app/api/audit/route.ts`
-- [ ] T023 [P] [US3] Implement `GET /api/audit/export?format=csv|pdf` with same filters, returning binary file with Content-Disposition header in `src/app/api/audit/export/route.ts`
+- [ ] T028 [P] [US3] Extend Feature 1's `GET /api/audit` endpoint with pagination (page, limit) and review-specific filters (action, entityType, countryId, dateFrom, dateTo, actorId) in `src/app/api/audit/route.ts`
+- [ ] T029 [P] [US3] Implement `GET /api/audit/export?format=csv|pdf` with same filters, returning binary file with Content-Disposition header in `src/app/api/audit/export/route.ts`
 
 ### UI Components for User Story 3
 
-- [ ] T024 [P] [US3] Create audit trail viewer component with filterable table (date, actor, action, entity, details) and pagination in `src/components/audit/AuditTrailViewer.tsx`
-- [ ] T025 [P] [US3] Create audit export button component triggering CSV/PDF download with current filters in `src/components/audit/AuditExportButton.tsx`
+- [ ] T030 [P] [US3] Create audit trail viewer component with filterable table (date, actor, action, entity, details) and pagination in `src/components/audit/AuditTrailViewer.tsx`
+- [ ] T031 [P] [US3] Create audit export button component triggering CSV/PDF download with current filters in `src/components/audit/AuditExportButton.tsx`
 
 ### Pages for User Story 3
 
-- [ ] T026 [US3] Create audit trail page combining viewer and export in `src/app/(dashboard)/audit-trail/page.tsx`
+- [ ] T032 [US3] Create audit trail page combining viewer and export in `src/app/(dashboard)/audit-trail/page.tsx`
 
 **Checkpoint**: User Story 3 complete — audit trail viewable and exportable
 
@@ -120,20 +137,25 @@
 
 **Independent Test**: With budgets and receipts in various review statuses, open compliance dashboard, verify correct aggregation per country. Drill down into a country, verify per-item breakdown. Check over-budget highlighting.
 
+### Tests for User Story 4
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+- [ ] T033 [P] [US4] Unit tests for compliance aggregation service (correct summation of approved vs. total spend, status counts, per-item breakdown, over-budget detection, status filter application) in `tests/unit/compliance.test.ts`
+- [ ] T034 [P] [US4] E2E test for compliance dashboard workflow: open compliance dashboard, verify per-country summaries display correctly, drill down into a country, verify budget hierarchy with planned vs. actual, confirm over-budget items are highlighted, click through to individual receipts in `tests/e2e/compliance-dashboard.spec.ts`
+
 ### API Routes for User Story 4
 
-- [ ] T027 [P] [US4] Implement `GET /api/compliance?budgetYearId=X&statusFilter=approved|all` returning per-country summaries in `src/app/api/compliance/route.ts`
-- [ ] T028 [P] [US4] Implement `GET /api/compliance/[countryBudgetId]?statusFilter=approved|all` returning budget hierarchy with per-item aggregation in `src/app/api/compliance/[countryBudgetId]/route.ts`
+- [ ] T035 [P] [US4] Implement `GET /api/compliance?budgetYearId=X&statusFilter=approved|all` returning per-country summaries in `src/app/api/compliance/route.ts`
+- [ ] T036 [P] [US4] Implement `GET /api/compliance/[countryBudgetId]?statusFilter=approved|all` returning budget hierarchy with per-item aggregation in `src/app/api/compliance/[countryBudgetId]/route.ts`
 
 ### UI Components for User Story 4
 
-- [ ] T029 [P] [US4] Create compliance dashboard component with country summary cards (total budget, approved spend, total spend, %, status counts), budget year selector, and review status filter dropdown in `src/components/compliance/ComplianceDashboard.tsx`
-- [ ] T030 [P] [US4] Create budget drill-down component showing hierarchy with planned vs. actual, review status counts per item, over-budget highlighting, and click-to-receipts in `src/components/compliance/BudgetDrillDown.tsx`
+- [ ] T037 [P] [US4] Create compliance dashboard component with country summary cards (total budget, approved spend, total spend, %, status counts), budget year selector, and review status filter dropdown in `src/components/compliance/ComplianceDashboard.tsx`
+- [ ] T038 [P] [US4] Create budget drill-down component showing hierarchy with planned vs. actual, review status counts per item, over-budget highlighting, and click-to-receipts in `src/components/compliance/BudgetDrillDown.tsx`
 
 ### Pages for User Story 4
 
-- [ ] T031 [US4] Create compliance dashboard page with country-level view and drill-down navigation in `src/app/(dashboard)/compliance/page.tsx`
-- [ ] T032 [US4] Create compliance drill-down page for a specific country budget in `src/app/(dashboard)/compliance/[countryBudgetId]/page.tsx`
+- [ ] T039 [US4] Create compliance dashboard page with country-level view and drill-down navigation in `src/app/(dashboard)/compliance/page.tsx`
+- [ ] T040 [US4] Create compliance drill-down page for a specific country budget in `src/app/(dashboard)/compliance/[countryBudgetId]/page.tsx`
 
 **Checkpoint**: User Story 4 complete — compliance dashboard with drill-down functional
 
@@ -145,8 +167,13 @@
 
 **Independent Test**: Log in as Country Admin, verify dashboard shows only their country's receipt status summary. View a flagged receipt, confirm review action buttons are hidden. Attempt review via API — verify denial.
 
-- [ ] T033 [US5] Create country review status summary component showing receipt counts and amounts by status (pending, approved, flagged, rejected) in `src/components/review/CountryReviewSummary.tsx`
-- [ ] T034 [US5] Add country review summary to the Country Admin dashboard view, showing flagged receipts with reviewer comments (read-only, no review actions) in `src/app/(dashboard)/page.tsx` (extend existing dashboard with role-conditional content)
+### Tests for User Story 5
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+- [ ] T041 [P] [US5] Unit tests for Country Admin authorization (can view own country's review summary, cannot perform review actions, API denies review attempts) in `tests/unit/country-admin-view.test.ts`
+- [ ] T042 [P] [US5] E2E test for Country Admin view: log in as Country Admin, verify dashboard shows only their country's receipt status summary with correct counts, view a flagged receipt with reviewer comments (read-only), confirm review action buttons are not rendered in `tests/e2e/country-admin-view.spec.ts`
+
+- [ ] T043 [US5] Create country review status summary component showing receipt counts and amounts by status (pending, approved, flagged, rejected) in `src/components/review/CountryReviewSummary.tsx`
+- [ ] T044 [US5] Add country review summary to the Country Admin dashboard view, showing flagged receipts with reviewer comments (read-only, no review actions) in `src/app/(dashboard)/page.tsx` (extend existing dashboard with role-conditional content)
 
 **Checkpoint**: User Story 5 complete — Country Admins have visibility into review status
 
@@ -156,10 +183,10 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T035 [P] Update sidebar navigation to include Review Dashboard, Audit Trail, and Compliance Dashboard with role-based visibility (review: GVI_FINANCE_ADMIN; audit: GVI_FINANCE_ADMIN; compliance: GVI_FINANCE_ADMIN + COUNTRY_ADMIN) in sidebar/nav component
-- [ ] T036 [P] Ensure all review actions, comments, and revision uploads trigger toast notifications on success/error per constitution principle VI
-- [ ] T037 [P] Verify responsive design on mobile viewport for review dashboard, receipt detail with file viewer, audit trail, and compliance dashboard per constitution principle VIII
-- [ ] T038 Run quickstart.md validation: walk through all 4 workflows (review receipt, respond to flag, audit trail + export, compliance dashboard) to confirm end-to-end functionality
+- [ ] T045 [P] Update sidebar navigation to include Review Dashboard, Audit Trail, and Compliance Dashboard with role-based visibility (review: GVI_FINANCE_ADMIN; audit: GVI_FINANCE_ADMIN; compliance: GVI_FINANCE_ADMIN + COUNTRY_ADMIN) in sidebar/nav component
+- [ ] T046 [P] Ensure all review actions, comments, and revision uploads trigger toast notifications on success/error per constitution principle VI
+- [ ] T047 [P] Verify responsive design on mobile viewport for review dashboard, receipt detail with file viewer, audit trail, and compliance dashboard per constitution principle VIII
+- [ ] T048 Run quickstart.md validation: walk through all 4 workflows (review receipt, respond to flag, audit trail + export, compliance dashboard) to confirm end-to-end functionality
 
 ---
 
@@ -180,16 +207,16 @@
 
 - **US1 (Review Receipts)** — P1: Can start after Phase 2. No dependencies on other stories.
 - **US2 (Respond to Flags)** — P1: Depends on US1 (needs flag capability to respond to).
-- **US3 (Audit Trail)** — P2: Can start after Phase 2. Independent of US1/US2.
-- **US4 (Compliance Dashboard)** — P2: Can start after Phase 2. Independent but richer with US1 review data.
+- **US3 (Audit Trail)** — P2: Can start after Phase 1 (services only). Independent of Phase 2 and US1/US2.
+- **US4 (Compliance Dashboard)** — P2: Can start after Phase 1 (services only). Independent of Phase 2 but richer with US1 review data.
 - **US5 (Country Admin View)** — P3: Depends on US1 (needs review status data).
 
 ### Parallel Opportunities
 
 Within Phase 1: T003, T004, T005, T006 can all run in parallel (after T001+T002).
 Within Phase 2: T007, T008 in parallel.
-Within Phase 3: T009, T010, T011, T012, T013 in parallel (API routes + components).
-US3 and US4 can run in parallel after Phase 2 (independent of US1/US2).
+Within Phase 3: T009, T010, T011, T012, T014, T015 in parallel (tests + API routes + components).
+US3 and US4 can run in parallel after Phase 1 (independent of Phase 2 and US1/US2).
 
 ---
 
@@ -209,3 +236,15 @@ US3 and US4 can run in parallel after Phase 2 (independent of US1/US2).
 7. Complete Phase 6: US4 — Compliance dashboard (can parallel with Phase 4)
 8. Complete Phase 7: US5 — Country Admin view
 9. Complete Phase 8: Polish
+
+---
+
+## Summary
+
+| Metric | Count |
+|---|---|
+| Total tasks | 48 |
+| Test tasks | 10 |
+| Implementation tasks | 38 |
+| User stories covered | 5 |
+| Phases | 8 |

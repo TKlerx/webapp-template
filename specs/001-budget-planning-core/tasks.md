@@ -19,6 +19,7 @@
 
 - [ ] T001 Update Prisma schema with new enums (Role: GVI_FINANCE_ADMIN, COUNTRY_ADMIN, COUNTRY_FINANCE; ProposalType; ProposalStatus; AuditAction) and all new models (ProgramCountry, UserCountryAssignment, BudgetYear, CountryBudget, BudgetItem, Receipt, InstitutionalDonor, DonorProject, DonorProjectTag, BudgetProposal, AuditEntry, BudgetTemplate, BudgetTemplateItem) per data-model.md in `prisma/schema.prisma`
 - [ ] T002 Create and run Prisma migration for the new schema, then update seed script to map existing ADMIN user to GVI_FINANCE_ADMIN in `prisma/seed.ts`
+- [ ] T002a Add role migration logic to seed script: migrate existing users from old roles (ADMIN → GVI_FINANCE_ADMIN, MARKETER_LEAD → COUNTRY_ADMIN, MARKETER → COUNTRY_FINANCE, REVIEWER → COUNTRY_FINANCE) and handle any users with the deprecated REVIEWER role in `prisma/seed.ts`
 - [ ] T003 [P] Create file storage service with `saveFile(buffer, originalName)` and `getFilePath(storedPath)` in `src/lib/file-storage.ts`. Files saved as `uploads/{year}/{month}/{uuid}.{ext}`. Add `uploads/` to `.gitignore`
 - [ ] T004 [P] Create audit trail logging service with `logAudit({ action, entityType, entityId, actorId, details, countryId })` in `src/lib/audit.ts`
 - [ ] T005 [P] Create budget validation utility with `validateChildSum(parentId)` that checks child planned amounts ≤ parent amount, and `hasReceipts(budgetItemId)` that recursively checks for assigned receipts in `src/lib/budget-validation.ts`
@@ -47,6 +48,14 @@
 
 **Independent Test**: Create a budget year, add countries with total budgets, build a multi-level budget item hierarchy, verify tree view displays correctly with amounts
 
+### Tests for User Story 1
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T009a [P] [US1] Unit test for budget year and country budget CRUD APIs in `tests/unit/budget-years-api.test.ts` — test create budget year, add country with total budget and currency, validate response shapes match api.md contracts
+- [ ] T009b [P] [US1] Unit test for budget item hierarchy APIs in `tests/unit/budget-items-api.test.ts` — test create root item, create nested child items (3+ levels), verify child sum ≤ parent validation blocks over-budget, verify deletion blocked when receipts exist
+- [ ] T009c [P] [US1] E2E test for budget hierarchy creation workflow in `tests/e2e/budget-hierarchy.spec.ts` — as GVI_FINANCE_ADMIN: create budget year, add country "Kenya" with €50,000, create "Personnel" (€30,000) with child "Salaries" (€20,000), verify tree view displays all levels with correct amounts
+
 ### API Routes for User Story 1
 
 - [ ] T009 [P] [US1] Implement `GET /api/budget-years` and `POST /api/budget-years` API routes in `src/app/api/budget-years/route.ts`
@@ -74,6 +83,13 @@
 
 **Independent Test**: Create users with different roles, assign to countries, verify country-scoped access isolation
 
+### Tests for User Story 2
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T020a [P] [US2] Unit test for country assignment and role-scoped access in `tests/unit/country-assignment-api.test.ts` — test assigning Country Finance role with country, verify user can only access assigned country's data, verify GVI_FINANCE_ADMIN sees all countries
+- [ ] T020b [P] [US2] E2E test for role-based country access isolation in `tests/e2e/country-access.spec.ts` — create two users (Country Finance for Kenya, Country Admin for Ghana), verify each can only see their country's budget data, verify denied access to other country's data
+
 ### API Routes for User Story 2
 
 - [ ] T020 [P] [US2] Implement `GET /api/users/[id]/countries` and `PUT /api/users/[id]/countries` API routes for country assignment in `src/app/api/users/[id]/countries/route.ts`
@@ -93,11 +109,23 @@
 
 **Independent Test**: Upload a receipt, assign to a budget item, verify file is stored, metadata is correct, receipt appears under the budget item, and rolled-up totals are correct
 
+### Tests for User Story 3
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T023a [P] [US3] Unit test for receipt upload and metadata APIs in `tests/unit/receipts-api.test.ts` — test upload with PDF/JPEG/PNG, verify file size ≤ 20MB validation, verify metadata (amount, date, description, budgetItemId) saved correctly, verify receipt appears under assigned budget item
+- [ ] T023b [P] [US3] Unit test for receipt immutability enforcement in `tests/unit/receipt-immutability.test.ts` — verify DELETE /api/receipts/[id]/file returns 403/405, verify PATCH /api/receipts/[id] cannot change file reference, verify file-storage service rejects overwrite of existing stored file
+- [ ] T023c [P] [US3] E2E test for receipt upload and assignment workflow in `tests/e2e/receipt-upload.spec.ts` — as Country Finance user for Kenya: upload a receipt PDF, assign to budget item "Fuel", fill amount/date/description, verify receipt appears in budget item view with correct metadata and rolled-up totals
+
 ### API Routes for User Story 3
 
 - [ ] T023 [P] [US3] Implement `GET /api/receipts` (with filters: budgetItemId, countryId, dateFrom, dateTo) and `POST /api/receipts` (multipart upload with file validation: type, size ≤ 20MB) in `src/app/api/receipts/route.ts`
 - [ ] T024 [P] [US3] Implement `GET /api/receipts/[id]`, `PATCH /api/receipts/[id]` (metadata only, with audit trail for each change) in `src/app/api/receipts/[id]/route.ts`
 - [ ] T025 [P] [US3] Implement `GET /api/receipts/[id]/file` to serve stored files with correct Content-Type and Content-Disposition headers in `src/app/api/receipts/[id]/file/route.ts`
+
+### Receipt Immutability Enforcement
+
+- [ ] T025a [US3] Enforce receipt file immutability at the API level in `src/app/api/receipts/[id]/file/route.ts` and `src/lib/file-storage.ts` — reject DELETE and PUT/PATCH requests to file endpoint with 405, ensure file-storage service prevents overwriting or deleting existing files, verify PATCH /api/receipts/[id] cannot modify the filePath field (FR-009)
 
 ### UI Pages for User Story 3
 
@@ -115,6 +143,13 @@
 **Goal**: GVI Finance Admin creates institutional donors and donor projects, then tags budget items or individual receipts to donor projects. Tagged budget items implicitly include all descendant receipts.
 
 **Independent Test**: Create donor + project, tag a budget item, upload receipt under that item, verify it appears in the donor project scope. Tag an individual receipt directly, verify it also appears.
+
+### Tests for User Story 4
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T030a [P] [US4] Unit test for donor project CRUD and tagging APIs in `tests/unit/donor-projects-api.test.ts` — test create donor and project, tag a budget item to project, tag individual receipt to project, verify tagged items retrievable by project, verify implicit inclusion of descendant receipts when budget item is tagged
+- [ ] T030b [P] [US4] E2E test for donor project tagging workflow in `tests/e2e/donor-tagging.spec.ts` — as GVI_FINANCE_ADMIN: create donor "EU", create project "EU Grant 2026", tag budget item "Personnel", upload receipt under "Personnel > Salaries", verify receipt appears in donor project scope automatically
 
 ### API Routes for User Story 4
 
@@ -137,10 +172,21 @@
 
 **Independent Test**: Create budget with items, upload receipts, verify overview shows correct planned vs. actual amounts, over-budget items are highlighted, drill-down shows receipts
 
+### Tests for User Story 5
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T035a [P] [US5] Unit test for budget overview rolled-up calculations in `tests/unit/budget-overview-api.test.ts` — test GET /api/budget-items/[id]/overview returns correct actualSpend as recursive sum of receipts, verify parent item aggregates children's receipts, verify over-budget detection when actual > planned
+- [ ] T035b [P] [US5] E2E test for budget overview and drill-down in `tests/e2e/budget-overview.spec.ts` — create budget with items and receipts, open overview page, verify planned vs actual displayed correctly, verify over-budget item is visually highlighted, click item to drill down and verify child items and receipts are shown
+
 ### Implementation for User Story 5
 
 - [ ] T035 [US5] Create budget overview component showing hierarchy with planned amount, actual spend (rolled-up via recursive sum), and over-budget highlighting in `src/components/budget/BudgetOverview.tsx`
 - [ ] T036 [US5] Create budget overview page with country/year selector and drill-down navigation (click item → see children + receipts) in `src/app/(dashboard)/budget-overview/page.tsx`
+
+- [ ] T037 [P] [US5] Add i18n translation keys for budget overview labels (planned, actual, over-budget, under-budget, variance) across all 5 locales in `src/i18n/messages/{locale}.json`
+- [ ] T038 [US5] Integrate budget overview link into sidebar navigation and dashboard summary cards in `src/components/ui/Sidebar.tsx` and `src/app/(dashboard)/page.tsx`
+- [ ] T039 [US5] Add country/year selector component for filtering budget overview in `src/components/budget/BudgetOverviewFilters.tsx`
 
 **Checkpoint**: User Story 5 complete — budget compliance view functional
 
@@ -151,6 +197,13 @@
 **Goal**: GVI Finance Admin can create, manage, and apply reusable budget templates with default hierarchies and amounts. Can also save an existing country budget as a template.
 
 **Independent Test**: Create a template with a multi-level hierarchy and amounts. Create a new country budget, apply the template, verify items are pre-populated. Save an existing country budget as a template, verify it captures the hierarchy.
+
+### Tests for User Story 6
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T040a [P] [US6] Unit test for budget template CRUD and apply-template APIs in `tests/unit/budget-templates-api.test.ts` — test create template with nested hierarchy, verify items stored with parentId references, test apply-template copies items to country budget with correct amounts, test from-budget creates template from existing country budget
+- [ ] T040b [P] [US6] E2E test for template creation and application workflow in `tests/e2e/budget-templates.spec.ts` — as GVI_FINANCE_ADMIN: create template "Standard Country Budget" with multi-level hierarchy, create new country budget for Kenya 2027, apply template, verify all items pre-populated with correct hierarchy and amounts, verify modifying Kenya's items does not affect template
 
 ### API Routes for User Story 6
 
@@ -176,6 +229,13 @@
 
 **Independent Test**: As Country Admin, create a proposal to add a budget item. As GVI Finance Admin, approve it and verify the budget item is created.
 
+### Tests for Budget Proposals
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T048a [P] [US2] Unit test for budget proposal APIs in `tests/unit/budget-proposals-api.test.ts` — test COUNTRY_ADMIN can create ADD/EDIT/REMOVE proposals, test GVI_FINANCE_ADMIN can approve/reject, verify approved ADD proposal creates budget item, verify approved EDIT proposal updates budget item, verify approved REMOVE proposal deletes budget item, verify audit trail entries recorded
+- [ ] T048b [P] [US2] E2E test for proposal workflow in `tests/e2e/budget-proposals.spec.ts` — as Country Admin: create proposal to add budget item "Office Supplies" under "Operations", as GVI_FINANCE_ADMIN: view pending proposals, approve it, verify budget item is created in country budget
+
 ### API Routes
 
 - [ ] T048 [P] [US2] Implement `GET /api/budget-proposals?countryBudgetId=X&status=Y` and `POST /api/budget-proposals` (COUNTRY_ADMIN only) in `src/app/api/budget-proposals/route.ts`
@@ -194,7 +254,7 @@
 **Goal**: All mutations are logged. GVI Finance Admin can query the audit trail with filters.
 
 - [ ] T051 Implement `GET /api/audit?action=X&entityType=Y&countryId=Z&dateFrom=A&dateTo=B&actorId=C` API route with pagination in `src/app/api/audit/route.ts`
-- [ ] T052 Ensure all API route handlers from T009–T050 call `logAudit()` after successful mutations (review and add missing calls)
+- [ ] T052 Ensure all API route handlers call `logAudit()` after successful mutations — specifically verify and add missing calls in: `src/app/api/budget-years/route.ts` (POST), `src/app/api/budget-years/[id]/route.ts` (PATCH, DELETE), `src/app/api/countries/route.ts` (POST), `src/app/api/country-budgets/route.ts` (POST), `src/app/api/country-budgets/[id]/route.ts` (PATCH), `src/app/api/budget-items/route.ts` (POST), `src/app/api/budget-items/[id]/route.ts` (PATCH, DELETE), `src/app/api/receipts/route.ts` (POST), `src/app/api/receipts/[id]/route.ts` (PATCH), `src/app/api/donors/route.ts` (POST), `src/app/api/donor-projects/route.ts` (POST), `src/app/api/donor-projects/[id]/tags/route.ts` (POST, DELETE), `src/app/api/budget-templates/route.ts` (POST), `src/app/api/budget-templates/[id]/route.ts` (PATCH, DELETE), `src/app/api/budget-templates/from-budget/route.ts` (POST), `src/app/api/country-budgets/[id]/apply-template/route.ts` (POST), `src/app/api/budget-proposals/route.ts` (POST), `src/app/api/budget-proposals/[id]/route.ts` (PATCH), `src/app/api/users/[id]/countries/route.ts` (PUT)
 - [ ] T053 Create audit trail viewer page with filters (action type, entity, country, date range, actor) in `src/app/(dashboard)/audit/page.tsx`
 
 **Checkpoint**: Audit trail complete — all actions logged and queryable
@@ -261,6 +321,21 @@ US1 and US2 can run in parallel after Phase 2.
 
 7. Complete Phase 6: US4 — Donor project tagging
 8. Complete Phase 7: US5 — Budget overview
-9. Complete Phase 8: Budget proposals
-10. Complete Phase 9: Audit trail viewer
-11. Complete Phase 10: Polish
+9. Complete Phase 8: US6 — Budget templates
+10. Complete Phase 9: Budget proposals
+11. Complete Phase 10: Audit trail viewer
+12. Complete Phase 11: Polish
+
+---
+
+## Summary
+
+| Category | Count |
+|---|---|
+| Setup tasks (Phase 1) | 7 (T001–T006, T002a) |
+| Foundational tasks (Phase 2) | 2 (T007–T008) |
+| Test tasks | 16 (T009a–T009c, T020a–T020b, T023a–T023c, T030a–T030b, T035a–T035b, T040a–T040b, T048a–T048b) |
+| Implementation tasks (Phases 3–9) | 43 (T009–T050, T025a, T037–T039) |
+| Audit tasks (Phase 10) | 3 (T051–T053) |
+| Polish tasks (Phase 11) | 5 (T054–T058) |
+| **Total tasks** | **76** |
