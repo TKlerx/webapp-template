@@ -45,6 +45,7 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
 
   return (
     <Button
+      className="shadow-sm"
       disabled={isPending}
       onClick={() => {
         const previousTheme = theme;
