@@ -81,12 +81,19 @@ A GVI Finance admin wants to export only specific countries' data to Azure DB (e
 - What happens when a manual export is triggered while a scheduled export is already running? The manual export is queued and runs after the current export completes.
 - What happens when Azure DB credentials expire or change? The admin can update credentials in the export settings; the system validates the connection before saving.
 
+## Clarifications
+
+### Session 2026-03-19
+
+- Q: Should the Azure DB export include audit trail data? → A: Yes, include audit trail data alongside financial data for compliance dashboards in Power BI.
+- Q: Should the export strategy be full-replace or configurable? → A: Configurable — admin selects which data categories to include (budgets, receipts, donor projects, audit trail) and a date range ("since" filter). Full-replace per selected category within the date range.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: System MUST support exporting financial data to an Azure SQL Database.
-- **FR-002**: Exported data MUST include: budget years, country budgets, budget items (with hierarchy), receipts (with metadata and review statuses), and donor project associations.
+- **FR-002**: Exported data MUST include: budget years, country budgets, budget items (with hierarchy), receipts (with metadata and review statuses), donor project associations, and audit trail entries.
 - **FR-003**: System MUST support manual (on-demand) export triggered by a GVI Finance admin.
 - **FR-004**: System MUST support scheduled automatic exports with configurable frequency and time.
 - **FR-005**: Exports MUST be atomic — either all data is written successfully or no changes are made to Azure DB (no partial exports).
@@ -94,7 +101,8 @@ A GVI Finance admin wants to export only specific countries' data to Azure DB (e
 - **FR-007**: System MUST handle Azure DB connection failures gracefully with clear error messages and no data corruption.
 - **FR-008**: System MUST support configuring Azure DB connection credentials (stored securely, not in source control).
 - **FR-009**: System MUST validate the Azure DB connection when credentials are saved or updated.
-- **FR-010**: System MUST support filtering exports by country and budget year.
+- **FR-010**: System MUST support filtering exports by country, budget year, and date range ("export data since" filter).
+- **FR-010a**: System MUST allow the admin to select which data categories to include in the export: budgets, receipts, donor projects, and audit trail. Each category can be independently toggled on/off.
 - **FR-011**: Export data MUST be structured in a format optimized for Power BI consumption (denormalized where appropriate for dashboard performance).
 - **FR-012**: All export actions (manual triggers, schedule changes, credential updates) MUST be recorded in the audit trail.
 - **FR-013**: Only GVI Finance admins MUST be able to configure and trigger exports.
@@ -102,7 +110,7 @@ A GVI Finance admin wants to export only specific countries' data to Azure DB (e
 
 ### Key Entities
 
-- **Export Configuration**: The settings for Azure DB export, including connection credentials, schedule, and filters.
+- **Export Configuration**: The settings for Azure DB export, including connection credentials, schedule, filters (country, budget year, date range), and data category selection (budgets, receipts, donor projects, audit trail).
 - **Export Run**: A single execution of the export process, with status, timestamp, record counts, and error details.
 - **Export Schedule**: The configured frequency and time for automatic exports.
 - **Azure DB Schema**: The target table structure in Azure SQL Database, designed for Power BI consumption.
@@ -123,7 +131,7 @@ A GVI Finance admin wants to export only specific countries' data to Azure DB (e
 - An Azure SQL Database instance is provisioned and accessible from the application's deployment environment. Provisioning is outside the scope of this feature.
 - Azure DB credentials are managed via environment variables or secure configuration, consistent with the project's configuration approach.
 - The Power BI dashboards themselves are created and maintained outside this application; this feature only provides the data.
-- The export replaces (overwrites) the previous export data in Azure DB rather than appending incrementally. This simplifies consistency guarantees.
+- The export replaces (overwrites) the previous export data in Azure DB for the selected categories and date range. Within each category, the export is a full replace of that slice (not incremental append).
 - Export frequency is at most daily; near-real-time replication is not required.
 - The Azure DB schema is designed and maintained as part of this feature's implementation.
 

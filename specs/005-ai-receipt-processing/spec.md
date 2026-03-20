@@ -86,11 +86,17 @@ Users can see the AI processing status for their receipts. When a receipt is bei
 - What happens when the budget hierarchy changes after the AI was trained on previous classifications? The AI uses the current hierarchy for suggestions; historical accuracy for old categories may decrease temporarily.
 - What happens when a user always overrides AI suggestions? The system tracks override rates per user and budget item to improve future suggestions, but does not penalize or restrict the user.
 
+## Clarifications
+
+### Session 2026-03-20
+
+- Q: Should AI processing be synchronous (user waits) or asynchronous? → A: Asynchronous — the receipt form appears immediately for manual entry; AI-extracted values populate fields as they arrive. User is not blocked.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: System MUST automatically extract amount, currency, date, and description from uploaded receipt files (images and PDFs) using AI.
+- **FR-001**: System MUST automatically extract amount, currency, date, and description from uploaded receipt files (images and PDFs) using AI. Processing MUST be asynchronous — the receipt form appears immediately and AI-extracted values populate fields as they become available, without blocking the user.
 - **FR-002**: Extracted values MUST be presented to the user as pre-filled suggestions, not as final values. The user MUST confirm or correct all extracted data.
 - **FR-003**: System MUST indicate the confidence level of each extracted value (e.g., high, medium, low).
 - **FR-004**: System MUST suggest a budget item classification for each receipt based on the extracted data and the country's budget hierarchy.

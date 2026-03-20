@@ -82,19 +82,27 @@ A GVI Finance admin needs to reference a report they generated last month. They 
 - What happens when the reporting period spans two budget years? The report includes receipts from both years and groups the budget breakdown by year.
 - What happens when a previously generated report's underlying data has changed (receipts approved/rejected after report generation)? The stored report reflects the data at generation time; re-generation produces a new report with current data.
 
+## Clarifications
+
+### Session 2026-03-19
+
+- Q: How should reports handle multi-currency when a donor project spans countries with different currencies? → A: Display in original currencies with subtotals grouped per currency. No conversion. Daily exchange rate conversion is a future feature.
+- Q: Should reports be generated in the user's locale or a selectable language? → A: Admin selects the report language from supported locales (en, de, es, fr, pt) at generation time, independent of their UI locale.
+- Q: Should PDF exports include receipt images? → A: Metadata only by default; optional toggle to include receipt images as an appendix.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: System MUST allow generating financial reports for any donor project.
 - **FR-002**: Reports MUST include: donor project name, donor name, reporting period, generation date, and preparer identity.
-- **FR-003**: Reports MUST include a financial summary showing total allocated budget (from tagged budget items) and total actual spend (from receipts).
+- **FR-003**: Reports MUST include a financial summary showing total allocated budget (from tagged budget items) and total actual spend (from receipts). When multiple currencies are present, amounts MUST be grouped with subtotals per currency (no conversion).
 - **FR-004**: Reports MUST include a budget item breakdown showing each tagged item with planned amount, actual spend, and variance.
 - **FR-005**: Reports MUST include a receipt list showing individual receipts with date, amount, description, budget item, and review status.
 - **FR-006**: Reports MUST support filtering by reporting period (date range).
 - **FR-007**: Reports MUST support filtering by receipt review status (approved only vs. all statuses).
 - **FR-008**: When "all statuses" is selected, the report MUST clearly distinguish approved amounts from non-approved amounts.
-- **FR-009**: System MUST support exporting reports as PDF with appropriate formatting and GVI branding.
+- **FR-009**: System MUST support exporting reports as PDF with appropriate formatting and GVI branding. PDF export MUST default to metadata only, with an optional toggle to include receipt images as an appendix.
 - **FR-010**: System MUST support exporting reports as Excel with structured data sheets.
 - **FR-011**: System MUST provide an on-screen preview of the report before export.
 - **FR-012**: System MUST store generated reports and maintain a report history per donor project.
@@ -107,7 +115,7 @@ A GVI Finance admin needs to reference a report they generated last month. They 
 ### Key Entities
 
 - **Donor Report**: A generated report for a donor project, containing the financial summary, budget breakdown, and receipt list for a specific reporting period and status filter.
-- **Report Parameters**: The configuration for a report: donor project, reporting period (date range), receipt status filter, and export format.
+- **Report Parameters**: The configuration for a report: donor project, reporting period (date range), receipt status filter, export format, and report language (selectable from supported locales).
 - **Report History Entry**: A record of a previously generated report, including the parameters used, generation date, preparer, and the stored report file.
 
 ## Success Criteria *(mandatory)*
@@ -142,7 +150,7 @@ A GVI Finance admin needs to reference a report they generated last month. They 
 - Automated scheduled report generation (e.g., monthly)
 - Email delivery of reports to donors
 - Custom report templates per donor
-- Multi-currency conversion in reports
+- Multi-currency conversion in reports (future: daily exchange rate-based conversion)
 - Azure DB export of report data — Feature 4
 
 ## Dependencies

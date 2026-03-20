@@ -104,6 +104,16 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 - What happens when a user's country assignment is removed? They lose access to that country's data immediately; their previously uploaded receipts remain.
 - What happens when a receipt file upload fails mid-transfer? The receipt record is not created; the user is informed and can retry.
 
+## Clarifications
+
+### Session 2026-03-19
+
+- Q: Should child budget items' planned amounts be constrained relative to the parent? → A: Children must sum to ≤ parent amount (block if over, warn if under).
+- Q: Can receipt metadata (amount, date, description, budget item) be edited after upload? → A: Yes, editable with full audit trail (who, when, old→new value). File remains immutable.
+- Q: Can Country Admins create/edit budget items for their country? → A: Country Admins can propose budget item changes; GVI Finance Admins must approve before they take effect.
+- Q: Can a donor project span multiple countries? → A: Yes, a donor project can cover budget items and receipts across multiple countries.
+- Q: Can a user hold a country-scoped role for multiple countries? → A: Yes, a single user can be assigned the same role (Country Admin or Country Finance) for multiple countries.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -112,7 +122,9 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 - **FR-002**: System MUST support adding program countries to a budget year, each with a total budget amount and currency.
 - **FR-003**: System MUST support creating budget items in a multi-level hierarchy (unlimited depth) with self-referencing parent-child relationships.
 - **FR-004**: Each budget item MUST have a name, planned amount, and optional description.
-- **FR-005**: System MUST support the following user roles: GVI Finance Admin (global access), Country Admin (manages one country), Country Finance (uploads receipts for one country).
+- **FR-004a**: The sum of child items' planned amounts MUST NOT exceed the parent item's planned amount. The system MUST block saving if exceeded and MUST display a warning if the sum is less than the parent amount (indicating unallocated budget).
+- **FR-005**: System MUST support the following user roles: GVI Finance Admin (global access, full edit), Country Admin (manages assigned countries, can propose budget changes), Country Finance (uploads receipts for assigned countries, read-only on budget items).
+- **FR-005a**: Country Admins MUST be able to propose budget item changes (add, edit, remove) for their country. Proposals MUST be reviewed and approved by a GVI Finance Admin before taking effect. Proposals and their approval/rejection MUST be recorded in the audit trail.
 - **FR-006**: Users with country-scoped roles MUST be assigned to one or more specific countries and can only access data for those countries.
 - **FR-007**: System MUST allow uploading receipt files (PDF, JPEG, PNG) with metadata: amount, currency, date, description.
 - **FR-008**: Receipts MUST be assignable to any budget item in the hierarchy, not only leaf-level items.
@@ -133,10 +145,10 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 - **Country Budget**: Links a program country to a budget year with a total allocated amount and currency. Contains budget items.
 - **Program Country**: A country where GVI operates. Has assigned users and budgets per year.
 - **Budget Item**: A line in the budget hierarchy. Has a name, planned amount, optional description, and optional parent (self-referencing for unlimited depth). Belongs to a country budget.
-- **Receipt**: An uploaded expense record. Has an amount, currency, date, description, uploaded file reference, and is assigned to one budget item. Immutable once created.
+- **Receipt**: An uploaded expense record. Has an amount, currency, date, description, uploaded file reference, and is assigned to one budget item. File is immutable; metadata (amount, date, description, budget item assignment) is editable with full audit trail.
 - **Receipt File**: The stored file (PDF/image) associated with a receipt. Immutable, retained for 10 years.
 - **Institutional Donor**: An organization that funds projects (e.g., "European Union").
-- **Donor Project**: A funded project by a donor, with a name and description. Receipts and budget items can be tagged to it.
+- **Donor Project**: A funded project by a donor, with a name and description. Can span multiple countries. Receipts and budget items from any country can be tagged to it.
 - **Donor Project Tag**: The association between a donor project and either a budget item or an individual receipt.
 - **User**: An application user with a role and optional country assignment(s).
 

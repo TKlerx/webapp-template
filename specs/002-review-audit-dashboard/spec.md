@@ -101,6 +101,16 @@ A Country Admin for Kenya logs in and sees a summary of their country's receipt 
 - What happens when a receipt is approved and then the reviewer realizes it should have been flagged? The reviewer can change the status from "Approved" to "Flagged" with a comment; the original approval is retained in the audit trail.
 - What happens when filtering produces zero results? The system displays a clear "No receipts match your filters" message.
 
+## Clarifications
+
+### Session 2026-03-19
+
+- Q: Does "total spend" on the compliance dashboard include all receipts or only approved? → A: Approved spend is the primary figure; total across all statuses is shown as secondary. Status filters allow slicing by any combination.
+- Q: Can Country Finance users respond to rejected receipts? → A: No, rejection is final. Country Finance must upload a new receipt. However, a GVI Finance admin can reopen a rejected receipt to "Flagged" status if warranted.
+- Q: Is there a limit on flag-respond cycles for a receipt? → A: No, unlimited cycles. A receipt can be flagged and responded to repeatedly until approved or rejected.
+- Q: Should the audit trail be exportable for external auditors? → A: Yes, exportable as CSV and PDF for sharing with Finanzamt and donor auditors.
+- Q: Are receipts assigned to specific reviewers or is it a shared queue? → A: Shared queue — any GVI Finance admin can review any receipt. No formal assignment needed.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -118,11 +128,13 @@ A Country Admin for Kenya logs in and sees a summary of their country's receipt 
 - **FR-011**: System MUST record all review actions in the audit trail: actor, timestamp, action type, previous status, new status, and any comments.
 - **FR-012**: System MUST record all significant actions in the audit trail: receipt uploads, review decisions, budget changes, role changes, and donor project tagging.
 - **FR-013**: The audit trail MUST be viewable and filterable by GVI Finance admins by date range, action type, country, and user.
-- **FR-014**: The compliance dashboard MUST show per-country summary: total budget, total spend, percentage used, and receipt status counts.
+- **FR-013a**: The audit trail MUST be exportable as CSV and PDF (with current filters applied) for sharing with external auditors (Finanzamt, institutional donors).
+- **FR-014**: The compliance dashboard MUST show per-country summary: total budget, approved spend (primary), total spend across all statuses (secondary), percentage used, and receipt status counts.
+- **FR-014a**: The compliance dashboard MUST support filtering by review status, allowing users to slice spend figures by any combination of statuses (e.g., approved only, approved + pending, all).
 - **FR-015**: The compliance dashboard MUST support drill-down from country to budget hierarchy to individual receipts.
 - **FR-016**: Budget items where actual spend exceeds the planned amount MUST be visually highlighted.
 - **FR-017**: Country Admins MUST be able to view their country's review status summary but MUST NOT be able to perform review actions.
-- **FR-018**: Review status changes MUST be reversible (e.g., approved can be changed to flagged) with full audit trail.
+- **FR-018**: Review status changes MUST be reversible by GVI Finance admins (e.g., approved→flagged, rejected→flagged) with full audit trail. Country Finance users MUST NOT be able to respond to rejected receipts; they must upload a new receipt instead.
 - **FR-019**: All user-facing text in the review and audit interfaces MUST be available in all supported languages (en, de, es, fr, pt).
 
 ### Key Entities
