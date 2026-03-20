@@ -87,7 +87,10 @@ src/
 │   ├── budget/                    # Budget-specific components
 │   │   ├── BudgetItemTree.tsx     # Collapsible tree view
 │   │   ├── BudgetItemForm.tsx     # Add/edit budget item
-│   │   └── BudgetOverview.tsx     # Planned vs actual display
+│   │   ├── BudgetOverview.tsx     # Planned vs actual display
+│   │   ├── TemplateList.tsx       # Template management list
+│   │   ├── TemplateEditor.tsx     # Create/edit template hierarchy
+│   │   └── TemplateSelector.tsx   # Select template when creating budget
 │   ├── receipts/                  # Receipt components
 │   │   ├── ReceiptUploadForm.tsx  # File + metadata upload
 │   │   └── ReceiptList.tsx        # Receipt table with filters

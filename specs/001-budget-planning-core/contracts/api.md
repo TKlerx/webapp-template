@@ -200,3 +200,44 @@ All responses follow `{ data: T }` or `{ error: string }` pattern.
 **Roles**: GVI_FINANCE_ADMIN
 **Body**: `{ countryIds: string[] }`
 **Response**: `{ data: ProgramCountry[] }`
+
+---
+
+## Budget Templates
+
+### `GET /api/budget-templates`
+**Roles**: GVI_FINANCE_ADMIN
+**Response**: `{ data: BudgetTemplate[] }`
+
+### `POST /api/budget-templates`
+**Roles**: GVI_FINANCE_ADMIN
+**Body**: `{ name: string, description?: string, items: [{ name: string, defaultAmount: number, description?: string, children?: [...] }] }`
+**Note**: Items are provided as a nested tree; server flattens and stores with parentId references.
+**Response**: `{ data: BudgetTemplate }` (201)
+
+### `GET /api/budget-templates/[id]`
+**Roles**: GVI_FINANCE_ADMIN
+**Response**: `{ data: BudgetTemplate & { items: BudgetTemplateItem[] } }`
+
+### `PATCH /api/budget-templates/[id]`
+**Roles**: GVI_FINANCE_ADMIN
+**Body**: `{ name?: string, description?: string, items?: [...] }`
+**Note**: If items provided, replaces entire hierarchy (delete old items, insert new).
+**Response**: `{ data: BudgetTemplate }`
+
+### `DELETE /api/budget-templates/[id]`
+**Roles**: GVI_FINANCE_ADMIN
+**Response**: `204`
+
+### `POST /api/budget-templates/from-budget`
+**Roles**: GVI_FINANCE_ADMIN
+**Body**: `{ countryBudgetId: string, name: string, description?: string }`
+**Note**: Creates a new template by copying the hierarchy and amounts from an existing country budget.
+**Response**: `{ data: BudgetTemplate }` (201)
+
+### `POST /api/country-budgets/[id]/apply-template`
+**Roles**: GVI_FINANCE_ADMIN
+**Body**: `{ templateId: string }`
+**Validation**: Country budget must have no existing budget items (or confirm overwrite).
+**Note**: Copies all template items to the country budget as new BudgetItem records with defaultAmount as plannedAmount.
+**Response**: `{ data: BudgetItem[] }` (201)

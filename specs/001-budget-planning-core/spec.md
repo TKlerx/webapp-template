@@ -95,6 +95,24 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 
 ---
 
+### User Story 6 - Budget Templates (Priority: P2)
+
+A GVI Finance admin creates reusable budget templates to speed up budget setup for new years or new countries. A template defines a hierarchy of budget items with default planned amounts. When creating a new country budget, the admin can select a template to pre-populate the entire hierarchy — then adjust names, amounts, or structure as needed. Templates can also be created from an existing country budget ("Save as template"), capturing that country's current structure and amounts as a reusable starting point for next year.
+
+**Why this priority**: Without templates, the admin must manually recreate 50+ budget items for each country each year. Templates save significant time and reduce errors, especially when most countries share a similar budget structure.
+
+**Independent Test**: Can be tested by creating a template with a multi-level hierarchy and amounts, then applying it to a new country budget and verifying the items are copied correctly. Also test saving an existing country budget as a template.
+
+**Acceptance Scenarios**:
+
+1. **Given** a GVI Finance admin is logged in, **When** they create a new budget template "Standard Country Budget" with a hierarchy of items and default amounts, **Then** the template is saved and appears in the template list.
+2. **Given** a template exists with items "Personnel (€30,000) → Salaries (€20,000), Training (€10,000)", **When** the admin creates a new country budget for Kenya 2027 and selects this template, **Then** the budget items are pre-populated with the template's hierarchy and amounts.
+3. **Given** a template has been applied, **When** the admin adjusts item names or amounts for Kenya, **Then** the changes only affect Kenya's budget — the template remains unchanged.
+4. **Given** a country budget for Kenya 2026 exists with a complete hierarchy, **When** the admin clicks "Save as Template", **Then** a new template is created with Kenya 2026's hierarchy and amounts, which can be named and reused.
+5. **Given** multiple templates exist, **When** the admin creates a new country budget, **Then** they can choose from the template list or start with an empty budget.
+
+---
+
 ### Edge Cases
 
 - What happens when a budget item is deleted that has receipts assigned? The system must prevent deletion or require reassignment first.
@@ -103,6 +121,8 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 - What happens when a budget item is moved in the hierarchy? Its receipts move with it; rolled-up totals recalculate automatically.
 - What happens when a user's country assignment is removed? They lose access to that country's data immediately; their previously uploaded receipts remain.
 - What happens when a receipt file upload fails mid-transfer? The receipt record is not created; the user is informed and can retry.
+- What happens when a template is deleted that was previously applied to country budgets? The country budgets are unaffected — template application is a copy operation, not a link. The template can be safely deleted.
+- What happens when a template's amounts exceed the country budget's total? The system applies the template and then the normal child sum ≤ parent validation applies. The admin must adjust amounts to fit within the country's total budget.
 
 ## Clarifications
 
@@ -138,6 +158,11 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 - **FR-016**: System MUST prevent deletion of budget items that have receipts assigned (directly or via descendants).
 - **FR-017**: System MUST maintain audit trails for budget changes, receipt uploads, role changes, and donor project tagging.
 - **FR-018**: All user-facing text MUST be available in all supported languages (en, de, es, fr, pt).
+- **FR-019**: System MUST support creating named budget templates with a hierarchical structure of items and default planned amounts.
+- **FR-020**: GVI Finance admins MUST be able to apply a template when creating a new country budget, pre-populating all budget items and amounts from the template.
+- **FR-021**: Applying a template MUST be a copy operation — changes to the country budget MUST NOT affect the template, and vice versa.
+- **FR-022**: System MUST support creating a template from an existing country budget ("Save as Template"), capturing the current hierarchy and amounts.
+- **FR-023**: System MUST support multiple named templates. GVI Finance admins MUST be able to create, edit, and delete templates.
 
 ### Key Entities
 
@@ -150,6 +175,8 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 - **Institutional Donor**: An organization that funds projects (e.g., "European Union").
 - **Donor Project**: A funded project by a donor, with a name and description. Can span multiple countries. Receipts and budget items from any country can be tagged to it.
 - **Donor Project Tag**: The association between a donor project and either a budget item or an individual receipt.
+- **Budget Template**: A reusable blueprint for a budget hierarchy with default planned amounts. Has a name and description. Contains template items.
+- **Budget Template Item**: A line in a template's hierarchy. Has a name, default planned amount, optional description, and optional parent (self-referencing). Belongs to a budget template.
 - **User**: An application user with a role and optional country assignment(s).
 
 ## Success Criteria *(mandatory)*
@@ -163,6 +190,7 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 - **SC-005**: Users with country-scoped roles cannot access any data outside their assigned countries (100% access isolation).
 - **SC-006**: Budget item hierarchy supports at least 5 levels of nesting with correct roll-up calculations at every level.
 - **SC-007**: Donor project tagging of a budget item correctly includes all current and future descendant receipts without manual re-tagging.
+- **SC-008**: Applying a budget template to a new country budget pre-populates all items in under 5 seconds, reducing budget setup time by at least 75% compared to manual creation.
 
 ## Assumptions
 
@@ -181,6 +209,7 @@ A GVI Finance admin opens the budget overview for a specific country and year. T
 - Receipt upload with file storage and budget item assignment
 - Domain-specific user roles with country-scoped access
 - Donor and donor project management with tagging
+- Budget templates (create, apply, save from existing budget)
 - Budget overview with planned vs. actual and drill-down
 - Audit trail for all data mutations
 

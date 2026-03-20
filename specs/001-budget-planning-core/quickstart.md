@@ -46,26 +46,35 @@ npm run dev
      - Fuel (€8,000)
      - Accommodation (€7,000)
 
-### 2. Assign Users to Countries
+### 2. Use Budget Templates
+1. As GVI Finance Admin, navigate to Budget Templates
+2. Create template "Standard Country Budget" with hierarchy:
+   - Personnel (€30,000) → Salaries (€20,000), Training (€10,000)
+   - Mission Costs (€15,000) → Fuel (€8,000), Accommodation (€7,000)
+3. When creating a new country budget (e.g., Mexico 2026), select "Standard Country Budget" template
+4. Items are pre-populated → adjust amounts for Mexico
+5. Alternatively: open Kenya 2026's budget → click "Save as Template" to capture it for reuse
+
+### 3. Assign Users to Countries
 1. As GVI Finance Admin, go to Users
 2. Create user with role "Country Finance"
 3. Assign to country "Kenya"
 4. User can now only see Kenya's data
 
-### 3. Upload Receipt
+### 4. Upload Receipt
 1. Log in as Country Finance user (Kenya)
 2. Navigate to Receipts → Upload
 3. Select budget year, budget item "Fuel"
 4. Upload PDF/image file, enter amount, date, description
 5. Receipt appears under Fuel with uploaded file
 
-### 4. Tag Donor Project
+### 5. Tag Donor Project
 1. As GVI Finance Admin, create donor "European Union"
 2. Create donor project "EU Grant 2026 - Kenya Education"
 3. Tag budget item "Personnel" → all receipts under Personnel are included
 4. Optionally tag individual receipts directly
 
-### 5. View Budget Overview
+### 6. View Budget Overview
 1. Navigate to Budget Overview
 2. Select country "Kenya", year "2026"
 3. See hierarchy with planned vs. actual amounts

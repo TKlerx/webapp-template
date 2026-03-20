@@ -17,7 +17,7 @@
 
 **Purpose**: Project initialization — extend Prisma schema, add new roles, create shared infrastructure
 
-- [ ] T001 Update Prisma schema with new enums (Role: GVI_FINANCE_ADMIN, COUNTRY_ADMIN, COUNTRY_FINANCE; ProposalType; ProposalStatus; AuditAction) and all new models (ProgramCountry, UserCountryAssignment, BudgetYear, CountryBudget, BudgetItem, Receipt, InstitutionalDonor, DonorProject, DonorProjectTag, BudgetProposal, AuditEntry) per data-model.md in `prisma/schema.prisma`
+- [ ] T001 Update Prisma schema with new enums (Role: GVI_FINANCE_ADMIN, COUNTRY_ADMIN, COUNTRY_FINANCE; ProposalType; ProposalStatus; AuditAction) and all new models (ProgramCountry, UserCountryAssignment, BudgetYear, CountryBudget, BudgetItem, Receipt, InstitutionalDonor, DonorProject, DonorProjectTag, BudgetProposal, AuditEntry, BudgetTemplate, BudgetTemplateItem) per data-model.md in `prisma/schema.prisma`
 - [ ] T002 Create and run Prisma migration for the new schema, then update seed script to map existing ADMIN user to GVI_FINANCE_ADMIN in `prisma/seed.ts`
 - [ ] T003 [P] Create file storage service with `saveFile(buffer, originalName)` and `getFilePath(storedPath)` in `src/lib/file-storage.ts`. Files saved as `uploads/{year}/{month}/{uuid}.{ext}`. Add `uploads/` to `.gitignore`
 - [ ] T004 [P] Create audit trail logging service with `logAudit({ action, entityType, entityId, actorId, details, countryId })` in `src/lib/audit.ts`
@@ -146,7 +146,31 @@
 
 ---
 
-## Phase 8: User Story Supplement — Budget Proposals (from FR-005a, part of US2)
+## Phase 8: User Story 6 — Budget Templates (Priority: P2)
+
+**Goal**: GVI Finance Admin can create, manage, and apply reusable budget templates with default hierarchies and amounts. Can also save an existing country budget as a template.
+
+**Independent Test**: Create a template with a multi-level hierarchy and amounts. Create a new country budget, apply the template, verify items are pre-populated. Save an existing country budget as a template, verify it captures the hierarchy.
+
+### API Routes for User Story 6
+
+- [ ] T040 [P] [US6] Implement `GET /api/budget-templates` and `POST /api/budget-templates` (GVI_FINANCE_ADMIN only, accepts nested item tree, stores flattened with parentId) in `src/app/api/budget-templates/route.ts`
+- [ ] T041 [P] [US6] Implement `GET /api/budget-templates/[id]`, `PATCH /api/budget-templates/[id]` (replaces entire hierarchy), and `DELETE /api/budget-templates/[id]` in `src/app/api/budget-templates/[id]/route.ts`
+- [ ] T042 [P] [US6] Implement `POST /api/budget-templates/from-budget` (creates template from existing country budget by copying hierarchy + amounts) in `src/app/api/budget-templates/from-budget/route.ts`
+- [ ] T043 [US6] Implement `POST /api/country-budgets/[id]/apply-template` (copies template items to country budget as new BudgetItem records with defaultAmount as plannedAmount, validates budget has no existing items or confirms overwrite) in `src/app/api/country-budgets/[id]/apply-template/route.ts`
+
+### UI Components for User Story 6
+
+- [ ] T044 [P] [US6] Create template list page with create/edit/delete actions in `src/app/(dashboard)/budget-templates/page.tsx`
+- [ ] T045 [P] [US6] Create template editor component for building/editing a template hierarchy with item names, default amounts, and drag/reorder in `src/components/budget/TemplateEditor.tsx`
+- [ ] T046 [US6] Create template selector component shown when creating a new country budget — allows choosing a template or starting empty in `src/components/budget/TemplateSelector.tsx`
+- [ ] T047 [US6] Add "Save as Template" button to country budget detail page that triggers template creation from current budget in `src/app/(dashboard)/budgets/[countryBudgetId]/page.tsx` (extend T019)
+
+**Checkpoint**: User Story 6 complete — budget templates fully functional
+
+---
+
+## Phase 9: User Story Supplement — Budget Proposals (from FR-005a, part of US2)
 
 **Goal**: Country Admins can propose budget item changes (add/edit/remove); GVI Finance Admins approve or reject proposals
 
@@ -154,38 +178,38 @@
 
 ### API Routes
 
-- [ ] T037 [P] [US2] Implement `GET /api/budget-proposals?countryBudgetId=X&status=Y` and `POST /api/budget-proposals` (COUNTRY_ADMIN only) in `src/app/api/budget-proposals/route.ts`
-- [ ] T038 [P] [US2] Implement `PATCH /api/budget-proposals/[id]` (GVI_FINANCE_ADMIN: approve/reject, apply changes on approval) in `src/app/api/budget-proposals/[id]/route.ts`
+- [ ] T048 [P] [US2] Implement `GET /api/budget-proposals?countryBudgetId=X&status=Y` and `POST /api/budget-proposals` (COUNTRY_ADMIN only) in `src/app/api/budget-proposals/route.ts`
+- [ ] T049 [P] [US2] Implement `PATCH /api/budget-proposals/[id]` (GVI_FINANCE_ADMIN: approve/reject, apply changes on approval) in `src/app/api/budget-proposals/[id]/route.ts`
 
 ### UI Pages
 
-- [ ] T039 [US2] Create proposals list page (Country Admin sees own country's proposals, GVI Finance Admin sees all pending) and proposal review UI in `src/app/(dashboard)/proposals/page.tsx`
+- [ ] T050 [US2] Create proposals list page (Country Admin sees own country's proposals, GVI Finance Admin sees all pending) and proposal review UI in `src/app/(dashboard)/proposals/page.tsx`
 
 **Checkpoint**: Budget proposal workflow complete
 
 ---
 
-## Phase 9: Audit Trail (cross-cutting, FR-017)
+## Phase 10: Audit Trail (cross-cutting, FR-017)
 
 **Goal**: All mutations are logged. GVI Finance Admin can query the audit trail with filters.
 
-- [ ] T040 Implement `GET /api/audit?action=X&entityType=Y&countryId=Z&dateFrom=A&dateTo=B&actorId=C` API route with pagination in `src/app/api/audit/route.ts`
-- [ ] T041 Ensure all API route handlers from T009–T038 call `logAudit()` after successful mutations (review and add missing calls)
-- [ ] T042 Create audit trail viewer page with filters (action type, entity, country, date range, actor) in `src/app/(dashboard)/audit/page.tsx`
+- [ ] T051 Implement `GET /api/audit?action=X&entityType=Y&countryId=Z&dateFrom=A&dateTo=B&actorId=C` API route with pagination in `src/app/api/audit/route.ts`
+- [ ] T052 Ensure all API route handlers from T009–T050 call `logAudit()` after successful mutations (review and add missing calls)
+- [ ] T053 Create audit trail viewer page with filters (action type, entity, country, date range, actor) in `src/app/(dashboard)/audit/page.tsx`
 
 **Checkpoint**: Audit trail complete — all actions logged and queryable
 
 ---
 
-## Phase 10: Polish & Cross-Cutting Concerns
+## Phase 11: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T043 [P] Add dashboard home page with summary cards (countries, budget years, recent receipts, pending proposals) in `src/app/(dashboard)/page.tsx`
-- [ ] T044 [P] Update sidebar navigation to include all new sections (Budget Years, Budgets, Receipts, Donors, Proposals, Audit, Budget Overview) with role-based visibility in `src/components/ui/Sidebar.tsx` or equivalent nav component
-- [ ] T045 [P] Ensure all forms show toast notifications on success/error per constitution principle VI in all new pages
-- [ ] T046 [P] Verify responsive design on mobile viewport for all new pages — collapsible tree, receipt upload form, tables — per constitution principle VIII
-- [ ] T047 Run quickstart.md validation: manually walk through all 5 workflows to confirm end-to-end functionality
+- [ ] T054 [P] Add dashboard home page with summary cards (countries, budget years, recent receipts, pending proposals) in `src/app/(dashboard)/page.tsx`
+- [ ] T055 [P] Update sidebar navigation to include all new sections (Budget Years, Budgets, Receipts, Donors, Templates, Proposals, Audit, Budget Overview) with role-based visibility in `src/components/ui/Sidebar.tsx` or equivalent nav component
+- [ ] T056 [P] Ensure all forms show toast notifications on success/error per constitution principle VI in all new pages
+- [ ] T057 [P] Verify responsive design on mobile viewport for all new pages — collapsible tree, receipt upload form, template editor, tables — per constitution principle VIII
+- [ ] T058 Run quickstart.md validation: manually walk through all 6 workflows (budget setup with template, roles, receipt upload, donor tagging, budget overview, proposals) to confirm end-to-end functionality
 
 ---
 
@@ -200,13 +224,15 @@
 - **US3 (Phase 5)**: Depends on Phase 2 + Phase 3 (needs budget items to assign receipts to)
 - **US4 (Phase 6)**: Depends on Phase 2 + Phase 3 (needs budget items to tag) + Phase 5 (needs receipts to tag)
 - **US5 (Phase 7)**: Depends on Phase 3 + Phase 5 (needs budget items + receipts for overview)
-- **Proposals (Phase 8)**: Depends on Phase 3 + Phase 4 (needs budget items + role system)
-- **Audit (Phase 9)**: Depends on all prior phases (reviews all handlers)
-- **Polish (Phase 10)**: Depends on all prior phases
+- **US6 Templates (Phase 8)**: Depends on Phase 3 (needs budget item CRUD to copy into)
+- **Proposals (Phase 9)**: Depends on Phase 3 + Phase 4 (needs budget items + role system)
+- **Audit (Phase 10)**: Depends on all prior phases (reviews all handlers)
+- **Polish (Phase 11)**: Depends on all prior phases
 
 ### User Story Dependencies
 
 - **US1 (Budget Hierarchy)** — P1: Can start after Phase 2. No dependencies on other stories.
+- **US6 (Budget Templates)** — P2: Depends on US1 (needs budget item CRUD). Can parallel with US4/US5.
 - **US2 (Roles & Country Assignment)** — P1: Can start after Phase 2. Independent of US1.
 - **US3 (Receipt Upload)** — P1: Depends on US1 (needs budget items for assignment).
 - **US4 (Donor Tagging)** — P2: Depends on US1 + US3 (needs budget items and receipts).

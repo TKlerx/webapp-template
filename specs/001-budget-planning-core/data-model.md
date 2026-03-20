@@ -30,6 +30,7 @@ enum AuditAction {
   DONOR_PROJECT_CREATED, DONOR_PROJECT_UPDATED
   DONOR_PROJECT_TAGGED, DONOR_PROJECT_UNTAGGED
   BUDGET_PROPOSAL_CREATED, BUDGET_PROPOSAL_APPROVED, BUDGET_PROPOSAL_REJECTED
+  BUDGET_TEMPLATE_CREATED, BUDGET_TEMPLATE_UPDATED, BUDGET_TEMPLATE_DELETED, BUDGET_TEMPLATE_APPLIED
 }
 ```
 
@@ -183,6 +184,31 @@ Relations: → CountryBudget, User (proposer), User (reviewer), BudgetItem? (tar
 Relations: → User (actor), ProgramCountry?
 Index: @@index([action]), @@index([entityType, entityId]), @@index([actorId]), @@index([countryId]), @@index([createdAt])
 
+#### BudgetTemplate
+| Field | Type | Constraints | Notes |
+|-------|------|-------------|-------|
+| id | String | @id @default(cuid()) | |
+| name | String | @unique | e.g., "Standard Country Budget" |
+| description | String? | | |
+| createdById | String | FK → User | |
+| createdAt | DateTime | @default(now()) | |
+| updatedAt | DateTime | @updatedAt | |
+
+Relations: → User (creator), BudgetTemplateItem[]
+
+#### BudgetTemplateItem
+| Field | Type | Constraints | Notes |
+|-------|------|-------------|-------|
+| id | String | @id @default(cuid()) | |
+| templateId | String | FK → BudgetTemplate | |
+| parentId | String? | FK → BudgetTemplateItem (self) | null = root item |
+| name | String | | e.g., "Personnel", "Fuel" |
+| defaultAmount | Decimal | | Default planned amount |
+| description | String? | | |
+| sortOrder | Int | @default(0) | Display ordering within parent |
+
+Relations: → BudgetTemplate, parent BudgetTemplateItem?, children BudgetTemplateItem[]
+
 ### Modified Models
 
 #### User (existing)
@@ -214,3 +240,5 @@ Each edit recorded in AuditEntry with before/after values
 6. **Country budget uniqueness**: One budget per country per year (`@@unique([budgetYearId, countryId])`).
 7. **Donor project tag**: Exactly one of `budgetItemId` or `receiptId` must be non-null (application-level validation).
 8. **Country access**: Users with COUNTRY_ADMIN or COUNTRY_FINANCE roles can only access data for their assigned countries (enforced at API level).
+9. **Template name uniqueness**: Template names must be unique.
+10. **Template application is a copy**: Applying a template creates new BudgetItem records. No FK link between template items and budget items — they are independent after copy.
