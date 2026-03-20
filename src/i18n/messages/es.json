@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "GVI Finance",
-    "signOut": "Cerrar sesión",
+    "signOut": "Cerrar sesion",
     "save": "Guardar",
     "cancel": "Cancelar",
     "loading": "Cargando...",
@@ -12,33 +12,33 @@
   },
   "nav": {
     "dashboard": "Panel",
-    "users": "Gestión de usuarios"
+    "users": "Gestion de usuarios"
   },
   "auth": {
-    "signIn": "Iniciar sesión",
-    "signInAzure": "Iniciar sesión con Azure",
+    "signIn": "Iniciar sesion",
+    "signInAzure": "Iniciar sesion con Azure",
     "localAccount": "Cuenta local",
-    "email": "Correo electrónico",
-    "password": "Contraseña",
-    "signingIn": "Iniciando sesión...",
-    "loginFailed": "Error de inicio de sesión. Inténtelo de nuevo.",
+    "email": "Correo electronico",
+    "password": "Contrasena",
+    "signingIn": "Iniciando sesion...",
+    "loginFailed": "Error de inicio de sesion. Intentelo de nuevo.",
     "description": "Use Azure SSO o una cuenta local creada por un administrador.",
     "ssoRevoked": "Su acceso SSO ha sido revocado. Contacte a un administrador.",
-    "ssoNotConfigured": "Azure SSO aún no está configurado. Configure las variables de entorno de Azure AD e inténtelo de nuevo.",
-    "authFailed": "Error de autenticación. Inténtelo de nuevo.",
-    "changePassword": "Cambiar contraseña",
-    "changePasswordDescription": "Las cuentas locales deben establecer una nueva contraseña antes de acceder al panel.",
-    "currentPassword": "Contraseña actual",
-    "newPassword": "Nueva contraseña",
-    "saveNewPassword": "Guardar nueva contraseña",
-    "passwordChanged": "Contraseña cambiada exitosamente",
-    "couldNotUpdatePassword": "No se pudo actualizar la contraseña",
-    "firstLogin": "Primer inicio de sesión"
+    "ssoNotConfigured": "Azure SSO aun no esta configurado. Configure las variables de entorno de Azure AD e intentelo de nuevo.",
+    "authFailed": "Error de autenticacion. Intentelo de nuevo.",
+    "changePassword": "Cambiar contrasena",
+    "changePasswordDescription": "Las cuentas locales deben establecer una nueva contrasena antes de acceder al panel.",
+    "currentPassword": "Contrasena actual",
+    "newPassword": "Nueva contrasena",
+    "saveNewPassword": "Guardar nueva contrasena",
+    "passwordChanged": "Contrasena cambiada correctamente",
+    "couldNotUpdatePassword": "No se pudo actualizar la contrasena",
+    "firstLogin": "Primer inicio de sesion"
   },
   "pending": {
-    "title": "Su cuenta está pendiente de aprobación del administrador.",
-    "description": "Puede iniciar sesión con Azure ahora, pero no podrá acceder a la aplicación hasta que un administrador apruebe su acceso.",
-    "label": "Pendiente de aprobación"
+    "title": "Su cuenta esta pendiente de aprobacion del administrador.",
+    "description": "Puede iniciar sesion con Azure ahora, pero no podra acceder a la aplicacion hasta que un administrador apruebe su acceso.",
+    "label": "Pendiente de aprobacion"
   },
   "dashboard": {
     "label": "Panel",
@@ -50,15 +50,15 @@
   "users": {
     "title": "Usuarios",
     "createUser": "Crear usuario local",
-    "emailPlaceholder": "Correo electrónico",
+    "emailPlaceholder": "Correo electronico",
     "namePlaceholder": "Nombre",
-    "temporaryPassword": "Contraseña temporal",
+    "temporaryPassword": "Contrasena temporal",
     "createButton": "Crear usuario",
     "userCreated": "Usuario creado",
     "couldNotCreate": "No se pudo crear el usuario",
-    "notAuthorized": "No está autorizado para acceder a esta página.",
+    "notAuthorized": "No esta autorizado para acceder a esta pagina.",
     "name": "Nombre",
-    "email": "Correo electrónico",
+    "email": "Correo electronico",
     "role": "Rol",
     "statusLabel": "Estado",
     "auth": "Auth",
@@ -72,18 +72,49 @@
     "roleUpdated": "Rol actualizado a {role}",
     "couldNotUpdate": "No se pudo actualizar el usuario",
     "roles": {
-      "ADMIN": "Admin",
-      "MARKETER_LEAD": "Marketer Lead",
-      "MARKETER": "Marketer",
-      "REVIEWER": "Reviewer"
+      "GVI_FINANCE_ADMIN": "Administrador financiero GVI",
+      "COUNTRY_ADMIN": "Administrador de pais",
+      "COUNTRY_FINANCE": "Finanzas del pais"
     },
     "statuses": {
       "ACTIVE": "Activo",
       "INACTIVE": "Inactivo",
-      "PENDING_APPROVAL": "Pendiente de aprobación"
+      "PENDING_APPROVAL": "Pendiente de aprobacion"
     }
   },
   "theme": {
     "switchedTo": "Tema cambiado a modo {theme}"
+  },
+  "budget": {
+    "title": "Planificacion presupuestaria",
+    "budgetYears": "Anos presupuestarios",
+    "countryBudgets": "Presupuestos por pais",
+    "budgetItems": "Partidas presupuestarias",
+    "plannedAmount": "Importe planificado",
+    "actualSpend": "Gasto real"
+  },
+  "receipts": {
+    "title": "Recibos",
+    "upload": "Subir recibo",
+    "amount": "Importe",
+    "date": "Fecha",
+    "description": "Descripcion"
+  },
+  "donors": {
+    "title": "Donantes",
+    "projects": "Proyectos",
+    "tag": "Vincular al proyecto"
+  },
+  "audit": {
+    "title": "Auditoria",
+    "action": "Accion",
+    "actor": "Usuario",
+    "entity": "Entidad"
+  },
+  "proposals": {
+    "title": "Propuestas de presupuesto",
+    "status": "Estado",
+    "approve": "Aprobar",
+    "reject": "Rechazar"
   }
 }

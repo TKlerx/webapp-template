@@ -11,7 +11,7 @@ test("inactive SSO user is redirected to login with a revoked-access message on 
   await seedSsoUser({
     email,
     name: "E2E Revoked SSO",
-    role: Role.MARKETER,
+    role: Role.COUNTRY_FINANCE,
     status: UserStatus.ACTIVE,
     authMethod: AuthMethod.SSO,
   });

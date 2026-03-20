@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "GVI Finance",
-    "signOut": "Se déconnecter",
+    "signOut": "Se deconnecter",
     "save": "Enregistrer",
     "cancel": "Annuler",
     "loading": "Chargement...",
@@ -21,61 +21,60 @@
     "email": "E-mail",
     "password": "Mot de passe",
     "signingIn": "Connexion...",
-    "loginFailed": "Échec de la connexion. Veuillez réessayer.",
-    "description": "Utilisez Azure SSO ou un compte local créé par un administrateur.",
-    "ssoRevoked": "Votre accès SSO a été révoqué. Veuillez contacter un administrateur.",
-    "ssoNotConfigured": "Azure SSO n'est pas encore configuré. Définissez les variables d'environnement Azure AD et réessayez.",
-    "authFailed": "Échec de l'authentification. Veuillez réessayer.",
+    "loginFailed": "Echec de la connexion. Veuillez reessayer.",
+    "description": "Utilisez Azure SSO ou un compte local cree par un administrateur.",
+    "ssoRevoked": "Votre acces SSO a ete revoque. Veuillez contacter un administrateur.",
+    "ssoNotConfigured": "Azure SSO n'est pas encore configure. Definissez les variables d'environnement Azure AD et reessayez.",
+    "authFailed": "Echec de l'authentification. Veuillez reessayer.",
     "changePassword": "Changer votre mot de passe",
-    "changePasswordDescription": "Les comptes locaux doivent définir un nouveau mot de passe avant d'accéder au tableau de bord.",
+    "changePasswordDescription": "Les comptes locaux doivent definir un nouveau mot de passe avant d'acceder au tableau de bord.",
     "currentPassword": "Mot de passe actuel",
     "newPassword": "Nouveau mot de passe",
     "saveNewPassword": "Enregistrer le nouveau mot de passe",
-    "passwordChanged": "Mot de passe modifié avec succès",
-    "couldNotUpdatePassword": "Impossible de mettre à jour le mot de passe",
-    "firstLogin": "Première connexion"
+    "passwordChanged": "Mot de passe modifie avec succes",
+    "couldNotUpdatePassword": "Impossible de mettre a jour le mot de passe",
+    "firstLogin": "Premiere connexion"
   },
   "pending": {
     "title": "Votre compte est en attente d'approbation de l'administrateur.",
-    "description": "Vous pouvez vous connecter avec Azure maintenant, mais vous ne pourrez pas accéder à l'application tant qu'un administrateur n'aura pas approuvé votre accès.",
+    "description": "Vous pouvez vous connecter avec Azure maintenant, mais vous ne pourrez pas acceder a l'application tant qu'un administrateur n'aura pas approuve votre acces.",
     "label": "En attente d'approbation"
   },
   "dashboard": {
     "label": "Tableau de bord",
     "welcomeBack": "Bienvenue, {name}.",
-    "role": "Rôle",
+    "role": "Role",
     "status": "Statut",
-    "theme": "Thème"
+    "theme": "Theme"
   },
   "users": {
     "title": "Utilisateurs",
-    "createUser": "Créer un utilisateur local",
+    "createUser": "Creer un utilisateur local",
     "emailPlaceholder": "E-mail",
     "namePlaceholder": "Nom",
     "temporaryPassword": "Mot de passe temporaire",
-    "createButton": "Créer l'utilisateur",
-    "userCreated": "Utilisateur créé",
-    "couldNotCreate": "Impossible de créer l'utilisateur",
-    "notAuthorized": "Vous n'êtes pas autorisé à accéder à cette page.",
+    "createButton": "Creer l'utilisateur",
+    "userCreated": "Utilisateur cree",
+    "couldNotCreate": "Impossible de creer l'utilisateur",
+    "notAuthorized": "Vous n'etes pas autorise a acceder a cette page.",
     "name": "Nom",
     "email": "E-mail",
-    "role": "Rôle",
+    "role": "Role",
     "statusLabel": "Statut",
     "auth": "Auth",
     "actions": "Actions",
     "approve": "Approuver",
-    "deactivate": "Désactiver",
-    "reactivate": "Réactiver",
-    "userApproved": "Utilisateur approuvé",
-    "userDeactivated": "Utilisateur désactivé",
-    "userReactivated": "Utilisateur réactivé",
-    "roleUpdated": "Rôle mis à jour en {role}",
-    "couldNotUpdate": "Impossible de mettre à jour l'utilisateur",
+    "deactivate": "Desactiver",
+    "reactivate": "Reactiver",
+    "userApproved": "Utilisateur approuve",
+    "userDeactivated": "Utilisateur desactive",
+    "userReactivated": "Utilisateur reactive",
+    "roleUpdated": "Role mis a jour en {role}",
+    "couldNotUpdate": "Impossible de mettre a jour l'utilisateur",
     "roles": {
-      "ADMIN": "Admin",
-      "MARKETER_LEAD": "Marketer Lead",
-      "MARKETER": "Marketer",
-      "REVIEWER": "Reviewer"
+      "GVI_FINANCE_ADMIN": "Admin finance GVI",
+      "COUNTRY_ADMIN": "Admin pays",
+      "COUNTRY_FINANCE": "Finance pays"
     },
     "statuses": {
       "ACTIVE": "Actif",
@@ -84,6 +83,38 @@
     }
   },
   "theme": {
-    "switchedTo": "Thème changé en mode {theme}"
+    "switchedTo": "Theme change en mode {theme}"
+  },
+  "budget": {
+    "title": "Planification budgetaire",
+    "budgetYears": "Exercices budgetaires",
+    "countryBudgets": "Budgets pays",
+    "budgetItems": "Lignes budgetaires",
+    "plannedAmount": "Montant prevu",
+    "actualSpend": "Depense reelle"
+  },
+  "receipts": {
+    "title": "Recus",
+    "upload": "Televerser un recu",
+    "amount": "Montant",
+    "date": "Date",
+    "description": "Description"
+  },
+  "donors": {
+    "title": "Bailleurs",
+    "projects": "Projets",
+    "tag": "Associer au projet"
+  },
+  "audit": {
+    "title": "Journal d'audit",
+    "action": "Action",
+    "actor": "Acteur",
+    "entity": "Entite"
+  },
+  "proposals": {
+    "title": "Propositions budgetaires",
+    "status": "Statut",
+    "approve": "Approuver",
+    "reject": "Rejeter"
   }
 }

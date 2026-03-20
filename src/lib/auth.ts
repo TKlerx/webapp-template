@@ -52,14 +52,14 @@ export async function provisionSsoUser(input: { email: string; name: string }) {
     });
   }
 
-  return prisma.user.create({
-    data: {
-      email: input.email.toLowerCase(),
-      name: input.name,
-      role: Role.MARKETER,
-      status: UserStatus.PENDING_APPROVAL,
-      authMethod: AuthMethod.SSO,
-      mustChangePassword: false,
+    return prisma.user.create({
+      data: {
+        email: input.email.toLowerCase(),
+        name: input.name,
+        role: Role.COUNTRY_FINANCE,
+        status: UserStatus.PENDING_APPROVAL,
+        authMethod: AuthMethod.SSO,
+        mustChangePassword: false,
       themePreference: ThemePreference.LIGHT,
     },
   });

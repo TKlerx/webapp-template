@@ -72,10 +72,9 @@
     "roleUpdated": "Role updated to {role}",
     "couldNotUpdate": "Could not update user",
     "roles": {
-      "ADMIN": "Admin",
-      "MARKETER_LEAD": "Marketer Lead",
-      "MARKETER": "Marketer",
-      "REVIEWER": "Reviewer"
+      "GVI_FINANCE_ADMIN": "GVI Finance Admin",
+      "COUNTRY_ADMIN": "Country Admin",
+      "COUNTRY_FINANCE": "Country Finance"
     },
     "statuses": {
       "ACTIVE": "Active",
@@ -85,5 +84,37 @@
   },
   "theme": {
     "switchedTo": "Theme switched to {theme} mode"
+  },
+  "budget": {
+    "title": "Budget Planning",
+    "budgetYears": "Budget Years",
+    "countryBudgets": "Country Budgets",
+    "budgetItems": "Budget Items",
+    "plannedAmount": "Planned amount",
+    "actualSpend": "Actual spend"
+  },
+  "receipts": {
+    "title": "Receipts",
+    "upload": "Upload receipt",
+    "amount": "Amount",
+    "date": "Date",
+    "description": "Description"
+  },
+  "donors": {
+    "title": "Donors",
+    "projects": "Projects",
+    "tag": "Tag to project"
+  },
+  "audit": {
+    "title": "Audit Trail",
+    "action": "Action",
+    "actor": "Actor",
+    "entity": "Entity"
+  },
+  "proposals": {
+    "title": "Budget Proposals",
+    "status": "Status",
+    "approve": "Approve",
+    "reject": "Reject"
   }
 }

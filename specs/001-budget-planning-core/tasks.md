@@ -17,13 +17,13 @@
 
 **Purpose**: Project initialization — extend Prisma schema, add new roles, create shared infrastructure
 
-- [ ] T001 Update Prisma schema with new enums (Role: GVI_FINANCE_ADMIN, COUNTRY_ADMIN, COUNTRY_FINANCE; ProposalType; ProposalStatus; AuditAction) and all new models (ProgramCountry, UserCountryAssignment, BudgetYear, CountryBudget, BudgetItem, Receipt, InstitutionalDonor, DonorProject, DonorProjectTag, BudgetProposal, AuditEntry, BudgetTemplate, BudgetTemplateItem) per data-model.md in `prisma/schema.prisma`
-- [ ] T002 Create and run Prisma migration for the new schema, then update seed script to map existing ADMIN user to GVI_FINANCE_ADMIN in `prisma/seed.ts`
-- [ ] T002a Add role migration logic to seed script: migrate existing users from old roles (ADMIN → GVI_FINANCE_ADMIN, MARKETER_LEAD → COUNTRY_ADMIN, MARKETER → COUNTRY_FINANCE, REVIEWER → COUNTRY_FINANCE) and handle any users with the deprecated REVIEWER role in `prisma/seed.ts`
-- [ ] T003 [P] Create file storage service with `saveFile(buffer, originalName)` and `getFilePath(storedPath)` in `src/lib/file-storage.ts`. Files saved as `uploads/{year}/{month}/{uuid}.{ext}`. Add `uploads/` to `.gitignore`
-- [ ] T004 [P] Create audit trail logging service with `logAudit({ action, entityType, entityId, actorId, details, countryId })` in `src/lib/audit.ts`
-- [ ] T005 [P] Create budget validation utility with `validateChildSum(parentId)` that checks child planned amounts ≤ parent amount, and `hasReceipts(budgetItemId)` that recursively checks for assigned receipts in `src/lib/budget-validation.ts`
-- [ ] T006 [P] Add i18n translation keys for budget, receipt, donor, audit, role, and proposal UI text across all 5 locales (en, de, es, fr, pt) in `src/i18n/messages/{locale}.json`
+- [X] T001 Update Prisma schema with new enums (Role: GVI_FINANCE_ADMIN, COUNTRY_ADMIN, COUNTRY_FINANCE; ProposalType; ProposalStatus; AuditAction) and all new models (ProgramCountry, UserCountryAssignment, BudgetYear, CountryBudget, BudgetItem, Receipt, InstitutionalDonor, DonorProject, DonorProjectTag, BudgetProposal, AuditEntry, BudgetTemplate, BudgetTemplateItem) per data-model.md in `prisma/schema.prisma`
+- [X] T002 Create and run Prisma migration for the new schema, then update seed script to map existing ADMIN user to GVI_FINANCE_ADMIN in `prisma/seed.ts`
+- [X] T002a Add role migration logic to seed script: migrate existing users from old roles (ADMIN → GVI_FINANCE_ADMIN, MARKETER_LEAD → COUNTRY_ADMIN, MARKETER → COUNTRY_FINANCE, REVIEWER → COUNTRY_FINANCE) and handle any users with the deprecated REVIEWER role in `prisma/seed.ts`
+- [X] T003 [P] Create file storage service with `saveFile(buffer, originalName)` and `getFilePath(storedPath)` in `src/lib/file-storage.ts`. Files saved as `uploads/{year}/{month}/{uuid}.{ext}`. Add `uploads/` to `.gitignore`
+- [X] T004 [P] Create audit trail logging service with `logAudit({ action, entityType, entityId, actorId, details, countryId })` in `src/lib/audit.ts`
+- [X] T005 [P] Create budget validation utility with `validateChildSum(parentId)` that checks child planned amounts ≤ parent amount, and `hasReceipts(budgetItemId)` that recursively checks for assigned receipts in `src/lib/budget-validation.ts`
+- [X] T006 [P] Add i18n translation keys for budget, receipt, donor, audit, role, and proposal UI text across all 5 locales (en, de, es, fr, pt) in `src/i18n/messages/{locale}.json`
 
 **Checkpoint**: Schema migrated, shared services ready. User story implementation can begin.
 
@@ -35,8 +35,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Extend RBAC module with new roles (GVI_FINANCE_ADMIN, COUNTRY_ADMIN, COUNTRY_FINANCE), country-scoped access check `requireCountryAccess(user, countryId)`, and helper `getUserCountryIds(userId)` in `src/lib/rbac.ts`
-- [ ] T008 Create route-level auth middleware helper that combines role check + country scope check for API routes, usable as `await authorizeRoute(request, { roles, countryScoped })` in `src/lib/route-auth.ts`
+- [X] T007 Extend RBAC module with new roles (GVI_FINANCE_ADMIN, COUNTRY_ADMIN, COUNTRY_FINANCE), country-scoped access check `requireCountryAccess(user, countryId)`, and helper `getUserCountryIds(userId)` in `src/lib/rbac.ts`
+- [X] T008 Create route-level auth middleware helper that combines role check + country scope check for API routes, usable as `await authorizeRoute(request, { roles, countryScoped })` in `src/lib/route-auth.ts`
 
 **Checkpoint**: Foundation ready — user story implementation can now begin
 

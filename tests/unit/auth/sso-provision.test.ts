@@ -19,7 +19,7 @@ describe("SSO user provisioning", () => {
       id: "user_1",
       email: "new.user@example.com",
       name: "New User",
-      role: Role.MARKETER,
+      role: Role.COUNTRY_FINANCE,
       status: UserStatus.PENDING_APPROVAL,
       authMethod: AuthMethod.SSO,
       mustChangePassword: false,
@@ -35,7 +35,7 @@ describe("SSO user provisioning", () => {
       data: {
         email: "new.user@example.com",
         name: "New User",
-        role: Role.MARKETER,
+        role: Role.COUNTRY_FINANCE,
         status: UserStatus.PENDING_APPROVAL,
         authMethod: AuthMethod.SSO,
         mustChangePassword: false,

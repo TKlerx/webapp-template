@@ -30,7 +30,7 @@ describe("create user route", () => {
 
   it("creates a local user with expected defaults", async () => {
     requireApiUserWithRoles.mockResolvedValue({
-      user: { id: "admin_1", role: Role.ADMIN },
+      user: { id: "admin_1", role: Role.GVI_FINANCE_ADMIN },
     });
     validatePasswordComplexity.mockReturnValue(true);
     hashPassword.mockResolvedValue("hashed-password");
@@ -39,7 +39,7 @@ describe("create user route", () => {
       id: "user_1",
       email: "reviewer@example.com",
       name: "Review Person",
-      role: Role.REVIEWER,
+      role: Role.COUNTRY_FINANCE,
       status: UserStatus.ACTIVE,
       authMethod: AuthMethod.LOCAL,
       mustChangePassword: true,
@@ -51,7 +51,7 @@ describe("create user route", () => {
         body: JSON.stringify({
           email: "Reviewer@Example.com",
           name: "Review Person",
-          role: Role.REVIEWER,
+          role: Role.COUNTRY_FINANCE,
           temporaryPassword: "TempPass123",
         }),
         headers: { "Content-Type": "application/json" },
@@ -68,7 +68,7 @@ describe("create user route", () => {
         email: "reviewer@example.com",
         emailVerified: true,
         name: "Review Person",
-        role: Role.REVIEWER,
+        role: Role.COUNTRY_FINANCE,
         status: UserStatus.ACTIVE,
         authMethod: AuthMethod.LOCAL,
         passwordHash: "hashed-password",
@@ -91,7 +91,7 @@ describe("create user route", () => {
 
   it("rejects duplicate email addresses", async () => {
     requireApiUserWithRoles.mockResolvedValue({
-      user: { id: "admin_1", role: Role.ADMIN },
+      user: { id: "admin_1", role: Role.GVI_FINANCE_ADMIN },
     });
     validatePasswordComplexity.mockReturnValue(true);
     prismaMock.user.findUnique.mockResolvedValue({ id: "existing_user" } as never);
@@ -102,7 +102,7 @@ describe("create user route", () => {
         body: JSON.stringify({
           email: "existing@example.com",
           name: "Existing User",
-          role: Role.MARKETER,
+          role: Role.COUNTRY_FINANCE,
           temporaryPassword: "TempPass123",
         }),
         headers: { "Content-Type": "application/json" },

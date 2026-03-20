@@ -4,7 +4,7 @@ import { requireApiUserWithRoles } from "@/lib/route-auth";
 import { Role, UserStatus } from "../../../../../../generated/prisma/enums";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireApiUserWithRoles([Role.ADMIN]);
+  const auth = await requireApiUserWithRoles([Role.GVI_FINANCE_ADMIN]);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
@@ -14,9 +14,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) return jsonError("User not found", 404);
 
-  if (user.role === Role.ADMIN && body.role !== Role.ADMIN) {
+  if (user.role === Role.GVI_FINANCE_ADMIN && body.role !== Role.GVI_FINANCE_ADMIN) {
     const adminCount = await prisma.user.count({
-      where: { role: Role.ADMIN, status: { not: UserStatus.INACTIVE } },
+      where: { role: Role.GVI_FINANCE_ADMIN, status: { not: UserStatus.INACTIVE } },
     });
     if (adminCount <= 1) {
       return jsonError("Cannot change role of the last Admin user", 400);

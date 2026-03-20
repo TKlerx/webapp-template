@@ -4,7 +4,7 @@ import { requireApiUserWithRoles } from "@/lib/route-auth";
 import { Role, UserStatus } from "../../../../../../generated/prisma/enums";
 
 export async function PATCH(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireApiUserWithRoles([Role.ADMIN]);
+  const auth = await requireApiUserWithRoles([Role.GVI_FINANCE_ADMIN]);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;

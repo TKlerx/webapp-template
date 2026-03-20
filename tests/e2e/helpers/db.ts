@@ -125,7 +125,7 @@ export async function seedSsoUser(user: {
        WHERE id = ?`,
     ).run(
       user.name,
-      user.role ?? Role.MARKETER,
+      user.role ?? Role.COUNTRY_FINANCE,
       user.status,
       user.authMethod ?? AuthMethod.SSO,
       ThemePreference.LIGHT,
@@ -145,7 +145,7 @@ export async function seedSsoUser(user: {
     id,
     normalizedEmail,
     user.name,
-    user.role ?? Role.MARKETER,
+    user.role ?? Role.COUNTRY_FINANCE,
     user.status,
     user.authMethod ?? AuthMethod.SSO,
     ThemePreference.LIGHT,

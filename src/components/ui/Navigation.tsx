@@ -12,7 +12,7 @@ export function Navigation({ user }: { user: SessionUser }) {
     { href: "/dashboard", label: t("dashboard") },
   ];
 
-  if (user.role === Role.ADMIN) {
+  if (user.role === Role.GVI_FINANCE_ADMIN) {
     links.push({ href: "/users", label: t("users") });
   }
 

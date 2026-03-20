@@ -7,7 +7,7 @@ test("local user is forced to change password on first login", async ({ page }) 
   await seedLocalUser({
     email: "e2e-temp-user@example.com",
     name: "E2E Temp User",
-    role: Role.MARKETER,
+    role: Role.COUNTRY_FINANCE,
     password: "TempPass123",
     mustChangePassword: true,
   });

@@ -21,28 +21,28 @@
     "email": "E-Mail",
     "password": "Passwort",
     "signingIn": "Anmeldung...",
-    "loginFailed": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "loginFailed": "Anmeldung fehlgeschlagen. Bitte erneut versuchen.",
     "description": "Verwenden Sie Azure SSO oder ein lokales Konto, das von einem Administrator erstellt wurde.",
     "ssoRevoked": "Ihr SSO-Zugang wurde widerrufen. Bitte kontaktieren Sie einen Administrator.",
-    "ssoNotConfigured": "Azure SSO ist noch nicht konfiguriert. Setzen Sie die Azure AD Umgebungsvariablen und versuchen Sie es erneut.",
-    "authFailed": "Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    "changePassword": "Passwort ändern",
-    "changePasswordDescription": "Lokale Konten müssen ein neues Passwort festlegen, bevor sie das Dashboard betreten können.",
+    "ssoNotConfigured": "Azure SSO ist noch nicht konfiguriert. Setzen Sie die Azure-AD-Umgebungsvariablen und versuchen Sie es erneut.",
+    "authFailed": "Authentifizierung fehlgeschlagen. Bitte erneut versuchen.",
+    "changePassword": "Passwort andern",
+    "changePasswordDescription": "Lokale Konten mussen ein neues Passwort festlegen, bevor sie das Dashboard betreten konnen.",
     "currentPassword": "Aktuelles Passwort",
     "newPassword": "Neues Passwort",
     "saveNewPassword": "Neues Passwort speichern",
-    "passwordChanged": "Passwort erfolgreich geändert",
+    "passwordChanged": "Passwort erfolgreich geandert",
     "couldNotUpdatePassword": "Passwort konnte nicht aktualisiert werden",
     "firstLogin": "Erstanmeldung"
   },
   "pending": {
     "title": "Ihr Konto wartet auf die Genehmigung eines Administrators.",
-    "description": "Sie können sich jetzt mit Azure anmelden, aber Sie erreichen die Anwendung erst, wenn ein Administrator Ihren Zugang genehmigt.",
+    "description": "Sie konnen sich jetzt mit Azure anmelden, erreichen die Anwendung aber erst nach Freigabe durch einen Administrator.",
     "label": "Genehmigung ausstehend"
   },
   "dashboard": {
     "label": "Dashboard",
-    "welcomeBack": "Willkommen zurück, {name}.",
+    "welcomeBack": "Willkommen zuruck, {name}.",
     "role": "Rolle",
     "status": "Status",
     "theme": "Design"
@@ -52,7 +52,7 @@
     "createUser": "Lokalen Benutzer erstellen",
     "emailPlaceholder": "E-Mail",
     "namePlaceholder": "Name",
-    "temporaryPassword": "Temporäres Passwort",
+    "temporaryPassword": "Temporeres Passwort",
     "createButton": "Benutzer erstellen",
     "userCreated": "Benutzer erstellt",
     "couldNotCreate": "Benutzer konnte nicht erstellt werden",
@@ -72,10 +72,9 @@
     "roleUpdated": "Rolle aktualisiert auf {role}",
     "couldNotUpdate": "Benutzer konnte nicht aktualisiert werden",
     "roles": {
-      "ADMIN": "Admin",
-      "MARKETER_LEAD": "Marketer Lead",
-      "MARKETER": "Marketer",
-      "REVIEWER": "Reviewer"
+      "GVI_FINANCE_ADMIN": "GVI Finanzadmin",
+      "COUNTRY_ADMIN": "Landeradmin",
+      "COUNTRY_FINANCE": "Landesfinanzteam"
     },
     "statuses": {
       "ACTIVE": "Aktiv",
@@ -85,5 +84,37 @@
   },
   "theme": {
     "switchedTo": "Design auf {theme}-Modus umgeschaltet"
+  },
+  "budget": {
+    "title": "Budgetplanung",
+    "budgetYears": "Budgetjahre",
+    "countryBudgets": "Landerbudgets",
+    "budgetItems": "Budgetposten",
+    "plannedAmount": "Geplanter Betrag",
+    "actualSpend": "Tatsachliche Ausgaben"
+  },
+  "receipts": {
+    "title": "Belege",
+    "upload": "Beleg hochladen",
+    "amount": "Betrag",
+    "date": "Datum",
+    "description": "Beschreibung"
+  },
+  "donors": {
+    "title": "Geber",
+    "projects": "Projekte",
+    "tag": "Projekt zuordnen"
+  },
+  "audit": {
+    "title": "Prufprotokoll",
+    "action": "Aktion",
+    "actor": "Akteur",
+    "entity": "Entitat"
+  },
+  "proposals": {
+    "title": "Budgetvorschlage",
+    "status": "Status",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen"
   }
 }
