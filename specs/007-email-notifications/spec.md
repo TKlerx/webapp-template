@@ -5,6 +5,13 @@
 **Status**: Draft
 **Input**: User description: "Email-based receipt submission and in-app plus email notifications for GVI Finance workflow events"
 
+## Clarifications
+
+### Session 2026-03-20
+
+- Q: How are email-submitted receipts assigned to a budget item and country? → A: Receipts are created as "incomplete" (file stored, no budget item/country assigned). AI processes both the attachment and the email body text for extraction hints (amount, vendor, context clues for classification). The user then reviews and completes the assignment in the app.
+- Q: Notification retention policy? → A: Keep all notifications indefinitely. No auto-cleanup needed for ~10 users.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - In-App Notifications for Workflow Events (Priority: P1)
@@ -46,7 +53,7 @@ In addition to in-app notifications, users receive email notifications for impor
 
 ### User Story 3 - Email-to-Receipt Submission (Priority: P2)
 
-A Country Finance user in the field emails a receipt photo to the dedicated GVI Finance receipts address (e.g., receipts@gvi-finance.org). The system receives the email, identifies the sender by matching the email address to a registered user, extracts the file attachments, and creates receipt records. If AI processing is available, extraction and classification run automatically. The user receives a confirmation reply email listing the created receipt IDs. If the sender is not a registered user, they receive a rejection reply.
+A Country Finance user in the field emails a receipt photo to the dedicated GVI Finance receipts address (e.g., receipts@gvi-finance.org). The system receives the email, identifies the sender by matching the email address to a registered user, extracts the file attachments, and creates "incomplete" receipt records (file stored, no budget item or country assigned yet). AI processes both the attachment and the email body text to extract hints (amount, vendor, context for budget item classification). The user receives a confirmation reply with a link to review and complete the receipts in the app. If the sender is not a registered user, they receive a rejection reply.
 
 **Why this priority**: Email submission is a convenience feature that complements the web and mobile capture workflows. It is especially valuable for users who receive receipts digitally (forwarded invoices, email receipts) and want to submit them without opening the app.
 
@@ -54,10 +61,11 @@ A Country Finance user in the field emails a receipt photo to the dedicated GVI 
 
 **Acceptance Scenarios**:
 
-1. **Given** a registered Country Finance user sends an email with a PDF attachment to the receipts address, **When** the system processes the email, **Then** a receipt record is created from the attachment with the sender as the uploader.
-2. **Given** an email contains multiple attachments (e.g., 3 receipt images), **When** the system processes it, **Then** 3 separate receipt records are created, one per attachment.
-3. **Given** the receipt is created from email, **When** AI processing is available, **Then** extraction and classification run automatically on each attachment.
-4. **Given** the system successfully creates receipts from an email, **When** processing completes, **Then** the sender receives a confirmation reply listing the receipt IDs and a link to review them in the application.
+1. **Given** a registered Country Finance user sends an email with a PDF attachment to the receipts address, **When** the system processes the email, **Then** an incomplete receipt record is created (file stored, no budget item or country assigned) with the sender as the uploader.
+2. **Given** an email contains multiple attachments (e.g., 3 receipt images), **When** the system processes it, **Then** 3 separate incomplete receipt records are created, one per attachment.
+3. **Given** the receipt is created from email, **When** AI processing is available, **Then** extraction and classification run automatically on each attachment and the email body text is used as additional context for AI extraction hints.
+4. **Given** the system successfully creates receipts from an email, **When** processing completes, **Then** the sender receives a confirmation reply listing the receipt IDs and a link to review and complete them in the application.
+5. **Given** email-submitted receipts exist as incomplete, **When** the user opens them in the app, **Then** they see AI-suggested values (if available) and must assign a budget item, country, and budget year before the receipt is fully submitted.
 5. **Given** an unrecognized email address sends to the receipts address, **When** the system processes it, **Then** a rejection reply is sent explaining that only registered users can submit receipts.
 6. **Given** an email contains no valid attachments (no PDF/JPEG/PNG files), **When** the system processes it, **Then** the sender receives a reply explaining that no valid receipt files were found.
 
@@ -113,16 +121,16 @@ When the total actual spend for a budget item exceeds its planned amount, the sy
 - **FR-002**: In-app notifications MUST include a link to the relevant entity (receipt, proposal, user) so the recipient can navigate directly to it.
 - **FR-003**: System MUST display an unread notification count badge on a bell icon in the application navigation bar, visible on all pages.
 - **FR-004**: System MUST provide a notification panel listing all notifications in reverse chronological order, with unread items visually distinguished from read items.
-- **FR-005**: Users MUST be able to mark individual notifications as read, or mark all notifications as read at once.
+- **FR-005**: Users MUST be able to mark individual notifications as read, or mark all notifications as read at once. Notifications are retained indefinitely (no auto-cleanup).
 - **FR-006**: System MUST send email notifications for the same events as in-app notifications, respecting per-user email preferences.
 - **FR-007**: Email notifications MUST include a direct link to the relevant item in the application.
 - **FR-008**: Users MUST be able to configure which notification types they receive via email. In-app notifications are always delivered and cannot be disabled.
 - **FR-009**: The email transport layer MUST support two interchangeable providers — standard SMTP and Microsoft Graph Send Mail — configured via environment variable without code changes.
-- **FR-010**: System MUST process inbound emails sent to a dedicated receipts address: extract file attachments, match sender to a registered user, and create receipt records.
+- **FR-010**: System MUST process inbound emails sent to a dedicated receipts address: extract file attachments, match sender to a registered user, and create incomplete receipt records (file stored, no budget item/country/year assigned). The user completes assignment in the app.
 - **FR-011**: When an inbound email contains multiple valid attachments, the system MUST create one receipt record per attachment.
 - **FR-012**: After processing an inbound email, the system MUST send a confirmation reply to the sender listing created receipt IDs, or a rejection reply if the sender is not a registered user or no valid attachments were found.
 - **FR-013**: Inbound email processing MUST reject attachments that are not PDF, JPEG, or PNG, or that exceed 20 MB.
-- **FR-014**: Inbound email processing MUST trigger AI extraction and classification (Feature 5) on created receipts when AI processing is available.
+- **FR-014**: Inbound email processing MUST trigger AI extraction and classification (Feature 5) on created receipts when AI processing is available. The email body text MUST be provided as additional context to the AI for extraction hints (amount, vendor, description).
 - **FR-015**: System MUST NOT send automated replies to emails that contain auto-reply headers (to prevent mail loops).
 - **FR-016**: Email delivery failures MUST be retried (up to 3 attempts). Failed emails MUST be logged. In-app notifications MUST still be delivered regardless of email delivery status.
 - **FR-017**: Over-budget notifications MUST be sent only once per budget item per threshold crossing (no duplicate alerts for additional receipts after the item is already over-budget).
