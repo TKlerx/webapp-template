@@ -32,7 +32,8 @@ List notifications for the authenticated user, with optional filtering and pagin
       "title": "Receipt flagged for correction",
       "message": "Your receipt #R-2026-0042 has been flagged by Admin.",
       "isRead": false,
-      "createdAt": "2026-03-20T10:30:00.000Z"
+      "createdAt": "2026-03-20T10:30:00.000Z",
+      "linkUrl": "/gvi-finance/receipts/clx..."
     }
   ],
   "pagination": {
@@ -93,10 +94,13 @@ Mark a single notification as read.
     "title": "Receipt flagged for correction",
     "message": "Your receipt #R-2026-0042 has been flagged by Admin.",
     "isRead": true,
-    "createdAt": "2026-03-20T10:30:00.000Z"
+    "createdAt": "2026-03-20T10:30:00.000Z",
+    "linkUrl": "/gvi-finance/receipts/clx..."
   }
 }
 ```
+
+**Note**: `linkUrl` is a computed field derived from `entityType` + `entityId` at query time, not stored in the database model.
 
 **Errors**:
 - 401: Not authenticated

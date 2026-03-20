@@ -109,25 +109,9 @@
 
 ## Phase 6: User Story 4 — Notification Bell (Priority: P1)
 
-**Goal**: Bell icon with unread count badge in top navigation, dropdown with recent notifications, polling for updates
-
-**Independent Test**: Navigate to any page, verify bell icon shows correct unread count, click to see notifications
-
-### Tests for User Story 4
-
-> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
-
-- [ ] T026 [P] [US4] Unit test for NotificationBell in `tests/unit/notification-bell.test.ts` — mock fetch, verify component renders bell icon, verify it fetches unread count on mount, verify badge shows count when > 0, verify badge hidden when count is 0, verify polling fires at 30-second interval, verify polling cleans up on unmount, verify clicking bell opens dropdown
-- [ ] T027 [P] [US4] Unit test for NotificationDropdown in `tests/unit/notification-dropdown.test.ts` — mock fetch, verify dropdown fetches 5 recent notifications on open, verify each notification renders type icon, description, timestamp, read/unread indicator, verify clicking notification calls PATCH mark-as-read and navigates to linkUrl, verify "View All" link navigates to notification history page
-- [ ] T028 [P] [US4] E2E test for notification bell in `tests/e2e/notification-bell.spec.ts` — seed database with notifications (read and unread) for user; log in; verify bell icon visible in top navigation on dashboard page; verify badge shows correct unread count; click bell, verify dropdown shows 5 most recent notifications; click a notification, verify navigation to entity page and notification marked as read; verify badge count decrements; navigate to a different page, verify bell still visible; verify "View All" link navigates to notification history
-
-### Implementation
-
-- [ ] T029 [US4] Create `src/components/notifications/NotificationBell.tsx` — client component (`"use client"`), renders bell icon button in navigation bar, fetches `GET /api/notifications/unread-count` on mount and every 30 seconds via `setInterval`, displays unread count as badge (hidden when 0), clears interval on unmount, on click toggles NotificationDropdown visibility, aria-label with translated text and count
-- [ ] T030 [US4] Create `src/components/notifications/NotificationDropdown.tsx` — client component, fetches `GET /api/notifications?limit=5` when opened, renders list of 5 recent notifications with type icon, short description, relative timestamp, and read/unread visual indicator (bold/normal), clicking a notification calls `PATCH /api/notifications/[id]/read` then navigates to `linkUrl`, includes "View All" link at bottom navigating to `/gvi-finance/notifications`, closes on click outside, keyboard accessible (Escape to close)
-- [ ] T031 [US4] Integrate NotificationBell into shared navigation layout — add NotificationBell component to the existing Navigation component (likely `src/components/ui/Navigation.tsx` or equivalent shared layout), positioned in the top bar next to user menu, visible on all authenticated pages, not just dashboard
-
-**Checkpoint**: Notification bell functional across all pages with polling, dropdown, and mark-as-read
+> **NOTE**: The notification bell UI (NotificationBell, NotificationDropdown, nav integration) is implemented by **Feature 007** (tasks T032-T034, E2E test T027). Feature 007 owns the bell component, notification API endpoints, and polling logic. This phase has no 008-specific tasks — the bell is a cross-cutting notification feature that belongs with the notification system.
+>
+> 008's FR-007 through FR-010 requirements are satisfied by 007's implementation.
 
 ---
 
@@ -135,11 +119,11 @@
 
 **Purpose**: Empty states, mobile responsiveness, independent loading, i18n verification, quickstart validation
 
-- [ ] T032 [P] Verify empty state for first-time users on all three dashboard variants — ensure new user with no receipts, no proposals, no activity sees welcoming onboarding guidance with appropriate CTA ("Get started by uploading your first receipt" for Country Finance, "System ready — waiting for country submissions" for Admin), not a blank page (SC-006)
-- [ ] T033 [P] Verify mobile responsive layout for all dashboard sections — test at 320px, 375px, and 768px viewport widths; sections stack vertically in single column on mobile; quick action buttons remain prominent at top; budget progress bars remain readable; no horizontal scrolling; touch targets meet 44x44px minimum (FR-014, SC-005)
-- [ ] T034 [P] Verify independent section loading with Suspense/skeletons — simulate slow data fetch for one dashboard section, verify other sections render immediately with skeleton fallbacks; simulate section error, verify error boundary shows retry button without breaking other sections (FR-011)
-- [ ] T035 [P] Verify i18n completeness for all dashboard and notification components — check all 5 locales have translations for every `dashboard.*` and `notifications.*` key; switch locale to each language and verify no missing keys or fallback text appears; verify date/currency formatting respects locale
-- [ ] T036 Run quickstart.md validation — verify dashboard workflow end-to-end per quickstart scenarios for all three roles and notification bell interaction
+- [ ] T026 [P] Verify empty state for first-time users on all three dashboard variants — ensure new user with no receipts, no proposals, no activity sees welcoming onboarding guidance with appropriate CTA ("Get started by uploading your first receipt" for Country Finance, "System ready — waiting for country submissions" for Admin), not a blank page (SC-006)
+- [ ] T027 [P] Verify mobile responsive layout for all dashboard sections — test at 320px, 375px, and 768px viewport widths; sections stack vertically in single column on mobile; quick action buttons remain prominent at top; budget progress bars remain readable; no horizontal scrolling; touch targets meet 44x44px minimum (FR-014, SC-005)
+- [ ] T028 [P] Verify independent section loading with Suspense/skeletons — simulate slow data fetch for one dashboard section, verify other sections render immediately with skeleton fallbacks; simulate section error, verify error boundary shows retry button without breaking other sections (FR-011)
+- [ ] T029 [P] Verify i18n completeness for all dashboard and notification components — check all 5 locales have translations for every `dashboard.*` and `notifications.*` key; switch locale to each language and verify no missing keys or fallback text appears; verify date/currency formatting respects locale
+- [ ] T030 Run quickstart.md validation — verify dashboard workflow end-to-end per quickstart scenarios for all three roles and notification bell interaction
 
 ---
 
@@ -152,15 +136,15 @@
 - **Phase 3 (US1 - Admin Dashboard)**: Depends on Phase 2 — uses API route, shared components
 - **Phase 4 (US2 - Country Finance Dashboard)**: Depends on Phase 2 — uses API route, shared components; can run in parallel with Phase 3
 - **Phase 5 (US3 - Country Admin Dashboard)**: Depends on Phase 2 — uses API route, shared components; can run in parallel with Phase 3/4
-- **Phase 6 (US4 - Notification Bell)**: Depends on Phase 1 (i18n keys) — independent of dashboard phases; can run in parallel with Phase 3/4/5
-- **Phase 7 (Polish)**: Depends on all user stories being complete
+- **Phase 6 (US4 - Notification Bell)**: Implemented by Feature 007 — no 008-specific tasks
+- **Phase 7 (Polish)**: Depends on all user stories being complete and Feature 007 bell implementation
 
 ### User Story Dependencies
 
 - **US1 (Admin Dashboard)**: Foundation only — independent
 - **US2 (Country Finance Dashboard)**: Foundation only — independent, parallel with US1
 - **US3 (Country Admin Dashboard)**: Foundation only — independent, parallel with US1/US2
-- **US4 (Notification Bell)**: i18n keys only — independent, parallel with US1/US2/US3
+- **US4 (Notification Bell)**: Implemented by Feature 007 (007 tasks T032-T034, E2E T027)
 
 ### Parallel Opportunities
 
@@ -175,47 +159,45 @@ T004 (EmptyState) | T005 (QuickActions) | T006 (DashboardSection)
 # US1 tests: T007 | T008
 # US2 tests: T014 | T015
 # US3 tests: T021 | T022
-# US4 tests: T026 | T027 | T028
-
-# Phases 3, 4, 5, 6 are all independent after Phase 2:
-Phase 3 (US1) | Phase 4 (US2) | Phase 5 (US3) | Phase 6 (US4)
+# Phases 3, 4, 5 are all independent after Phase 2:
+Phase 3 (US1) | Phase 4 (US2) | Phase 5 (US3)
 
 # Phase 7 parallel polish:
-T032 (empty states) | T033 (mobile responsive) | T034 (Suspense/skeletons) | T035 (i18n verify)
+T026 (empty states) | T027 (mobile responsive) | T028 (Suspense/skeletons) | T029 (i18n verify)
 ```
 
 ---
 
 ## Implementation Strategy
 
-### MVP First (US1 + US2 + US4 — P1 Stories)
+### MVP First (US1 + US2 — P1 Dashboard Stories)
 
 1. Complete Phase 1: Setup (i18n keys)
 2. Complete Phase 2: Foundational (API route, shared components)
-3. Complete Phases 3 + 4 + 6 in parallel: Admin Dashboard + Country Finance Dashboard + Notification Bell
-4. **STOP and VALIDATE**: Three P1 stories deliver value to the most frequent users
-5. This replaces the placeholder dashboard for admins and country finance users, and adds the notification bell globally
+3. Complete Phases 3 + 4 in parallel: Admin Dashboard + Country Finance Dashboard
+4. **STOP and VALIDATE**: Two P1 dashboard stories deliver value to the most frequent users
+5. This replaces the placeholder dashboard for admins and country finance users (notification bell is delivered by Feature 007)
 
 ### Incremental Delivery
 
 1. Setup + Foundation -> i18n keys, API route, shared components ready
 2. US1 (Admin Dashboard) -> Power users see system overview -> **P1**
 3. US2 (Country Finance Dashboard) -> Most frequent users see their tasks -> **P1**
-4. US4 (Notification Bell) -> Cross-cutting notification access on all pages -> **P1**
-5. US3 (Country Admin Dashboard) -> Country oversight dashboard -> **P2**
+4. US3 (Country Admin Dashboard) -> Country oversight dashboard -> **P2**
+5. US4 (Notification Bell) -> Implemented by Feature 007 -> **P1**
 6. Polish -> Empty states, mobile, Suspense, i18n verification -> Production-ready
 
 ---
 
 ## Summary
 
-- **Total tasks**: 36
+- **Total tasks**: 30 (US4 notification bell implemented by Feature 007)
 - **Phase 1 (Setup)**: 2 tasks
 - **Phase 2 (Foundational)**: 4 tasks
 - **Phase 3 (US1 - Admin Dashboard)**: 7 tasks (2 test + 5 implementation)
 - **Phase 4 (US2 - Country Finance Dashboard)**: 7 tasks (2 test + 5 implementation)
 - **Phase 5 (US3 - Country Admin Dashboard)**: 5 tasks (2 test + 3 implementation)
-- **Phase 6 (US4 - Notification Bell)**: 6 tasks (3 test + 3 implementation)
+- **Phase 6 (US4 - Notification Bell)**: 0 tasks (implemented by Feature 007 — tasks T032-T034, E2E T027)
 - **Phase 7 (Polish)**: 5 tasks
-- **Parallel opportunities**: 5 groups identified (Phases 3/4/5/6 can run fully in parallel after Phase 2)
-- **MVP scope**: Phases 1-4 + Phase 6 (26 tasks — all P1 stories)
+- **Parallel opportunities**: 4 groups identified (Phases 3/4/5 can run fully in parallel after Phase 2)
+- **MVP scope**: Phases 1-4 (20 tasks — P1 dashboard stories; notification bell via Feature 007)

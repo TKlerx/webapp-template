@@ -48,7 +48,7 @@
 
 ### Implementation
 
-- [ ] T028 [US1] Implement GET `/api/notifications` route — paginated list with type and isRead filters, scoped to authenticated user — `src/app/api/notifications/route.ts`
+- [ ] T028 [US1] Implement GET `/api/notifications` route — paginated list with type and isRead filters, scoped to authenticated user, include computed `linkUrl` field (derived from entityType + entityId) in each notification — `src/app/api/notifications/route.ts`
 - [ ] T029 [US1] Implement GET `/api/notifications/unread-count` route — count of unread notifications for authenticated user — `src/app/api/notifications/unread-count/route.ts`
 - [ ] T030 [US1] Implement PATCH `/api/notifications/[id]` route — mark single notification as read, verify recipient ownership — `src/app/api/notifications/[id]/route.ts`
 - [ ] T031 [US1] Implement POST `/api/notifications/mark-all-read` route — mark all user notifications as read, return updatedCount — `src/app/api/notifications/mark-all-read/route.ts`
@@ -144,6 +144,8 @@
 - [ ] T076 Run full validation suite (`npm run validate`) — lint, typecheck, unit tests, E2E tests — project root
 - [ ] T077 Quickstart validation: set up SMTP provider, trigger a workflow event, verify in-app notification appears and email is delivered — manual test
 - [ ] T078 Quickstart validation: set up Graph provider (switch `MAIL_PROVIDER=graph`), trigger a workflow event, verify email is delivered — manual test
+- [ ] T079 Add SSO_APPROVAL_PENDING notification trigger — when a new SSO user logs in and is pending admin approval, call `notifyRecipients()` to notify all GVI Finance admins — `src/app/api/auth/` (or equivalent SSO callback handler)
+- [ ] T080 [P] Verify mobile responsive layout for notification components — test NotificationDropdown, NotificationPreferences, and NotificationList on 320px, 375px, and 768px viewports; verify dropdown positions correctly on mobile; verify preferences page toggles are touch-friendly; verify no horizontal scrolling
 
 ---
 
@@ -151,7 +153,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total tasks** | 78 |
+| **Total tasks** | 80 |
 | **Phase 1 — Setup** | 4 tasks |
 | **Phase 2 — Foundational** | 16 tasks |
 | **Phase 3 — US1: In-App Notifications** | 16 tasks (7 test + 9 impl) |
@@ -159,7 +161,7 @@
 | **Phase 5 — US3: Email-to-Receipt** | 11 tasks (5 test + 6 impl) |
 | **Phase 6 — US4: Notification Preferences** | 10 tasks (4 test + 6 impl) |
 | **Phase 7 — US5: Over-Budget Notifications** | 7 tasks (3 test + 4 impl) |
-| **Phase 8 — Polish** | 6 tasks |
+| **Phase 8 — Polish** | 8 tasks (includes SSO trigger + mobile responsive verification) |
 | **Parallel opportunities** | T001-T003 (installs), T016-T019 (i18n locales), T022-T026 (US1 unit tests), T037-T039 (US2 tests), T046-T048 (US3 tests), T057-T058 (US4 tests), T067-T068 (US5 tests), T074-T075 (polish) |
 | **MVP scope (P1)** | Phases 1-4 (44 tasks): setup + foundational + in-app notifications + email notifications |
 | **P2 scope** | Phases 5-6 (21 tasks): inbound email-to-receipt + notification preferences |

@@ -174,28 +174,30 @@ The notification bell component uses the following endpoints defined in Feature 
     {
       "id": "clx...",
       "type": "RECEIPT_FLAGGED",
-      "title": "Receipt flagged",
-      "description": "Your receipt for Fuel has been flagged for correction.",
       "entityType": "receipt",
       "entityId": "clx...",
-      "linkUrl": "/gvi-finance/receipts/clx...",
-      "read": false,
-      "createdAt": "2026-03-20T10:30:00Z"
+      "title": "Receipt flagged",
+      "message": "Your receipt for Fuel has been flagged for correction.",
+      "isRead": false,
+      "createdAt": "2026-03-20T10:30:00Z",
+      "linkUrl": "/gvi-finance/receipts/clx..."
     }
   ]
 }
 ```
 
-### `PATCH /api/notifications/[id]/read`
+**Note**: `linkUrl` is a computed field derived from `entityType` + `entityId` at query time (not stored in the Notification model). Field names (`isRead`, `message`) match Feature 007's canonical Notification model.
+
+### `PATCH /api/notifications/[id]`
 **Roles**: All authenticated users (own notifications only)
-**Description**: Marks a notification as read. Called when a user clicks a notification in the dropdown.
+**Description**: Marks a notification as read. Called when a user clicks a notification in the dropdown. Uses `{ isRead: true }` request body per Feature 007's contract.
 
 **Response** (200):
 ```json
 {
   "data": {
     "id": "clx...",
-    "read": true
+    "isRead": true
   }
 }
 ```

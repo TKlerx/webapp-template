@@ -128,14 +128,14 @@ tests/
 | QuickActions | Server | All dashboards | Role-specific action buttons (Upload Receipt, Review, etc.) |
 | EmptyState | Server | All dashboards | Welcoming message + guidance when no data exists |
 
-### Notification Components (`src/components/notifications/`)
+### Notification Components (Implemented by Feature 007)
 
-| Component | Type | Used By | Description |
-|-----------|------|---------|-------------|
-| NotificationBell | Client | Navigation (layout) | Bell icon with badge count; polls `/api/notifications/unread-count` every 30s |
-| NotificationDropdown | Client | NotificationBell | Dropdown panel showing 5 most recent notifications with links |
+The notification bell and dropdown components are **implemented by Feature 007** (007 tasks T032-T034). Feature 007 owns the bell UI, notification API endpoints, and polling logic. Feature 008 references these components but does not create them.
 
-**Note**: The notification bell is a shared cross-cutting component embedded in the top navigation bar (`src/components/ui/Navigation.tsx`). It is the UI owner of the notification bell referenced in Feature 007.
+| Component | Type | Implemented By | Description |
+|-----------|------|----------------|-------------|
+| NotificationBell | Client | Feature 007 | Bell icon with badge count; polls `/api/notifications/unread-count` every 30s |
+| NotificationDropdown | Client | Feature 007 | Dropdown panel showing 5 most recent notifications with links |
 
 ## Complexity Tracking
 

@@ -109,7 +109,7 @@ When the total actual spend for a budget item exceeds its planned amount, the sy
 - What happens when an inbound email has attachments larger than 20 MB? The system rejects those specific attachments and notifies the sender that files must be under 20 MB. Other valid attachments in the same email are still processed.
 - What happens when the inbound email processing encounters a malformed email? The system logs the error and skips the email. No reply is sent (to avoid loops with spam/automated emails).
 - What happens when a user has no country assignment and a notification is triggered? Country-scoped notifications are only sent to users assigned to the relevant country. Users without assignments do not receive country-specific notifications.
-- What happens when the email provider is completely down for an extended period? Emails are queued with a maximum retention of 72 hours. After that, unsent emails are logged as failed and the in-app notification remains as the record.
+- What happens when the email provider is completely down for an extended period? Email dispatch retries up to 3 times with exponential backoff (per FR-016). After 3 failures, the email is logged as permanently failed. The in-app notification is always created regardless of email delivery status.
 - What happens when a user deletes their account? Their unread notifications are discarded. Sent email notifications cannot be recalled.
 - What happens when the inbound mailbox receives spam or automated replies? The system only processes emails from registered user addresses. All others receive the standard rejection reply. To prevent mail loops, the system does not reply to emails that appear to be automated (e.g., contain auto-reply headers like `Auto-Submitted: auto-replied`).
 

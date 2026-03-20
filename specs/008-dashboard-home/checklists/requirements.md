@@ -32,4 +32,4 @@
 ## Notes
 
 - All items pass. Spec is ready for `/speckit.clarify` or `/speckit.plan`.
-- Notification bell (US4) overlaps with Feature 007 FR-003 — this is intentional; 008 owns the UI implementation, 007 owns the notification model.
+- Notification bell (US4) overlaps with Feature 007 FR-003 — resolved: **007 owns both the notification model AND the bell UI** (007 tasks T032-T034). 008 defines the bell requirements (FR-007 through FR-010) but delegates implementation to 007 to avoid duplication.

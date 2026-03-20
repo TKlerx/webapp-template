@@ -127,6 +127,7 @@ On every page of the application, the top navigation bar includes a bell icon wi
 - The notification bell and dropdown are part of the shared navigation layout, not specific to the dashboard page.
 - Polling interval for notification badge updates is configurable, defaulting to 30 seconds.
 - "Recent Activity" feed entries are derived from the existing audit trail (Feature 1 FR-017), not a separate event system.
+- "Incomplete email-submitted receipts" (Country Finance dashboard) refers to receipts created by Feature 007's inbound email processing: file stored but no budget item, country, or budget year assigned. The user must complete assignment in the app.
 
 ## Scope Boundaries
 
