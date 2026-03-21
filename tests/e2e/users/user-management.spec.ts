@@ -36,40 +36,45 @@ test("admin creates a local user, user logs in and changes password", async ({
     await expectOnDashboard(adminPage);
     await adminPage.goto(`${appBasePath}/users`);
 
-    await adminPage.getByPlaceholder("Email").fill(createdUser.email);
-    await adminPage.getByPlaceholder("Name").fill(createdUser.name);
-    await adminPage.locator("select").first().selectOption(Role.COUNTRY_FINANCE);
-    await adminPage.getByPlaceholder("Temporary password").fill(createdUser.temporaryPassword);
-    await adminPage.getByRole("button", { name: "Create user" }).click();
+    const createUserCard = adminPage
+      .getByRole("heading", { name: "Create local user" })
+      .locator("xpath=..");
+
+    await createUserCard.getByPlaceholder("Email").fill(createdUser.email);
+    await createUserCard.getByPlaceholder("Name").fill(createdUser.name);
+    await createUserCard.locator("select").selectOption(Role.COUNTRY_FINANCE);
+    await createUserCard.getByPlaceholder("Temporary password").fill(createdUser.temporaryPassword);
+    await Promise.all([
+      adminPage.waitForResponse(
+        (response) =>
+          response.url().includes("/api/users") &&
+          response.request().method() === "POST" &&
+          response.status() === 201,
+      ),
+      createUserCard.getByRole("button", { name: "Create user" }).click(),
+    ]);
+    await adminPage.reload();
 
     const userRow = adminPage.locator("tr", { hasText: createdUser.email });
     await expect(userRow).toBeVisible();
-    await expect(userRow).toContainText("Marketer");
+    await expect(userRow).toContainText("Country Finance");
 
     const userContext = await browser.newContext({ baseURL: appOrigin });
     const userPage = await userContext.newPage();
 
     try {
-      const loginResponse = await userContext.request.post(
-        `${appOrigin}${appBasePath}/api/auth/login`,
-        {
-          data: { email: createdUser.email, password: createdUser.temporaryPassword },
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-      expect(loginResponse.status()).toBe(200);
-
-      await userPage.goto(`${appBasePath}/change-password`);
+      await loginWithPassword(userPage, createdUser.email, createdUser.temporaryPassword);
+      await expect(userPage).toHaveURL(new RegExp(`${appBasePath}/change-password$`));
       await userPage.getByLabel("Current password").fill(createdUser.temporaryPassword);
       await userPage.getByLabel("New password").fill("FreshPass123");
       await Promise.all([
+        userPage.getByRole("button", { name: "Save new password" }).click(),
         userPage.waitForResponse(
           (response) =>
             response.url().includes("/api/auth/change-password") &&
             response.request().method() === "POST" &&
             response.status() === 200,
         ),
-        userPage.getByRole("button", { name: "Save new password" }).click(),
       ]);
       await userPage.waitForURL(new RegExp(`${appBasePath}/dashboard$`), { timeout: 30000 });
       await expectOnDashboard(userPage);
