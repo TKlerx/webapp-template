@@ -107,7 +107,7 @@ if ($Phase -in "all", "full", "test", "commit") {
 if ($Phase -in "full", "e2e") {
     Write-Step "E2E Tests (playwright)"
     try {
-        $exitCode = Invoke-NativeCommand "npm run test:e2e"
+        $exitCode = Invoke-NativeCommand "set CI=1 && set E2E_PORT=3290 && npm run test:e2e"
         if ($exitCode -ne 0) { throw "e2e tests failed" }
         Write-Pass "e2e tests passed"
     } catch {

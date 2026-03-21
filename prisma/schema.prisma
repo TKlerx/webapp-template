@@ -42,6 +42,13 @@ enum ProposalStatus {
   REJECTED
 }
 
+enum ReviewStatus {
+  PENDING_REVIEW
+  APPROVED
+  FLAGGED
+  REJECTED
+}
+
 enum AuditAction {
   BUDGET_YEAR_CREATED
   BUDGET_YEAR_UPDATED
@@ -70,6 +77,9 @@ enum AuditAction {
   BUDGET_TEMPLATE_UPDATED
   BUDGET_TEMPLATE_DELETED
   BUDGET_TEMPLATE_APPLIED
+  RECEIPT_REVIEWED
+  RECEIPT_COMMENTED
+  RECEIPT_REVISED
 }
 
 model User {
@@ -91,6 +101,8 @@ model User {
   sessions                Session[]
   countryAssignments      UserCountryAssignment[]
   uploadedReceipts        Receipt[]                @relation("ReceiptUploadedBy")
+  reviewComments          ReviewComment[]
+  uploadedReceiptRevisions ReceiptRevision[]       @relation("ReceiptRevisionUploadedBy")
   proposedBudgetProposals BudgetProposal[]         @relation("BudgetProposalProposedBy")
   reviewedBudgetProposals BudgetProposal[]         @relation("BudgetProposalReviewedBy")
   auditEntries            AuditEntry[]             @relation("AuditActor")
@@ -217,6 +229,7 @@ model Receipt {
   id              String            @id @default(cuid())
   budgetItemId    String
   uploadedById    String
+  reviewStatus    ReviewStatus      @default(PENDING_REVIEW)
   amount          Decimal
   currency        String
   date            DateTime
@@ -229,11 +242,43 @@ model Receipt {
   updatedAt       DateTime          @updatedAt
   budgetItem      BudgetItem        @relation(fields: [budgetItemId], references: [id], onDelete: Restrict)
   uploadedBy      User              @relation("ReceiptUploadedBy", fields: [uploadedById], references: [id], onDelete: Restrict)
+  reviewComments  ReviewComment[]
+  revisions       ReceiptRevision[]
   donorProjectTags DonorProjectTag[]
 
   @@index([budgetItemId])
   @@index([uploadedById])
   @@index([date])
+  @@index([reviewStatus])
+}
+
+model ReviewComment {
+  id        String   @id @default(cuid())
+  receiptId String
+  authorId  String
+  text      String
+  createdAt DateTime @default(now())
+  receipt   Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([receiptId, createdAt])
+  @@index([authorId])
+}
+
+model ReceiptRevision {
+  id           String   @id @default(cuid())
+  receiptId    String
+  uploadedById String
+  fileName     String
+  filePath     String   @unique
+  fileSize     Int
+  mimeType     String
+  createdAt    DateTime @default(now())
+  receipt      Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation("ReceiptRevisionUploadedBy", fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([receiptId, createdAt])
+  @@index([uploadedById])
 }
 
 model InstitutionalDonor {

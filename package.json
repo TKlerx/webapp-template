@@ -13,7 +13,7 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "duplication": "jscpd src/ --config .jscpd.json",
+    "duplication": "jscpd src/ --config .jscpd.json --pattern \"**/*.{ts,tsx,js,jsx}\"",
     "semgrep": "semgrep scan --error --config auto --config .semgrep.yml",
 
     "validate": "npm run typecheck && npm run lint && npm run duplication && npm run semgrep && npm run test",
