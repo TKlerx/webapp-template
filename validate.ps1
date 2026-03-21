@@ -42,6 +42,28 @@ function Invoke-NativeCommand([string]$commandLine) {
     }
 }
 
+function Invoke-NativeCommandCaptured([string]$commandLine) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    $script:ErrorActionPreference = "Continue"
+    try {
+        $output = cmd /c $commandLine 2>&1
+        return @{
+            ExitCode = $LASTEXITCODE
+            Output = @($output)
+        }
+    } finally {
+        $script:ErrorActionPreference = $previousErrorActionPreference
+    }
+}
+
+function Remove-Ansi([string]$text) {
+    if (-not $text) {
+        return $text
+    }
+
+    return [regex]::Replace($text, '\x1B\[[0-9;]*[A-Za-z]', '')
+}
+
 function Test-ContinuityFreshness {
     Write-Step "Continuity (CONTINUE.md / CONTINUE_LOG.md)"
     try {
@@ -91,9 +113,23 @@ if ($Phase -in "all", "full", "quality", "commit") {
 if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Duplication (jscpd)"
     try {
-        $exitCode = Invoke-NativeCommand "npm run duplication"
-        if ($exitCode -ne 0) { throw "duplication check failed" }
-        Write-Pass "duplication check passed"
+        $result = Invoke-NativeCommandCaptured "npm run duplication"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "duplication check failed"
+        }
+
+        $threshold = ((Get-Content ".jscpd.json" -Raw | ConvertFrom-Json).threshold).ToString("0.##")
+        $summaryLine = $result.Output |
+            Select-String -Pattern 'Total:\s+\|\s+\d+\s+\|\s+\d+\s+\|\s+\d+\s+\|\s+\d+\s+\|\s+\d+\s+\(([\d.]+)%\)' |
+            Select-Object -Last 1
+
+        if ($summaryLine -and $summaryLine.Matches.Count -gt 0) {
+            $duplicationPercent = $summaryLine.Matches[0].Groups[1].Value
+            Write-Pass "duplication check passed ($duplicationPercent% <= $threshold%)"
+        } else {
+            Write-Pass "duplication check passed"
+        }
     } catch {
         Write-Fail "duplication check failed"
         $failures += "duplication"
@@ -104,9 +140,23 @@ if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Security scan (semgrep)"
     try {
         $env:PYTHONUTF8 = "1"
-        $exitCode = Invoke-NativeCommand "npm run semgrep"
-        if ($exitCode -ne 0) { throw "semgrep failed" }
-        Write-Pass "semgrep passed"
+        $result = Invoke-NativeCommandCaptured "npm run semgrep"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "semgrep failed"
+        }
+
+        $findingsLine = $result.Output |
+            Select-String -Pattern 'Findings:\s+(\d+)\s+\((\d+)\s+blocking\)' |
+            Select-Object -Last 1
+
+        if ($findingsLine -and $findingsLine.Matches.Count -gt 0) {
+            $findings = $findingsLine.Matches[0].Groups[1].Value
+            $blocking = $findingsLine.Matches[0].Groups[2].Value
+            Write-Pass "semgrep passed ($findings findings, $blocking blocking)"
+        } else {
+            Write-Pass "semgrep passed"
+        }
     } catch {
         Write-Fail "semgrep failed"
         $failures += "semgrep"
@@ -116,9 +166,39 @@ if ($Phase -in "all", "full", "quality", "commit") {
 if ($Phase -in "all", "full", "test", "commit") {
     Write-Step "Tests (vitest)"
     try {
-        $exitCode = Invoke-NativeCommand "npm test"
-        if ($exitCode -ne 0) { throw "tests failed" }
-        Write-Pass "tests passed"
+        $result = Invoke-NativeCommandCaptured "npm test"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "tests failed"
+        }
+
+        $filesLine = $result.Output |
+            Select-String -Pattern 'Test Files\s+(\d+)\s+passed' |
+            Select-Object -Last 1
+        $testsLine = $result.Output |
+            Select-String -Pattern 'Tests\s+(\d+)\s+passed' |
+            Select-Object -Last 1
+        $durationLine = $result.Output |
+            Select-String -Pattern 'Duration\s+(.+)$' |
+            Select-Object -Last 1
+
+        $parts = @()
+        if ($filesLine -and $filesLine.Matches.Count -gt 0) {
+            $parts += "$($filesLine.Matches[0].Groups[1].Value) files"
+        }
+        if ($testsLine -and $testsLine.Matches.Count -gt 0) {
+            $parts += "$($testsLine.Matches[0].Groups[1].Value) tests"
+        }
+        if ($durationLine) {
+            $durationText = (Remove-Ansi($durationLine.Line) -replace '^\s*Duration\s+', '').Trim()
+            $parts += $durationText
+        }
+
+        if ($parts.Count -gt 0) {
+            Write-Pass "tests passed ($($parts -join ', '))"
+        } else {
+            Write-Pass "tests passed"
+        }
     } catch {
         Write-Fail "tests failed"
         $failures += "tests"
@@ -132,9 +212,21 @@ if ($Phase -in "full", "continuity") {
 if ($Phase -in "full", "e2e") {
     Write-Step "E2E Tests (playwright)"
     try {
-        $exitCode = Invoke-NativeCommand "set CI=1 && set E2E_PORT=3290 && npm run test:e2e"
-        if ($exitCode -ne 0) { throw "e2e tests failed" }
-        Write-Pass "e2e tests passed"
+        $result = Invoke-NativeCommandCaptured "set CI=1 && set E2E_PORT=3290 && npm run test:e2e"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "e2e tests failed"
+        }
+
+        $summaryLine = $result.Output |
+            Select-String -Pattern '^\s*\d+\s+passed\s+\(.+\)$' |
+            Select-Object -Last 1
+
+        if ($summaryLine) {
+            Write-Pass "e2e tests passed ($($summaryLine.Line.Trim()))"
+        } else {
+            Write-Pass "e2e tests passed"
+        }
     } catch {
         Write-Fail "e2e tests failed"
         $failures += "e2e"

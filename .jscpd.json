@@ -5,10 +5,17 @@
   "reporters": ["console"],
   "absolute": true,
   "ignore": [
+    "**/tests/**",
+    "**/test-results/**",
+    "**/playwright-report/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/build/**",
     "**/*.test.ts",
     "**/*.spec.ts",
     "**/.next/**",
-    "**/generated/**"
+    "**/generated/**",
+    "**/node_modules/**"
   ]
 }
 
