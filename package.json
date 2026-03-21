@@ -13,8 +13,9 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "duplication": "jscpd src/ --config .jscpd.json",
+    "duplication": "jscpd src/ --config .jscpd.json --pattern \"**/*.{ts,tsx,js,jsx}\"",
     "semgrep": "semgrep scan --error --config auto --config .semgrep.yml",
+    "continuity:update": "node scripts/update-continuity.mjs",
 
     "validate": "npm run typecheck && npm run lint && npm run duplication && npm run semgrep && npm run test",
     "validate:full": "npm run validate && npm run test:e2e",

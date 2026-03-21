@@ -46,7 +46,18 @@ A working MVP (User Story 1) MUST be validated before proceeding
 to subsequent stories. Feature branches MUST be small and focused;
 large changes MUST be broken into reviewable increments.
 
-### V. Azure OpenAI Integration
+### V. Continuity And Handoff
+
+The repository MUST include a `CONTINUE.md` file that records the
+recent changes, the current stopping point, known issues or open
+questions, and the next recommended actions. This file MUST be
+reviewed before starting new work and updated whenever the project
+state materially changes. The repository MUST also include an
+append-only `CONTINUE_LOG.md` file recording each update to
+`CONTINUE.md` with date and summary so the handoff history remains
+auditable over time.
+
+### VI. Azure OpenAI Integration
 
 All LLM functionality MUST use Azure OpenAI as the provider.
 API keys and endpoint configuration MUST be managed via environment
@@ -57,7 +68,7 @@ and user feedback. The integration layer MUST be encapsulated so
 that switching models or adjusting parameters does not require
 changes across the codebase.
 
-### VI. Web Application Standards
+### VII. Web Application Standards
 
 The application MUST be a web application served under a
 configurable base path (e.g., `/gvi-finance`). The base path
@@ -69,7 +80,7 @@ of use over technical sophistication. User actions MUST provide
 feedback via toast notifications displayed for approximately
 3 seconds.
 
-### VII. Internationalization
+### VIII. Internationalization
 
 All user-facing text MUST use translation keys via next-intl.
 No hardcoded strings in components or pages. Supported locales
@@ -79,7 +90,7 @@ switchable at runtime. New features MUST include translation keys
 for all supported locales. Server components use `getTranslations`,
 client components use `useTranslations`.
 
-### VIII. Responsive Design
+### IX. Responsive Design
 
 The UI MUST be usable on mobile, tablet, and desktop viewports.
 Layout MUST follow a mobile-first approach using Tailwind CSS
@@ -131,6 +142,9 @@ visually before merge.
 - **Commit Discipline**: Small, focused commits with descriptive
   messages. Each commit SHOULD leave the project in a working
   state.
+- **Continuity Files**: `CONTINUE.md` and `CONTINUE_LOG.md` MUST
+  exist, stay current, and be updated as part of commits that
+  materially change the codebase or project state.
 - **Documentation**: User-facing features MUST include usage
   documentation. API endpoints MUST be documented with request
   and response examples.

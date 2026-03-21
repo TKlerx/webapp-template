@@ -5,6 +5,8 @@
 **Status**: Draft  
 **Input**: User description: "$ARGUMENTS"
 
+> Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--

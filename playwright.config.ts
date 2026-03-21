@@ -18,7 +18,7 @@ export default defineConfig({
       PORT: String(port),
     },
     port,
-    timeout: 120 * 1000,
+    timeout: 240 * 1000,
     reuseExistingServer: !process.env.CI,
   },
 });

@@ -18,13 +18,14 @@ in writing (e.g., in a plan or PR description) before introduction.
 
 All features MUST have meaningful test coverage before merging.
 Unit tests cover individual functions and services. Integration
-tests cover API endpoints and user-facing workflows. Tests MUST
-be automated and runnable via a single command. Mocking of external
-services (Azure OpenAI) is required in unit tests; integration
-tests MAY use live services when explicitly configured. Code
-coverage tooling MUST be configured and coverage MUST NOT decrease
-on any PR. Task generation MUST include test tasks for every user
-story -- tests are not optional.
+tests cover API endpoints and user-facing workflows. End-to-end
+tests MUST cover critical user journeys through the application.
+Tests MUST be automated and runnable via a single command. Mocking
+of external services (Azure OpenAI) is required in unit tests;
+integration tests MAY use live services when explicitly configured.
+Code coverage tooling MUST be configured and coverage MUST NOT
+decrease on any PR. Task generation MUST include test tasks for
+every user story -- tests are not optional.
 
 ### III. Duplication Control
 
@@ -46,7 +47,18 @@ A working MVP (User Story 1) MUST be validated before proceeding
 to subsequent stories. Feature branches MUST be small and focused;
 large changes MUST be broken into reviewable increments.
 
-### V. Azure OpenAI Integration
+### V. Continuity And Handoff
+
+The repository MUST include a `CONTINUE.md` file that records the
+recent changes, the current stopping point, known issues or open
+questions, and the next recommended actions. This file MUST be
+reviewed before starting new work and updated whenever the project
+state materially changes. The repository MUST also include an
+append-only `CONTINUE_LOG.md` file recording each update to
+`CONTINUE.md` with date and summary so the handoff history remains
+auditable over time.
+
+### VI. Azure OpenAI Integration
 
 All LLM functionality MUST use Azure OpenAI as the provider.
 API keys and endpoint configuration MUST be managed via environment
@@ -57,7 +69,7 @@ and user feedback. The integration layer MUST be encapsulated so
 that switching models or adjusting parameters does not require
 changes across the codebase.
 
-### VI. Web Application Standards
+### VII. Web Application Standards
 
 The application MUST be a web application served under a
 configurable base path (e.g., `/app-name`). The base path
@@ -68,6 +80,16 @@ users without developer assistance -- prioritize clarity and ease
 of use over technical sophistication. User actions MUST provide
 feedback via toast notifications displayed for approximately
 3 seconds.
+
+### VIII. Responsive Design
+
+The UI MUST be usable on mobile, tablet, and desktop viewports.
+Layout MUST follow a mobile-first approach using Tailwind CSS
+responsive breakpoints (sm, md, lg). Navigation, forms, tables,
+and cards MUST adapt gracefully to narrow viewports -- no
+horizontal scrolling of primary content. Touch targets MUST be
+adequately sized on mobile. Responsive behaviour MUST be verified
+visually before merge.
 
 ## Technology Constraints
 
@@ -117,6 +139,9 @@ feedback via toast notifications displayed for approximately
 - **Commit Discipline**: Small, focused commits with descriptive
   messages. Each commit SHOULD leave the project in a working
   state.
+- **Continuity Files**: `CONTINUE.md` and `CONTINUE_LOG.md` MUST
+  exist, stay current, and be updated as part of commits that
+  materially change the codebase or project state.
 - **Documentation**: User-facing features MUST include usage
   documentation. API endpoints MUST be documented with request
   and response examples.

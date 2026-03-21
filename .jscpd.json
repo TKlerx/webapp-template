@@ -1,9 +1,14 @@
 {
-  "threshold": 5.2,
+  "threshold": 3.0,
   "min-lines": 5,
   "min-tokens": 50,
   "reporters": ["console"],
   "absolute": true,
-  "ignore": ["**/*.test.ts", "**/*.spec.ts", "**/.next/**", "**/generated/**"]
+  "ignore": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/.next/**",
+    "**/generated/**"
+  ]
 }
 

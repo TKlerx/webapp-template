@@ -7,7 +7,8 @@
     Usage: ./validate.ps1 [phase]
     Phases:
       all      - typecheck + lint + duplication + semgrep + test (default, same as CI)
-      full     - all + Playwright E2E tests (recommended before merge)
+      full     - all + continuity freshness + Playwright E2E tests (recommended before merge)
+      continuity - refresh continuity files and fail if that created uncommitted changes
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
@@ -16,7 +17,7 @@
 #>
 
 param(
-    [ValidateSet("all", "full", "quick", "test", "e2e", "quality", "commit")]
+    [ValidateSet("all", "full", "continuity", "quick", "test", "e2e", "quality", "commit")]
     [string]$Phase = "all"
 )
 
@@ -38,6 +39,26 @@ function Invoke-NativeCommand([string]$commandLine) {
         return $LASTEXITCODE
     } finally {
         $script:ErrorActionPreference = $previousErrorActionPreference
+    }
+}
+
+function Test-ContinuityFreshness {
+    Write-Step "Continuity (CONTINUE.md / CONTINUE_LOG.md)"
+    try {
+        $exitCode = Invoke-NativeCommand "npm run continuity:update"
+        if ($exitCode -ne 0) { throw "continuity update failed" }
+
+        $changedFiles = git status --short -- CONTINUE.md CONTINUE_LOG.md
+        if ($changedFiles) {
+            Write-Host $changedFiles
+            throw "continuity files changed"
+        }
+
+        Write-Pass "continuity files are current"
+    } catch {
+        Write-Fail "continuity files are out of date"
+        Write-Host 'Run `npm run continuity:update`, review CONTINUE.md and CONTINUE_LOG.md, commit the updates, then try again.' -ForegroundColor Yellow
+        $script:failures += "continuity"
     }
 }
 
@@ -104,10 +125,14 @@ if ($Phase -in "all", "full", "test", "commit") {
     }
 }
 
+if ($Phase -in "full", "continuity") {
+    Test-ContinuityFreshness
+}
+
 if ($Phase -in "full", "e2e") {
     Write-Step "E2E Tests (playwright)"
     try {
-        $exitCode = Invoke-NativeCommand "npm run test:e2e"
+        $exitCode = Invoke-NativeCommand "set CI=1 && set E2E_PORT=3290 && npm run test:e2e"
         if ($exitCode -ne 0) { throw "e2e tests failed" }
         Write-Pass "e2e tests passed"
     } catch {
