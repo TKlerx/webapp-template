@@ -57,7 +57,7 @@ function Test-ContinuityFreshness {
         Write-Pass "continuity files are current"
     } catch {
         Write-Fail "continuity files are out of date"
-        Write-Host "Run `npm run continuity:update`, review CONTINUE.md and CONTINUE_LOG.md, commit the updates, then try again." -ForegroundColor Yellow
+        Write-Host 'Run `npm run continuity:update`, review CONTINUE.md and CONTINUE_LOG.md, commit the updates, then try again.' -ForegroundColor Yellow
         $script:failures += "continuity"
     }
 }

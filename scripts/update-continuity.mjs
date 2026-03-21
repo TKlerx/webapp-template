@@ -233,9 +233,11 @@ const materialState = JSON.stringify({
   statusSummary: statusLines,
 });
 const fingerprint = createHash("sha256").update(materialState).digest("hex");
-const timestamp = formatNow();
 const previousContent = existsSync(continuePath) ? readFileSync(continuePath, "utf8") : "";
 const previousFingerprint = extractPreviousFingerprint(previousContent);
+const timestamp = previousFingerprint === fingerprint && previousContent
+  ? previousContent.match(/^- Updated: (.+)$/m)?.[1] ?? formatNow()
+  : formatNow();
 
 const nextContent = buildContinueContent({
   branch,
@@ -247,7 +249,10 @@ const nextContent = buildContinueContent({
   fingerprint,
 });
 
-writeFileSync(continuePath, nextContent, "utf8");
+if (previousContent !== nextContent) {
+  writeFileSync(continuePath, nextContent, "utf8");
+}
+
 appendLogIfNeeded({
   previousFingerprint,
   nextFingerprint: fingerprint,

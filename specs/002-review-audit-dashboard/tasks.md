@@ -184,7 +184,7 @@
 **Purpose**: Improvements that affect multiple user stories
 
 - [X] T045 [P] Update sidebar navigation to include Review Dashboard, Audit Trail, and Compliance Dashboard with role-based visibility (review: GVI_FINANCE_ADMIN; audit: GVI_FINANCE_ADMIN; compliance: GVI_FINANCE_ADMIN + COUNTRY_ADMIN) in sidebar/nav component
-- [ ] T046 [P] Ensure all review actions, comments, and revision uploads trigger toast notifications on success/error per constitution principle VI
+- [X] T046 [P] Ensure all review actions, comments, and revision uploads trigger toast notifications on success/error per constitution principle VI
 - [X] T047 [P] Verify responsive design on mobile viewport for review dashboard, receipt detail with file viewer, audit trail, and compliance dashboard per constitution principle VIII
 - [X] T048 Run quickstart.md validation: walk through all 4 workflows (review receipt, respond to flag, audit trail + export, compliance dashboard) to confirm end-to-end functionality
 

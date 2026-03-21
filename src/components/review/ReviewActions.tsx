@@ -11,12 +11,21 @@ type ReviewActionsProps = {
   mode: "review" | "respond" | "readonly";
 };
 
+const TOAST_RELOAD_DELAY_MS = 750;
+
 export function ReviewActions({ receiptId, mode }: ReviewActionsProps) {
   const t = useTranslations("review");
   const { pushToast } = useToast();
   const [comment, setComment] = useState("");
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  function showToastAndReload(message: string) {
+    pushToast(message);
+    window.setTimeout(() => {
+      window.location.reload();
+    }, TOAST_RELOAD_DELAY_MS);
+  }
 
   async function submitReview(status: "APPROVED" | "FLAGGED" | "REJECTED") {
     setSubmitting(true);
@@ -33,8 +42,7 @@ export function ReviewActions({ receiptId, mode }: ReviewActionsProps) {
       return;
     }
 
-    pushToast(t("reviewSaved"));
-    window.location.reload();
+    showToastAndReload(t("reviewSaved"));
   }
 
   async function submitComment() {
@@ -52,8 +60,7 @@ export function ReviewActions({ receiptId, mode }: ReviewActionsProps) {
       return;
     }
 
-    pushToast(t("responseSaved"));
-    window.location.reload();
+    showToastAndReload(t("responseSaved"));
   }
 
   async function uploadRevision(file: File) {
@@ -72,8 +79,7 @@ export function ReviewActions({ receiptId, mode }: ReviewActionsProps) {
       return;
     }
 
-    pushToast(t("responseSaved"));
-    window.location.reload();
+    showToastAndReload(t("responseSaved"));
   }
 
   if (mode === "readonly") {
