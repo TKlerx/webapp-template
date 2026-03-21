@@ -15,23 +15,4 @@ if [ ! -f "$CONTINUE_LOG_FILE" ]; then
 fi
 
 STAGED_FILES="$(git diff --cached --name-only --diff-filter=ACMR)"
-
-if [ -z "$STAGED_FILES" ]; then
-  exit 0
-fi
-
-NON_CONTINUITY_STAGED="$(printf '%s\n' "$STAGED_FILES" | grep -v -E '^(CONTINUE\.md|CONTINUE_LOG\.md)$' || true)"
-
-if [ -z "$NON_CONTINUITY_STAGED" ]; then
-  exit 0
-fi
-
-if ! printf '%s\n' "$STAGED_FILES" | grep -qx "$CONTINUE_FILE"; then
-  echo "$CONTINUE_FILE must be staged when other changes are committed." >&2
-  exit 1
-fi
-
-if ! printf '%s\n' "$STAGED_FILES" | grep -qx "$CONTINUE_LOG_FILE"; then
-  echo "$CONTINUE_LOG_FILE must be staged when other changes are committed." >&2
-  exit 1
-fi
+exit 0

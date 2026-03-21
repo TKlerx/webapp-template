@@ -1,5 +1,11 @@
 # GVI Finance Development Guidelines
 
+## Workflow First Step
+
+- Read `CONTINUE.md` before starting implementation work.
+- Treat `CONTINUE.md` as the current handoff state: recent changes, where work stopped, open risks, and what to do next.
+- If project state materially changes, update `CONTINUE.md` and append to `CONTINUE_LOG.md`.
+
 ## Tech Stack
 - TypeScript with Next.js 16 (App Router)
 - BetterAuth for authentication (email/password + Azure AD SSO)
@@ -29,6 +35,7 @@ tests/           # Unit and E2E tests
 - `npm run lint` - ESLint
 - `npm run typecheck` - TypeScript check
 - `npm run validate` - Run all checks
+- `npm run continuity:update` - Refresh `CONTINUE.md` and `CONTINUE_LOG.md`
 - `npm run prisma:generate` - Generate Prisma client
 - `npm run prisma:migrate` - Run migrations
 - `npm run prisma:seed` - Seed database

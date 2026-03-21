@@ -1,27 +1,36 @@
 # Continue
 
-## Recent Changes
+<!-- continuity:fingerprint=9e470533103b6a8876745410bc062efae094fce8d617507addd2cd9e29747342 -->
 
-- Feature `002-review-audit-dashboard` has working review, flag-response, audit trail, compliance, and country-admin flows.
-- E2E coverage was expanded and stabilized, including mobile responsive smoke coverage.
-- Full validation now runs Playwright on an isolated port through `validate.ps1 full`.
-- Constitution templates now explicitly require end-to-end coverage for critical user journeys.
-- Added continuity governance: `CONTINUE.md` and `CONTINUE_LOG.md` are now required handoff artifacts, and pre-commit checks that both are staged with material changes.
+## Current Snapshot
 
-## Current Status
-
+- Updated: 2026-03-21 13:46:46
 - Branch: `002-review-audit-dashboard`
-- Validation: `validate.ps1 full` passes
-- Task status: [tasks.md](C:/dev/gvi-finance/specs/002-review-audit-dashboard/tasks.md) has only `T046` still unchecked
-- Commit readiness: continuity files and constitution updates are included alongside the `002` implementation work
 
-## Open Questions / Risks
+## Recent Non-Continuity Commits
 
-- `T046` is still open: review actions, comments, and revision uploads should have explicit toast coverage/verification.
-- The handoff continuity workflow is newly introduced, so future commits should keep this file and the log current.
+- 1d16c57 Complete review dashboard validation and handoff workflow
+- fc4299a Reduce auth and user route duplication
+- 552143c Merge branch '001-budget-planning-core'
+- 3059038 Stabilize full validation and E2E flows
+- 4beccba Improve dashboard control visibility
+
+## Git Status
+
+- M  .githooks/require-continuity.sh
+- M  .specify/templates/agent-file-template.md
+- M  .specify/templates/plan-template.md
+- M  .specify/templates/spec-template.md
+- M  .specify/templates/tasks-template.md
+- M  CLAUDE.md
+- M  package.json
+- AM scripts/update-continuity.mjs
+- M  validate.ps1
+
+## Active Specs
+
+- 002-review-audit-dashboard
 
 ## Next Recommended Actions
 
-1. Finish `T046` by adding explicit toast verification coverage.
-2. Re-run `validate.ps1 full`.
-3. Review and merge the `002-review-audit-dashboard` branch once the toast task is either completed or explicitly deferred.
+1. 002-review-audit-dashboard: T046 [P] Ensure all review actions, comments, and revision uploads trigger toast notifications on success/error per constitution principle VI
