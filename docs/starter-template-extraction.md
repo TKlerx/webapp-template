@@ -6,6 +6,10 @@ Create a reusable business-app starter from the current codebase while preservin
 
 Working branch: `starter-template-extraction`
 
+Current recommendation:
+- the branch is now suitable as the base for a fresh starter repository
+- copy or re-home this branch into a new repo instead of merging it back into the original product history
+
 ## Keep In Template
 
 - authentication foundation:
@@ -147,7 +151,7 @@ Completed on this branch:
 Likely next slices:
 
 1. Refresh continuity files and commit the current extraction work in logical chunks.
-2. Decide whether `AccessScope` should remain in the starter or be generalized further into a broader org/tenant model.
+2. Decide later whether `Scope` should stay as-is or be specialized per project into org/tenant/team semantics.
 3. Review docs and `.specify` memory for any remaining product-history references that should move out of the starter branch.
 4. Optionally tighten naming in tests and helper files for consistency now that the model is neutral.
 

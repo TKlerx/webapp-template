@@ -201,13 +201,13 @@ export async function assignUserToScope(email: string, scope: { code: string; na
   }
 
   const existingScope = db
-    .prepare("SELECT id FROM AccessScope WHERE code = ?")
+    .prepare("SELECT id FROM Scope WHERE code = ?")
     .get(scope.code) as { id: string } | undefined;
 
   const scopeId = existingScope?.id ?? createId("scope");
   if (!existingScope) {
     db.prepare(
-      `INSERT INTO AccessScope (id, name, code, createdAt, updatedAt)
+      `INSERT INTO Scope (id, name, code, createdAt, updatedAt)
        VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
     ).run(scopeId, scope.name, scope.code);
   }

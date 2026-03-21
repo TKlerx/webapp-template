@@ -108,7 +108,7 @@ model Verification {
   @@index([identifier])
 }
 
-model AccessScope {
+model Scope {
   id              String                  @id @default(cuid())
   name            String                  @unique
   code            String                  @unique
@@ -124,7 +124,7 @@ model UserScopeAssignment {
   scopeId   String
   createdAt DateTime       @default(now())
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scope     AccessScope    @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+  scope     Scope          @relation(fields: [scopeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, scopeId])
   @@index([scopeId])
@@ -140,7 +140,7 @@ model AuditEntry {
   details    String
   createdAt  DateTime        @default(now())
   actor      User            @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
-  scope      AccessScope?    @relation(fields: [scopeId], references: [id], onDelete: SetNull)
+  scope      Scope?          @relation(fields: [scopeId], references: [id], onDelete: SetNull)
 
   @@index([action])
   @@index([entityType, entityId])

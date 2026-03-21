@@ -58,7 +58,7 @@ CREATE TABLE "Verification" (
 );
 
 -- CreateTable
-CREATE TABLE "AccessScope" (
+CREATE TABLE "Scope" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "code" TEXT NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE "UserScopeAssignment" (
     "scopeId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "UserScopeAssignment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "UserScopeAssignment_scopeId_fkey" FOREIGN KEY ("scopeId") REFERENCES "AccessScope" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "UserScopeAssignment_scopeId_fkey" FOREIGN KEY ("scopeId") REFERENCES "Scope" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -87,7 +87,7 @@ CREATE TABLE "AuditEntry" (
     "details" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "AuditEntry_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "AuditEntry_scopeId_fkey" FOREIGN KEY ("scopeId") REFERENCES "AccessScope" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "AuditEntry_scopeId_fkey" FOREIGN KEY ("scopeId") REFERENCES "Scope" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateIndex
@@ -109,10 +109,10 @@ CREATE UNIQUE INDEX "Account_providerId_accountId_key" ON "Account"("providerId"
 CREATE INDEX "Verification_identifier_idx" ON "Verification"("identifier");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AccessScope_name_key" ON "AccessScope"("name");
+CREATE UNIQUE INDEX "Scope_name_key" ON "Scope"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AccessScope_code_key" ON "AccessScope"("code");
+CREATE UNIQUE INDEX "Scope_code_key" ON "Scope"("code");
 
 -- CreateIndex
 CREATE INDEX "UserScopeAssignment_scopeId_idx" ON "UserScopeAssignment"("scopeId");
