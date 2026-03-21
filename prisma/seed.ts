@@ -10,30 +10,6 @@ const adapter = new PrismaBetterSqlite3({
 
 const prisma = new PrismaClient({ adapter });
 
-const legacyRoleMap = {
-  ADMIN: Role.GVI_FINANCE_ADMIN,
-  MARKETER_LEAD: Role.COUNTRY_ADMIN,
-  MARKETER: Role.COUNTRY_FINANCE,
-  REVIEWER: Role.COUNTRY_FINANCE,
-} as const;
-
-async function migrateLegacyRoles() {
-  const roleRows = (await prisma.$queryRaw<Array<{ id: string; role: keyof typeof legacyRoleMap }>>`
-    SELECT id, role
-    FROM User
-    WHERE role IN ('ADMIN', 'MARKETER_LEAD', 'MARKETER', 'REVIEWER')
-  `);
-
-  for (const row of roleRows) {
-    await prisma.user.update({
-      where: { id: row.id },
-      data: { role: legacyRoleMap[row.role] },
-    });
-  }
-
-  return roleRows.length;
-}
-
 async function main() {
   const email = process.env.INITIAL_ADMIN_EMAIL;
   const password = process.env.INITIAL_ADMIN_PASSWORD;
@@ -42,20 +18,15 @@ async function main() {
     throw new Error("INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set");
   }
 
-  const migratedCount = await migrateLegacyRoles();
-  if (migratedCount > 0) {
-    console.log(`Migrated ${migratedCount} legacy user role assignments.`);
-  }
-
   const existingCount = await prisma.user.count();
 
   if (existingCount > 0) {
     const admin = await prisma.user.findFirst({
-      where: { role: Role.GVI_FINANCE_ADMIN },
+      where: { role: Role.PLATFORM_ADMIN },
     });
 
     if (!admin) {
-      throw new Error("Expected at least one GVI Finance Admin after role migration.");
+      throw new Error("Expected at least one admin user in the starter database.");
     }
 
     console.log("Skipping seed because users already exist.");
@@ -69,7 +40,7 @@ async function main() {
       email,
       emailVerified: true,
       name: "Initial Admin",
-      role: Role.GVI_FINANCE_ADMIN,
+      role: Role.PLATFORM_ADMIN,
       status: UserStatus.ACTIVE,
       authMethod: AuthMethod.LOCAL,
       passwordHash,

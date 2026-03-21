@@ -27,19 +27,19 @@ describe("audit export", () => {
     prismaMock.auditEntry.findMany.mockResolvedValue([
       {
         id: "audit-1",
-        action: AuditAction.RECEIPT_REVIEWED,
-        entityType: "receipt",
-        entityId: "receipt-1",
-        details: "{\"nextStatus\":\"APPROVED\"}",
+        action: AuditAction.USER_CREATED,
+        entityType: "user",
+        entityId: "user-1",
+        details: "{\"role\":\"SCOPE_USER\"}",
         createdAt: new Date("2026-03-21T00:00:00Z"),
         actor: {
           id: "user-1",
           name: "Audit Admin",
           email: "audit@example.com",
-          role: Role.GVI_FINANCE_ADMIN,
+          role: Role.PLATFORM_ADMIN,
         },
-        country: {
-          id: "country-1",
+        scope: {
+          id: "scope-1",
           name: "Kenya",
           code: "KE",
         },
@@ -48,7 +48,7 @@ describe("audit export", () => {
 
     const csv = await exportToCSV();
 
-    expect(csv.toString("utf8")).toContain("RECEIPT_REVIEWED");
+    expect(csv.toString("utf8")).toContain("USER_CREATED");
     expect(csv.toString("utf8")).toContain("audit@example.com");
   });
 
@@ -63,7 +63,7 @@ describe("audit export", () => {
 
   it("returns paginated audit data from the API route", async () => {
     requireApiUserWithRoles.mockResolvedValue({
-      user: { id: "admin-1", role: Role.GVI_FINANCE_ADMIN },
+      user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
     });
     prismaMock.auditEntry.count.mockResolvedValue(0);
     prismaMock.auditEntry.findMany.mockResolvedValue([] as never);

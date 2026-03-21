@@ -2,7 +2,7 @@
 
 ## Goal
 
-Create a reusable business-app starter from the current codebase while preserving the `gvi-finance` product history on `main`.
+Create a reusable business-app starter from the current codebase while preserving the original product history on `main`.
 
 Working branch: `starter-template-extraction`
 
@@ -44,7 +44,7 @@ Working branch: `starter-template-extraction`
   - base-path support
   - validation and hook workflow
 - scoped access foundation:
-  - keep the current country-assignment pattern if generalized into org/tenant/team assignment
+  - keep the neutral scope-assignment pattern so it can represent org/tenant/team/geography assignments
 - data and deployment foundation:
   - Prisma migration/generate/seed workflow
   - Docker deployment setup
@@ -60,8 +60,7 @@ Working branch: `starter-template-extraction`
 
 - finance domain schema and flows:
   - budgets
-  - country budgets
-  - budget items
+  - budget hierarchies
   - receipts
   - receipt review
   - compliance dashboard
@@ -87,20 +86,14 @@ Working branch: `starter-template-extraction`
 ## Generalize Before Extraction
 
 - branding:
-  - app name `GVI Finance`
-  - package name `gvi-finance`
-  - any GVI-specific copy in docs and translations
+  - remove any remaining GVI-specific copy in docs and translations
 - base path:
-  - replace `/gvi-finance` default assumptions with configurable neutral defaults
+  - replace legacy product-specific base-path examples with neutral defaults
 - roles:
-  - current roles are still product-shaped:
-    - `GVI_FINANCE_ADMIN`
-    - `COUNTRY_ADMIN`
-    - `COUNTRY_FINANCE`
-  - likely replace with neutral starter roles such as:
+  - use neutral starter roles:
     - `PLATFORM_ADMIN`
-    - `ORG_ADMIN`
-    - `STANDARD_USER`
+    - `SCOPE_ADMIN`
+    - `SCOPE_USER`
 - audit types:
   - keep generic audit logging
   - remove finance-specific action enums from the starter
@@ -139,19 +132,28 @@ Working branch: `starter-template-extraction`
   - `src/i18n/*`
   - theme/session/locale APIs and components
 
-## Likely First Removal Slice
+## Current Extraction Status
 
-1. Remove feature specs and continuity references that assume finance work is still active.
-2. Replace app branding and package metadata with neutral starter branding.
-3. Rename roles and update seed/auth/user-management flows accordingly.
-4. Remove finance-only navigation entries and dashboard widgets.
-5. Remove finance-only Prisma models, APIs, services, components, and tests.
-6. Regenerate Prisma client and rebuild seed data around generic auth/admin bootstrapping.
+Completed on this branch:
+
+1. Replaced starter branding and package metadata with neutral business-app naming.
+2. Renamed roles to `PLATFORM_ADMIN`, `SCOPE_ADMIN`, and `SCOPE_USER`.
+3. Removed finance-only review/compliance pages, APIs, libraries, and tests.
+4. Replaced the country-specific scoping model with neutral scope naming.
+5. Reduced the Prisma schema and migration tree to the reusable starter core.
+6. Removed the old finance feature specs from `specs/`.
+7. Trimmed locale files to the namespaces the starter still uses.
+
+Likely next slices:
+
+1. Refresh continuity files and commit the current extraction work in logical chunks.
+2. Decide whether `AccessScope` should remain in the starter or be generalized further into a broader org/tenant model.
+3. Review docs and `.specify` memory for any remaining product-history references that should move out of the starter branch.
+4. Optionally tighten naming in tests and helper files for consistency now that the model is neutral.
 
 ## Important Notes
 
-- The Prisma schema is currently the biggest coupling point.
-- The navigation and translation files mix reusable platform labels with finance domain labels.
-- The starter should preserve generic audit logging, but not finance-specific audit action names.
+- The Prisma schema was the biggest coupling point and has now been reduced to the reusable starter core.
+- The starter preserves generic audit logging, but not finance-specific audit action names.
 - The starter should keep a role-aware dashboard as the post-login home screen rather than dropping users into a blank shell.
-- `specs/004-*` and `specs/005-*` are also finance-oriented and should not stay in a neutral starter template.
+- Continuity files and commit structure should now be the main focus before merging or branching further.

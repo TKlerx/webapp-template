@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 
-const { getSessionUser, requireCountryAccess } = vi.hoisted(() => ({
+const { getSessionUser, requireScopeAccess } = vi.hoisted(() => ({
   getSessionUser: vi.fn(),
-  requireCountryAccess: vi.fn(),
+  requireScopeAccess: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -14,7 +14,7 @@ vi.mock("@/lib/rbac", async () => {
   const actual = await vi.importActual<typeof import("@/lib/rbac")>("@/lib/rbac");
   return {
     ...actual,
-    requireCountryAccess,
+    requireScopeAccess,
   };
 });
 
@@ -40,12 +40,12 @@ describe("authorizeRoute", () => {
   it("enforces role checks", async () => {
     getSessionUser.mockResolvedValue({
       id: "user-1",
-      role: Role.COUNTRY_FINANCE,
+      role: Role.SCOPE_USER,
       status: UserStatus.ACTIVE,
     });
 
     const result = await authorizeRoute(new Request("http://localhost/api/test"), {
-      roles: [Role.GVI_FINANCE_ADMIN],
+      roles: [Role.PLATFORM_ADMIN],
     });
 
     expect("error" in result).toBe(true);
@@ -55,49 +55,49 @@ describe("authorizeRoute", () => {
     }
   });
 
-  it("enforces country-scoped access", async () => {
+  it("enforces scope-restricted access", async () => {
     getSessionUser.mockResolvedValue({
       id: "user-1",
-      role: Role.COUNTRY_FINANCE,
+      role: Role.SCOPE_USER,
       status: UserStatus.ACTIVE,
     });
-    requireCountryAccess.mockResolvedValue(true);
+    requireScopeAccess.mockResolvedValue(true);
 
     const result = await authorizeRoute(
-      new Request("http://localhost/api/test?countryId=country-1"),
+      new Request("http://localhost/api/test?scopeId=scope-1"),
       {
-        roles: [Role.COUNTRY_FINANCE],
-        countryScoped: true,
+        roles: [Role.SCOPE_USER],
+        scopeRestricted: true,
       },
     );
 
     expect(result).toEqual({
       user: {
         id: "user-1",
-        role: Role.COUNTRY_FINANCE,
+        role: Role.SCOPE_USER,
         status: UserStatus.ACTIVE,
       },
     });
-    expect(requireCountryAccess).toHaveBeenCalledWith(
+    expect(requireScopeAccess).toHaveBeenCalledWith(
       {
         id: "user-1",
-        role: Role.COUNTRY_FINANCE,
+        role: Role.SCOPE_USER,
         status: UserStatus.ACTIVE,
       },
-      "country-1",
+      "scope-1",
     );
   });
 
-  it("returns 400 when country scope is required but missing", async () => {
+  it("returns 400 when a required scope is missing", async () => {
     getSessionUser.mockResolvedValue({
       id: "user-1",
-      role: Role.COUNTRY_ADMIN,
+      role: Role.SCOPE_ADMIN,
       status: UserStatus.ACTIVE,
     });
 
     const result = await authorizeRoute(new Request("http://localhost/api/test"), {
-      roles: [Role.COUNTRY_ADMIN],
-      countryScoped: true,
+      roles: [Role.SCOPE_ADMIN],
+      scopeRestricted: true,
     });
 
     expect("error" in result).toBe(true);

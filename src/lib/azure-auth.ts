@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-export const AZURE_SSO_STATE_COOKIE = "gvi_finance_azure_sso_state";
+export const AZURE_SSO_STATE_COOKIE = "starter_app_azure_sso_state";
 
 function trimTrailingSlash(value: string) {
   return value.endsWith("/") ? value.slice(0, -1) : value;

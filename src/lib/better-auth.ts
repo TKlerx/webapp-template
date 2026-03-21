@@ -78,7 +78,7 @@ export const auth = betterAuth({
       role: {
         type: "string",
         input: false,
-        defaultValue: Role.COUNTRY_FINANCE,
+        defaultValue: Role.SCOPE_USER,
       },
       status: {
         type: "string",

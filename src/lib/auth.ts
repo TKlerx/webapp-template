@@ -9,7 +9,7 @@ import { AuthMethod, Role, ThemePreference, UserStatus } from "../../generated/p
 import { auth } from "@/lib/better-auth";
 import { prisma } from "@/lib/db";
 
-export const SESSION_COOKIE = "gvi_finance_session";
+export const SESSION_COOKIE = "starter_app_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
 export type SessionUser = Pick<
@@ -56,7 +56,7 @@ export async function provisionSsoUser(input: { email: string; name: string }) {
       data: {
         email: input.email.toLowerCase(),
         name: input.name,
-        role: Role.COUNTRY_FINANCE,
+        role: Role.SCOPE_USER,
         status: UserStatus.PENDING_APPROVAL,
         authMethod: AuthMethod.SSO,
         mustChangePassword: false,

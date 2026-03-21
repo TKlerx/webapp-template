@@ -1,6 +1,6 @@
-# GVI Finance Constitution
+# Business App Starter Constitution
 
-> Project constitution for the GVI Finance web application.
+> Project constitution for the Business App Starter web application.
 > Last updated: 2026-03-19
 
 ## Core Principles
@@ -71,7 +71,7 @@ changes across the codebase.
 ### VII. Web Application Standards
 
 The application MUST be a web application served under a
-configurable base path (e.g., `/gvi-finance`). The base path
+configurable base path (e.g., `/starter`). The base path
 MUST be configurable via environment variable or configuration
 file. All routes, static assets, and API endpoints MUST respect
 the configured base path. The UI MUST be usable by non-technical

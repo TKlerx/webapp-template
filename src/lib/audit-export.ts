@@ -4,7 +4,7 @@ import { AuditAction } from "../../generated/prisma/enums";
 export type AuditFilters = {
   action?: AuditAction | null;
   entityType?: string | null;
-  countryId?: string | null;
+  scopeId?: string | null;
   actorId?: string | null;
   dateFrom?: Date | null;
   dateTo?: Date | null;
@@ -16,7 +16,7 @@ export async function getAuditEntries(filters: AuditFilters = {}) {
   const where = {
     ...(filters.action ? { action: filters.action } : {}),
     ...(filters.entityType ? { entityType: filters.entityType } : {}),
-    ...(filters.countryId ? { countryId: filters.countryId } : {}),
+    ...(filters.scopeId ? { scopeId: filters.scopeId } : {}),
     ...(filters.actorId ? { actorId: filters.actorId } : {}),
     ...((filters.dateFrom || filters.dateTo)
       ? {
@@ -41,7 +41,7 @@ export async function getAuditEntries(filters: AuditFilters = {}) {
             role: true,
           },
         },
-        country: {
+        scope: {
           select: {
             id: true,
             name: true,
@@ -77,7 +77,7 @@ export async function exportToCSV(filters: AuditFilters = {}) {
       "Entity ID",
       "Actor",
       "Actor Email",
-      "Country",
+      "Scope",
       "Details",
     ].join(","),
     ...entries.map((entry) =>
@@ -88,7 +88,7 @@ export async function exportToCSV(filters: AuditFilters = {}) {
         csvEscape(entry.entityId),
         csvEscape(entry.actor.name),
         csvEscape(entry.actor.email),
-        csvEscape(entry.country?.name ?? ""),
+        csvEscape(entry.scope?.name ?? ""),
         csvEscape(entry.details),
       ].join(","),
     ),
@@ -109,7 +109,7 @@ export async function exportToPDF(filters: AuditFilters = {}) {
     ...entries.flatMap((entry) => [
       `${entry.createdAt.toISOString()} | ${entry.action} | ${entry.entityType} ${entry.entityId}`,
       `Actor: ${entry.actor.name} <${entry.actor.email}>`,
-      `Country: ${entry.country?.name ?? "-"}`,
+      `Scope: ${entry.scope?.name ?? "-"}`,
       `Details: ${entry.details}`,
       "",
     ]),

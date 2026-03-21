@@ -7,7 +7,7 @@ test("authenticated user can sign out and returns to login", async ({ page }) =>
   await seedLocalUser({
     email: "e2e-admin@example.com",
     name: "E2E Admin",
-    role: Role.GVI_FINANCE_ADMIN,
+    role: Role.PLATFORM_ADMIN,
     password: "AdminPass123",
     mustChangePassword: false,
   });

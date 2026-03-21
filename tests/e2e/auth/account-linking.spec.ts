@@ -16,7 +16,7 @@ test("existing local account reused when signing in with SSO for the same email"
   await seedLocalUser({
     email,
     name: "E2E Linked User",
-    role: Role.COUNTRY_FINANCE,
+    role: Role.SCOPE_USER,
     password: "TempPass123",
     mustChangePassword: false,
     status: UserStatus.ACTIVE,

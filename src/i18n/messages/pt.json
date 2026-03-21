@@ -13,9 +13,7 @@
   "nav": {
     "dashboard": "Painel",
     "users": "Gestao de utilizadores",
-    "review": "Review",
-    "auditTrail": "Audit Trail",
-    "compliance": "Compliance"
+    "auditTrail": "Audit Trail"
   },
   "auth": {
     "signIn": "Entrar",
@@ -76,9 +74,9 @@
     "roleUpdated": "Funcao atualizada para {role}",
     "couldNotUpdate": "Nao foi possivel atualizar o utilizador",
     "roles": {
-      "GVI_FINANCE_ADMIN": "Admin da plataforma",
-      "COUNTRY_ADMIN": "Admin de escopo",
-      "COUNTRY_FINANCE": "Usuario de escopo"
+      "PLATFORM_ADMIN": "Admin da plataforma",
+      "SCOPE_ADMIN": "Admin de escopo",
+      "SCOPE_USER": "Usuario de escopo"
     },
     "statuses": {
       "ACTIVE": "Ativo",
@@ -89,26 +87,6 @@
   "theme": {
     "switchedTo": "Tema alterado para modo {theme}"
   },
-  "budget": {
-    "title": "Planeamento orcamental",
-    "budgetYears": "Anos orcamentais",
-    "countryBudgets": "Orcamentos por pais",
-    "budgetItems": "Itens do orcamento",
-    "plannedAmount": "Montante planeado",
-    "actualSpend": "Despesa real"
-  },
-  "receipts": {
-    "title": "Recibos",
-    "upload": "Carregar recibo",
-    "amount": "Montante",
-    "date": "Data",
-    "description": "Descricao"
-  },
-  "donors": {
-    "title": "Doadores",
-    "projects": "Projetos",
-    "tag": "Associar ao projeto"
-  },
   "audit": {
     "title": "Auditoria",
     "action": "Acao",
@@ -116,63 +94,10 @@
     "entity": "Entidade",
     "details": "Details",
     "date": "Date",
-    "country": "Country",
+    "scope": "Scope",
     "filters": "Filters",
     "exportCsv": "Export CSV",
     "exportPdf": "Export PDF",
     "empty": "No audit entries match your filters."
-  },
-  "review": {
-    "title": "Receipt Review",
-    "reviewReceipt": "Review receipt",
-    "pending": "Pending Review",
-    "approved": "Approved",
-    "flagged": "Flagged",
-    "rejected": "Rejected",
-    "approve": "Approve",
-    "flag": "Flag",
-    "reject": "Reject",
-    "submitComment": "Add comment",
-    "commentPlaceholder": "Write a comment",
-    "commentRequired": "A comment is required for flagging or rejection.",
-    "comments": "Comments",
-    "reviewHistory": "Review history",
-    "revisions": "Revisions",
-    "respond": "Respond",
-    "uploadRevision": "Upload corrected file",
-    "filePreview": "File preview",
-    "noComments": "No comments yet.",
-    "filters": "Filters",
-    "submitter": "Submitter",
-    "budgetItem": "Budget item",
-    "status": "Review status",
-    "openReceipt": "Open receipt",
-    "responseSaved": "Response saved",
-    "reviewSaved": "Review saved",
-    "couldNotSave": "Could not save review action",
-    "countryFinanceResponse": "Country Finance response"
-  },
-  "compliance": {
-    "title": "Compliance Dashboard",
-    "budgetYear": "Budget year",
-    "statusFilter": "Status filter",
-    "approvedOnly": "Approved only",
-    "allReceipts": "All receipts",
-    "totalBudget": "Total budget",
-    "approvedSpend": "Approved spend",
-    "totalSpend": "Total spend",
-    "percentUsed": "Percent used",
-    "overBudget": "Over budget",
-    "receiptCounts": "Receipt counts",
-    "drillDown": "Drill down",
-    "plannedAmount": "Planned amount",
-    "actualAmount": "Actual amount",
-    "noData": "No compliance data available for this budget year."
-  },
-  "proposals": {
-    "title": "Propostas de orcamento",
-    "status": "Estado",
-    "approve": "Aprovar",
-    "reject": "Rejeitar"
   }
 }

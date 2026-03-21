@@ -7,7 +7,7 @@ type LogAuditInput = {
   entityId: string;
   actorId: string;
   details?: unknown;
-  countryId?: string | null;
+  scopeId?: string | null;
 };
 
 export async function logAudit(input: LogAuditInput) {
@@ -17,7 +17,7 @@ export async function logAudit(input: LogAuditInput) {
       entityType: input.entityType,
       entityId: input.entityId,
       actorId: input.actorId,
-      countryId: input.countryId ?? null,
+      scopeId: input.scopeId ?? null,
       details: JSON.stringify(input.details ?? {}),
     },
   });

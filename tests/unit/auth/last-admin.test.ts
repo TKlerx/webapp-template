@@ -24,18 +24,18 @@ describe("last admin protection", () => {
 
   it("rejects demoting the last active admin", async () => {
     requireApiUserWithRoles.mockResolvedValue({
-      user: { id: "admin_1", role: Role.GVI_FINANCE_ADMIN },
+      user: { id: "admin_1", role: Role.PLATFORM_ADMIN },
     });
     prismaMock.user.findUnique.mockResolvedValue({
       id: "admin_1",
-      role: Role.GVI_FINANCE_ADMIN,
+      role: Role.PLATFORM_ADMIN,
     } as never);
     prismaMock.user.count.mockResolvedValue(1);
 
     const response = await rolePatch(
       new Request("http://localhost/api/users/admin_1/role", {
         method: "PATCH",
-        body: JSON.stringify({ role: Role.COUNTRY_FINANCE }),
+        body: JSON.stringify({ role: Role.SCOPE_USER }),
         headers: { "Content-Type": "application/json" },
       }),
       { params: Promise.resolve({ id: "admin_1" }) },
@@ -52,11 +52,11 @@ describe("last admin protection", () => {
 
   it("rejects deactivating the last active admin", async () => {
     requireApiUserWithRoles.mockResolvedValue({
-      user: { id: "admin_1", role: Role.GVI_FINANCE_ADMIN },
+      user: { id: "admin_1", role: Role.PLATFORM_ADMIN },
     });
     prismaMock.user.findUnique.mockResolvedValue({
       id: "admin_1",
-      role: Role.GVI_FINANCE_ADMIN,
+      role: Role.PLATFORM_ADMIN,
       status: UserStatus.ACTIVE,
     } as never);
     prismaMock.user.count.mockResolvedValue(1);

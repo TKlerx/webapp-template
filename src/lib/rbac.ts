@@ -2,7 +2,7 @@ import type { User } from "../../generated/prisma/client";
 import { Role } from "../../generated/prisma/enums";
 import { prisma } from "@/lib/db";
 
-export const COUNTRY_SCOPED_ROLES = [Role.COUNTRY_ADMIN, Role.COUNTRY_FINANCE] as const;
+export const SCOPED_ROLES = [Role.SCOPE_ADMIN, Role.SCOPE_USER] as const;
 
 export function requireRole(user: Pick<User, "role"> | null, allowedRoles: Role[]) {
   if (!user || !allowedRoles.includes(user.role)) {
@@ -19,21 +19,21 @@ export function requireAuth<T extends Pick<User, "id">>(user: T | null): T {
 }
 
 export function isAdmin(role: Role) {
-  return role === Role.GVI_FINANCE_ADMIN;
+  return role === Role.PLATFORM_ADMIN;
 }
 
-export async function getUserCountryIds(userId: string) {
-  const assignments = await prisma.userCountryAssignment.findMany({
+export async function getUserScopeIds(userId: string) {
+  const assignments = await prisma.userScopeAssignment.findMany({
     where: { userId },
-    select: { countryId: true },
+    select: { scopeId: true },
   });
 
-  return assignments.map((assignment) => assignment.countryId);
+  return assignments.map((assignment) => assignment.scopeId);
 }
 
-export async function requireCountryAccess(
+export async function requireScopeAccess(
   user: Pick<User, "id" | "role"> | null,
-  countryId: string,
+  scopeId: string,
 ) {
   const authUser = requireAuth(user);
 
@@ -41,9 +41,9 @@ export async function requireCountryAccess(
     return true;
   }
 
-  const countryIds = await getUserCountryIds(authUser.id);
+  const scopeIds = await getUserScopeIds(authUser.id);
 
-  if (!countryIds.includes(countryId)) {
+  if (!scopeIds.includes(scopeId)) {
     throw new Error("FORBIDDEN");
   }
 

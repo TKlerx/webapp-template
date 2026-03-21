@@ -13,7 +13,7 @@ type AuditRow = {
   details: string;
   createdAt: string;
   actor: { name: string; email: string };
-  country?: { name: string } | null;
+  scope?: { name: string } | null;
 };
 
 export function AuditTrailViewer() {
@@ -63,6 +63,7 @@ export function AuditTrailViewer() {
               <th className="px-4 py-3">{t("actor")}</th>
               <th className="px-4 py-3">{t("action")}</th>
               <th className="px-4 py-3">{t("entity")}</th>
+              <th className="px-4 py-3">{t("scope")}</th>
               <th className="px-4 py-3">{t("details")}</th>
             </tr>
           </thead>
@@ -76,6 +77,7 @@ export function AuditTrailViewer() {
                 </td>
                 <td className="px-4 py-3">{row.action}</td>
                 <td className="px-4 py-3">{row.entityType} {row.entityId}</td>
+                <td className="px-4 py-3">{row.scope?.name ?? "-"}</td>
                 <td className="px-4 py-3">{row.details}</td>
               </tr>
             ))}

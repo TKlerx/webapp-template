@@ -23,7 +23,7 @@ test("admin creates a local user, user logs in and changes password", async ({
   await seedLocalUser({
     email: "e2e-admin-manage@example.com",
     name: "E2E Admin Manage",
-    role: Role.GVI_FINANCE_ADMIN,
+    role: Role.PLATFORM_ADMIN,
     password: "AdminPass123",
     mustChangePassword: false,
   });
@@ -42,7 +42,7 @@ test("admin creates a local user, user logs in and changes password", async ({
 
     await createUserCard.getByPlaceholder("Email").fill(createdUser.email);
     await createUserCard.getByPlaceholder("Name").fill(createdUser.name);
-    await createUserCard.locator("select").selectOption(Role.COUNTRY_FINANCE);
+    await createUserCard.locator("select").selectOption(Role.SCOPE_USER);
     await createUserCard.getByPlaceholder("Temporary password").fill(createdUser.temporaryPassword);
     await Promise.all([
       adminPage.waitForResponse(

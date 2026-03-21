@@ -7,7 +7,7 @@ test("marketer cannot access user management", async ({ page }) => {
   await seedLocalUser({
     email: "e2e-marketer@example.com",
     name: "E2E Marketer",
-    role: Role.COUNTRY_FINANCE,
+    role: Role.SCOPE_USER,
     password: "MarketerPass123",
     mustChangePassword: false,
   });

@@ -83,11 +83,20 @@ function getActiveSpecs(branch, statusLines) {
   const specs = new Set();
   const branchPrefix = branch.match(/^(\d{3})(?:[-_].+)?$/);
   const specsDir = path.join(repoRoot, "specs");
+  const existingSpecDirs = new Set();
 
-  if (branchPrefix && existsSync(specsDir)) {
+  if (existsSync(specsDir)) {
     for (const entry of readdirSync(specsDir)) {
       const entryPath = path.join(specsDir, entry);
-      if (entry.startsWith(branchPrefix[1]) && statSync(entryPath).isDirectory()) {
+      if (statSync(entryPath).isDirectory()) {
+        existingSpecDirs.add(entry);
+      }
+    }
+  }
+
+  if (branchPrefix) {
+    for (const entry of existingSpecDirs) {
+      if (entry.startsWith(branchPrefix[1])) {
         specs.add(entry);
       }
     }
@@ -95,7 +104,7 @@ function getActiveSpecs(branch, statusLines) {
 
   for (const line of statusLines) {
     const match = line.match(/specs\/([^/]+)/) || line.match(/specs\\([^\\]+)/);
-    if (match?.[1]) {
+    if (match?.[1] && existingSpecDirs.has(match[1])) {
       specs.add(match[1]);
     }
   }

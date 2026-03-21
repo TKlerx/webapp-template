@@ -30,7 +30,7 @@ describe("session endpoint", () => {
       id: "user_1",
       email: "user@example.com",
       name: "Jane Doe",
-      role: Role.COUNTRY_FINANCE,
+      role: Role.SCOPE_USER,
       status: UserStatus.ACTIVE,
       themePreference: ThemePreference.DARK,
     });
@@ -43,7 +43,7 @@ describe("session endpoint", () => {
         id: "user_1",
         email: "user@example.com",
         name: "Jane Doe",
-        role: Role.COUNTRY_FINANCE,
+        role: Role.SCOPE_USER,
         status: UserStatus.ACTIVE,
         themePreference: ThemePreference.DARK,
       },

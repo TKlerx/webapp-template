@@ -13,9 +13,7 @@
   "nav": {
     "dashboard": "Panel",
     "users": "Gestion de usuarios",
-    "review": "Review",
-    "auditTrail": "Audit Trail",
-    "compliance": "Compliance"
+    "auditTrail": "Audit Trail"
   },
   "auth": {
     "signIn": "Iniciar sesion",
@@ -76,9 +74,9 @@
     "roleUpdated": "Rol actualizado a {role}",
     "couldNotUpdate": "No se pudo actualizar el usuario",
     "roles": {
-      "GVI_FINANCE_ADMIN": "Administrador de plataforma",
-      "COUNTRY_ADMIN": "Administrador de alcance",
-      "COUNTRY_FINANCE": "Usuario de alcance"
+      "PLATFORM_ADMIN": "Administrador de plataforma",
+      "SCOPE_ADMIN": "Administrador de alcance",
+      "SCOPE_USER": "Usuario de alcance"
     },
     "statuses": {
       "ACTIVE": "Activo",
@@ -89,26 +87,6 @@
   "theme": {
     "switchedTo": "Tema cambiado a modo {theme}"
   },
-  "budget": {
-    "title": "Planificacion presupuestaria",
-    "budgetYears": "Anos presupuestarios",
-    "countryBudgets": "Presupuestos por pais",
-    "budgetItems": "Partidas presupuestarias",
-    "plannedAmount": "Importe planificado",
-    "actualSpend": "Gasto real"
-  },
-  "receipts": {
-    "title": "Recibos",
-    "upload": "Subir recibo",
-    "amount": "Importe",
-    "date": "Fecha",
-    "description": "Descripcion"
-  },
-  "donors": {
-    "title": "Donantes",
-    "projects": "Proyectos",
-    "tag": "Vincular al proyecto"
-  },
   "audit": {
     "title": "Auditoria",
     "action": "Accion",
@@ -116,63 +94,10 @@
     "entity": "Entidad",
     "details": "Details",
     "date": "Date",
-    "country": "Country",
+    "scope": "Scope",
     "filters": "Filters",
     "exportCsv": "Export CSV",
     "exportPdf": "Export PDF",
     "empty": "No audit entries match your filters."
-  },
-  "review": {
-    "title": "Receipt Review",
-    "reviewReceipt": "Review receipt",
-    "pending": "Pending Review",
-    "approved": "Approved",
-    "flagged": "Flagged",
-    "rejected": "Rejected",
-    "approve": "Approve",
-    "flag": "Flag",
-    "reject": "Reject",
-    "submitComment": "Add comment",
-    "commentPlaceholder": "Write a comment",
-    "commentRequired": "A comment is required for flagging or rejection.",
-    "comments": "Comments",
-    "reviewHistory": "Review history",
-    "revisions": "Revisions",
-    "respond": "Respond",
-    "uploadRevision": "Upload corrected file",
-    "filePreview": "File preview",
-    "noComments": "No comments yet.",
-    "filters": "Filters",
-    "submitter": "Submitter",
-    "budgetItem": "Budget item",
-    "status": "Review status",
-    "openReceipt": "Open receipt",
-    "responseSaved": "Response saved",
-    "reviewSaved": "Review saved",
-    "couldNotSave": "Could not save review action",
-    "countryFinanceResponse": "Country Finance response"
-  },
-  "compliance": {
-    "title": "Compliance Dashboard",
-    "budgetYear": "Budget year",
-    "statusFilter": "Status filter",
-    "approvedOnly": "Approved only",
-    "allReceipts": "All receipts",
-    "totalBudget": "Total budget",
-    "approvedSpend": "Approved spend",
-    "totalSpend": "Total spend",
-    "percentUsed": "Percent used",
-    "overBudget": "Over budget",
-    "receiptCounts": "Receipt counts",
-    "drillDown": "Drill down",
-    "plannedAmount": "Planned amount",
-    "actualAmount": "Actual amount",
-    "noData": "No compliance data available for this budget year."
-  },
-  "proposals": {
-    "title": "Propuestas de presupuesto",
-    "status": "Estado",
-    "approve": "Aprobar",
-    "reject": "Rechazar"
   }
 }

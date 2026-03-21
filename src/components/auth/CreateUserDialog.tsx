@@ -19,7 +19,7 @@ export function CreateUserDialog() {
   }>({
     email: "",
     name: "",
-    role: Role.COUNTRY_FINANCE,
+    role: Role.SCOPE_USER,
     temporaryPassword: "",
   });
   const { pushToast } = useToast();
@@ -39,7 +39,7 @@ export function CreateUserDialog() {
       return;
     }
     pushToast(t("userCreated"));
-    setForm({ email: "", name: "", role: Role.COUNTRY_FINANCE, temporaryPassword: "" });
+    setForm({ email: "", name: "", role: Role.SCOPE_USER, temporaryPassword: "" });
     router.refresh();
   }
 

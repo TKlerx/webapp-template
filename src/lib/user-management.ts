@@ -7,7 +7,7 @@ import { requireApiUserWithRoles } from "@/lib/route-auth";
 type RouteParams = Promise<{ id: string }>;
 
 export async function requireManagedUser(params: RouteParams) {
-  const auth = await requireApiUserWithRoles([Role.GVI_FINANCE_ADMIN]);
+  const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN]);
   if ("error" in auth) {
     return auth;
   }
@@ -30,7 +30,7 @@ export async function ensureAdminUserCanChange(
     message: string;
   },
 ) {
-  if (user.role !== Role.GVI_FINANCE_ADMIN) {
+  if (user.role !== Role.PLATFORM_ADMIN) {
     return null;
   }
 
@@ -38,7 +38,7 @@ export async function ensureAdminUserCanChange(
   const effectiveStatus = nextState.status ?? user.status;
 
   if (
-    effectiveRole === Role.GVI_FINANCE_ADMIN &&
+    effectiveRole === Role.PLATFORM_ADMIN &&
     effectiveStatus !== UserStatus.INACTIVE
   ) {
     return null;
@@ -46,7 +46,7 @@ export async function ensureAdminUserCanChange(
 
   const adminCount = await prisma.user.count({
     where: {
-      role: Role.GVI_FINANCE_ADMIN,
+      role: Role.PLATFORM_ADMIN,
       status: { not: UserStatus.INACTIVE },
     },
   });

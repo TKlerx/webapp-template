@@ -13,9 +13,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "users": "Benutzerverwaltung",
-    "review": "Review",
-    "auditTrail": "Audit Trail",
-    "compliance": "Compliance"
+    "auditTrail": "Audit Trail"
   },
   "auth": {
     "signIn": "Anmelden",
@@ -76,9 +74,9 @@
     "roleUpdated": "Rolle aktualisiert auf {role}",
     "couldNotUpdate": "Benutzer konnte nicht aktualisiert werden",
     "roles": {
-      "GVI_FINANCE_ADMIN": "Plattform-Admin",
-      "COUNTRY_ADMIN": "Bereichs-Admin",
-      "COUNTRY_FINANCE": "Bereichsbenutzer"
+      "PLATFORM_ADMIN": "Plattform-Admin",
+      "SCOPE_ADMIN": "Bereichs-Admin",
+      "SCOPE_USER": "Bereichsbenutzer"
     },
     "statuses": {
       "ACTIVE": "Aktiv",
@@ -89,26 +87,6 @@
   "theme": {
     "switchedTo": "Design auf {theme}-Modus umgeschaltet"
   },
-  "budget": {
-    "title": "Budgetplanung",
-    "budgetYears": "Budgetjahre",
-    "countryBudgets": "Landerbudgets",
-    "budgetItems": "Budgetposten",
-    "plannedAmount": "Geplanter Betrag",
-    "actualSpend": "Tatsachliche Ausgaben"
-  },
-  "receipts": {
-    "title": "Belege",
-    "upload": "Beleg hochladen",
-    "amount": "Betrag",
-    "date": "Datum",
-    "description": "Beschreibung"
-  },
-  "donors": {
-    "title": "Geber",
-    "projects": "Projekte",
-    "tag": "Projekt zuordnen"
-  },
   "audit": {
     "title": "Prufprotokoll",
     "action": "Aktion",
@@ -116,63 +94,10 @@
     "entity": "Entitat",
     "details": "Details",
     "date": "Datum",
-    "country": "Land",
+    "scope": "Scope",
     "filters": "Filter",
     "exportCsv": "CSV exportieren",
     "exportPdf": "PDF exportieren",
     "empty": "Keine Audit-Eintrage fur diese Filter."
-  },
-  "review": {
-    "title": "Receipt Review",
-    "reviewReceipt": "Review receipt",
-    "pending": "Pending Review",
-    "approved": "Approved",
-    "flagged": "Flagged",
-    "rejected": "Rejected",
-    "approve": "Approve",
-    "flag": "Flag",
-    "reject": "Reject",
-    "submitComment": "Add comment",
-    "commentPlaceholder": "Write a comment",
-    "commentRequired": "A comment is required for flagging or rejection.",
-    "comments": "Comments",
-    "reviewHistory": "Review history",
-    "revisions": "Revisions",
-    "respond": "Respond",
-    "uploadRevision": "Upload corrected file",
-    "filePreview": "File preview",
-    "noComments": "No comments yet.",
-    "filters": "Filters",
-    "submitter": "Submitter",
-    "budgetItem": "Budget item",
-    "status": "Review status",
-    "openReceipt": "Open receipt",
-    "responseSaved": "Response saved",
-    "reviewSaved": "Review saved",
-    "couldNotSave": "Could not save review action",
-    "countryFinanceResponse": "Country Finance response"
-  },
-  "compliance": {
-    "title": "Compliance Dashboard",
-    "budgetYear": "Budget year",
-    "statusFilter": "Status filter",
-    "approvedOnly": "Approved only",
-    "allReceipts": "All receipts",
-    "totalBudget": "Total budget",
-    "approvedSpend": "Approved spend",
-    "totalSpend": "Total spend",
-    "percentUsed": "Percent used",
-    "overBudget": "Over budget",
-    "receiptCounts": "Receipt counts",
-    "drillDown": "Drill down",
-    "plannedAmount": "Planned amount",
-    "actualAmount": "Actual amount",
-    "noData": "No compliance data available for this budget year."
-  },
-  "proposals": {
-    "title": "Budgetvorschlage",
-    "status": "Status",
-    "approve": "Genehmigen",
-    "reject": "Ablehnen"
   }
 }

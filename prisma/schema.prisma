@@ -8,9 +8,9 @@ datasource db {
 }
 
 enum Role {
-  GVI_FINANCE_ADMIN
-  COUNTRY_ADMIN
-  COUNTRY_FINANCE
+  PLATFORM_ADMIN
+  SCOPE_ADMIN
+  SCOPE_USER
 }
 
 enum UserStatus {
@@ -30,83 +30,37 @@ enum ThemePreference {
   DARK
 }
 
-enum ProposalType {
-  ADD
-  EDIT
-  REMOVE
-}
-
-enum ProposalStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum ReviewStatus {
-  PENDING_REVIEW
-  APPROVED
-  FLAGGED
-  REJECTED
-}
-
 enum AuditAction {
-  BUDGET_YEAR_CREATED
-  BUDGET_YEAR_UPDATED
-  BUDGET_YEAR_DELETED
-  COUNTRY_BUDGET_CREATED
-  COUNTRY_BUDGET_UPDATED
-  COUNTRY_BUDGET_DELETED
-  BUDGET_ITEM_CREATED
-  BUDGET_ITEM_UPDATED
-  BUDGET_ITEM_DELETED
-  BUDGET_ITEM_MOVED
-  RECEIPT_UPLOADED
-  RECEIPT_METADATA_UPDATED
+  USER_CREATED
   ROLE_CHANGED
-  COUNTRY_ASSIGNMENT_CHANGED
-  DONOR_CREATED
-  DONOR_UPDATED
-  DONOR_PROJECT_CREATED
-  DONOR_PROJECT_UPDATED
-  DONOR_PROJECT_TAGGED
-  DONOR_PROJECT_UNTAGGED
-  BUDGET_PROPOSAL_CREATED
-  BUDGET_PROPOSAL_APPROVED
-  BUDGET_PROPOSAL_REJECTED
-  BUDGET_TEMPLATE_CREATED
-  BUDGET_TEMPLATE_UPDATED
-  BUDGET_TEMPLATE_DELETED
-  BUDGET_TEMPLATE_APPLIED
-  RECEIPT_REVIEWED
-  RECEIPT_COMMENTED
-  RECEIPT_REVISED
+  SCOPE_ASSIGNMENT_CHANGED
+  USER_STATUS_CHANGED
+  USER_THEME_CHANGED
+  AUTH_LOGIN_SUCCEEDED
+  AUTH_LOGIN_REJECTED
+  AUTH_LOGOUT_SUCCEEDED
+  AUDIT_EXPORT_REQUESTED
 }
 
 model User {
-  id                      String                   @id @default(cuid())
-  email                   String                   @unique
-  emailVerified           Boolean                  @default(false)
-  name                    String
-  image                   String?
-  role                    Role                     @default(COUNTRY_FINANCE)
-  status                  UserStatus               @default(PENDING_APPROVAL)
-  authMethod              AuthMethod
-  passwordHash            String?
-  mustChangePassword      Boolean                  @default(true)
-  themePreference         ThemePreference          @default(LIGHT)
-  locale                  String                   @default("en")
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  accounts                Account[]
-  sessions                Session[]
-  countryAssignments      UserCountryAssignment[]
-  uploadedReceipts        Receipt[]                @relation("ReceiptUploadedBy")
-  reviewComments          ReviewComment[]
-  uploadedReceiptRevisions ReceiptRevision[]       @relation("ReceiptRevisionUploadedBy")
-  proposedBudgetProposals BudgetProposal[]         @relation("BudgetProposalProposedBy")
-  reviewedBudgetProposals BudgetProposal[]         @relation("BudgetProposalReviewedBy")
-  auditEntries            AuditEntry[]             @relation("AuditActor")
-  createdBudgetTemplates  BudgetTemplate[]         @relation("BudgetTemplateCreatedBy")
+  id                 String                  @id @default(cuid())
+  email              String                  @unique
+  emailVerified      Boolean                 @default(false)
+  name               String
+  image              String?
+  role               Role                    @default(SCOPE_USER)
+  status             UserStatus              @default(PENDING_APPROVAL)
+  authMethod         AuthMethod
+  passwordHash       String?
+  mustChangePassword Boolean                 @default(true)
+  themePreference    ThemePreference         @default(LIGHT)
+  locale             String                  @default("en")
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  accounts           Account[]
+  sessions           Session[]
+  scopeAssignments   UserScopeAssignment[]
+  auditEntries       AuditEntry[]            @relation("AuditActor")
 }
 
 model Session {
@@ -154,236 +108,43 @@ model Verification {
   @@index([identifier])
 }
 
-model ProgramCountry {
-  id                 String                  @id @default(cuid())
-  name               String                  @unique
-  code               String                  @unique
-  createdAt          DateTime                @default(now())
-  updatedAt          DateTime                @updatedAt
-  userAssignments    UserCountryAssignment[]
-  countryBudgets     CountryBudget[]
-  auditEntries       AuditEntry[]
+model AccessScope {
+  id              String                  @id @default(cuid())
+  name            String                  @unique
+  code            String                  @unique
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  userAssignments UserScopeAssignment[]
+  auditEntries    AuditEntry[]
 }
 
-model UserCountryAssignment {
+model UserScopeAssignment {
   id        String         @id @default(cuid())
   userId    String
-  countryId String
+  scopeId   String
   createdAt DateTime       @default(now())
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  country   ProgramCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  scope     AccessScope    @relation(fields: [scopeId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, countryId])
-  @@index([countryId])
-}
-
-model BudgetYear {
-  id            String          @id @default(cuid())
-  label         String          @unique
-  startDate     DateTime
-  endDate       DateTime
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  countryBudgets CountryBudget[]
-}
-
-model CountryBudget {
-  id           String          @id @default(cuid())
-  budgetYearId String
-  countryId    String
-  totalAmount  Decimal
-  currency     String
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  budgetYear   BudgetYear      @relation(fields: [budgetYearId], references: [id], onDelete: Cascade)
-  country      ProgramCountry  @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  budgetItems  BudgetItem[]
-  proposals    BudgetProposal[]
-
-  @@unique([budgetYearId, countryId])
-  @@index([countryId])
-}
-
-model BudgetItem {
-  id              String            @id @default(cuid())
-  countryBudgetId String
-  parentId        String?
-  name            String
-  plannedAmount   Decimal
-  description     String?
-  sortOrder       Int               @default(0)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  countryBudget   CountryBudget     @relation(fields: [countryBudgetId], references: [id], onDelete: Cascade)
-  parent          BudgetItem?       @relation("BudgetItemHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children        BudgetItem[]      @relation("BudgetItemHierarchy")
-  receipts        Receipt[]
-  donorProjectTags DonorProjectTag[]
-  targetProposals BudgetProposal[]
-
-  @@index([countryBudgetId])
-  @@index([parentId])
-}
-
-model Receipt {
-  id              String            @id @default(cuid())
-  budgetItemId    String
-  uploadedById    String
-  reviewStatus    ReviewStatus      @default(PENDING_REVIEW)
-  amount          Decimal
-  currency        String
-  date            DateTime
-  description     String
-  fileName        String
-  filePath        String            @unique
-  fileSize        Int
-  mimeType        String
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  budgetItem      BudgetItem        @relation(fields: [budgetItemId], references: [id], onDelete: Restrict)
-  uploadedBy      User              @relation("ReceiptUploadedBy", fields: [uploadedById], references: [id], onDelete: Restrict)
-  reviewComments  ReviewComment[]
-  revisions       ReceiptRevision[]
-  donorProjectTags DonorProjectTag[]
-
-  @@index([budgetItemId])
-  @@index([uploadedById])
-  @@index([date])
-  @@index([reviewStatus])
-}
-
-model ReviewComment {
-  id        String   @id @default(cuid())
-  receiptId String
-  authorId  String
-  text      String
-  createdAt DateTime @default(now())
-  receipt   Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
-
-  @@index([receiptId, createdAt])
-  @@index([authorId])
-}
-
-model ReceiptRevision {
-  id           String   @id @default(cuid())
-  receiptId    String
-  uploadedById String
-  fileName     String
-  filePath     String   @unique
-  fileSize     Int
-  mimeType     String
-  createdAt    DateTime @default(now())
-  receipt      Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
-  uploadedBy   User     @relation("ReceiptRevisionUploadedBy", fields: [uploadedById], references: [id], onDelete: Restrict)
-
-  @@index([receiptId, createdAt])
-  @@index([uploadedById])
-}
-
-model InstitutionalDonor {
-  id           String         @id @default(cuid())
-  name         String         @unique
-  description  String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  donorProjects DonorProject[]
-}
-
-model DonorProject {
-  id           String            @id @default(cuid())
-  donorId      String
-  name         String
-  description  String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  donor        InstitutionalDonor @relation(fields: [donorId], references: [id], onDelete: Cascade)
-  tags         DonorProjectTag[]
-
-  @@index([donorId])
-}
-
-model DonorProjectTag {
-  id             String       @id @default(cuid())
-  donorProjectId String
-  budgetItemId   String?
-  receiptId      String?
-  createdAt      DateTime     @default(now())
-  donorProject   DonorProject @relation(fields: [donorProjectId], references: [id], onDelete: Cascade)
-  budgetItem     BudgetItem?  @relation(fields: [budgetItemId], references: [id], onDelete: Cascade)
-  receipt        Receipt?     @relation(fields: [receiptId], references: [id], onDelete: Cascade)
-
-  @@index([donorProjectId])
-  @@index([budgetItemId])
-  @@index([receiptId])
-}
-
-model BudgetProposal {
-  id               String          @id @default(cuid())
-  countryBudgetId  String
-  proposedById     String
-  type             ProposalType
-  targetBudgetItemId String?
-  payload          String
-  status           ProposalStatus  @default(PENDING)
-  reviewedById     String?
-  reviewComment    String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  countryBudget    CountryBudget   @relation(fields: [countryBudgetId], references: [id], onDelete: Cascade)
-  proposedBy       User            @relation("BudgetProposalProposedBy", fields: [proposedById], references: [id], onDelete: Restrict)
-  reviewedBy       User?           @relation("BudgetProposalReviewedBy", fields: [reviewedById], references: [id], onDelete: Restrict)
-  targetBudgetItem BudgetItem?     @relation(fields: [targetBudgetItemId], references: [id], onDelete: SetNull)
-
-  @@index([countryBudgetId])
-  @@index([proposedById])
-  @@index([reviewedById])
-  @@index([targetBudgetItemId])
-  @@index([status])
+  @@unique([userId, scopeId])
+  @@index([scopeId])
 }
 
 model AuditEntry {
-  id         String         @id @default(cuid())
+  id         String          @id @default(cuid())
   action     AuditAction
   entityType String
   entityId   String
   actorId    String
-  countryId  String?
+  scopeId    String?
   details    String
-  createdAt  DateTime       @default(now())
-  actor      User           @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
-  country    ProgramCountry? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  createdAt  DateTime        @default(now())
+  actor      User            @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+  scope      AccessScope?    @relation(fields: [scopeId], references: [id], onDelete: SetNull)
 
   @@index([action])
   @@index([entityType, entityId])
   @@index([actorId])
-  @@index([countryId])
+  @@index([scopeId])
   @@index([createdAt])
-}
-
-model BudgetTemplate {
-  id          String              @id @default(cuid())
-  name        String              @unique
-  description String?
-  createdById String
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  createdBy   User                @relation("BudgetTemplateCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  items       BudgetTemplateItem[]
-}
-
-model BudgetTemplateItem {
-  id            String               @id @default(cuid())
-  templateId    String
-  parentId      String?
-  name          String
-  defaultAmount Decimal
-  description   String?
-  sortOrder     Int                  @default(0)
-  template      BudgetTemplate       @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  parent        BudgetTemplateItem?  @relation("BudgetTemplateHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children      BudgetTemplateItem[] @relation("BudgetTemplateHierarchy")
-
-  @@index([templateId])
-  @@index([parentId])
 }

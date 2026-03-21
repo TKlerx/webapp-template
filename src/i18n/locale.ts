@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { defaultLocale, locales, type Locale } from "./config";
 
-const LOCALE_COOKIE = "gvi_finance_locale";
+const LOCALE_COOKIE = "starter_app_locale";
 
 export async function getUserLocale(): Promise<Locale> {
   const cookieStore = await cookies();

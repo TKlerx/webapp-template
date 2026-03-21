@@ -1,6 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
 import { jsonError } from "@/lib/http";
-import { requireCountryAccess, requireRole } from "@/lib/rbac";
+import { requireScopeAccess, requireRole } from "@/lib/rbac";
 import { Role } from "../../generated/prisma/enums";
 
 export async function requireApiUser() {
@@ -32,21 +32,21 @@ export async function requireApiUserWithRoles(roles: Role[]) {
 
 type AuthorizeRouteOptions = {
   roles?: Role[];
-  countryScoped?: boolean;
-  countryId?: string | null;
-  resolveCountryId?: ((request: Request) => Promise<string | null> | string | null) | null;
+  scopeRestricted?: boolean;
+  scopeId?: string | null;
+  resolveScopeId?: ((request: Request) => Promise<string | null> | string | null) | null;
 };
 
-async function getCountryId(request: Request, options: AuthorizeRouteOptions) {
-  if (options.countryId) {
-    return options.countryId;
+async function getScopeId(request: Request, options: AuthorizeRouteOptions) {
+  if (options.scopeId) {
+    return options.scopeId;
   }
 
-  if (options.resolveCountryId) {
-    return await options.resolveCountryId(request);
+  if (options.resolveScopeId) {
+    return await options.resolveScopeId(request);
   }
 
-  return new URL(request.url).searchParams.get("countryId");
+  return new URL(request.url).searchParams.get("scopeId");
 }
 
 export async function authorizeRoute(request: Request, options: AuthorizeRouteOptions = {}) {
@@ -62,17 +62,17 @@ export async function authorizeRoute(request: Request, options: AuthorizeRouteOp
     }
   }
 
-  if (options.countryScoped) {
-    const countryId = await getCountryId(request, options);
+  if (options.scopeRestricted) {
+    const scopeId = await getScopeId(request, options);
 
-    if (!countryId) {
-      return { error: jsonError("Country ID is required", 400) };
+    if (!scopeId) {
+      return { error: jsonError("Scope ID is required", 400) };
     }
 
     try {
-      await requireCountryAccess(auth.user, countryId);
+      await requireScopeAccess(auth.user, scopeId);
     } catch {
-      return { error: jsonError("Not authorized for this country", 403) };
+      return { error: jsonError("Not authorized for this scope", 403) };
     }
   }
 

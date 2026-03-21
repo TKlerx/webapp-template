@@ -7,7 +7,7 @@ export default async function AuditTrailPage() {
   const user = await requireSession();
   const t = await getTranslations("audit");
 
-  if (user.role !== Role.GVI_FINANCE_ADMIN) {
+  if (user.role !== Role.PLATFORM_ADMIN) {
     return <p className="text-sm opacity-70">Not authorized.</p>;
   }
 
