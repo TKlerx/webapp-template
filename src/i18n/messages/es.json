@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "GVI Finance",
+    "appName": "Business App Starter",
     "signOut": "Cerrar sesion",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -39,8 +39,8 @@
     "firstLogin": "Primer inicio de sesion"
   },
   "pending": {
-    "title": "Su cuenta esta pendiente de aprobacion del administrador.",
-    "description": "Puede iniciar sesion con Azure ahora, pero no podra acceder a la aplicacion hasta que un administrador apruebe su acceso.",
+    "title": "Su cuenta esta pendiente de aprobacion administrativa.",
+    "description": "Puede iniciar sesion ahora, pero no podra acceder a la aplicacion hasta que un administrador apruebe su acceso.",
     "label": "Pendiente de aprobacion"
   },
   "dashboard": {
@@ -48,7 +48,8 @@
     "welcomeBack": "Bienvenido de nuevo, {name}.",
     "role": "Rol",
     "status": "Estado",
-    "theme": "Tema"
+    "theme": "Tema",
+    "email": "Correo"
   },
   "users": {
     "title": "Usuarios",
@@ -75,9 +76,9 @@
     "roleUpdated": "Rol actualizado a {role}",
     "couldNotUpdate": "No se pudo actualizar el usuario",
     "roles": {
-      "GVI_FINANCE_ADMIN": "Administrador financiero GVI",
-      "COUNTRY_ADMIN": "Administrador de pais",
-      "COUNTRY_FINANCE": "Finanzas del pais"
+      "GVI_FINANCE_ADMIN": "Administrador de plataforma",
+      "COUNTRY_ADMIN": "Administrador de alcance",
+      "COUNTRY_FINANCE": "Usuario de alcance"
     },
     "statuses": {
       "ACTIVE": "Activo",

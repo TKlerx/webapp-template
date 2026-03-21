@@ -6,7 +6,7 @@ import { AuthMethod, Role, ThemePreference, UserStatus } from "../../generated/p
 import { getConfiguredBasePath, getScopedCookiePath, hasRealAzureAdConfig } from "@/lib/azure-auth";
 import { prisma } from "@/lib/db";
 
-export const BETTER_AUTH_COOKIE_PREFIX = "gvi-finance";
+export const BETTER_AUTH_COOKIE_PREFIX = "business-app-starter";
 export const BETTER_AUTH_API_BASE_PATH = `${getConfiguredBasePath()}/api/auth`;
 
 function trimTrailingSlash(value: string) {

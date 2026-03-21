@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "GVI Finance",
+    "appName": "Business App Starter",
     "signOut": "Abmelden",
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -39,8 +39,8 @@
     "firstLogin": "Erstanmeldung"
   },
   "pending": {
-    "title": "Ihr Konto wartet auf die Genehmigung eines Administrators.",
-    "description": "Sie konnen sich jetzt mit Azure anmelden, erreichen die Anwendung aber erst nach Freigabe durch einen Administrator.",
+    "title": "Ihr Konto wartet auf die Freigabe durch einen Administrator.",
+    "description": "Sie konnen sich jetzt anmelden, erhalten aber erst nach der Freigabe durch einen Administrator Zugriff auf die Anwendung.",
     "label": "Genehmigung ausstehend"
   },
   "dashboard": {
@@ -48,7 +48,8 @@
     "welcomeBack": "Willkommen zuruck, {name}.",
     "role": "Rolle",
     "status": "Status",
-    "theme": "Design"
+    "theme": "Design",
+    "email": "E-Mail"
   },
   "users": {
     "title": "Benutzer",
@@ -75,9 +76,9 @@
     "roleUpdated": "Rolle aktualisiert auf {role}",
     "couldNotUpdate": "Benutzer konnte nicht aktualisiert werden",
     "roles": {
-      "GVI_FINANCE_ADMIN": "GVI Finanzadmin",
-      "COUNTRY_ADMIN": "Landeradmin",
-      "COUNTRY_FINANCE": "Landesfinanzteam"
+      "GVI_FINANCE_ADMIN": "Plattform-Admin",
+      "COUNTRY_ADMIN": "Bereichs-Admin",
+      "COUNTRY_FINANCE": "Bereichsbenutzer"
     },
     "statuses": {
       "ACTIVE": "Aktiv",

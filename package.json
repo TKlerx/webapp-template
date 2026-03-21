@@ -1,7 +1,7 @@
 {
-  "name": "gvi-finance",
+  "name": "business-app-starter",
   "version": "1.0.0",
-  "description": "GVI Finance web application",
+  "description": "Reusable internal business app starter",
   "private": true,
   "scripts": {
     "dev": "node scripts/run-next.mjs dev",

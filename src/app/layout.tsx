@@ -8,8 +8,8 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export const metadata: Metadata = {
-  title: "GVI Finance",
-  description: "GVI Finance web application",
+  title: "Business App Starter",
+  description: "Reusable internal business app starter",
 };
 
 export default function RootLayout({

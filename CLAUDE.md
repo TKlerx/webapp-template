@@ -1,4 +1,4 @@
-# GVI Finance Development Guidelines
+# Business App Starter Development Guidelines
 
 ## Workflow First Step
 
