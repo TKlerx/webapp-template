@@ -12,7 +12,7 @@ test("first-time SSO user lands on pending approval page", async ({ page }) => {
 
   await expect(page).toHaveURL(new RegExp(`${appBasePath}/pending$`), { timeout: 15000 });
   await expect(
-    page.getByRole("heading", { name: /your account is pending admin approval/i }),
+    page.getByRole("heading", { name: /your account is pending administrator approval/i }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.waitForURL(new RegExp(`${appBasePath}/login$`));

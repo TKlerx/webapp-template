@@ -57,7 +57,7 @@ test("admin creates a local user, user logs in and changes password", async ({
 
     const userRow = adminPage.locator("tr", { hasText: createdUser.email });
     await expect(userRow).toBeVisible();
-    await expect(userRow).toContainText("Country Finance");
+    await expect(userRow).toContainText("Scoped User");
 
     const userContext = await browser.newContext({ baseURL: appOrigin });
     const userPage = await userContext.newPage();

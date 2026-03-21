@@ -8,19 +8,11 @@ import type { SessionUser } from "@/lib/auth";
 export function Navigation({ user }: { user: SessionUser }) {
   const t = useTranslations("nav");
 
-  const links = [
-    { href: "/dashboard", label: t("dashboard") },
-    { href: "/review", label: t("review") },
-  ];
+  const links = [{ href: "/dashboard", label: t("dashboard") }];
 
   if (user.role === Role.GVI_FINANCE_ADMIN) {
     links.push({ href: "/users", label: t("users") });
     links.push({ href: "/audit-trail", label: t("auditTrail") });
-    links.push({ href: "/compliance", label: t("compliance") });
-  }
-
-  if (user.role === Role.COUNTRY_ADMIN) {
-    links.push({ href: "/compliance", label: t("compliance") });
   }
 
   return (
