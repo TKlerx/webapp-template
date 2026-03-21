@@ -57,3 +57,42 @@ export async function ensureAdminUserCanChange(
 
   return null;
 }
+
+export async function updateManagedUserStatus(
+  params: RouteParams,
+  nextStatus: UserStatus,
+  options?: {
+    requireCurrentStatus?: UserStatus;
+    blockedMessage?: string;
+    lastAdminMessage?: string;
+  },
+) {
+  const managed = await requireManagedUser(params);
+  if ("error" in managed) {
+    return managed.error;
+  }
+
+  const { user } = managed;
+
+  if (options?.requireCurrentStatus && user.status !== options.requireCurrentStatus) {
+    return jsonError(options.blockedMessage ?? "User is in an invalid status", 400);
+  }
+
+  if (options?.lastAdminMessage) {
+    const denied = await ensureAdminUserCanChange(user, {
+      status: nextStatus,
+      message: options.lastAdminMessage,
+    });
+
+    if (denied) {
+      return denied;
+    }
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: { status: nextStatus },
+  });
+
+  return Response.json({ user: { id: updated.id, status: updated.status } });
+}
