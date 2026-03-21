@@ -30,13 +30,38 @@ if ($Host.UI -and $Host.UI.RawUI) {
 function Write-Step($msg) { Write-Host "`n=== $msg ===" -ForegroundColor Cyan }
 function Write-Pass($msg) { Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Fail($msg) { Write-Host "  [FAIL] $msg" -ForegroundColor Red }
+function Write-Warn($msg) { Write-Host "  [SKIP] $msg" -ForegroundColor Yellow }
+
+function Invoke-ShellCommand([string]$commandLine, [switch]$CaptureOutput) {
+    if ($IsWindows -or $env:OS -eq "Windows_NT") {
+        if ($CaptureOutput) {
+            $output = cmd /c $commandLine 2>&1
+        } else {
+            cmd /c $commandLine | Out-Host
+        }
+    } else {
+        if ($CaptureOutput) {
+            $output = /bin/sh -lc $commandLine 2>&1
+        } else {
+            /bin/sh -lc $commandLine | Out-Host
+        }
+    }
+
+    if ($CaptureOutput) {
+        return @{
+            ExitCode = $LASTEXITCODE
+            Output = @($output)
+        }
+    }
+
+    return $LASTEXITCODE
+}
 
 function Invoke-NativeCommand([string]$commandLine) {
     $previousErrorActionPreference = $ErrorActionPreference
     $script:ErrorActionPreference = "Continue"
     try {
-        cmd /c $commandLine | Out-Host
-        return $LASTEXITCODE
+        return Invoke-ShellCommand $commandLine
     } finally {
         $script:ErrorActionPreference = $previousErrorActionPreference
     }
@@ -46,11 +71,7 @@ function Invoke-NativeCommandCaptured([string]$commandLine) {
     $previousErrorActionPreference = $ErrorActionPreference
     $script:ErrorActionPreference = "Continue"
     try {
-        $output = cmd /c $commandLine 2>&1
-        return @{
-            ExitCode = $LASTEXITCODE
-            Output = @($output)
-        }
+        return Invoke-ShellCommand $commandLine -CaptureOutput
     } finally {
         $script:ErrorActionPreference = $previousErrorActionPreference
     }
@@ -62,6 +83,25 @@ function Remove-Ansi([string]$text) {
     }
 
     return [regex]::Replace($text, '\x1B\[[0-9;]*[A-Za-z]', '')
+}
+
+function Test-HasPlaywrightSpecs {
+    $roots = @("e2e", "tests/e2e")
+    $patterns = @("*.spec.ts", "*.spec.tsx", "*.e2e.ts", "*.e2e.tsx")
+
+    foreach ($root in $roots) {
+        if (-not (Test-Path $root)) {
+            continue
+        }
+
+        foreach ($pattern in $patterns) {
+            if (Get-ChildItem -Path $root -Recurse -File -Filter $pattern -ErrorAction SilentlyContinue | Select-Object -First 1) {
+                return $true
+            }
+        }
+    }
+
+    return $false
 }
 
 function Test-ContinuityFreshness {
@@ -211,25 +251,35 @@ if ($Phase -in "full", "continuity") {
 
 if ($Phase -in "full", "e2e") {
     Write-Step "E2E Tests (playwright)"
-    try {
-        $result = Invoke-NativeCommandCaptured "set CI=1 && set E2E_PORT=3290 && npm run test:e2e"
-        if ($result.ExitCode -ne 0) {
-            $result.Output | Out-Host
-            throw "e2e tests failed"
-        }
+    if (-not (Test-HasPlaywrightSpecs)) {
+        Write-Warn "playwright skipped (no e2e spec files found)"
+    } else {
+        try {
+            $commandLine = if ($IsWindows -or $env:OS -eq "Windows_NT") {
+                "set CI=1 && set E2E_PORT=3290 && npm run test:e2e"
+            } else {
+                "CI=1 E2E_PORT=3290 npm run test:e2e"
+            }
 
-        $summaryLine = $result.Output |
-            Select-String -Pattern '^\s*\d+\s+passed\s+\(.+\)$' |
-            Select-Object -Last 1
+            $result = Invoke-NativeCommandCaptured $commandLine
+            if ($result.ExitCode -ne 0) {
+                $result.Output | Out-Host
+                throw "e2e tests failed"
+            }
 
-        if ($summaryLine) {
-            Write-Pass "e2e tests passed ($($summaryLine.Line.Trim()))"
-        } else {
-            Write-Pass "e2e tests passed"
+            $summaryLine = $result.Output |
+                Select-String -Pattern '^\s*\d+\s+passed\s+\(.+\)$' |
+                Select-Object -Last 1
+
+            if ($summaryLine) {
+                Write-Pass "e2e tests passed ($($summaryLine.Line.Trim()))"
+            } else {
+                Write-Pass "e2e tests passed"
+            }
+        } catch {
+            Write-Fail "e2e tests failed"
+            $failures += "e2e"
         }
-    } catch {
-        Write-Fail "e2e tests failed"
-        $failures += "e2e"
     }
 }
 

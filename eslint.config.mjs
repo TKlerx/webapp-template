@@ -8,6 +8,8 @@ const config = [
       "coverage/**",
       "dist/**",
       "build/**",
+      "test-results/**",
+      "playwright-report/**",
       "generated/**",
       "**/*.min.js",
     ],
