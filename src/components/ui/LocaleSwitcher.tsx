@@ -31,7 +31,7 @@ export function LocaleSwitcher({ currentLocale }: { currentLocale: string }) {
 
   return (
     <select
-      className="rounded-full border border-black/10 bg-white/60 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/10"
+      className="min-w-32 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-medium shadow-sm dark:border-white/10 dark:bg-white/10"
       disabled={isPending}
       value={currentLocale}
       onChange={handleChange}

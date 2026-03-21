@@ -4,6 +4,7 @@ coverage/
 dist/
 build/
 generated/
+uploads/
 .venv/
 __pycache__/
 .pytest_cache/

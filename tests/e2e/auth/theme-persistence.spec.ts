@@ -7,7 +7,7 @@ test("theme toggle persists across sessions", async ({ page }) => {
   await seedLocalUser({
     email: "e2e-theme-user@example.com",
     name: "E2E Theme User",
-    role: Role.MARKETER,
+    role: Role.COUNTRY_FINANCE,
     password: "ThemePass123",
     mustChangePassword: false,
   });

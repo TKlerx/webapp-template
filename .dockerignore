@@ -11,6 +11,8 @@ __pycache__/
 .env*
 data/documents/
 test-results/
+uploads/
+dev.db
 Dockerfile*
 .dockerignore
 

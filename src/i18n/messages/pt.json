@@ -12,7 +12,7 @@
   },
   "nav": {
     "dashboard": "Painel",
-    "users": "Gestão de utilizadores"
+    "users": "Gestao de utilizadores"
   },
   "auth": {
     "signIn": "Entrar",
@@ -24,26 +24,26 @@
     "loginFailed": "Falha no login. Tente novamente.",
     "description": "Use Azure SSO ou uma conta local criada por um administrador.",
     "ssoRevoked": "O seu acesso SSO foi revogado. Contacte um administrador.",
-    "ssoNotConfigured": "Azure SSO ainda não está configurado. Defina as variáveis de ambiente Azure AD e tente novamente.",
-    "authFailed": "Falha na autenticação. Tente novamente.",
+    "ssoNotConfigured": "Azure SSO ainda nao esta configurado. Defina as variaveis de ambiente Azure AD e tente novamente.",
+    "authFailed": "Falha na autenticacao. Tente novamente.",
     "changePassword": "Alterar palavra-passe",
     "changePasswordDescription": "As contas locais devem definir uma nova palavra-passe antes de aceder ao painel.",
     "currentPassword": "Palavra-passe atual",
     "newPassword": "Nova palavra-passe",
     "saveNewPassword": "Guardar nova palavra-passe",
     "passwordChanged": "Palavra-passe alterada com sucesso",
-    "couldNotUpdatePassword": "Não foi possível atualizar a palavra-passe",
+    "couldNotUpdatePassword": "Nao foi possivel atualizar a palavra-passe",
     "firstLogin": "Primeiro login"
   },
   "pending": {
-    "title": "A sua conta está pendente de aprovação do administrador.",
-    "description": "Pode iniciar sessão com Azure agora, mas não poderá aceder à aplicação até que um administrador aprove o seu acesso.",
-    "label": "Aprovação pendente"
+    "title": "A sua conta esta pendente de aprovacao do administrador.",
+    "description": "Pode iniciar sessao com Azure agora, mas nao podera aceder a aplicacao ate que um administrador aprove o seu acesso.",
+    "label": "Aprovacao pendente"
   },
   "dashboard": {
     "label": "Painel",
     "welcomeBack": "Bem-vindo de volta, {name}.",
-    "role": "Função",
+    "role": "Funcao",
     "status": "Estado",
     "theme": "Tema"
   },
@@ -52,38 +52,69 @@
     "createUser": "Criar utilizador local",
     "emailPlaceholder": "E-mail",
     "namePlaceholder": "Nome",
-    "temporaryPassword": "Palavra-passe temporária",
+    "temporaryPassword": "Palavra-passe temporaria",
     "createButton": "Criar utilizador",
     "userCreated": "Utilizador criado",
-    "couldNotCreate": "Não foi possível criar o utilizador",
-    "notAuthorized": "Não está autorizado a aceder a esta página.",
+    "couldNotCreate": "Nao foi possivel criar o utilizador",
+    "notAuthorized": "Nao esta autorizado a aceder a esta pagina.",
     "name": "Nome",
     "email": "E-mail",
-    "role": "Função",
+    "role": "Funcao",
     "statusLabel": "Estado",
     "auth": "Auth",
-    "actions": "Ações",
+    "actions": "Acoes",
     "approve": "Aprovar",
     "deactivate": "Desativar",
     "reactivate": "Reativar",
     "userApproved": "Utilizador aprovado",
     "userDeactivated": "Utilizador desativado",
     "userReactivated": "Utilizador reativado",
-    "roleUpdated": "Função atualizada para {role}",
-    "couldNotUpdate": "Não foi possível atualizar o utilizador",
+    "roleUpdated": "Funcao atualizada para {role}",
+    "couldNotUpdate": "Nao foi possivel atualizar o utilizador",
     "roles": {
-      "ADMIN": "Admin",
-      "MARKETER_LEAD": "Marketer Lead",
-      "MARKETER": "Marketer",
-      "REVIEWER": "Reviewer"
+      "GVI_FINANCE_ADMIN": "Admin financeiro GVI",
+      "COUNTRY_ADMIN": "Admin do pais",
+      "COUNTRY_FINANCE": "Financas do pais"
     },
     "statuses": {
       "ACTIVE": "Ativo",
       "INACTIVE": "Inativo",
-      "PENDING_APPROVAL": "Aprovação pendente"
+      "PENDING_APPROVAL": "Aprovacao pendente"
     }
   },
   "theme": {
     "switchedTo": "Tema alterado para modo {theme}"
+  },
+  "budget": {
+    "title": "Planeamento orcamental",
+    "budgetYears": "Anos orcamentais",
+    "countryBudgets": "Orcamentos por pais",
+    "budgetItems": "Itens do orcamento",
+    "plannedAmount": "Montante planeado",
+    "actualSpend": "Despesa real"
+  },
+  "receipts": {
+    "title": "Recibos",
+    "upload": "Carregar recibo",
+    "amount": "Montante",
+    "date": "Data",
+    "description": "Descricao"
+  },
+  "donors": {
+    "title": "Doadores",
+    "projects": "Projetos",
+    "tag": "Associar ao projeto"
+  },
+  "audit": {
+    "title": "Auditoria",
+    "action": "Acao",
+    "actor": "Autor",
+    "entity": "Entidade"
+  },
+  "proposals": {
+    "title": "Propostas de orcamento",
+    "status": "Estado",
+    "approve": "Aprovar",
+    "reject": "Rejeitar"
   }
 }

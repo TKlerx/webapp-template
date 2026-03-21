@@ -9,6 +9,7 @@ const config = [
       "dist/**",
       "build/**",
       "generated/**",
+      "**/*.min.js",
     ],
   },
   ...nextVitals,

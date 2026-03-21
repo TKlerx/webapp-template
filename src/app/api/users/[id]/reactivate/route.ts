@@ -1,18 +1,14 @@
 import { prisma } from "@/lib/db";
-import { jsonError } from "@/lib/http";
-import { requireApiUserWithRoles } from "@/lib/route-auth";
-import { Role, UserStatus } from "../../../../../../generated/prisma/enums";
+import { requireManagedUser } from "@/lib/user-management";
+import { UserStatus } from "../../../../../../generated/prisma/enums";
 
 export async function PATCH(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireApiUserWithRoles([Role.ADMIN]);
-  if ("error" in auth) return auth.error;
-
-  const { id } = await params;
-  const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) return jsonError("User not found", 404);
+  const managed = await requireManagedUser(params);
+  if ("error" in managed) return managed.error;
+  const { user } = managed;
 
   const updated = await prisma.user.update({
-    where: { id },
+    where: { id: user.id },
     data: { status: UserStatus.ACTIVE },
   });
 
