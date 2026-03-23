@@ -26,7 +26,7 @@
 ### [PRINCIPLE_5_NAME]
 <!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
 [PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles; Or: Require CONTINUE.md and CONTINUE_LOG.md for handoff continuity -->
+<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles; Or: Require explicit confirmation before starting a newer spec while an older one is unfinished; Or: Require CONTINUE.md, CONTINUE_LOG.md, and ACTIVE_SPECS.md for handoff and spec continuity -->
 
 ## [SECTION_2_NAME]
 <!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->

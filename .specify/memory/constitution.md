@@ -46,7 +46,17 @@ A working MVP (User Story 1) MUST be validated before proceeding
 to subsequent stories. Feature branches MUST be small and focused;
 large changes MUST be broken into reviewable increments.
 
-### V. Continuity And Handoff
+### V. Spec Sequencing And Completion
+
+Agents MUST check for older started specs before beginning work on a
+newer spec. If an earlier spec is unfinished, the agent MUST warn
+about the gap and MUST obtain explicit user confirmation before
+starting the newer spec anyway. Silent advancement from one spec to
+another is not allowed merely because later spec files already exist.
+The confirmation and rationale MUST be reflected in the current work
+context (chat, plan, or continuity files).
+
+### VI. Continuity And Handoff
 
 The repository MUST include a `CONTINUE.md` file that records the
 recent changes, the current stopping point, known issues or open
@@ -55,9 +65,14 @@ reviewed before starting new work and updated whenever the project
 state materially changes. The repository MUST also include an
 append-only `CONTINUE_LOG.md` file recording each update to
 `CONTINUE.md` with date and summary so the handoff history remains
-auditable over time.
+auditable over time. The repository MUST also include an
+`ACTIVE_SPECS.md` file listing every started but unfinished spec,
+its current status, and the next required work. When a spec starts,
+it MUST be added to `ACTIVE_SPECS.md`. When a spec is fully finished,
+it MUST be removed from `ACTIVE_SPECS.md`. This file MUST be reviewed
+before starting implementation work.
 
-### VI. Azure OpenAI Integration
+### VII. Azure OpenAI Integration
 
 All LLM functionality MUST use Azure OpenAI as the provider.
 API keys and endpoint configuration MUST be managed via environment
@@ -68,7 +83,7 @@ and user feedback. The integration layer MUST be encapsulated so
 that switching models or adjusting parameters does not require
 changes across the codebase.
 
-### VII. Web Application Standards
+### VIII. Web Application Standards
 
 The application MUST be a web application served under a
 configurable base path (e.g., `/starter`). The base path
@@ -80,7 +95,7 @@ of use over technical sophistication. User actions MUST provide
 feedback via toast notifications displayed for approximately
 3 seconds.
 
-### VIII. Internationalization
+### IX. Internationalization
 
 All user-facing text MUST use translation keys via next-intl.
 No hardcoded strings in components or pages. Supported locales
@@ -90,7 +105,7 @@ switchable at runtime. New features MUST include translation keys
 for all supported locales. Server components use `getTranslations`,
 client components use `useTranslations`.
 
-### IX. Responsive Design
+### X. Responsive Design
 
 The UI MUST be usable on mobile, tablet, and desktop viewports.
 Layout MUST follow a mobile-first approach using Tailwind CSS
@@ -145,6 +160,10 @@ visually before merge.
 - **Continuity Files**: `CONTINUE.md` and `CONTINUE_LOG.md` MUST
   exist, stay current, and be updated as part of commits that
   materially change the codebase or project state.
+- **Spec Tracking**: `ACTIVE_SPECS.md` MUST exist and list every
+  started but unfinished spec with the remaining work. Starting a
+  newer spec while an older spec is unfinished requires explicit
+  user confirmation and a recorded warning.
 - **Documentation**: User-facing features MUST include usage
   documentation. API endpoints MUST be documented with request
   and response examples.
