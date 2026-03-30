@@ -12,7 +12,7 @@ ARG BASE_PATH
 ENV BASE_PATH=$BASE_PATH
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate && npm run build
+RUN npx prisma generate --config prisma.config.postgres.ts && npm run build
 
 FROM base AS runner
 WORKDIR /app
@@ -24,6 +24,7 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/next.config.ts ./next.config.ts
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/prisma.config.postgres.ts ./prisma.config.postgres.ts
 COPY --from=builder /app/scripts ./scripts
 RUN mkdir -p /app/uploads /data
 EXPOSE 3270

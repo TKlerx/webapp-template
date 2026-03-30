@@ -1,4 +1,5 @@
 x-app-image: &app-image
+  image: ${APP_IMAGE_NAME:-business-app-starter}:latest
   build:
     context: .
     dockerfile: Dockerfile.app
@@ -6,39 +7,58 @@ x-app-image: &app-image
       BASE_PATH: ${BASE_PATH}
 
 services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: business_app_starter
+      POSTGRES_USER: starter
+      POSTGRES_PASSWORD: starter
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U starter -d business_app_starter"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
   migrate:
     <<: *app-image
     user: "0:0"
     env_file: .env
     environment:
-      DATABASE_URL: "file:/data/dev.db"
+      DATABASE_URL: "postgresql://starter:starter@postgres:5432/business_app_starter?schema=public"
       NODE_ENV: "production"
       PORT: "3270"
+      PRISMA_CONFIG_PATH: "prisma.config.postgres.ts"
     volumes:
-      - sqlite_data:/data
       - uploads_data:/app/uploads
     command: >
       sh -c "node scripts/prisma-predeploy-check.js
-      && npx prisma migrate deploy"
+      && npx prisma migrate deploy --config prisma.config.postgres.ts"
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: "no"
 
   app:
     <<: *app-image
     env_file: .env
     environment:
-      DATABASE_URL: "file:/data/dev.db"
+      DATABASE_URL: "postgresql://starter:starter@postgres:5432/business_app_starter?schema=public"
       NODE_ENV: "production"
       PORT: "3270"
     volumes:
-      - sqlite_data:/data
       - uploads_data:/app/uploads
     ports:
       - "${PORT:-3270}:3270"
     restart: unless-stopped
     depends_on:
+      postgres:
+        condition: service_healthy
       migrate:
         condition: service_completed_successfully
 
 volumes:
-  sqlite_data:
+  postgres_data:
   uploads_data:

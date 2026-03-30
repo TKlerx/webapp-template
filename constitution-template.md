@@ -115,8 +115,8 @@ visually before merge.
 - **Styling**: Tailwind CSS 4 with dark/light theme toggle
   (user-selectable, persisted per user).
 - **ORM**: Prisma 7 for database access and schema management
-  (frontend/API). Worker accesses the same SQLite database directly
-  or via a shared library.
+  (frontend/API). Worker accesses the same application database
+  directly or via a shared library.
 - **Authentication**: Dual auth support -- Azure SSO and local
   username/password. Email is the unique user identifier across
   both methods. Azure SSO via BetterAuth (with Admin + SSO plugins).
@@ -132,11 +132,11 @@ visually before merge.
   (a) migration init container runs Prisma migrations before other
   services start, (b) Next.js frontend for UI and quick API routes,
   (c) Python worker for long-running tasks (AI generation, document
-  conversion, background jobs). Named volume for database file.
+  conversion, background jobs). PostgreSQL MAY run as a dedicated
+  Compose service with a named data volume for deployed environments.
   Web application served under a configurable base path.
-- **Database**: SQLite for initial development (named Docker
-  volume for the database file). Prisma abstracts the database
-  layer, allowing migration to PostgreSQL later.
+- **Database**: SQLite is acceptable for local development. Docker
+  and shared deployments SHOULD use PostgreSQL.
 - **Configuration**: `.env` file for all environment variables
   (secrets, deployment settings, initial admin email). No secrets
   in source control. A `.env.example` MUST be provided.

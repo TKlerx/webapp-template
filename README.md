@@ -5,7 +5,8 @@ A reusable internal web-app starter built from the extracted platform core of th
 ## Includes
 
 - Next.js 16 app router
-- Prisma + SQLite starter data model
+- Prisma starter data model with SQLite for local development
+- PostgreSQL-backed Docker deployment
 - Azure SSO and local login
 - role-based access control
 - user administration
@@ -22,6 +23,12 @@ A reusable internal web-app starter built from the extracted platform core of th
 .\validate.ps1 e2e
 .\validate.ps1 full
 ```
+
+## Docker Deployment
+
+- Local `npm run dev` uses SQLite via `DATABASE_URL=file:./dev.db`.
+- Docker Compose overrides `DATABASE_URL` so `app` and `migrate` use PostgreSQL.
+- `docker compose build app` builds one shared image reused by both `migrate` and `app`.
 
 ## Monitoring And Logging
 

@@ -9,6 +9,11 @@ import { prisma } from "@/lib/db";
 export const BETTER_AUTH_COOKIE_PREFIX = "business-app-starter";
 export const BETTER_AUTH_API_BASE_PATH = `${getConfiguredBasePath()}/api/auth`;
 
+function getDatabaseProvider() {
+  const databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db";
+  return databaseUrl.startsWith("file:") ? "sqlite" : "postgresql";
+}
+
 function trimTrailingSlash(value: string) {
   return value.endsWith("/") ? value.slice(0, -1) : value;
 }
@@ -37,7 +42,7 @@ export const auth = betterAuth({
   baseURL: getConfiguredAuthBaseUrl(),
   basePath: BETTER_AUTH_API_BASE_PATH,
   database: prismaAdapter(prisma, {
-    provider: "sqlite",
+    provider: getDatabaseProvider(),
   }),
   plugins: [nextCookies()],
   advanced: {

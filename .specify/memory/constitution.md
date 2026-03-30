@@ -123,9 +123,8 @@ visually before merge.
   (user-selectable, persisted per user). Dark mode via
   `[data-theme="dark"]` selector and Tailwind `dark:` variants.
 - **ORM**: Prisma 7 for database access and schema management.
-- **Database**: SQLite for initial development. Prisma abstracts
-  the database layer, allowing future migration to PostgreSQL or
-  MS SQL Server.
+- **Database**: SQLite for local development. Docker and shared
+  deployments use PostgreSQL.
 - **Authentication**: Dual auth support -- Azure SSO and local
   username/password. Email is the unique user identifier across
   both methods. Azure SSO via BetterAuth (with Admin + SSO plugins).

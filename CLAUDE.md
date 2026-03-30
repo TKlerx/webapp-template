@@ -9,7 +9,7 @@
 ## Tech Stack
 - TypeScript with Next.js 16 (App Router)
 - BetterAuth for authentication (email/password + Azure AD SSO)
-- Prisma 7 ORM with SQLite (future: PostgreSQL or MS SQL)
+- Prisma 7 ORM with SQLite locally and PostgreSQL in Docker
 - Tailwind CSS 4
 - next-intl for internationalization (en, de, es, fr, pt)
 - bcryptjs for password hashing

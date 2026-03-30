@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  PLATFORM_ADMIN
+  SCOPE_ADMIN
+  SCOPE_USER
+}
+
+enum UserStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  INACTIVE
+}
+
+enum AuthMethod {
+  SSO
+  LOCAL
+  BOTH
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+}
+
+enum AuditAction {
+  USER_CREATED
+  ROLE_CHANGED
+  SCOPE_ASSIGNMENT_CHANGED
+  USER_STATUS_CHANGED
+  USER_THEME_CHANGED
+  AUTH_LOGIN_SUCCEEDED
+  AUTH_LOGIN_REJECTED
+  AUTH_LOGOUT_SUCCEEDED
+  AUDIT_EXPORT_REQUESTED
+}
+
+model User {
+  id                 String                  @id @default(cuid())
+  email              String                  @unique
+  emailVerified      Boolean                 @default(false)
+  name               String
+  image              String?
+  role               Role                    @default(SCOPE_USER)
+  status             UserStatus              @default(PENDING_APPROVAL)
+  authMethod         AuthMethod
+  passwordHash       String?
+  mustChangePassword Boolean                 @default(true)
+  themePreference    ThemePreference         @default(LIGHT)
+  locale             String                  @default("en")
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  accounts           Account[]
+  sessions           Session[]
+  scopeAssignments   UserScopeAssignment[]
+  auditEntries       AuditEntry[]            @relation("AuditActor")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model Scope {
+  id              String                  @id @default(cuid())
+  name            String                  @unique
+  code            String                  @unique
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  userAssignments UserScopeAssignment[]
+  auditEntries    AuditEntry[]
+}
+
+model UserScopeAssignment {
+  id        String   @id @default(cuid())
+  userId    String
+  scopeId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scope     Scope    @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scopeId])
+  @@index([scopeId])
+}
+
+model AuditEntry {
+  id         String      @id @default(cuid())
+  action     AuditAction
+  entityType String
+  entityId   String
+  actorId    String
+  scopeId    String?
+  details    String
+  createdAt  DateTime    @default(now())
+  actor      User        @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+  scope      Scope?      @relation(fields: [scopeId], references: [id], onDelete: SetNull)
+
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([scopeId])
+  @@index([createdAt])
+}
