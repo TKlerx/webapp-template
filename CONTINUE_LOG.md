@@ -1,5 +1,12 @@
 # Continue Log
 
+## 2026-03-29 12:00:00
+
+- Switched the starter template from SQLite to PostgreSQL across Prisma, Better Auth, seed logic, Docker Compose, and deployment scripts.
+- Replaced the SQLite-specific E2E database helper with Prisma-backed seeding utilities.
+- Updated starter documentation and constitution references to describe PostgreSQL as the default database.
+- Manual continuity refresh used because sandbox git safety restrictions prevented automatic repository status collection.
+
 ## 2026-03-21
 
 - Created `CONTINUE.md` and `CONTINUE_LOG.md` to track recent changes, current state, and next actions.
@@ -119,5 +126,23 @@
 
 - Branch snapshot refreshed for `starter-template-extraction`.
 - Latest non-continuity commit: 0dff4a7 Rename starter access scope model.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-03-30 23:54:52
+
+- Branch snapshot refreshed for `starter-template-extraction`.
+- Latest non-continuity commit: 71e55e7 Add observability baseline.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-03-30 23:58:17
+
+- Branch snapshot refreshed for `starter-template-extraction`.
+- Latest non-continuity commit: 71e55e7 Add observability baseline.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-03-31 00:01:33
+
+- Branch snapshot refreshed for `starter-template-extraction`.
+- Latest non-continuity commit: a59f32f feat(devx): improve local startup and runtime visibility.
 - Active specs: none.
 - Next focus: no next task.

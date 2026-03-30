@@ -1,23 +1,23 @@
 # Continue
 
-<!-- continuity:fingerprint=67242393bb73c3f934a9e7dc4bff7b30e9adc6445c0291acf298b163e263c818 -->
+<!-- continuity:fingerprint=1f857e1a1ab212217e8f59256112978c1d7ac0a67108ddd2704994ee72590487 -->
 
 ## Current Snapshot
 
-- Updated: 2026-03-21 18:13:20
+- Updated: 2026-03-31 00:01:33
 - Branch: `starter-template-extraction`
 
 ## Recent Non-Continuity Commits
 
+- a59f32f feat(devx): improve local startup and runtime visibility
+- 0bf7f57 feat(infra): support sqlite locally and postgres in docker
+- 71e55e7 Add observability baseline
+- 27e6c67 Add spec sequencing guardrails
 - 0dff4a7 Rename starter access scope model
-- 7897091 Extract neutral starter core from finance app
-- 0146740 Remove finance-specific review and compliance modules
-- 5f63e64 Make validation script more portable
-- 501f1b3 Generalize starter branding and dashboard home
 
 ## Git Status
 
-Working tree is clean.
+- M CONTINUE.md
 
 ## Active Specs
 
