@@ -5,6 +5,7 @@ import "./globals.css";
 import { getSessionUser } from "@/lib/auth";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { AppVersionBadge } from "@/components/ui/AppVersionBadge";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export const metadata: Metadata = {
@@ -45,7 +46,10 @@ async function SessionLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <SessionProvider user={user}>
         <ThemeProvider initialTheme={initialTheme}>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            {children}
+            <AppVersionBadge />
+          </ToastProvider>
         </ThemeProvider>
       </SessionProvider>
     </NextIntlClientProvider>

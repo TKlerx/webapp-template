@@ -4,11 +4,13 @@ import { getScopedCookiePath } from "@/lib/azure-auth";
 import { auth, getBetterAuthCookieNames } from "@/lib/better-auth";
 import { prisma } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth";
+import { createRequestId, logger } from "@/lib/logger";
 import { AuthMethod, UserStatus } from "../generated/prisma/enums";
 
 const configuredBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? process.env.BASE_PATH ?? "";
 const PUBLIC_PATHS = ["/login", "/pending", "/api/auth/login", "/api/auth/session", "/api/locale", "/"];
 const cookiePath = getScopedCookiePath();
+const proxyLogger = logger.child({ component: "proxy" });
 
 function stripBasePath(pathname: string) {
   if (configuredBasePath && pathname.startsWith(configuredBasePath)) {
@@ -22,6 +24,40 @@ function stripBasePath(pathname: string) {
 function deleteCookies(response: NextResponse, names: string[]) {
   for (const name of names) {
     response.cookies.delete({ name, path: cookiePath });
+  }
+
+  return response;
+}
+
+function shouldSkipLogging(pathname: string) {
+  return (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.includes(".")
+  );
+}
+
+function buildNextResponse(request: NextRequest) {
+  const requestId = request.headers.get("x-request-id") ?? createRequestId();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-request-id", requestId);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  response.headers.set("x-request-id", requestId);
+
+  if (!shouldSkipLogging(request.nextUrl.pathname) && process.env.ENABLE_REQUEST_LOGGING !== "false") {
+    proxyLogger.info("http.request", {
+      requestId,
+      method: request.method,
+      pathname: request.nextUrl.pathname,
+      search: request.nextUrl.search,
+      userAgent: request.headers.get("user-agent"),
+    });
   }
 
   return response;
@@ -81,7 +117,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api/auth/") ||
     PUBLIC_PATHS.includes(pathname)
   ) {
-    return NextResponse.next();
+    return buildNextResponse(request);
   }
 
   const hasBetterAuthCookie = betterAuthCookieNames.some((name) => request.cookies.has(name));
@@ -123,7 +159,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return buildNextResponse(request);
 }
 
 export const config = {

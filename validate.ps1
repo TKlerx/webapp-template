@@ -6,8 +6,8 @@
 .DESCRIPTION
     Usage: ./validate.ps1 [phase]
     Phases:
-      all      - typecheck + lint + duplication + semgrep + test (default, same as CI)
-      full     - all + continuity freshness + Playwright E2E tests (recommended before merge)
+      all      - typecheck + lint + duplication + semgrep + test + continuity freshness (default, pre-commit)
+      full     - all quality checks + Playwright E2E tests (recommended before merge; skips continuity freshness)
       continuity - refresh continuity files and fail if that created uncommitted changes
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
@@ -245,7 +245,7 @@ if ($Phase -in "all", "full", "test", "commit") {
     }
 }
 
-if ($Phase -in "full", "continuity") {
+if ($Phase -in "all", "continuity", "commit") {
     Test-ContinuityFreshness
 }
 
