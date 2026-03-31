@@ -15,7 +15,17 @@ A reusable internal web-app starter built from the extracted platform core of th
 - audit trail and export
 - i18n, theme toggle, responsive UI
 - Vitest, Playwright, Semgrep, duplication checks
+- repo-local npm and uv dependency cooldown policy
 - continuity workflow with `CONTINUE.md` and `CONTINUE_LOG.md`
+
+## Base Spec
+
+The repo baseline is documented in `specs/base/`:
+
+- `specs/base/architecture.md`
+- `specs/base/runtime-and-ops.md`
+
+Read those files before creating new product-specific specs.
 
 ## Validation
 
@@ -24,6 +34,8 @@ A reusable internal web-app starter built from the extracted platform core of th
 .\validate.ps1 e2e
 .\validate.ps1 full
 ```
+
+`all` includes dependency cooldown validation for npm and uv support.
 
 ## Docker Deployment
 
@@ -39,6 +51,12 @@ A reusable internal web-app starter built from the extracted platform core of th
 - Runtime process failures are captured in `src/instrumentation.ts`.
 - Health checks are exposed at `/api/health` with process and database status.
 - `LOG_LEVEL` and `ENABLE_REQUEST_LOGGING` control verbosity and request logging behavior.
+
+## Dependency Safety
+
+- npm is configured with a 7-day package release delay through `.npmrc`
+- uv worker resolution is configured with `exclude-newer = "1 week"`
+- `validate.ps1` fails if the installed npm or uv version does not support those controls
 
 ## Suggested Next Step
 
