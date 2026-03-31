@@ -223,6 +223,76 @@ function Test-Utf8Encoding {
     }
 }
 
+function Test-DependencyCooldownSupport {
+    Write-Step "Dependency cooldown support (npm + uv)"
+    try {
+        if (-not (Test-Path ".npmrc" -PathType Leaf)) {
+            throw ".npmrc is missing"
+        }
+
+        $npmrcContent = Get-Content ".npmrc" -Raw
+        if ($npmrcContent -notmatch '(?m)^\s*min-release-age\s*=\s*7\s*$') {
+            throw "project npm cooldown is not configured"
+        }
+
+        $npmHelp = Invoke-NativeCommandCaptured "npm install --help"
+        if ($npmHelp.ExitCode -ne 0 -or -not (($npmHelp.Output -join "`n") -match '--min-release-age')) {
+            throw "installed npm does not support --min-release-age"
+        }
+
+        if (-not (Test-Path "worker\pyproject.toml" -PathType Leaf)) {
+            throw "worker/pyproject.toml is missing"
+        }
+
+        $workerPyproject = Get-Content "worker\pyproject.toml" -Raw
+        if ($workerPyproject -notmatch '(?s)\[tool\.uv\].*?exclude-newer\s*=\s*"1 week"') {
+            throw "project uv cooldown is not configured"
+        }
+
+        $uvVersion = Invoke-NativeCommandCaptured "uv --version"
+        if ($uvVersion.ExitCode -ne 0) {
+            throw "uv is not available"
+        }
+
+        $uvHelp = Invoke-NativeCommandCaptured "uv lock --help"
+        if ($uvHelp.ExitCode -ne 0 -or -not (($uvHelp.Output -join "`n") -match '--exclude-newer')) {
+            throw "installed uv does not support --exclude-newer"
+        }
+
+        Write-Pass "dependency cooldown support is available (npm min-release-age=7, uv exclude-newer=1 week)"
+    } catch {
+        Write-Fail "dependency cooldown support is not available"
+        $message = $_.Exception.Message
+        switch -Regex ($message) {
+            '^\.npmrc is missing$' {
+                Write-Host "Create .npmrc with `min-release-age=7` so npm installs respect the repo cooldown policy." -ForegroundColor Yellow
+            }
+            '^project npm cooldown is not configured$' {
+                Write-Host "Set `min-release-age=7` in .npmrc to enforce the npm package release delay." -ForegroundColor Yellow
+            }
+            '^installed npm does not support --min-release-age$' {
+                Write-Host "Upgrade npm to 11.10.0 or newer. This repo requires npm support for `--min-release-age` so fresh packages cannot bypass the 7-day delay." -ForegroundColor Yellow
+            }
+            '^worker/pyproject\.toml is missing$' {
+                Write-Host "Restore worker/pyproject.toml so the repo-local uv cooldown policy can be validated." -ForegroundColor Yellow
+            }
+            '^project uv cooldown is not configured$' {
+                Write-Host "Set `[tool.uv] exclude-newer = \"1 week\"` in worker/pyproject.toml to enforce the uv package release delay." -ForegroundColor Yellow
+            }
+            '^uv is not available$' {
+                Write-Host "Install uv 0.11.0 or newer. This repo validates uv support for the local package cooldown policy." -ForegroundColor Yellow
+            }
+            '^installed uv does not support --exclude-newer$' {
+                Write-Host "Upgrade uv to a version that supports `--exclude-newer`. This repo requires that feature for the worker dependency cooldown policy." -ForegroundColor Yellow
+            }
+            default {
+                Write-Host $message -ForegroundColor Yellow
+            }
+        }
+        $script:failures += "dependency-cooldown"
+    }
+}
+
 function Test-ContinuityFreshness {
     Write-Step "Continuity (CONTINUE.md / CONTINUE_LOG.md)"
     try {
@@ -369,6 +439,10 @@ if ($Phase -in "all", "full", "quality", "commit") {
 
 if ($Phase -in "all", "full", "quality", "commit") {
     Test-Utf8Encoding
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Test-DependencyCooldownSupport
 }
 
 if ($Phase -in "all", "full", "test", "commit") {
