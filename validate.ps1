@@ -6,14 +6,14 @@
 .DESCRIPTION
     Usage: ./validate.ps1 [phase]
     Phases:
-      all      - typecheck + lint + duplication + semgrep + test + continuity freshness (default, pre-commit)
+      all      - typecheck + lint + duplication + semgrep + test (default, pre-commit)
       full     - all quality checks + Playwright E2E tests (recommended before merge; skips continuity freshness)
-      continuity - refresh continuity files and fail if that created uncommitted changes
+      continuity - check whether CONTINUE.md / CONTINUE_LOG.md need a refresh
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
       quality  - lint + duplication + semgrep
-      commit   - validate all, then git add + commit + push
+      commit   - validate all + continuity, then git add + commit + push
 #>
 
 param(
@@ -226,13 +226,33 @@ function Test-Utf8Encoding {
 function Test-ContinuityFreshness {
     Write-Step "Continuity (CONTINUE.md / CONTINUE_LOG.md)"
     try {
-        $exitCode = Invoke-NativeCommand "npm run continuity:update"
-        if ($exitCode -ne 0) { throw "continuity update failed" }
+        $stagedContinuityFiles = @(git diff --cached --name-only -- CONTINUE.md CONTINUE_LOG.md) |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
-        $changedFiles = git diff -- CONTINUE.md CONTINUE_LOG.md
-        if ($changedFiles) {
-            Write-Host (git status --short -- CONTINUE.md CONTINUE_LOG.md)
-            throw "continuity files changed"
+        if ($stagedContinuityFiles.Count -gt 0) {
+            $exitCode = Invoke-NativeCommand "npm run continuity:update"
+            if ($exitCode -ne 0) {
+                throw "continuity update failed"
+            }
+
+            $unstagedContinuityChanges = @(git diff --name-only -- CONTINUE.md CONTINUE_LOG.md) |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+
+            if ($unstagedContinuityChanges.Count -gt 0) {
+                Write-Host (git status --short -- CONTINUE.md CONTINUE_LOG.md)
+                throw "continuity files changed"
+            }
+        } else {
+            if ($IsWindows -or $env:OS -eq "Windows_NT") {
+                cmd /c "node scripts/update-continuity.mjs --check"
+            } else {
+                /bin/sh -lc "node scripts/update-continuity.mjs --check"
+            }
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host (git status --short -- CONTINUE.md CONTINUE_LOG.md)
+                throw "continuity files changed"
+            }
         }
 
         Write-Pass "continuity files are current"
@@ -393,7 +413,7 @@ if ($Phase -in "all", "full", "test", "commit") {
     }
 }
 
-if ($Phase -in "all", "continuity", "commit") {
+if ($Phase -in "continuity", "commit") {
     Test-ContinuityFreshness
 }
 
@@ -445,6 +465,16 @@ if ($failures.Count -gt 0) {
 Write-Host "ALL CHECKS PASSED" -ForegroundColor Green
 
 if ($Phase -eq "commit") {
+    Write-Step "Continuity refresh"
+    $continuityExitCode = Invoke-NativeCommand "npm run continuity:update"
+    if ($continuityExitCode -ne 0) {
+        Write-Fail "continuity refresh failed"
+        exit 1
+    }
+
+    git add CONTINUE.md CONTINUE_LOG.md
+    Write-Pass "continuity files refreshed and staged"
+
     Write-Step "Git commit"
     git add -A
     $msg = Read-Host "Commit message"

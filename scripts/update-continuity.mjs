@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "
 import path from "node:path";
 
 const repoRoot = process.cwd();
+const checkOnly = process.argv.includes("--check");
 const continuePath = path.join(repoRoot, "CONTINUE.md");
 const continueLogPath = path.join(repoRoot, "CONTINUE_LOG.md");
 const continuityFiles = new Set(["CONTINUE.md", "CONTINUE_LOG.md"]);
@@ -206,12 +207,12 @@ function extractPreviousFingerprint(content) {
   return match?.[1] ?? "";
 }
 
-function appendLogIfNeeded({ previousFingerprint, nextFingerprint, branch, timestamp, recentCommits, activeSpecs, nextTasks }) {
+function buildNextLogContent({ existingLogContent, previousFingerprint, nextFingerprint, branch, timestamp, recentCommits, activeSpecs, nextTasks }) {
+  const existing = existingLogContent.trimEnd();
   if (previousFingerprint === nextFingerprint) {
-    return;
+    return existing ? `${existing}\n` : "";
   }
 
-  const existing = existsSync(continueLogPath) ? readFileSync(continueLogPath, "utf8").trimEnd() : "# Continue Log";
   const summaryCommit = recentCommits[0] ? `${recentCommits[0].hash.slice(0, 7)} ${recentCommits[0].subject}` : "No recent non-continuity commits";
   const summarySpec = activeSpecs.length > 0 ? activeSpecs.join(", ") : "none";
   const summaryNext = nextTasks[0] ? `${nextTasks[0].spec}: ${nextTasks[0].id}` : "no next task";
@@ -226,7 +227,7 @@ function appendLogIfNeeded({ previousFingerprint, nextFingerprint, branch, times
     `- Next focus: ${summaryNext}.`,
   ].join("\n");
 
-  writeFileSync(continueLogPath, `${existing}${entry}\n`, "utf8");
+  return `${existing}${entry}\n`;
 }
 
 const branch = getBranch();
@@ -243,6 +244,7 @@ const materialState = JSON.stringify({
 });
 const fingerprint = createHash("sha256").update(materialState).digest("hex");
 const previousContent = existsSync(continuePath) ? readFileSync(continuePath, "utf8") : "";
+const previousLogContent = existsSync(continueLogPath) ? readFileSync(continueLogPath, "utf8") : "";
 const previousFingerprint = extractPreviousFingerprint(previousContent);
 const timestamp = previousFingerprint === fingerprint && previousContent
   ? previousContent.match(/^- Updated: (.+)$/m)?.[1] ?? formatNow()
@@ -258,11 +260,8 @@ const nextContent = buildContinueContent({
   fingerprint,
 });
 
-if (previousContent !== nextContent) {
-  writeFileSync(continuePath, nextContent, "utf8");
-}
-
-appendLogIfNeeded({
+const nextLogContent = buildNextLogContent({
+  existingLogContent: previousLogContent || "# Continue Log\n",
   previousFingerprint,
   nextFingerprint: fingerprint,
   branch,
@@ -271,3 +270,26 @@ appendLogIfNeeded({
   activeSpecs,
   nextTasks,
 });
+
+if (checkOnly) {
+  const changedFiles = [];
+  if (previousContent !== nextContent) {
+    changedFiles.push("CONTINUE.md");
+  }
+  if (previousLogContent !== nextLogContent) {
+    changedFiles.push("CONTINUE_LOG.md");
+  }
+
+  if (changedFiles.length > 0) {
+    console.error(changedFiles.join("\n"));
+    process.exitCode = 1;
+  }
+} else {
+  if (previousContent !== nextContent) {
+    writeFileSync(continuePath, nextContent, "utf8");
+  }
+
+  if (previousLogContent !== nextLogContent) {
+    writeFileSync(continueLogPath, nextLogContent, "utf8");
+  }
+}
