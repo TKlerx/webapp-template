@@ -2,6 +2,10 @@
 
 A reusable internal web-app starter built from the extracted platform core of the original product.
 
+Standalone template repo:
+
+- `https://github.com/TKlerx/webapp-template`
+
 ## Includes
 
 - Next.js 16 app router
@@ -26,6 +30,24 @@ The repo baseline is documented in `specs/base/`:
 - `specs/base/runtime-and-ops.md`
 
 Read those files before creating new product-specific specs.
+
+## Template Maintenance
+
+Treat this repo as the upstream template for downstream apps created from it.
+
+Recommended workflow:
+
+1. Fix shared bugs in the downstream app where you discovered them.
+2. Port the generic part of that fix back into this template repo as a small, focused commit.
+3. Add or update tests in this template for that shared behavior.
+4. Re-apply the same fix to other downstream apps by cherry-picking the focused commit or porting the same small diff.
+
+Guidelines:
+
+- Keep shared subsystems in similar paths across apps when possible.
+- Separate template-worthy fixes from app-specific feature work.
+- Prefer small commits such as `fix(auth): ...` over large mixed changes.
+- If a subsystem like auth needs repeated cross-app fixes, consider extracting it into a shared package later.
 
 ## Validation
 
@@ -60,4 +82,4 @@ Read those files before creating new product-specific specs.
 
 ## Suggested Next Step
 
-Create a new repository from the `starter-template-extraction` branch and continue product-specific work there.
+Clone the standalone template repo and continue product-specific work from there instead of from the original worktree.

@@ -30,3 +30,17 @@ that new feature specs should build on.
 - Treat it as the shared foundation for future work.
 - Update it when the repo's underlying architecture materially changes.
 - Prefer adding a focused new markdown file over turning one file into a giant catch-all spec.
+
+## Upstream Workflow
+
+This template is the upstream source for apps generated from it.
+
+When you discover a generic bug or improvement in a downstream app:
+
+1. Fix it in the downstream app.
+2. Port the shared part of the fix back here as a focused change.
+3. Add or update template tests for that behavior.
+4. Propagate the same focused fix to other downstream apps.
+
+Use small commits and avoid mixing template fixes with product-specific changes. That keeps
+backports manageable across multiple apps.
