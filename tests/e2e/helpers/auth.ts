@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 
-export const appBasePath = process.env.BASE_PATH ?? "";
+export const appBasePath = process.env.E2E_BASE_PATH ?? "";
 export const appOrigin = `http://localhost:${process.env.E2E_PORT ?? "3280"}`;
 
 export async function loginWithPassword(page: Page, email: string, password: string) {

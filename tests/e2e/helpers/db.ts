@@ -1,13 +1,12 @@
 import "dotenv/config";
-import bcrypt from "bcryptjs";
+import { execFileSync } from "node:child_process";
 import {
   AuditAction,
   AuthMethod,
   Role,
-  ThemePreference,
+  type ThemePreference,
   UserStatus,
 } from "../../../generated/prisma/enums";
-import { prisma } from "@/lib/db";
 
 type LocalUserSeed = {
   email: string;
@@ -18,172 +17,70 @@ type LocalUserSeed = {
   status?: UserStatus;
 };
 
-function normalizeEmail(email: string) {
-  return email.toLowerCase();
+function runDbWorker<TInput, TResult>(operation: string, payload: TInput): TResult {
+  const output = execFileSync(
+    process.execPath,
+    ["--import", "tsx", "tests/e2e/helpers/db-worker.ts", operation],
+    {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        DATABASE_URL: "file:./e2e.db",
+      },
+      encoding: "utf8",
+      input: JSON.stringify(payload),
+    },
+  ).trim();
+
+  return output ? (JSON.parse(output) as TResult) : (null as TResult);
 }
 
-export async function seedLocalUser(user: LocalUserSeed) {
-  const normalizedEmail = normalizeEmail(user.email);
-  const passwordHash = await bcrypt.hash(user.password, 12);
-
-  const record = await prisma.user.upsert({
-    where: { email: normalizedEmail },
-    update: {
-      name: user.name,
-      role: user.role,
-      status: user.status ?? UserStatus.ACTIVE,
-      authMethod: AuthMethod.LOCAL,
-      passwordHash,
-      mustChangePassword: user.mustChangePassword,
-      themePreference: ThemePreference.LIGHT,
-      sessions: {
-        deleteMany: {},
-      },
-    },
-    create: {
-      email: normalizedEmail,
-      name: user.name,
-      role: user.role,
-      status: user.status ?? UserStatus.ACTIVE,
-      authMethod: AuthMethod.LOCAL,
-      passwordHash,
-      mustChangePassword: user.mustChangePassword,
-      themePreference: ThemePreference.LIGHT,
-      locale: "en",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  await prisma.account.upsert({
-    where: {
-      providerId_accountId: {
-        providerId: "credential",
-        accountId: normalizedEmail,
-      },
-    },
-    update: {
-      userId: record.id,
-      password: passwordHash,
-    },
-    create: {
-      accountId: normalizedEmail,
-      providerId: "credential",
-      userId: record.id,
-      password: passwordHash,
-    },
-  });
-
-  return record.id;
+export function seedLocalUser(user: LocalUserSeed) {
+  return runDbWorker<typeof user, string>("seedLocalUser", user);
 }
 
-export async function seedSsoUser(user: {
+export function seedSsoUser(user: {
   email: string;
   name: string;
   role?: Role;
   status: UserStatus;
   authMethod?: AuthMethod;
 }) {
-  const normalizedEmail = normalizeEmail(user.email);
-  const record = await prisma.user.upsert({
-    where: { email: normalizedEmail },
-    update: {
-      name: user.name,
-      role: user.role ?? Role.SCOPE_USER,
-      status: user.status,
-      authMethod: user.authMethod ?? AuthMethod.SSO,
-      passwordHash: null,
-      mustChangePassword: false,
-      themePreference: ThemePreference.LIGHT,
-      sessions: {
-        deleteMany: {},
-      },
-    },
-    create: {
-      email: normalizedEmail,
-      name: user.name,
-      role: user.role ?? Role.SCOPE_USER,
-      status: user.status,
-      authMethod: user.authMethod ?? AuthMethod.SSO,
-      passwordHash: null,
-      mustChangePassword: false,
-      themePreference: ThemePreference.LIGHT,
-      locale: "en",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return record.id;
+  return runDbWorker<typeof user, string>("seedSsoUser", user);
 }
 
-export async function findUserByEmail(email: string) {
-  const user = await prisma.user.findUnique({
-    where: { email: normalizeEmail(email) },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      status: true,
-      authMethod: true,
-    },
-  });
-
-  return user ?? null;
+export function findUserByEmail(email: string) {
+  return runDbWorker<
+    { email: string },
+    {
+      id: string;
+      email: string;
+      name: string;
+      role: Role;
+      status: UserStatus;
+      authMethod: AuthMethod;
+    } | null
+  >("findUserByEmail", { email });
 }
 
-export async function updateUserStatus(email: string, status: UserStatus) {
-  await prisma.user.update({
-    where: { email: normalizeEmail(email) },
-    data: { status },
+export function updateUserStatus(email: string, status: UserStatus) {
+  return runDbWorker<{ email: string; status: UserStatus }, null>("updateUserStatus", {
+    email,
+    status,
   });
 }
 
-export async function assignUserToScope(email: string, scope: { code: string; name: string }) {
-  const user = await prisma.user.findUnique({
-    where: { email: normalizeEmail(email) },
-    select: { id: true },
-  });
-
-  if (!user) {
-    throw new Error(`User not found for assignment: ${email}`);
-  }
-
-  const scopeRecord = await prisma.scope.upsert({
-    where: { code: scope.code },
-    update: {
-      name: scope.name,
+export function assignUserToScope(email: string, scope: { code: string; name: string }) {
+  return runDbWorker<{ email: string; scope: { code: string; name: string } }, string>(
+    "assignUserToScope",
+    {
+      email,
+      scope,
     },
-    create: {
-      code: scope.code,
-      name: scope.name,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  await prisma.userScopeAssignment.upsert({
-    where: {
-      userId_scopeId: {
-        userId: user.id,
-        scopeId: scopeRecord.id,
-      },
-    },
-    update: {},
-    create: {
-      userId: user.id,
-      scopeId: scopeRecord.id,
-    },
-  });
-
-  return scopeRecord.id;
+  );
 }
 
-export async function addAuditEntryFixture(input: {
+export function addAuditEntryFixture(input: {
   actorEmail: string;
   action: AuditAction;
   entityType: string;
@@ -191,33 +88,10 @@ export async function addAuditEntryFixture(input: {
   scopeId?: string | null;
   details?: unknown;
 }) {
-  const user = await prisma.user.findUnique({
-    where: { email: normalizeEmail(input.actorEmail) },
-    select: { id: true },
-  });
-
-  if (!user) {
-    throw new Error(`User not found for audit fixture: ${input.actorEmail}`);
-  }
-
-  const entry = await prisma.auditEntry.create({
-    data: {
-      action: input.action,
-      entityType: input.entityType,
-      entityId: input.entityId,
-      actorId: user.id,
-      scopeId: input.scopeId ?? null,
-      details: JSON.stringify(input.details ?? {}),
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return entry.id;
+  return runDbWorker<typeof input, string>("addAuditEntryFixture", input);
 }
 
-export async function seedBackgroundJob(input: {
+export function seedBackgroundJob(input: {
   jobType: string;
   status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
   payload?: unknown;
@@ -227,29 +101,8 @@ export async function seedBackgroundJob(input: {
   workerId?: string | null;
   attemptCount?: number;
 }) {
-  const normalizedEmail = input.createdByEmail ? normalizeEmail(input.createdByEmail) : null;
-  const user = normalizedEmail
-    ? await prisma.user.findUnique({
-        where: { email: normalizedEmail },
-        select: { id: true },
-      })
-    : null;
-
-  const job = await prisma.backgroundJob.create({
-    data: {
-      jobType: input.jobType,
-      status: input.status ?? "PENDING",
-      payload: JSON.stringify(input.payload ?? {}),
-      result: input.result === undefined ? null : JSON.stringify(input.result),
-      error: input.error ?? null,
-      createdByUserId: user?.id ?? null,
-      workerId: input.workerId ?? null,
-      attemptCount: input.attemptCount ?? 0,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return job.id;
+  return runDbWorker<typeof input, string>("seedBackgroundJob", input);
 }
+
+export { AuditAction, AuthMethod, Role, UserStatus };
+export type { ThemePreference };
