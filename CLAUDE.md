@@ -54,3 +54,4 @@ tests/           # Unit and E2E tests
 - All UI text uses next-intl translation keys (no hardcoded strings in components)
 - CSS variables for theming, Tailwind for layout
 - Dark mode via `dark:` Tailwind variant and `[data-theme="dark"]` CSS
+- Repository text files use UTF-8 encoding (UTF-8 with or without BOM)

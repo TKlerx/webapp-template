@@ -26,6 +26,8 @@ Auto-generated from all feature plans. Last updated: [DATE]
 
 [LANGUAGE-SPECIFIC, ONLY FOR LANGUAGES IN USE]
 
+- Repository text files use UTF-8 encoding (UTF-8 with or without BOM)
+
 ## Recent Changes
 
 [LAST 3 FEATURES AND WHAT THEY ADDED]
