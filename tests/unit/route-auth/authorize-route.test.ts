@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 
-const { getSessionUser, requireScopeAccess } = vi.hoisted(() => ({
+const { getSessionUser, checkScopeAccess } = vi.hoisted(() => ({
   getSessionUser: vi.fn(),
-  requireScopeAccess: vi.fn(),
+  checkScopeAccess: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -14,7 +14,7 @@ vi.mock("@/lib/rbac", async () => {
   const actual = await vi.importActual<typeof import("@/lib/rbac")>("@/lib/rbac");
   return {
     ...actual,
-    requireScopeAccess,
+    checkScopeAccess,
   };
 });
 
@@ -61,7 +61,7 @@ describe("authorizeRoute", () => {
       role: Role.SCOPE_USER,
       status: UserStatus.ACTIVE,
     });
-    requireScopeAccess.mockResolvedValue(true);
+    checkScopeAccess.mockResolvedValue(true);
 
     const result = await authorizeRoute(
       new Request("http://localhost/api/test?scopeId=scope-1"),
@@ -78,7 +78,7 @@ describe("authorizeRoute", () => {
         status: UserStatus.ACTIVE,
       },
     });
-    expect(requireScopeAccess).toHaveBeenCalledWith(
+    expect(checkScopeAccess).toHaveBeenCalledWith(
       {
         id: "user-1",
         role: Role.SCOPE_USER,

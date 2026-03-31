@@ -1,8 +1,39 @@
 import type { User } from "../../generated/prisma/client";
-import { Role, UserStatus } from "../../generated/prisma/enums";
+import { AuthMethod, Role, ThemePreference, UserStatus } from "../../generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
 import { requireApiUserWithRoles } from "@/lib/route-auth";
+
+export async function provisionSsoUser(input: { email: string; name: string }) {
+  const existing = await prisma.user.findUnique({
+    where: { email: input.email.toLowerCase() },
+  });
+
+  if (existing) {
+    const authMethod =
+      existing.authMethod === AuthMethod.LOCAL ? AuthMethod.BOTH : existing.authMethod;
+
+    return prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        name: input.name || existing.name,
+        authMethod,
+      },
+    });
+  }
+
+  return prisma.user.create({
+    data: {
+      email: input.email.toLowerCase(),
+      name: input.name,
+      role: Role.SCOPE_USER,
+      status: UserStatus.PENDING_APPROVAL,
+      authMethod: AuthMethod.SSO,
+      mustChangePassword: false,
+      themePreference: ThemePreference.LIGHT,
+    },
+  });
+}
 
 type RouteParams = Promise<{ id: string }>;
 

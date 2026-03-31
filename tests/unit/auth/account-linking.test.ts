@@ -6,7 +6,7 @@ vi.mock("@/lib/db", () => ({
   prisma: prismaMock,
 }));
 
-import { provisionSsoUser } from "@/lib/auth";
+import { provisionSsoUser } from "@/lib/user-management";
 
 describe("auth account linking", () => {
   afterEach(() => {

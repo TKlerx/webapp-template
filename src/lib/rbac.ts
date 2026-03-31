@@ -4,18 +4,8 @@ import { prisma } from "@/lib/db";
 
 export const SCOPED_ROLES = [Role.SCOPE_ADMIN, Role.SCOPE_USER] as const;
 
-export function requireRole(user: Pick<User, "role"> | null, allowedRoles: Role[]) {
-  if (!user || !allowedRoles.includes(user.role)) {
-    throw new Error("FORBIDDEN");
-  }
-}
-
-export function requireAuth<T extends Pick<User, "id">>(user: T | null): T {
-  if (!user) {
-    throw new Error("UNAUTHORIZED");
-  }
-
-  return user;
+export function checkRole(user: Pick<User, "role"> | null, allowedRoles: Role[]): boolean {
+  return !!user && allowedRoles.includes(user.role);
 }
 
 export function isAdmin(role: Role) {
@@ -31,21 +21,18 @@ export async function getUserScopeIds(userId: string) {
   return assignments.map((assignment) => assignment.scopeId);
 }
 
-export async function requireScopeAccess(
+export async function checkScopeAccess(
   user: Pick<User, "id" | "role"> | null,
   scopeId: string,
-) {
-  const authUser = requireAuth(user);
+): Promise<boolean> {
+  if (!user) {
+    return false;
+  }
 
-  if (isAdmin(authUser.role)) {
+  if (isAdmin(user.role)) {
     return true;
   }
 
-  const scopeIds = await getUserScopeIds(authUser.id);
-
-  if (!scopeIds.includes(scopeId)) {
-    throw new Error("FORBIDDEN");
-  }
-
-  return true;
+  const scopeIds = await getUserScopeIds(user.id);
+  return scopeIds.includes(scopeId);
 }

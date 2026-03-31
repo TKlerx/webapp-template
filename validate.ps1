@@ -229,9 +229,9 @@ function Test-ContinuityFreshness {
         $exitCode = Invoke-NativeCommand "npm run continuity:update"
         if ($exitCode -ne 0) { throw "continuity update failed" }
 
-        $changedFiles = git status --short -- CONTINUE.md CONTINUE_LOG.md
+        $changedFiles = git diff -- CONTINUE.md CONTINUE_LOG.md
         if ($changedFiles) {
-            Write-Host $changedFiles
+            Write-Host (git status --short -- CONTINUE.md CONTINUE_LOG.md)
             throw "continuity files changed"
         }
 

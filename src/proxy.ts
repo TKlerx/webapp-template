@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getScopedCookiePath } from "@/lib/azure-auth";
 import { auth, getBetterAuthCookieNames } from "@/lib/better-auth";
-import { prisma } from "@/lib/db";
-import { SESSION_COOKIE } from "@/lib/auth";
 import { createRequestId, logger } from "@/lib/logger";
 import { AuthMethod, UserStatus } from "../generated/prisma/enums";
 
@@ -121,9 +119,8 @@ export async function proxy(request: NextRequest) {
   }
 
   const hasBetterAuthCookie = betterAuthCookieNames.some((name) => request.cookies.has(name));
-  const sessionToken = request.cookies.get(SESSION_COOKIE)?.value;
 
-  if (!hasBetterAuthCookie && !sessionToken && !pathname.startsWith("/api")) {
+  if (!hasBetterAuthCookie && !pathname.startsWith("/api")) {
     const loginUrl = redirectTo("/login");
     return NextResponse.redirect(loginUrl);
   }
@@ -138,22 +135,6 @@ export async function proxy(request: NextRequest) {
     }
 
     const restricted = redirectForUserStatus(request, pathname, session.user, betterAuthCookieNames);
-    if (restricted) {
-      return restricted;
-    }
-  }
-
-  if (sessionToken && !pathname.startsWith("/api")) {
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-      include: { user: true },
-    });
-
-    if (!session || session.expiresAt <= new Date()) {
-      return deleteCookies(NextResponse.redirect(redirectTo("/login")), [SESSION_COOKIE]);
-    }
-
-    const restricted = redirectForUserStatus(request, pathname, session.user, [SESSION_COOKIE]);
     if (restricted) {
       return restricted;
     }

@@ -37,31 +37,32 @@ export async function POST(request: Request) {
 
   const nextPasswordHash = await hashPassword(body.newPassword);
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      passwordHash: nextPasswordHash,
-      mustChangePassword: false,
-    },
-  });
-
-  await prisma.account.upsert({
-    where: {
-      providerId_accountId: {
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: nextPasswordHash,
+        mustChangePassword: false,
+      },
+    }),
+    prisma.account.upsert({
+      where: {
+        providerId_accountId: {
+          providerId: "credential",
+          accountId: current.email.toLowerCase(),
+        },
+      },
+      update: {
+        password: nextPasswordHash,
+      },
+      create: {
+        userId: user.id,
         providerId: "credential",
         accountId: current.email.toLowerCase(),
+        password: nextPasswordHash,
       },
-    },
-    update: {
-      password: nextPasswordHash,
-    },
-    create: {
-      userId: user.id,
-      providerId: "credential",
-      accountId: current.email.toLowerCase(),
-      password: nextPasswordHash,
-    },
-  });
+    }),
+  ]);
 
   return NextResponse.json({ message: "Password changed successfully" });
 }

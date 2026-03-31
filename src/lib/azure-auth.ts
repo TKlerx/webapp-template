@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 
 export const AZURE_SSO_STATE_COOKIE = "starter_app_azure_sso_state";
 
-function trimTrailingSlash(value: string) {
+export function trimTrailingSlash(value: string) {
   return value.endsWith("/") ? value.slice(0, -1) : value;
 }
 
@@ -36,7 +36,7 @@ export function getAuthBaseUrl(request: Request) {
 }
 
 export function getAzureRedirectUri(request: Request) {
-  return `${getAuthBaseUrl(request)}/api/auth/sso/azure/callback`;
+  return `${getAuthBaseUrl(request)}/api/auth/callback/microsoft`;
 }
 
 export function hasRealAzureAdConfig() {

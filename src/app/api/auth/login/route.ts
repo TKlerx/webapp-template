@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/better-auth";
 import { prisma } from "@/lib/db";
-import { applySetCookieHeader } from "@/lib/better-auth-http";
+import { applySetCookieHeaders } from "@/lib/better-auth-http";
 import { jsonError } from "@/lib/http";
 import { AuthMethod, UserStatus } from "../../../../../generated/prisma/enums";
 
@@ -51,24 +51,17 @@ export async function POST(request: Request) {
     },
   });
 
-  const refreshedUser = await prisma.user.findUnique({
-    where: { id: user.id },
-  });
-
   const response = NextResponse.json({
     user: {
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
-      mustChangePassword: refreshedUser?.mustChangePassword ?? user.mustChangePassword,
+      mustChangePassword: user.mustChangePassword,
     },
-    mustChangePassword: refreshedUser?.mustChangePassword ?? user.mustChangePassword,
-    redirectTo:
-      (refreshedUser?.mustChangePassword ?? user.mustChangePassword)
-        ? "/change-password"
-        : "/dashboard",
+    mustChangePassword: user.mustChangePassword,
+    redirectTo: user.mustChangePassword ? "/change-password" : "/dashboard",
   });
 
-  return applySetCookieHeader(response, authResponse);
+  return applySetCookieHeaders(response, authResponse);
 }

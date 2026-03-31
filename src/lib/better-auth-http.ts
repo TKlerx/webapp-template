@@ -16,4 +16,3 @@ export function applySetCookieHeaders(response: NextResponse, source: Response) 
   return response;
 }
 
-export const applySetCookieHeader = applySetCookieHeaders;

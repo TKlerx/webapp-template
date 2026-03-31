@@ -1,6 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
 import { jsonError } from "@/lib/http";
-import { requireScopeAccess, requireRole } from "@/lib/rbac";
+import { checkScopeAccess, checkRole } from "@/lib/rbac";
 import { Role } from "../../generated/prisma/enums";
 
 export async function requireApiUser() {
@@ -17,17 +17,17 @@ export async function requireApiUser() {
   return { user };
 }
 
-export function ensureRoles(user: { role: Role }, roles: Role[]) {
-  try {
-    requireRole(user, roles);
-    return null;
-  } catch {
-    return jsonError("Not authorized", 403);
-  }
-}
-
 export async function requireApiUserWithRoles(roles: Role[]) {
-  return authorizeRoute(new Request("http://localhost"), { roles });
+  const auth = await requireApiUser();
+  if ("error" in auth) {
+    return auth;
+  }
+
+  if (!checkRole(auth.user, roles)) {
+    return { error: jsonError("Not authorized", 403) };
+  }
+
+  return { user: auth.user };
 }
 
 type AuthorizeRouteOptions = {
@@ -55,11 +55,8 @@ export async function authorizeRoute(request: Request, options: AuthorizeRouteOp
     return auth;
   }
 
-  if (options.roles?.length) {
-    const denied = ensureRoles(auth.user, options.roles);
-    if (denied) {
-      return { error: denied };
-    }
+  if (options.roles?.length && !checkRole(auth.user, options.roles)) {
+    return { error: jsonError("Not authorized", 403) };
   }
 
   if (options.scopeRestricted) {
@@ -69,13 +66,11 @@ export async function authorizeRoute(request: Request, options: AuthorizeRouteOp
       return { error: jsonError("Scope ID is required", 400) };
     }
 
-    try {
-      await requireScopeAccess(auth.user, scopeId);
-    } catch {
+    const hasAccess = await checkScopeAccess(auth.user, scopeId);
+    if (!hasAccess) {
       return { error: jsonError("Not authorized for this scope", 403) };
     }
   }
 
   return { user: auth.user };
 }
-
