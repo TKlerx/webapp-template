@@ -32,6 +32,7 @@
     "changePasswordDescription": "Lokale Konten mussen ein neues Passwort festlegen, bevor sie das Dashboard betreten konnen.",
     "currentPassword": "Aktuelles Passwort",
     "newPassword": "Neues Passwort",
+    "saving": "Speichern...",
     "saveNewPassword": "Neues Passwort speichern",
     "passwordChanged": "Passwort erfolgreich geandert",
     "couldNotUpdatePassword": "Passwort konnte nicht aktualisiert werden",

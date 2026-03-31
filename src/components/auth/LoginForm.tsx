@@ -83,37 +83,48 @@ export function LoginForm() {
       </div>
 
       <Form onSubmit={handleSubmit}>
-        <label className="block text-sm font-medium">
+        <label className="block text-sm font-medium" htmlFor="login-email">
           {t("email")}
-          <Input
-            className="mt-2"
-            type="email"
-            value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              if (loginError) {
-                setLoginError(null);
-              }
-            }}
-            placeholder="admin@example.com"
-            required
-          />
         </label>
-        <label className="block text-sm font-medium">
+        <Input
+          id="login-email"
+          className="mt-2"
+          type="email"
+          name="email"
+          autoComplete="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          suppressHydrationWarning
+          value={email}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            if (loginError) {
+              setLoginError(null);
+            }
+          }}
+          placeholder="admin@example.com"
+          required
+        />
+        <label className="block text-sm font-medium" htmlFor="login-password">
           {t("password")}
-          <Input
-            className="mt-2"
-            type="password"
-            value={password}
-            onChange={(event) => {
-              setPassword(event.target.value);
-              if (loginError) {
-                setLoginError(null);
-              }
-            }}
-            required
-          />
         </label>
+        <Input
+          id="login-password"
+          className="mt-2"
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          suppressHydrationWarning
+          value={password}
+          onChange={(event) => {
+            setPassword(event.target.value);
+            if (loginError) {
+              setLoginError(null);
+            }
+          }}
+          required
+        />
         <Button className="w-full" disabled={loading} type="submit">
           {loading ? t("signingIn") : t("signIn")}
         </Button>

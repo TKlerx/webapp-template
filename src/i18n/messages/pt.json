@@ -32,6 +32,7 @@
     "changePasswordDescription": "As contas locais devem definir uma nova palavra-passe antes de aceder ao painel.",
     "currentPassword": "Palavra-passe atual",
     "newPassword": "Nova palavra-passe",
+    "saving": "Salvando...",
     "saveNewPassword": "Guardar nova palavra-passe",
     "passwordChanged": "Palavra-passe alterada com sucesso",
     "couldNotUpdatePassword": "Nao foi possivel atualizar a palavra-passe",

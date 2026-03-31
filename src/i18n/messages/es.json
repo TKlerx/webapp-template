@@ -32,6 +32,7 @@
     "changePasswordDescription": "Las cuentas locales deben establecer una nueva contrasena antes de acceder al panel.",
     "currentPassword": "Contrasena actual",
     "newPassword": "Nueva contrasena",
+    "saving": "Guardando...",
     "saveNewPassword": "Guardar nueva contrasena",
     "passwordChanged": "Contrasena cambiada correctamente",
     "couldNotUpdatePassword": "No se pudo actualizar la contrasena",

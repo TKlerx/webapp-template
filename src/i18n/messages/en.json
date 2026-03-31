@@ -32,6 +32,7 @@
     "changePasswordDescription": "Local accounts must set a new password before entering the dashboard.",
     "currentPassword": "Current password",
     "newPassword": "New password",
+    "saving": "Saving...",
     "saveNewPassword": "Save new password",
     "passwordChanged": "Password changed successfully",
     "couldNotUpdatePassword": "Could not update password",

@@ -32,6 +32,7 @@
     "changePasswordDescription": "Les comptes locaux doivent definir un nouveau mot de passe avant d'acceder au tableau de bord.",
     "currentPassword": "Mot de passe actuel",
     "newPassword": "Nouveau mot de passe",
+    "saving": "Enregistrement...",
     "saveNewPassword": "Enregistrer le nouveau mot de passe",
     "passwordChanged": "Mot de passe modifie avec succes",
     "couldNotUpdatePassword": "Impossible de mettre a jour le mot de passe",
