@@ -12,6 +12,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "backgroundJobs": "Background Jobs",
     "users": "User Management",
     "auditTrail": "Audit Trail"
   },
@@ -99,5 +100,32 @@
     "exportCsv": "Export CSV",
     "exportPdf": "Export PDF",
     "empty": "No audit entries match your filters."
+  },
+  "backgroundJobs": {
+    "eyebrow": "Worker Queue",
+    "title": "Background Jobs",
+    "description": "Recent worker jobs across the application. Use this page to watch queue activity, failures, and job payloads.",
+    "showingRecent": "Showing the latest {count} jobs",
+    "empty": "No background jobs have been queued yet.",
+    "notAssigned": "Not assigned",
+    "system": "System",
+    "none": "None",
+    "summary": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "fields": {
+      "createdAt": "Created",
+      "updatedAt": "Updated",
+      "attempts": "Attempts",
+      "worker": "Worker",
+      "createdBy": "Created by",
+      "availableAt": "Available",
+      "payload": "Payload",
+      "result": "Result",
+      "error": "Error"
+    }
   }
 }

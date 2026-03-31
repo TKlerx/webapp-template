@@ -12,6 +12,7 @@
   },
   "nav": {
     "dashboard": "Tableau de bord",
+    "backgroundJobs": "Taches en arriere-plan",
     "users": "Gestion des utilisateurs",
     "auditTrail": "Audit Trail"
   },
@@ -99,5 +100,32 @@
     "exportCsv": "Export CSV",
     "exportPdf": "Export PDF",
     "empty": "No audit entries match your filters."
+  },
+  "backgroundJobs": {
+    "eyebrow": "File du worker",
+    "title": "Taches en arriere-plan",
+    "description": "Taches recentes du worker dans l'application. Cette page affiche la file, les erreurs et les charges utiles.",
+    "showingRecent": "Affichage des {count} dernieres taches",
+    "empty": "Aucune tache en arriere-plan n'a encore ete creee.",
+    "notAssigned": "Non assigne",
+    "system": "Systeme",
+    "none": "Aucun",
+    "summary": {
+      "pending": "En attente",
+      "inProgress": "En cours",
+      "completed": "Terminees",
+      "failed": "Echouees"
+    },
+    "fields": {
+      "createdAt": "Cree",
+      "updatedAt": "Mis a jour",
+      "attempts": "Tentatives",
+      "worker": "Worker",
+      "createdBy": "Cree par",
+      "availableAt": "Disponible",
+      "payload": "Payload",
+      "result": "Resultat",
+      "error": "Erreur"
+    }
   }
 }

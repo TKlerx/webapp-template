@@ -7,6 +7,7 @@ A reusable internal web-app starter built from the extracted platform core of th
 - Next.js 16 app router
 - Prisma starter data model with SQLite for local development
 - PostgreSQL-backed Docker deployment
+- uv-managed Python worker skeleton for background jobs
 - Azure SSO and local login
 - role-based access control
 - user administration
@@ -29,6 +30,7 @@ A reusable internal web-app starter built from the extracted platform core of th
 - Local `npm run dev` uses SQLite via `DATABASE_URL=file:./dev.db`.
 - Docker Compose overrides `DATABASE_URL` so `app` and `migrate` use PostgreSQL.
 - `docker compose build app` builds one shared image reused by both `migrate` and `app`.
+- `docker compose up -d worker` starts the Python background worker against the same Postgres database.
 
 ## Monitoring And Logging
 

@@ -1,6 +1,8 @@
 import { defineConfig } from "@playwright/test";
 
 const port = Number(process.env.E2E_PORT ?? "3280");
+const normalizedBasePath = "";
+const authBaseUrl = `http://localhost:${port}${normalizedBasePath}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -16,6 +18,11 @@ export default defineConfig({
     env: {
       ...process.env,
       PORT: String(port),
+      BASE_PATH: normalizedBasePath,
+      DATABASE_URL: process.env.DATABASE_URL ?? "file:./e2e.db",
+      AUTH_BASE_URL: process.env.AUTH_BASE_URL ?? authBaseUrl,
+      INITIAL_ADMIN_EMAIL: process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
+      INITIAL_ADMIN_PASSWORD: process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
     },
     port,
     timeout: 240 * 1000,

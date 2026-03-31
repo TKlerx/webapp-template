@@ -12,6 +12,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "backgroundJobs": "Hintergrundjobs",
     "users": "Benutzerverwaltung",
     "auditTrail": "Audit Trail"
   },
@@ -99,5 +100,32 @@
     "exportCsv": "CSV exportieren",
     "exportPdf": "PDF exportieren",
     "empty": "Keine Audit-Eintrage fur diese Filter."
+  },
+  "backgroundJobs": {
+    "eyebrow": "Worker-Warteschlange",
+    "title": "Hintergrundjobs",
+    "description": "Letzte Worker-Jobs der Anwendung. Diese Seite zeigt Warteschlange, Fehler und Jobdaten.",
+    "showingRecent": "Zeigt die letzten {count} Jobs",
+    "empty": "Es wurden noch keine Hintergrundjobs erstellt.",
+    "notAssigned": "Nicht zugewiesen",
+    "system": "System",
+    "none": "Keine",
+    "summary": {
+      "pending": "Ausstehend",
+      "inProgress": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen"
+    },
+    "fields": {
+      "createdAt": "Erstellt",
+      "updatedAt": "Aktualisiert",
+      "attempts": "Versuche",
+      "worker": "Worker",
+      "createdBy": "Erstellt von",
+      "availableAt": "Verfugbar",
+      "payload": "Payload",
+      "result": "Ergebnis",
+      "error": "Fehler"
+    }
   }
 }

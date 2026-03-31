@@ -12,6 +12,7 @@
   },
   "nav": {
     "dashboard": "Panel",
+    "backgroundJobs": "Trabajos en segundo plano",
     "users": "Gestion de usuarios",
     "auditTrail": "Audit Trail"
   },
@@ -99,5 +100,32 @@
     "exportCsv": "Export CSV",
     "exportPdf": "Export PDF",
     "empty": "No audit entries match your filters."
+  },
+  "backgroundJobs": {
+    "eyebrow": "Cola del worker",
+    "title": "Trabajos en segundo plano",
+    "description": "Trabajos recientes del worker en toda la aplicacion. Esta pagina muestra la cola, fallos y cargas utiles.",
+    "showingRecent": "Mostrando los ultimos {count} trabajos",
+    "empty": "Todavia no hay trabajos en segundo plano.",
+    "notAssigned": "Sin asignar",
+    "system": "Sistema",
+    "none": "Ninguno",
+    "summary": {
+      "pending": "Pendientes",
+      "inProgress": "En progreso",
+      "completed": "Completados",
+      "failed": "Fallidos"
+    },
+    "fields": {
+      "createdAt": "Creado",
+      "updatedAt": "Actualizado",
+      "attempts": "Intentos",
+      "worker": "Worker",
+      "createdBy": "Creado por",
+      "availableAt": "Disponible",
+      "payload": "Payload",
+      "result": "Resultado",
+      "error": "Error"
+    }
   }
 }

@@ -42,6 +42,13 @@ enum AuditAction {
   AUDIT_EXPORT_REQUESTED
 }
 
+enum BackgroundJobStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
 model User {
   id                 String                  @id @default(cuid())
   email              String                  @unique
@@ -61,6 +68,7 @@ model User {
   sessions           Session[]
   scopeAssignments   UserScopeAssignment[]
   auditEntries       AuditEntry[]            @relation("AuditActor")
+  backgroundJobs     BackgroundJob[]         @relation("BackgroundJobCreator")
 }
 
 model Session {
@@ -147,4 +155,27 @@ model AuditEntry {
   @@index([actorId])
   @@index([scopeId])
   @@index([createdAt])
+}
+
+model BackgroundJob {
+  id              String              @id @default(cuid())
+  jobType         String
+  status          BackgroundJobStatus @default(PENDING)
+  payload         String
+  result          String?
+  error           String?
+  attemptCount    Int                 @default(0)
+  availableAt     DateTime            @default(now())
+  startedAt       DateTime?
+  lockedAt        DateTime?
+  finishedAt      DateTime?
+  workerId        String?
+  createdByUserId String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  createdBy       User?               @relation("BackgroundJobCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([status, availableAt])
+  @@index([createdByUserId, createdAt])
+  @@index([jobType, createdAt])
 }

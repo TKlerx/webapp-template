@@ -216,3 +216,40 @@ export async function addAuditEntryFixture(input: {
 
   return entry.id;
 }
+
+export async function seedBackgroundJob(input: {
+  jobType: string;
+  status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+  payload?: unknown;
+  result?: unknown;
+  error?: string | null;
+  createdByEmail?: string;
+  workerId?: string | null;
+  attemptCount?: number;
+}) {
+  const normalizedEmail = input.createdByEmail ? normalizeEmail(input.createdByEmail) : null;
+  const user = normalizedEmail
+    ? await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+        select: { id: true },
+      })
+    : null;
+
+  const job = await prisma.backgroundJob.create({
+    data: {
+      jobType: input.jobType,
+      status: input.status ?? "PENDING",
+      payload: JSON.stringify(input.payload ?? {}),
+      result: input.result === undefined ? null : JSON.stringify(input.result),
+      error: input.error ?? null,
+      createdByUserId: user?.id ?? null,
+      workerId: input.workerId ?? null,
+      attemptCount: input.attemptCount ?? 0,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return job.id;
+}

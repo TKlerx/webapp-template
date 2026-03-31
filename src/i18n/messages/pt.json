@@ -12,6 +12,7 @@
   },
   "nav": {
     "dashboard": "Painel",
+    "backgroundJobs": "Tarefas em segundo plano",
     "users": "Gestao de utilizadores",
     "auditTrail": "Audit Trail"
   },
@@ -99,5 +100,32 @@
     "exportCsv": "Export CSV",
     "exportPdf": "Export PDF",
     "empty": "No audit entries match your filters."
+  },
+  "backgroundJobs": {
+    "eyebrow": "Fila do worker",
+    "title": "Tarefas em segundo plano",
+    "description": "Tarefas recentes do worker em toda a aplicacao. Esta pagina mostra fila, falhas e payloads.",
+    "showingRecent": "A mostrar as ultimas {count} tarefas",
+    "empty": "Ainda nao existem tarefas em segundo plano.",
+    "notAssigned": "Nao atribuido",
+    "system": "Sistema",
+    "none": "Nenhum",
+    "summary": {
+      "pending": "Pendentes",
+      "inProgress": "Em progresso",
+      "completed": "Concluidas",
+      "failed": "Falhadas"
+    },
+    "fields": {
+      "createdAt": "Criada",
+      "updatedAt": "Atualizada",
+      "attempts": "Tentativas",
+      "worker": "Worker",
+      "createdBy": "Criada por",
+      "availableAt": "Disponivel",
+      "payload": "Payload",
+      "result": "Resultado",
+      "error": "Erro"
+    }
   }
 }
