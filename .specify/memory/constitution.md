@@ -142,6 +142,10 @@ visually before merge.
 - **Configuration**: `.env` file for all environment variables
   (secrets, deployment settings, initial admin email). No secrets
   in source control. A `.env.example` MUST be provided.
+- **Encoding**: Repository text files MUST be stored as UTF-8
+  (UTF-8 with or without BOM is acceptable). UTF-16, UTF-32, and
+  legacy code-page encodings are not allowed for tracked source
+  files.
 - **Dependencies**: Minimize external dependencies. Each added
   dependency MUST be justified. Prefer well-maintained, actively
   supported libraries.

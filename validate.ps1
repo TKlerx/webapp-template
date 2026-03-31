@@ -104,6 +104,125 @@ function Test-HasPlaywrightSpecs {
     return $false
 }
 
+function Get-TrackedChangedFiles {
+    $statusLines = @(git status --porcelain --untracked-files=no)
+    $paths = @()
+
+    foreach ($line in $statusLines) {
+        if ([string]::IsNullOrWhiteSpace($line) -or $line.Length -lt 4) {
+            continue
+        }
+
+        $status = $line.Substring(0, 2)
+        if ($status.Contains("D")) {
+            continue
+        }
+
+        $pathText = $line.Substring(3).Trim()
+        if ($pathText -match ' -> ') {
+            $pathText = ($pathText -split ' -> ')[-1]
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($pathText) -and (Test-Path $pathText -PathType Leaf)) {
+            $paths += $pathText
+        }
+    }
+
+    return $paths | Sort-Object -Unique
+}
+
+function Get-UntrackedCandidateFiles {
+    $output = git ls-files --others --exclude-standard
+    if (-not $output) {
+        return @()
+    }
+
+    return $output.Split("`n") |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path $_ -PathType Leaf) } |
+        Sort-Object -Unique
+}
+
+function Test-IsTextEncodingCandidate([string]$path) {
+    $extension = [System.IO.Path]::GetExtension($path).ToLowerInvariant()
+    $textExtensions = @(
+        ".c", ".cc", ".cfg", ".conf", ".cpp", ".cs", ".css", ".csv", ".env", ".example",
+        ".gitignore", ".html", ".java", ".js", ".json", ".jsx", ".mjs", ".md", ".mts",
+        ".ps1", ".py", ".rb", ".sh", ".sql", ".svg", ".toml", ".ts", ".tsx", ".txt",
+        ".yaml", ".yml"
+    )
+
+    $fileName = [System.IO.Path]::GetFileName($path)
+    $specialFileNames = @(
+        ".dockerignore", ".editorconfig", ".eslintignore", ".eslintrc", ".gitattributes",
+        ".gitignore", ".npmignore", ".prettierignore"
+    )
+
+    return $textExtensions.Contains($extension) -or $specialFileNames.Contains($fileName.ToLowerInvariant())
+}
+
+function Test-IsUtf8File([string]$path) {
+    $bytes = [System.IO.File]::ReadAllBytes($path)
+    if ($bytes.Length -eq 0) {
+        return $true
+    }
+
+    if ($bytes.Length -ge 2) {
+        $bom2 = [System.BitConverter]::ToString($bytes, 0, 2)
+        if ($bom2 -in @("FF-FE", "FE-FF")) {
+            return $false
+        }
+    }
+
+    if ($bytes.Length -ge 4) {
+        $bom4 = [System.BitConverter]::ToString($bytes, 0, 4)
+        if ($bom4 -in @("FF-FE-00-00", "00-00-FE-FF")) {
+            return $false
+        }
+    }
+
+    $utf8 = [System.Text.UTF8Encoding]::new($false, $true)
+    try {
+        [void]$utf8.GetString($bytes)
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Test-Utf8Encoding {
+    Write-Step "UTF-8 encoding (tracked changed files)"
+    try {
+        $files = @(
+            @(Get-TrackedChangedFiles) + @(Get-UntrackedCandidateFiles)
+        ) |
+            Where-Object { Test-IsTextEncodingCandidate $_ } |
+            Sort-Object -Unique
+
+        if ($files.Count -eq 0) {
+            Write-Pass "utf-8 encoding check passed (no text candidates)"
+            return
+        }
+
+        $invalidFiles = @()
+        foreach ($file in $files) {
+            if (-not (Test-IsUtf8File $file)) {
+                $invalidFiles += $file
+            }
+        }
+
+        if ($invalidFiles.Count -gt 0) {
+            $invalidFiles | ForEach-Object { Write-Host $_ }
+            throw "utf-8 encoding check failed"
+        }
+
+        Write-Pass "utf-8 encoding check passed ($($files.Count) text files)"
+    } catch {
+        Write-Fail "utf-8 encoding check failed"
+        $script:failures += "utf8"
+    }
+}
+
 function Test-ContinuityFreshness {
     Write-Step "Continuity (CONTINUE.md / CONTINUE_LOG.md)"
     try {
@@ -121,6 +240,31 @@ function Test-ContinuityFreshness {
         Write-Fail "continuity files are out of date"
         Write-Host 'Run `npm run continuity:update`, review CONTINUE.md and CONTINUE_LOG.md, commit the updates, then try again.' -ForegroundColor Yellow
         $script:failures += "continuity"
+    }
+}
+
+function Test-ProductionDependencyAudit {
+    Write-Step "Production dependency audit (npm audit --omit=dev)"
+    try {
+        $result = Invoke-NativeCommandCaptured "npm audit --omit=dev"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "production dependency audit failed"
+        }
+
+        $summaryLine = $result.Output |
+            Select-String -Pattern 'found\s+(\d+)\s+vulnerabilities' |
+            Select-Object -Last 1
+
+        if ($summaryLine -and $summaryLine.Matches.Count -gt 0) {
+            $vulnerabilities = $summaryLine.Matches[0].Groups[1].Value
+            Write-Pass "production dependency audit passed ($vulnerabilities vulnerabilities)"
+        } else {
+            Write-Pass "production dependency audit passed"
+        }
+    } catch {
+        Write-Fail "production dependency audit failed"
+        $script:failures += "prod-audit"
     }
 }
 
@@ -203,6 +347,10 @@ if ($Phase -in "all", "full", "quality", "commit") {
     }
 }
 
+if ($Phase -in "all", "full", "quality", "commit") {
+    Test-Utf8Encoding
+}
+
 if ($Phase -in "all", "full", "test", "commit") {
     Write-Step "Tests (vitest)"
     try {
@@ -247,6 +395,10 @@ if ($Phase -in "all", "full", "test", "commit") {
 
 if ($Phase -in "all", "continuity", "commit") {
     Test-ContinuityFreshness
+}
+
+if ($Phase -in "full", "commit") {
+    Test-ProductionDependencyAudit
 }
 
 if ($Phase -in "full", "e2e") {
