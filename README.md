@@ -6,6 +6,12 @@ Standalone template repo:
 
 - `https://github.com/TKlerx/webapp-template`
 
+Template provenance files:
+
+- `TEMPLATE_VERSION.md`
+- `.template-origin.json`
+- refresh helper: `npm run template:stamp`
+
 ## Includes
 
 - Next.js 16 app router
@@ -48,6 +54,8 @@ Guidelines:
 - Separate template-worthy fixes from app-specific feature work.
 - Prefer small commits such as `fix(auth): ...` over large mixed changes.
 - If a subsystem like auth needs repeated cross-app fixes, consider extracting it into a shared package later.
+- Downstream apps should keep `TEMPLATE_VERSION.md` and `.template-origin.json` so they know which upstream template commit they are based on.
+- After creating a downstream app or after pulling upstream template fixes, run `npm run template:stamp` and commit the updated provenance files.
 
 ## Validation
 

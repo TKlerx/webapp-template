@@ -30,6 +30,8 @@ that new feature specs should build on.
 - Treat it as the shared foundation for future work.
 - Update it when the repo's underlying architecture materially changes.
 - Prefer adding a focused new markdown file over turning one file into a giant catch-all spec.
+- Preserve `TEMPLATE_VERSION.md` and `.template-origin.json` in downstream apps so template provenance stays visible.
+- Refresh those files with `npm run template:stamp` after pulling upstream template changes into a downstream app.
 
 ## Upstream Workflow
 
@@ -41,6 +43,7 @@ When you discover a generic bug or improvement in a downstream app:
 2. Port the shared part of the fix back here as a focused change.
 3. Add or update template tests for that behavior.
 4. Propagate the same focused fix to other downstream apps.
+5. Update `TEMPLATE_VERSION.md` and `.template-origin.json` in the downstream app after pulling in the upstream fix.
 
 Use small commits and avoid mixing template fixes with product-specific changes. That keeps
 backports manageable across multiple apps.
