@@ -5,6 +5,7 @@ import path from "node:path";
 const repoRoot = process.cwd();
 const originFilePath = path.join(repoRoot, ".template-origin.json");
 const versionFilePath = path.join(repoRoot, "TEMPLATE_VERSION.md");
+const checkOnly = process.argv.includes("--check");
 
 function runGit(args) {
   return execFileSync("git", args, {
@@ -33,7 +34,7 @@ origin.recordedUpstreamTemplateCommit = commit;
 origin.recordedUpstreamTemplateShortCommit = shortCommit;
 origin.templateRecordedAt = recordedAt;
 origin.templateVersionLabel = versionLabel;
-writeFileSync(originFilePath, `${JSON.stringify(origin, null, 2)}\n`, "utf8");
+const nextOriginContent = `${JSON.stringify(origin, null, 2)}\n`;
 
 const versionFile = `# Template Version
 
@@ -71,4 +72,14 @@ When the app later pulls in upstream template fixes:
 That gives each downstream app a visible and scriptable record of the template version it is based on.
 `;
 
-writeFileSync(versionFilePath, versionFile, "utf8");
+if (checkOnly) {
+  const currentOriginContent = readFileSync(originFilePath, "utf8");
+  const currentVersionFile = readFileSync(versionFilePath, "utf8");
+
+  if (currentOriginContent !== nextOriginContent || currentVersionFile !== versionFile) {
+    process.exitCode = 1;
+  }
+} else {
+  writeFileSync(originFilePath, nextOriginContent, "utf8");
+  writeFileSync(versionFilePath, versionFile, "utf8");
+}

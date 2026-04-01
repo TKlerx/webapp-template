@@ -293,6 +293,92 @@ function Test-DependencyCooldownSupport {
     }
 }
 
+function Test-TemplateProvenance {
+    Write-Step "Template provenance"
+    try {
+        if (-not (Test-Path ".template-origin.json" -PathType Leaf)) {
+            throw ".template-origin.json is missing"
+        }
+
+        if (-not (Test-Path "TEMPLATE_VERSION.md" -PathType Leaf)) {
+            throw "TEMPLATE_VERSION.md is missing"
+        }
+
+        $origin = Get-Content ".template-origin.json" -Raw | ConvertFrom-Json
+        $versionFile = Get-Content "TEMPLATE_VERSION.md" -Raw
+
+        if (-not $origin.templateRepoUrl) {
+            throw "templateRepoUrl is missing"
+        }
+
+        if (-not $origin.templateDefaultBranch) {
+            throw "templateDefaultBranch is missing"
+        }
+
+        if (-not $origin.recordedUpstreamTemplateCommit) {
+            throw "recordedUpstreamTemplateCommit is missing"
+        }
+
+        if (-not $origin.recordedUpstreamTemplateShortCommit) {
+            throw "recordedUpstreamTemplateShortCommit is missing"
+        }
+
+        if ($origin.recordedUpstreamTemplateCommit -notmatch '^[0-9a-f]{40}$') {
+            throw "recordedUpstreamTemplateCommit is not a full git SHA"
+        }
+
+        if ($origin.recordedUpstreamTemplateShortCommit -notmatch '^[0-9a-f]{7,12}$') {
+            throw "recordedUpstreamTemplateShortCommit is not a short git SHA"
+        }
+
+        $expectedLines = @(
+            "- Template repo: ``$($origin.templateRepoUrl)``",
+            "- Default branch: ``$($origin.templateDefaultBranch)``",
+            "- Recorded upstream template commit: ``$($origin.recordedUpstreamTemplateCommit)``",
+            "- Short commit: ``$($origin.recordedUpstreamTemplateShortCommit)``",
+            "- Recorded at: ``$($origin.templateRecordedAt)``",
+            "- Version label: ``$($origin.templateVersionLabel)``"
+        )
+
+        foreach ($line in $expectedLines) {
+            if ($versionFile -notmatch [regex]::Escape($line)) {
+                throw "TEMPLATE_VERSION.md does not match .template-origin.json"
+            }
+        }
+
+        $commitCheck = Invoke-NativeCommandCaptured "git rev-parse --verify $($origin.recordedUpstreamTemplateCommit)"
+        if ($commitCheck.ExitCode -ne 0) {
+            Write-Warn "recorded template commit is not present in local git history; keeping provenance as shipped baseline"
+        }
+
+        Write-Pass "template provenance files are present and internally consistent"
+    } catch {
+        Write-Fail "template provenance check failed"
+        $message = $_.Exception.Message
+        switch -Regex ($message) {
+            '^\.template-origin\.json is missing$' {
+                Write-Host "Restore .template-origin.json so downstream apps can track the upstream template baseline." -ForegroundColor Yellow
+            }
+            '^TEMPLATE_VERSION\.md is missing$' {
+                Write-Host "Restore TEMPLATE_VERSION.md so the upstream template baseline stays visible to humans." -ForegroundColor Yellow
+            }
+            '^recordedUpstreamTemplateCommit is not a full git SHA$' {
+                Write-Host "Set recordedUpstreamTemplateCommit in .template-origin.json to a 40-character git SHA." -ForegroundColor Yellow
+            }
+            '^recordedUpstreamTemplateShortCommit is not a short git SHA$' {
+                Write-Host "Set recordedUpstreamTemplateShortCommit in .template-origin.json to the matching short git SHA." -ForegroundColor Yellow
+            }
+            '^TEMPLATE_VERSION\.md does not match \.template-origin\.json$' {
+                Write-Host "Run `npm run template:stamp` or manually sync TEMPLATE_VERSION.md with .template-origin.json." -ForegroundColor Yellow
+            }
+            default {
+                Write-Host $message -ForegroundColor Yellow
+            }
+        }
+        $script:failures += "template-provenance"
+    }
+}
+
 function Test-ContinuityFreshness {
     Write-Step "Continuity (CONTINUE.md / CONTINUE_LOG.md)"
     try {
@@ -443,6 +529,10 @@ if ($Phase -in "all", "full", "quality", "commit") {
 
 if ($Phase -in "all", "full", "quality", "commit") {
     Test-DependencyCooldownSupport
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Test-TemplateProvenance
 }
 
 if ($Phase -in "all", "full", "test", "commit") {
