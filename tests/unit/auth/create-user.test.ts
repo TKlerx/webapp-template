@@ -71,7 +71,6 @@ describe("create user route", () => {
         role: Role.SCOPE_USER,
         status: UserStatus.ACTIVE,
         authMethod: AuthMethod.LOCAL,
-        passwordHash: "hashed-password",
         mustChangePassword: true,
         themePreference: ThemePreference.LIGHT,
         accounts: {

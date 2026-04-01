@@ -18,7 +18,6 @@ const REDACTED_KEYS = new Set([
   "cookie",
   "cookies",
   "password",
-  "passwordHash",
   "secret",
   "token",
   "accessToken",

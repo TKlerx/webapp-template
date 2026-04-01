@@ -27,7 +27,6 @@ Important fields:
 - `role`
 - `status`
 - `authMethod`
-- `passwordHash`
 - `mustChangePassword`
 - `themePreference`
 - `locale`
@@ -50,6 +49,12 @@ Used for:
 
 - local credential login
 - external provider linkage
+
+Important fields:
+
+- `providerId`
+- `accountId`
+- `password`
 
 ### Verification
 

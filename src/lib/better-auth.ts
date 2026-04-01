@@ -31,11 +31,14 @@ export function getBetterAuthCookieNames() {
 }
 
 function getAuthSecret() {
+  const fallbackSecret = "dev-secret-change-me-in-production";
   const secret = process.env.BETTERAUTH_SECRET ?? process.env.BETTER_AUTH_SECRET;
-  if (!secret && process.env.NODE_ENV === "production") {
-    throw new Error("BETTERAUTH_SECRET or BETTER_AUTH_SECRET must be set in production");
+  if (process.env.NODE_ENV === "production" && (!secret || secret === fallbackSecret)) {
+    throw new Error(
+      "FATAL: BetterAuth is using the development secret in production. Set BETTERAUTH_SECRET or BETTER_AUTH_SECRET.",
+    );
   }
-  return secret ?? "dev-secret-change-me-in-production";
+  return secret ?? fallbackSecret;
 }
 
 export const auth = betterAuth({

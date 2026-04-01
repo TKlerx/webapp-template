@@ -70,7 +70,6 @@ export async function POST(request: Request) {
       role: body.role,
       status: UserStatus.ACTIVE,
       authMethod: AuthMethod.LOCAL,
-      passwordHash,
       mustChangePassword: true,
       themePreference: ThemePreference.LIGHT,
       accounts: {

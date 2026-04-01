@@ -58,7 +58,6 @@ model User {
   role               Role                    @default(SCOPE_USER)
   status             UserStatus              @default(PENDING_APPROVAL)
   authMethod         AuthMethod
-  passwordHash       String?
   mustChangePassword Boolean                 @default(true)
   themePreference    ThemePreference         @default(LIGHT)
   locale             String                  @default("en")

@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   });
   const email = body.email.toLowerCase();
 
-  if (!user || !user.passwordHash) {
+  if (!user) {
     return jsonError("Invalid email or password", 401);
   }
 

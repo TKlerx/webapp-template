@@ -58,7 +58,6 @@ async function main() {
           role: user.role,
           status: user.status ?? UserStatus.ACTIVE,
           authMethod: AuthMethod.LOCAL,
-          passwordHash,
           mustChangePassword: user.mustChangePassword,
           themePreference: ThemePreference.LIGHT,
           sessions: {
@@ -71,7 +70,6 @@ async function main() {
           role: user.role,
           status: user.status ?? UserStatus.ACTIVE,
           authMethod: AuthMethod.LOCAL,
-          passwordHash,
           mustChangePassword: user.mustChangePassword,
           themePreference: ThemePreference.LIGHT,
           locale: "en",
@@ -120,7 +118,6 @@ async function main() {
           role: user.role ?? Role.SCOPE_USER,
           status: user.status,
           authMethod: user.authMethod ?? AuthMethod.SSO,
-          passwordHash: null,
           mustChangePassword: false,
           themePreference: ThemePreference.LIGHT,
           sessions: {
@@ -133,7 +130,6 @@ async function main() {
           role: user.role ?? Role.SCOPE_USER,
           status: user.status,
           authMethod: user.authMethod ?? AuthMethod.SSO,
-          passwordHash: null,
           mustChangePassword: false,
           themePreference: ThemePreference.LIGHT,
           locale: "en",

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionUser, hashPassword, validatePasswordComplexity, verifyPassword } from "@/lib/auth";
+import { auth } from "@/lib/better-auth";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
 
@@ -23,13 +24,32 @@ export async function POST(request: Request) {
     return jsonError("Password does not meet complexity requirements", 400);
   }
 
-  const current = await prisma.user.findUnique({ where: { id: user.id } });
+  const current = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { email: true },
+  });
 
-  if (!current?.passwordHash) {
+  if (!current) {
+    return jsonError("Not authenticated", 401);
+  }
+
+  const credentialAccount = await prisma.account.findUnique({
+    where: {
+      providerId_accountId: {
+        providerId: "credential",
+        accountId: current.email.toLowerCase(),
+      },
+    },
+    select: {
+      password: true,
+    },
+  });
+
+  if (!credentialAccount?.password) {
     return jsonError("Password change is only available for local accounts", 400);
   }
 
-  const valid = await verifyPassword(body.currentPassword, current.passwordHash);
+  const valid = await verifyPassword(body.currentPassword, credentialAccount.password);
 
   if (!valid) {
     return jsonError("Current password is incorrect", 401);
@@ -41,28 +61,25 @@ export async function POST(request: Request) {
     prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordHash: nextPasswordHash,
         mustChangePassword: false,
       },
     }),
-    prisma.account.upsert({
+    prisma.account.update({
       where: {
         providerId_accountId: {
           providerId: "credential",
           accountId: current.email.toLowerCase(),
         },
       },
-      update: {
-        password: nextPasswordHash,
-      },
-      create: {
-        userId: user.id,
-        providerId: "credential",
-        accountId: current.email.toLowerCase(),
+      data: {
         password: nextPasswordHash,
       },
     }),
   ]);
+
+  await auth.api.revokeOtherSessions({
+    headers: new Headers(request.headers),
+  });
 
   return NextResponse.json({ message: "Password changed successfully" });
 }

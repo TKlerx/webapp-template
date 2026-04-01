@@ -37,7 +37,6 @@ export async function GET(request: Request) {
         emailVerified: true,
         authMethod,
         mustChangePassword: false,
-        passwordHash,
       },
       create: {
         email,
@@ -49,7 +48,6 @@ export async function GET(request: Request) {
         mustChangePassword: false,
         themePreference: ThemePreference.LIGHT,
         locale: "en",
-        passwordHash,
       },
     });
 

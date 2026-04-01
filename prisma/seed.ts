@@ -44,7 +44,6 @@ async function main() {
       role: Role.PLATFORM_ADMIN,
       status: UserStatus.ACTIVE,
       authMethod: AuthMethod.LOCAL,
-      passwordHash,
       mustChangePassword: true,
       themePreference: ThemePreference.LIGHT,
       locale: "en",

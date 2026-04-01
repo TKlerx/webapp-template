@@ -40,6 +40,8 @@ The auth model is intentionally hybrid:
 - starter-seeded admin uses local login
 - local users may be forced to change password on first login
 - password changes are handled by the change-password route and page
+- local credential hashes are stored on the Better Auth `Account` record for the `credential` provider
+- password changes should revoke other active sessions for the same user
 
 ## SSO Rules
 
