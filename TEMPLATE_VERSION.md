@@ -15,6 +15,8 @@ For machine-readable tooling and downstream propagation, also see `.template-ori
 
 Because commit hashes are self-referential, a repository cannot permanently store its own exact current commit hash inside the same commit without changing that hash. The practical pattern is to record the latest known upstream baseline and refresh it after pulling template updates.
 
+This file is intentionally shipped with the template so a copied repository still carries a usable upstream baseline even if Git history is removed.
+
 ## Downstream Usage
 
 When a product app is created from this template, keep both `TEMPLATE_VERSION.md` and `.template-origin.json`.

@@ -12,6 +12,8 @@ Template provenance files:
 - `.template-origin.json`
 - refresh helper: `npm run template:stamp`
 
+These files are intentionally committed into the template so copied repos still retain a visible upstream baseline even if Git history is removed.
+
 ## Includes
 
 - Next.js 16 app router
