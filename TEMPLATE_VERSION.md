@@ -2,10 +2,10 @@
 
 - Template repo: `https://github.com/TKlerx/webapp-template.git`
 - Default branch: `main`
-- Recorded upstream template commit: `0a0c1dfaa7c31378d3ed4c2f0ac136857e393826`
-- Short commit: `0a0c1df`
+- Recorded upstream template commit: `91c20e9d9ceac0f1233ab2b1d4a13a70952dde16`
+- Short commit: `91c20e9`
 - Recorded at: `2026-04-01`
-- Version label: `main@0a0c1df`
+- Version label: `main+011-route-refactor@91c20e9`
 
 ## Purpose
 
@@ -14,8 +14,6 @@ This file gives humans a quick way to see which upstream template revision this 
 For machine-readable tooling and downstream propagation, also see `.template-origin.json`.
 
 Because commit hashes are self-referential, a repository cannot permanently store its own exact current commit hash inside the same commit without changing that hash. The practical pattern is to record the latest known upstream baseline and refresh it after pulling template updates.
-
-This file is intentionally shipped with the template so a copied repository still carries a usable upstream baseline even if Git history is removed.
 
 ## Downstream Usage
 

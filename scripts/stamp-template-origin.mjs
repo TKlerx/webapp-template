@@ -15,21 +15,41 @@ function runGit(args) {
   }).trim();
 }
 
+function safeRunGit(args) {
+  try {
+    return runGit(args);
+  } catch {
+    return "";
+  }
+}
+
 function formatDate(date) {
   const pad = (value) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 const repoUrl = runGit(["remote", "get-url", "starter"]);
-const branch = runGit(["branch", "--show-current"]) || "main";
+const currentBranch = runGit(["branch", "--show-current"]) || "main";
+const remoteHeadRef =
+  safeRunGit(["ls-remote", "--symref", "starter", "HEAD"])
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find((line) => line.startsWith("ref:")) ?? "";
+const remoteDefaultBranch = remoteHeadRef.match(/refs\/heads\/([^\s]+)/)?.[1] ?? "";
+const existingOrigin = JSON.parse(readFileSync(originFilePath, "utf8"));
+const defaultBranch =
+  remoteDefaultBranch || existingOrigin.templateDefaultBranch || "main";
 const commit = runGit(["rev-parse", "HEAD"]);
 const shortCommit = runGit(["rev-parse", "--short", "HEAD"]);
 const recordedAt = formatDate(new Date());
-const versionLabel = `${branch}@${shortCommit}`;
+const versionLabel =
+  currentBranch === defaultBranch
+    ? `${defaultBranch}@${shortCommit}`
+    : `${defaultBranch}+${currentBranch}@${shortCommit}`;
 
-const origin = JSON.parse(readFileSync(originFilePath, "utf8"));
+const origin = existingOrigin;
 origin.templateRepoUrl = repoUrl;
-origin.templateDefaultBranch = branch;
+origin.templateDefaultBranch = defaultBranch;
 origin.recordedUpstreamTemplateCommit = commit;
 origin.recordedUpstreamTemplateShortCommit = shortCommit;
 origin.templateRecordedAt = recordedAt;
@@ -39,7 +59,7 @@ const nextOriginContent = `${JSON.stringify(origin, null, 2)}\n`;
 const versionFile = `# Template Version
 
 - Template repo: \`${repoUrl}\`
-- Default branch: \`${branch}\`
+- Default branch: \`${defaultBranch}\`
 - Recorded upstream template commit: \`${commit}\`
 - Short commit: \`${shortCommit}\`
 - Recorded at: \`${recordedAt}\`
