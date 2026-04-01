@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { AuditAction } from "../../generated/prisma/enums";
 
-type LogAuditInput = {
+export type LogAuditInput = {
   action: AuditAction;
   entityType: string;
   entityId: string;
@@ -21,4 +21,13 @@ export async function logAudit(input: LogAuditInput) {
       details: JSON.stringify(input.details ?? {}),
     },
   });
+}
+
+export async function safeLogAudit(input: LogAuditInput) {
+  try {
+    return await logAudit(input);
+  } catch (error) {
+    console.error("audit.write_failed", error);
+    return null;
+  }
 }

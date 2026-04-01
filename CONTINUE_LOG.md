@@ -146,16 +146,6 @@
 - Latest non-continuity commit: a59f32f feat(devx): improve local startup and runtime visibility.
 - Active specs: none.
 - Next focus: no next task.
-<<<<<<< Updated upstream
-## 2026-03-31 14:21:30
-=======
-## 2026-03-31 14:19:25
->>>>>>> Stashed changes
-
-- Branch snapshot refreshed for `starter-template-extraction`.
-- Latest non-continuity commit: d61c1b7 chore(validate): enforce utf-8 text file encoding.
-- Active specs: none.
-- Next focus: no next task.
 ## 2026-03-31 14:23:03
 
 - Branch snapshot refreshed for `starter-template-extraction`.
@@ -239,4 +229,10 @@
 - Branch snapshot refreshed for `starter-template-extraction`.
 - Latest non-continuity commit: d379eb5 fix(auth): stabilize login form hydration and auth messages.
 - Active specs: none.
+- Next focus: no next task.
+## 2026-04-01 12:28:27
+
+- Branch snapshot refreshed for `010-auth-security-hardening`.
+- Latest non-continuity commit: 4a99b42 chore(validate): verify template provenance files.
+- Active specs: 010-auth-security-hardening, 011-route-refactor.
 - Next focus: no next task.

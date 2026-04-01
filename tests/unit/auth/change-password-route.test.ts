@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
 
-const { getSessionUser, hashPassword, validatePasswordComplexity, verifyPassword } = vi.hoisted(() => ({
-  getSessionUser: vi.fn(),
+const { requireApiUser, hashPassword, validatePasswordComplexity, verifyPassword } = vi.hoisted(() => ({
+  requireApiUser: vi.fn(),
   hashPassword: vi.fn(),
   validatePasswordComplexity: vi.fn(),
   verifyPassword: vi.fn(),
@@ -17,10 +17,13 @@ vi.mock("@/lib/db", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
-  getSessionUser,
   hashPassword,
   validatePasswordComplexity,
   verifyPassword,
+}));
+
+vi.mock("@/lib/route-auth", () => ({
+  requireApiUser,
 }));
 
 vi.mock("@/lib/better-auth", () => ({
@@ -39,11 +42,10 @@ describe("change password route", () => {
   });
 
   it("updates the credential account password and revokes other sessions", async () => {
-    getSessionUser.mockResolvedValue({ id: "user-1" });
+    requireApiUser.mockResolvedValue({
+      user: { id: "user-1", email: "member@example.com" },
+    });
     validatePasswordComplexity.mockReturnValue(true);
-    prismaMock.user.findUnique.mockResolvedValue({
-      email: "member@example.com",
-    } as never);
     prismaMock.account.findUnique.mockResolvedValue({
       password: "stored-hash",
     } as never);
@@ -92,15 +94,17 @@ describe("change password route", () => {
     expect(revokeOtherSessions).toHaveBeenCalledWith({
       headers: expect.any(Headers),
     });
+    if (!response) {
+      throw new Error("Expected response");
+    }
     expect(response.status).toBe(200);
   });
 
   it("rejects users without a local credential account", async () => {
-    getSessionUser.mockResolvedValue({ id: "user-1" });
+    requireApiUser.mockResolvedValue({
+      user: { id: "user-1", email: "member@example.com" },
+    });
     validatePasswordComplexity.mockReturnValue(true);
-    prismaMock.user.findUnique.mockResolvedValue({
-      email: "member@example.com",
-    } as never);
     prismaMock.account.findUnique.mockResolvedValue(null);
 
     const response = await POST(
@@ -116,6 +120,9 @@ describe("change password route", () => {
 
     expect(verifyPassword).not.toHaveBeenCalled();
     expect(revokeOtherSessions).not.toHaveBeenCalled();
+    if (!response) {
+      throw new Error("Expected response");
+    }
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
       error: "Password change is only available for local accounts",

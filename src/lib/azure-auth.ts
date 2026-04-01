@@ -20,15 +20,7 @@ export function getExternalOrigin(request: Request) {
     return trimTrailingSlash(configuredOrigin);
   }
 
-  const requestUrl = new URL(request.url);
-  const forwardedHost = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const forwardedProto = request.headers.get("x-forwarded-proto");
-
-  if (forwardedHost) {
-    return `${forwardedProto ?? requestUrl.protocol.replace(":", "")}://${forwardedHost}`;
-  }
-
-  return requestUrl.origin;
+  return new URL(request.url).origin;
 }
 
 export function getAuthBaseUrl(request: Request) {
@@ -121,20 +113,7 @@ type AzureUserProfile = {
   sub?: string;
 };
 
-function decodeJwtPayload(token: string) {
-  const [, payload] = token.split(".");
-  if (!payload) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
-export async function fetchAzureUserProfile(accessToken: string, idToken?: string) {
+export async function fetchAzureUserProfile(accessToken: string, _idToken?: string) {
   const response = await fetch("https://graph.microsoft.com/oidc/userinfo", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -146,24 +125,8 @@ export async function fetchAzureUserProfile(accessToken: string, idToken?: strin
     return (await response.json()) as AzureUserProfile;
   }
 
-  const claims = idToken ? decodeJwtPayload(idToken) : null;
-  if (!claims) {
-    const details = await response.text();
-    throw new Error(`Azure userinfo failed: ${response.status} ${details}`);
-  }
-
-  return {
-    email:
-      typeof claims.email === "string"
-        ? claims.email
-        : typeof claims.preferred_username === "string"
-          ? claims.preferred_username
-          : undefined,
-    preferred_username:
-      typeof claims.preferred_username === "string" ? claims.preferred_username : undefined,
-    name: typeof claims.name === "string" ? claims.name : undefined,
-    sub: typeof claims.sub === "string" ? claims.sub : undefined,
-  } satisfies AzureUserProfile;
+  const details = await response.text();
+  throw new Error(`Azure userinfo failed: ${response.status} ${details}`);
 }
 
 export function extractAzureIdentity(profile: AzureUserProfile) {

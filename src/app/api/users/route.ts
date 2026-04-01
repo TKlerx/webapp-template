@@ -1,8 +1,10 @@
 import { hashPassword, validatePasswordComplexity } from "@/lib/auth";
+import { safeLogAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
 import { requireApiUserWithRoles } from "@/lib/route-auth";
 import {
+  AuditAction,
   AuthMethod,
   Role,
   ThemePreference,
@@ -15,6 +17,10 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const status = url.searchParams.get("status") as UserStatus | null;
+
+  if (status && !Object.values(UserStatus).includes(status)) {
+    return jsonError("Invalid status filter. Supported values: PENDING_APPROVAL, ACTIVE, INACTIVE", 400);
+  }
 
   const users = await prisma.user.findMany({
     where: status ? { status } : undefined,
@@ -79,6 +85,17 @@ export async function POST(request: Request) {
           password: passwordHash,
         },
       },
+    },
+  });
+
+  await safeLogAudit({
+    action: AuditAction.USER_CREATED,
+    entityType: "User",
+    entityId: user.id,
+    actorId: auth.user.id,
+    details: {
+      role: body.role,
+      authMethod: "LOCAL",
     },
   });
 

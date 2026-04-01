@@ -379,6 +379,103 @@ function Test-TemplateProvenance {
     }
 }
 
+function Test-SpecOverview {
+    Write-Step "Specs overview"
+    try {
+        if (-not (Test-Path "scripts\update-spec-overview.mjs" -PathType Leaf)) {
+            throw "scripts/update-spec-overview.mjs is missing"
+        }
+
+        if (-not (Test-Path "specs\OVERVIEW.md" -PathType Leaf)) {
+            throw "specs/OVERVIEW.md is missing"
+        }
+
+        if ($IsWindows -or $env:OS -eq "Windows_NT") {
+            cmd /c "node scripts/update-spec-overview.mjs --check"
+        } else {
+            /bin/sh -lc "node scripts/update-spec-overview.mjs --check"
+        }
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "specs/OVERVIEW.md is out of date"
+        }
+
+        Write-Pass "specs overview is current"
+    } catch {
+        Write-Fail "specs overview check failed"
+        $message = $_.Exception.Message
+        switch -Regex ($message) {
+            '^scripts/update-spec-overview\.mjs is missing$' {
+                Write-Host "Restore scripts/update-spec-overview.mjs so the repo can regenerate specs/OVERVIEW.md." -ForegroundColor Yellow
+            }
+            '^specs/OVERVIEW\.md is missing$' {
+                Write-Host "Run `npm run specs:overview:update` to create specs/OVERVIEW.md." -ForegroundColor Yellow
+            }
+            '^specs/OVERVIEW\.md is out of date$' {
+                Write-Host "Run `npm run specs:overview:update` after spec changes so the repo-wide overview stays current." -ForegroundColor Yellow
+            }
+            default {
+                Write-Host $message -ForegroundColor Yellow
+            }
+        }
+        $script:failures += "spec-overview"
+    }
+}
+
+function Test-SpecWorkflowStages {
+    Write-Step "Spec workflow stages"
+    try {
+        if (-not (Test-Path "specs" -PathType Container)) {
+            Write-Pass "spec workflow stages are valid (no specs directory)"
+            return
+        }
+
+        $invalidFeatures = @()
+        $featureDirs = Get-ChildItem "specs" -Directory | Where-Object { $_.Name -match '^\d{3}-' }
+
+        foreach ($featureDir in $featureDirs) {
+            $clarify = Join-Path $featureDir.FullName "clarify.md"
+            $research = Join-Path $featureDir.FullName "research.md"
+            $plan = Join-Path $featureDir.FullName "plan.md"
+            $dataModel = Join-Path $featureDir.FullName "data-model.md"
+            $tasks = Join-Path $featureDir.FullName "tasks.md"
+            $quickstart = Join-Path $featureDir.FullName "quickstart.md"
+            $contracts = Join-Path $featureDir.FullName "contracts"
+
+            $hasClarify = Test-Path $clarify -PathType Leaf
+            $hasResearch = Test-Path $research -PathType Leaf
+            $hasPlanningArtifacts = (Test-Path $plan -PathType Leaf) -or
+                (Test-Path $dataModel -PathType Leaf) -or
+                (Test-Path $tasks -PathType Leaf) -or
+                (Test-Path $quickstart -PathType Leaf) -or
+                (Test-Path $contracts -PathType Container)
+
+            if ((Test-Path $research -PathType Leaf) -and -not $hasClarify) {
+                $invalidFeatures += "$($featureDir.Name): missing clarify.md before analyze/research"
+            }
+
+            if ($hasPlanningArtifacts -and -not $hasClarify) {
+                $invalidFeatures += "$($featureDir.Name): missing clarify.md before planning/tasking"
+            }
+
+            if ($hasPlanningArtifacts -and -not $hasResearch) {
+                $invalidFeatures += "$($featureDir.Name): missing research.md before planning/tasking"
+            }
+        }
+
+        if ($invalidFeatures.Count -gt 0) {
+            $invalidFeatures | ForEach-Object { Write-Host $_ }
+            throw "spec workflow stages failed"
+        }
+
+        Write-Pass "spec workflow stages are valid"
+    } catch {
+        Write-Fail "spec workflow stage check failed"
+        Write-Host "Every numbered spec must pass through clarify and analyze before planning/tasking. Add `clarify.md` and `research.md` before plan/data-model/tasks artifacts." -ForegroundColor Yellow
+        $script:failures += "spec-workflow"
+    }
+}
+
 function Test-ContinuityFreshness {
     Write-Step "Continuity (CONTINUE.md / CONTINUE_LOG.md)"
     try {
@@ -533,6 +630,14 @@ if ($Phase -in "all", "full", "quality", "commit") {
 
 if ($Phase -in "all", "full", "quality", "commit") {
     Test-TemplateProvenance
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Test-SpecOverview
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Test-SpecWorkflowStages
 }
 
 if ($Phase -in "all", "full", "test", "commit") {

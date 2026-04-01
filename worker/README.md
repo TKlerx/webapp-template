@@ -12,6 +12,10 @@ uv sync
 uv run starter-worker
 ```
 
+The worker automatically loads the shared repo-root `.env` file, so the
+same `DATABASE_URL` and related settings used by the Node app also apply
+when the worker is started from the `worker/` subdirectory.
+
 The worker supports both:
 
 - `file:` SQLite URLs for local development

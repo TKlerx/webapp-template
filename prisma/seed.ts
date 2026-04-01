@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "../generated/prisma/client";
 import { AuthMethod, Role, ThemePreference, UserStatus } from "../generated/prisma/enums";
+import { validatePasswordComplexity } from "../src/lib/auth";
 
 const connectionString = process.env.DATABASE_URL ?? "file:./dev.db";
 const adapter = connectionString.startsWith("file:")
@@ -17,6 +18,10 @@ async function main() {
 
   if (!email || !password) {
     throw new Error("INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set");
+  }
+
+  if (!validatePasswordComplexity(password)) {
+    throw new Error("INITIAL_ADMIN_PASSWORD does not meet the required password complexity policy.");
   }
 
   const existingCount = await prisma.user.count();

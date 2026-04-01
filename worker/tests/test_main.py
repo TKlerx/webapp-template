@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
 from contextlib import closing
 from pathlib import Path
+from unittest.mock import patch
 
-from starter_worker.config import WorkerConfig
+from starter_worker.config import WorkerConfig, load_config
 from starter_worker.db import JobStore
 from starter_worker.main import process_job
 
@@ -77,6 +79,22 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(row["error"], "bad job")
         self.assertEqual(row["workerId"], "worker-test")
         self.assertIsNotNone(row["finishedAt"])
+
+    def test_load_config_reads_repo_env_file(self) -> None:
+        env_path = Path(self.temp_dir.name) / ".env"
+        env_path.write_text(
+            'DATABASE_URL="postgresql://worker:test@localhost:5432/app"\n'
+            'WORKER_POLL_INTERVAL_SECONDS="1.5"\n'
+            'WORKER_ID="worker-from-env"\n',
+            encoding="utf-8",
+        )
+
+        with patch.dict(os.environ, {}, clear=True):
+            config = load_config(env_path=env_path)
+
+        self.assertEqual(config.database_url, "postgresql://worker:test@localhost:5432/app")
+        self.assertEqual(config.poll_interval_seconds, 1.5)
+        self.assertEqual(config.worker_id, "worker-from-env")
 
     def _create_schema(self) -> None:
         with closing(sqlite3.connect(self.db_path)) as connection:

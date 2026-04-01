@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server";
-import { getSessionUser, hashPassword, validatePasswordComplexity, verifyPassword } from "@/lib/auth";
+import { hashPassword, validatePasswordComplexity, verifyPassword } from "@/lib/auth";
+import { safeLogAudit } from "@/lib/audit";
 import { auth } from "@/lib/better-auth";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { requireApiUser } from "@/lib/route-auth";
+import { AuditAction } from "../../../../../generated/prisma/enums";
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
-
-  if (!user) {
-    return jsonError("Not authenticated", 401);
+  const rateLimit = checkRateLimit(getClientIp(request), "change-password");
+  if (!rateLimit.allowed) {
+    const response = jsonError("Too many attempts. Please try again later.", 429);
+    response.headers.set("Retry-After", Math.ceil(rateLimit.retryAfterMs / 1000).toString());
+    return response;
   }
+
+  const authResult = await requireApiUser();
+  if ("error" in authResult) return authResult.error;
+  const user = authResult.user;
 
   const body = (await request.json()) as {
     currentPassword?: string;
@@ -24,20 +33,11 @@ export async function POST(request: Request) {
     return jsonError("Password does not meet complexity requirements", 400);
   }
 
-  const current = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { email: true },
-  });
-
-  if (!current) {
-    return jsonError("Not authenticated", 401);
-  }
-
   const credentialAccount = await prisma.account.findUnique({
     where: {
       providerId_accountId: {
         providerId: "credential",
-        accountId: current.email.toLowerCase(),
+        accountId: user.email.toLowerCase(),
       },
     },
     select: {
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       where: {
         providerId_accountId: {
           providerId: "credential",
-          accountId: current.email.toLowerCase(),
+          accountId: user.email.toLowerCase(),
         },
       },
       data: {
@@ -81,6 +81,12 @@ export async function POST(request: Request) {
     headers: new Headers(request.headers),
   });
 
+  await safeLogAudit({
+    action: AuditAction.AUTH_PASSWORD_CHANGED,
+    entityType: "User",
+    entityId: user.id,
+    actorId: user.id,
+  });
+
   return NextResponse.json({ message: "Password changed successfully" });
 }
-

@@ -42,6 +42,15 @@ if ($template -and (Test-Path $template)) {
     New-Item -ItemType File -Path $paths.IMPL_PLAN -Force | Out-Null
 }
 
+$overviewUpdater = Join-Path $paths.REPO_ROOT 'scripts/update-spec-overview.mjs'
+if (Test-Path $overviewUpdater) {
+    node $overviewUpdater
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Error: Failed to update specs/OVERVIEW.md after plan setup."
+        exit 1
+    }
+}
+
 # Output results
 if ($Json) {
     $result = [PSCustomObject]@{ 

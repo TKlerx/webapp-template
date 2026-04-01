@@ -1,0 +1,37 @@
+hooks:
+  after_specify:
+    - extension: specs-overview
+      enabled: true
+      optional: false
+      command: specs.overview-update
+      description: Refresh the repo-wide feature overview after creating or updating a spec.
+  after_clarify:
+    - extension: specs-overview
+      enabled: true
+      optional: false
+      command: specs.overview-update
+      description: Refresh the repo-wide feature overview after clarifying a spec.
+  after_analyze:
+    - extension: specs-overview
+      enabled: true
+      optional: false
+      command: specs.overview-update
+      description: Refresh the repo-wide feature overview after analyzing a spec.
+  after_plan:
+    - extension: specs-overview
+      enabled: true
+      optional: false
+      command: specs.overview-update
+      description: Refresh the repo-wide feature overview after planning a spec.
+  after_tasks:
+    - extension: specs-overview
+      enabled: true
+      optional: false
+      command: specs.overview-update
+      description: Refresh the repo-wide feature overview after generating tasks.
+  after_implement:
+    - extension: specs-overview
+      enabled: true
+      optional: false
+      command: specs.overview-update
+      description: Refresh the repo-wide feature overview after implementation changes.

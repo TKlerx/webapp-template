@@ -211,6 +211,9 @@ Seeded user defaults:
 | POST | `/api/users` | PLATFORM_ADMIN | Create user |
 | PATCH | `/api/users/[id]/approve` | PLATFORM_ADMIN | Approve pending user |
 | PATCH | `/api/users/[id]/deactivate` | PLATFORM_ADMIN | Deactivate user |
+| PATCH | `/api/users/[id]/reactivate` | PLATFORM_ADMIN | Reactivate inactive user |
+| PATCH | `/api/users/[id]/role` | PLATFORM_ADMIN | Change user role |
+| PATCH | `/api/users/[id]/theme` | Authenticated | Update user theme preference |
 
 ## Environment Variables
 

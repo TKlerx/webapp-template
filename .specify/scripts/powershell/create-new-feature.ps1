@@ -291,6 +291,15 @@ if ($template -and (Test-Path $template)) {
 # Set the SPECIFY_FEATURE environment variable for the current session
 $env:SPECIFY_FEATURE = $branchName
 
+$overviewUpdater = Join-Path $repoRoot 'scripts/update-spec-overview.mjs'
+if (Test-Path $overviewUpdater) {
+    node $overviewUpdater
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Error: Failed to update specs/OVERVIEW.md after feature creation."
+        exit 1
+    }
+}
+
 if ($Json) {
     $obj = [PSCustomObject]@{ 
         BRANCH_NAME = $branchName

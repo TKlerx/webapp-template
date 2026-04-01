@@ -4,6 +4,9 @@ import os
 import socket
 import uuid
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 
 @dataclass(frozen=True)
@@ -13,7 +16,14 @@ class WorkerConfig:
     worker_id: str
 
 
-def load_config() -> WorkerConfig:
+def load_shared_env(env_path: Path | None = None) -> None:
+    root_env_path = env_path or Path(__file__).resolve().parents[3] / ".env"
+    load_dotenv(root_env_path, override=False)
+
+
+def load_config(env_path: Path | None = None) -> WorkerConfig:
+    load_shared_env(env_path)
+
     return WorkerConfig(
         database_url=os.environ.get("DATABASE_URL", "file:./dev.db"),
         poll_interval_seconds=float(os.environ.get("WORKER_POLL_INTERVAL_SECONDS", "3")),

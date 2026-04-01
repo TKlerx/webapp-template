@@ -16,6 +16,8 @@
     "duplication": "jscpd src/ --config .jscpd.json --pattern \"**/*.{ts,tsx,js,jsx}\"",
     "semgrep": "semgrep scan --error --config auto --config .semgrep.yml",
     "continuity:update": "node scripts/update-continuity.mjs",
+    "specs:overview:update": "node scripts/update-spec-overview.mjs",
+    "specs:overview:check": "node scripts/update-spec-overview.mjs --check",
     "validate": "npm run typecheck && npm run lint && npm run duplication && npm run semgrep && npm run test",
     "validate:full": "npm run validate && npm run test:e2e",
     "template:stamp": "node scripts/stamp-template-origin.mjs",

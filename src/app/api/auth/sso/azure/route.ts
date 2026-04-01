@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const mockEmail = url.searchParams.get("email");
   const mockName = url.searchParams.get("name");
 
-  if (process.env.E2E_MOCK_SSO === "1" && mockEmail) {
+  if (process.env.E2E_MOCK_SSO === "1" && process.env.NODE_ENV !== "production" && mockEmail) {
     const email = mockEmail.toLowerCase();
     const name = mockName?.trim() || email;
     const mockPassword = `MockSsoPass1!:${email}`;

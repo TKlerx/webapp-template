@@ -51,7 +51,7 @@ export const auth = betterAuth({
   plugins: [nextCookies()],
   advanced: {
     cookiePrefix: BETTER_AUTH_COOKIE_PREFIX,
-    trustedProxyHeaders: true,
+    trustedProxyHeaders: !!process.env.AUTH_BASE_URL,
     defaultCookieAttributes: {
       path: getScopedCookiePath(),
     },

@@ -37,10 +37,19 @@ export async function provisionSsoUser(input: { email: string; name: string }) {
 
 type RouteParams = Promise<{ id: string }>;
 
-export async function requireManagedUser(params: RouteParams) {
+type ManagedUserResult =
+  | { error: Response }
+  | {
+      user: User;
+      actor: {
+        id: string;
+      };
+    };
+
+export async function requireManagedUser(params: RouteParams): Promise<ManagedUserResult> {
   const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN]);
   if ("error" in auth) {
-    return auth;
+    return { error: auth.error! };
   }
 
   const { id } = await params;
@@ -50,7 +59,7 @@ export async function requireManagedUser(params: RouteParams) {
     return { error: jsonError("User not found", 404) };
   }
 
-  return { user };
+  return { user, actor: auth.user };
 }
 
 export async function ensureAdminUserCanChange(
@@ -96,6 +105,12 @@ export async function updateManagedUserStatus(
     requireCurrentStatus?: UserStatus;
     blockedMessage?: string;
     lastAdminMessage?: string;
+    afterUpdate?: (context: {
+      actorId: string;
+      userId: string;
+      previousStatus: UserStatus;
+      nextStatus: UserStatus;
+    }) => Promise<void>;
   },
 ) {
   const managed = await requireManagedUser(params);
@@ -103,7 +118,7 @@ export async function updateManagedUserStatus(
     return managed.error;
   }
 
-  const { user } = managed;
+  const { user, actor } = managed;
 
   if (options?.requireCurrentStatus && user.status !== options.requireCurrentStatus) {
     return jsonError(options.blockedMessage ?? "User is in an invalid status", 400);
@@ -123,6 +138,13 @@ export async function updateManagedUserStatus(
   const updated = await prisma.user.update({
     where: { id: user.id },
     data: { status: nextStatus },
+  });
+
+  await options?.afterUpdate?.({
+    actorId: actor.id,
+    userId: user.id,
+    previousStatus: user.status,
+    nextStatus,
   });
 
   return Response.json({ user: { id: updated.id, status: updated.status } });
