@@ -6,8 +6,7 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- `011-route-refactor` - Tasked
-  Next: implement User Story 1 route-service refactor and keep continuity/spec tracking in sync during the work.
+- None right now.
 
 ## Maintenance Rules
 

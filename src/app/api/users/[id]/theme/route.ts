@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
 import { requireApiUser } from "@/lib/route-auth";
+import { updateOwnThemePreference } from "@/services/api/user-admin";
 import { ThemePreference } from "../../../../../../generated/prisma/enums";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -11,13 +11,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (auth.user.id !== id) return jsonError("Not authorized", 403);
 
   const body = (await request.json()) as { themePreference?: ThemePreference };
-  if (!body.themePreference) return jsonError("Theme preference is required", 400);
+  const result = await updateOwnThemePreference(id, body);
+  if ("error" in result) {
+    return result.error;
+  }
 
-  const updated = await prisma.user.update({
-    where: { id },
-    data: { themePreference: body.themePreference },
-  });
-
-  return Response.json({ themePreference: updated.themePreference });
+  return Response.json({ themePreference: result.themePreference });
 }
 

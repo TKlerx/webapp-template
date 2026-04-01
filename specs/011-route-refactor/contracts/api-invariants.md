@@ -18,13 +18,9 @@ This feature is an implementation refactor only. No public API endpoint is added
 
 | Endpoint | Contract Requirement |
 |----------|----------------------|
-| `POST /api/auth/login` | Preserve login success body, invalid-credentials behavior, deactivated-account behavior, rate-limit behavior, and cookie handling |
 | `POST /api/auth/change-password` | Preserve validation errors, local-account restriction, password-update transaction, and success payload |
 | `POST /api/auth/logout` | Preserve redirect target and cookie clearing behavior |
 | `GET /api/auth/session` | Preserve current authenticated-session response contract |
-| `GET /api/auth/sso/azure` | Preserve SSO routing behavior |
-| `GET /api/auth/error` | Preserve existing Better Auth error handling |
-| `GET /api/auth/callback/[provider]` | Preserve provider callback behavior |
 
 ### User/Admin Routes
 
@@ -46,12 +42,11 @@ This feature is an implementation refactor only. No public API endpoint is added
 | `GET /api/audit/export` | Preserve `csv` and `pdf` export behavior, headers, and unsupported-format error |
 | `GET /api/background-jobs` | Preserve admin/global visibility and non-admin self-filtering |
 | `POST /api/background-jobs` | Preserve `jobType` validation, payload serialization, and created-job response |
-| `POST /api/locale` | Preserve invalid-locale error and success response |
-| `GET /api/health` | Preserve existing health-check response |
 
 ## Non-Goals
 
 - No error response normalization
 - No new endpoint versioning
 - No schema migration required for the current starter
+- No login, SSO, locale, or health route rewrites in this feature
 - No new document-version or AI endpoints introduced solely for this refactor

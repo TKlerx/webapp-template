@@ -2,16 +2,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 
-const { requireApiUserWithRoles } = vi.hoisted(() => ({
-  requireApiUserWithRoles: vi.fn(),
+const { requireRouteUserWithRoles } = vi.hoisted(() => ({
+  requireRouteUserWithRoles: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
   prisma: prismaMock,
 }));
 
-vi.mock("@/lib/route-auth", () => ({
-  requireApiUserWithRoles,
+vi.mock("@/services/api/route-context", () => ({
+  requireRouteUserWithRoles,
 }));
 
 import { PATCH as rolePatch } from "@/app/api/users/[id]/role/route";
@@ -23,7 +23,7 @@ describe("last admin protection", () => {
   });
 
   it("rejects demoting the last active admin", async () => {
-    requireApiUserWithRoles.mockResolvedValue({
+    requireRouteUserWithRoles.mockResolvedValue({
       user: { id: "admin_1", role: Role.PLATFORM_ADMIN },
     });
     prismaMock.user.findUnique.mockResolvedValue({
@@ -51,7 +51,7 @@ describe("last admin protection", () => {
   });
 
   it("rejects deactivating the last active admin", async () => {
-    requireApiUserWithRoles.mockResolvedValue({
+    requireRouteUserWithRoles.mockResolvedValue({
       user: { id: "admin_1", role: Role.PLATFORM_ADMIN },
     });
     prismaMock.user.findUnique.mockResolvedValue({

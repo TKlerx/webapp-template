@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError } from "@/lib/http";
+import { buildSessionResponse } from "@/services/api/session";
 
 export async function GET() {
   const user = await getSessionUser();
@@ -9,15 +9,6 @@ export async function GET() {
     return jsonError("Not authenticated", 401);
   }
 
-  return NextResponse.json({
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      status: user.status,
-      themePreference: user.themePreference,
-    },
-  });
+  return buildSessionResponse(user);
 }
 
