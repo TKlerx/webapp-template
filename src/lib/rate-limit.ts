@@ -55,6 +55,10 @@ export function getClientIp(request: Request): string {
 }
 
 export function checkRateLimit(ip: string, endpoint: string): { allowed: boolean; retryAfterMs: number } {
+  if (process.env.E2E_DISABLE_RATE_LIMIT === "1") {
+    return { allowed: true, retryAfterMs: 0 };
+  }
+
   ensureCleanupTimer();
 
   const now = Date.now();

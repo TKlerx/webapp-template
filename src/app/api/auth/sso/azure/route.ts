@@ -16,8 +16,13 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const mockEmail = url.searchParams.get("email");
   const mockName = url.searchParams.get("name");
+  const allowProdMockSso = process.env.E2E_ALLOW_PROD_MOCK_SSO === "1";
 
-  if (process.env.E2E_MOCK_SSO === "1" && process.env.NODE_ENV !== "production" && mockEmail) {
+  if (
+    process.env.E2E_MOCK_SSO === "1" &&
+    (process.env.NODE_ENV !== "production" || allowProdMockSso) &&
+    mockEmail
+  ) {
     const email = mockEmail.toLowerCase();
     const name = mockName?.trim() || email;
     const mockPassword = `MockSsoPass1!:${email}`;
