@@ -17,6 +17,7 @@ This document defines the intended internal boundary between App Router entrypoi
 - Managed-user lookup and repeated mutation orchestration
 - Shared audit filter parsing and normalization that must stay identical across list/export routes
 - Shared background-job list/create orchestration that does not alter endpoint payloads
+- Authenticated auth-route payload shaping and mutation orchestration for password change, logout, and session lookups
 - Future document-version and AI orchestration contracts when those route families exist
 
 ## Result Shapes
@@ -31,6 +32,15 @@ This document defines the intended internal boundary between App Router entrypoi
 - Do not hide route-specific audit hooks or status checks inside opaque configuration blobs.
 - Prefer one clearly named service per repeated concern over one service that tries to own every route family.
 - If a route has only trivial framework boilerplate duplication, leave it alone.
+
+## Implemented Service Surface
+
+- `src/services/api/route-context.ts`
+- `src/services/api/user-admin.ts`
+- `src/services/api/audit-filters.ts`
+- `src/services/api/background-jobs.ts`
+- `src/services/api/auth.ts`
+- `src/services/api/session.ts`
 
 ## Future Extension Contract
 

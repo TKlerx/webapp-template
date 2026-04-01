@@ -236,3 +236,15 @@
 - Latest non-continuity commit: 4a99b42 chore(validate): verify template provenance files.
 - Active specs: 010-auth-security-hardening, 011-route-refactor.
 - Next focus: no next task.
+## 2026-04-01 21:36:19
+
+- Branch snapshot refreshed for `011-route-refactor`.
+- Latest non-continuity commit: ec1ca03 fix(e2e): stabilize production-style auth tests.
+- Active specs: 011-route-refactor.
+- Next focus: no next task.
+## 2026-04-01 22:44:23
+
+- Branch snapshot refreshed for `template-main`.
+- Latest non-continuity commit: ec1ca03 fix(e2e): stabilize production-style auth tests.
+- Active specs: 011-route-refactor.
+- Next focus: no next task.

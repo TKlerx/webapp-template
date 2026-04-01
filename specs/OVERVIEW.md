@@ -21,17 +21,18 @@ Purpose: Track the status of all planned features, their implementation progress
 | # | Feature | Status | Depends On | Est. Effort | Next Step |
 | --- | --- | --- | --- | --- | --- |
 | 010 | Auth Security Hardening | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
-| 011 | API Route Refactor | Tasked | - | Large | Start implementation with `/speckit.implement` |
+| 011 | API Route Refactor | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
 
 ## Implementation Roadmap
 
 ### Complete
 
 - 010 Auth Security Hardening: fully implemented
+- 011 API Route Refactor: fully implemented
 
 ### Begin Immediately
 
-- 011 API Route Refactor: Start implementation with `/speckit.implement`
+- No tasked or in-progress numbered features are waiting for implementation work
 
 ### Blocked / Prep Needed
 

@@ -1,8 +1,11 @@
 import type { User } from "../../generated/prisma/client";
 import { AuthMethod, Role, ThemePreference, UserStatus } from "../../generated/prisma/enums";
 import { prisma } from "@/lib/db";
-import { jsonError } from "@/lib/http";
-import { requireApiUserWithRoles } from "@/lib/route-auth";
+import {
+  ensureAdminUserCanChange as ensureAdminUserCanChangeInService,
+  requireManagedUserContext,
+  updateManagedUserStatus as updateManagedUserStatusInService,
+} from "@/services/api/user-admin";
 
 export async function provisionSsoUser(input: { email: string; name: string }) {
   const existing = await prisma.user.findUnique({
@@ -47,19 +50,7 @@ type ManagedUserResult =
     };
 
 export async function requireManagedUser(params: RouteParams): Promise<ManagedUserResult> {
-  const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN]);
-  if ("error" in auth) {
-    return { error: auth.error! };
-  }
-
-  const { id } = await params;
-  const user = await prisma.user.findUnique({ where: { id } });
-
-  if (!user) {
-    return { error: jsonError("User not found", 404) };
-  }
-
-  return { user, actor: auth.user };
+  return requireManagedUserContext(params);
 }
 
 export async function ensureAdminUserCanChange(
@@ -70,32 +61,7 @@ export async function ensureAdminUserCanChange(
     message: string;
   },
 ) {
-  if (user.role !== Role.PLATFORM_ADMIN) {
-    return null;
-  }
-
-  const effectiveRole = nextState.role ?? user.role;
-  const effectiveStatus = nextState.status ?? user.status;
-
-  if (
-    effectiveRole === Role.PLATFORM_ADMIN &&
-    effectiveStatus !== UserStatus.INACTIVE
-  ) {
-    return null;
-  }
-
-  const adminCount = await prisma.user.count({
-    where: {
-      role: Role.PLATFORM_ADMIN,
-      status: { not: UserStatus.INACTIVE },
-    },
-  });
-
-  if (adminCount <= 1) {
-    return jsonError(nextState.message, 400);
-  }
-
-  return null;
+  return ensureAdminUserCanChangeInService(user, nextState);
 }
 
 export async function updateManagedUserStatus(
@@ -113,39 +79,5 @@ export async function updateManagedUserStatus(
     }) => Promise<void>;
   },
 ) {
-  const managed = await requireManagedUser(params);
-  if ("error" in managed) {
-    return managed.error;
-  }
-
-  const { user, actor } = managed;
-
-  if (options?.requireCurrentStatus && user.status !== options.requireCurrentStatus) {
-    return jsonError(options.blockedMessage ?? "User is in an invalid status", 400);
-  }
-
-  if (options?.lastAdminMessage) {
-    const denied = await ensureAdminUserCanChange(user, {
-      status: nextStatus,
-      message: options.lastAdminMessage,
-    });
-
-    if (denied) {
-      return denied;
-    }
-  }
-
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: { status: nextStatus },
-  });
-
-  await options?.afterUpdate?.({
-    actorId: actor.id,
-    userId: user.id,
-    previousStatus: user.status,
-    nextStatus,
-  });
-
-  return Response.json({ user: { id: updated.id, status: updated.status } });
+  return updateManagedUserStatusInService(params, nextStatus, options);
 }

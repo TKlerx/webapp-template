@@ -1,32 +1,10 @@
 import { prisma } from "@/lib/db";
+import { buildAuditFilters } from "@/services/api/audit-filters";
+import type { AuditFilters } from "@/services/api/types";
 import { AuditAction } from "../../generated/prisma/enums";
 
-export type AuditFilters = {
-  action?: AuditAction | null;
-  entityType?: string | null;
-  scopeId?: string | null;
-  actorId?: string | null;
-  dateFrom?: Date | null;
-  dateTo?: Date | null;
-  page?: number;
-  limit?: number;
-};
-
 export async function getAuditEntries(filters: AuditFilters = {}) {
-  const where = {
-    ...(filters.action ? { action: filters.action } : {}),
-    ...(filters.entityType ? { entityType: filters.entityType } : {}),
-    ...(filters.scopeId ? { scopeId: filters.scopeId } : {}),
-    ...(filters.actorId ? { actorId: filters.actorId } : {}),
-    ...((filters.dateFrom || filters.dateTo)
-      ? {
-          createdAt: {
-            ...(filters.dateFrom ? { gte: filters.dateFrom } : {}),
-            ...(filters.dateTo ? { lte: filters.dateTo } : {}),
-          },
-        }
-      : {}),
-  };
+  const where = buildAuditFilters(filters);
 
   const [total, entries] = await Promise.all([
     prisma.auditEntry.count({ where }),
