@@ -31,6 +31,7 @@ function Write-Step($msg) { Write-Host "`n=== $msg ===" -ForegroundColor Cyan }
 function Write-Pass($msg) { Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Fail($msg) { Write-Host "  [FAIL] $msg" -ForegroundColor Red }
 function Write-Warn($msg) { Write-Host "  [SKIP] $msg" -ForegroundColor Yellow }
+function Write-Info($msg) { Write-Host "  [INFO] $msg" -ForegroundColor DarkGray }
 
 function Invoke-ShellCommand([string]$commandLine, [switch]$CaptureOutput) {
     if ($IsWindows -or $env:OS -eq "Windows_NT") {
@@ -541,6 +542,19 @@ function Test-ProductionDependencyAudit {
     }
 }
 
+function Get-DuplicationThreshold {
+    if (-not (Test-Path ".jscpd.json" -PathType Leaf)) {
+        return $null
+    }
+
+    $config = Get-Content ".jscpd.json" -Raw | ConvertFrom-Json
+    if ($null -eq $config.threshold) {
+        return $null
+    }
+
+    return ([double]$config.threshold).ToString("0.##")
+}
+
 $failures = @()
 
 if ($Phase -in "all", "full", "quick", "commit") {
@@ -570,20 +584,29 @@ if ($Phase -in "all", "full", "quality", "commit") {
 if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Duplication (jscpd)"
     try {
+        $threshold = Get-DuplicationThreshold
+        if ($threshold) {
+            Write-Info "configured duplication threshold: $threshold%"
+        }
+
         $result = Invoke-NativeCommandCaptured "npm run duplication"
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "duplication check failed"
         }
 
-        $threshold = ((Get-Content ".jscpd.json" -Raw | ConvertFrom-Json).threshold).ToString("0.##")
         $summaryLine = $result.Output |
             Select-String -Pattern 'Total:\s+\|\s+\d+\s+\|\s+\d+\s+\|\s+\d+\s+\|\s+\d+\s+\|\s+\d+\s+\(([\d.]+)%\)' |
             Select-Object -Last 1
 
-        if ($summaryLine -and $summaryLine.Matches.Count -gt 0) {
+        if ($summaryLine -and $summaryLine.Matches.Count -gt 0 -and $threshold) {
             $duplicationPercent = $summaryLine.Matches[0].Groups[1].Value
             Write-Pass "duplication check passed ($duplicationPercent% <= $threshold%)"
+        } elseif ($summaryLine -and $summaryLine.Matches.Count -gt 0) {
+            $duplicationPercent = $summaryLine.Matches[0].Groups[1].Value
+            Write-Pass "duplication check passed ($duplicationPercent%)"
+        } elseif ($threshold) {
+            Write-Pass "duplication check passed (threshold $threshold%)"
         } else {
             Write-Pass "duplication check passed"
         }
