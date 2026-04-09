@@ -1,6 +1,6 @@
 # Business App Starter Specs Overview
 
-Last Updated: 2026-04-03
+Last Updated: 2026-04-09
 
 Purpose: Track the status of all planned features, their implementation progress, and next steps.
 
@@ -22,6 +22,8 @@ Purpose: Track the status of all planned features, their implementation progress
 | --- | --- | --- | --- | --- | --- |
 | 010 | Auth Security Hardening | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
 | 011 | API Route Refactor | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
+| 012 | OpenAPI Specification & Personal Access Tokens | Tasked | - | Large | Start implementation with `/speckit.implement` |
+| 013 | Cross-Platform CLI Client | Tasked | Spec 012 (OpenAPI & Personal Access Tokens) — requires PAT auth and CLI browser login flow | Large | Start implementation with `/speckit.implement` |
 
 ## Implementation Roadmap
 
@@ -32,7 +34,8 @@ Purpose: Track the status of all planned features, their implementation progress
 
 ### Begin Immediately
 
-- No tasked or in-progress numbered features are waiting for implementation work
+- 012 OpenAPI Specification & Personal Access Tokens: Start implementation with `/speckit.implement`
+- 013 Cross-Platform CLI Client: Start implementation with `/speckit.implement`
 
 ### Blocked / Prep Needed
 
