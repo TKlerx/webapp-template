@@ -36,9 +36,20 @@ def process_job(job: BackgroundJob) -> dict[str, object]:
 def main() -> None:
     config = load_config()
     store = JobStore(config)
-    logger.info("worker.started worker_id=%s poll_interval=%s", config.worker_id, config.poll_interval_seconds)
+    logger.info(
+        "worker.started worker_id=%s poll_interval=%s max_attempts=%s retry_backoff=%s stale_lock=%s",
+        config.worker_id,
+        config.poll_interval_seconds,
+        config.max_attempts,
+        config.retry_backoff_seconds,
+        config.stale_lock_seconds,
+    )
 
     while True:
+        recovered_count = store.requeue_stale_jobs()
+        if recovered_count:
+            logger.warning("jobs.requeued_stale count=%s", recovered_count)
+
         job = store.claim_next_job()
         if job is None:
             time.sleep(config.poll_interval_seconds)
@@ -51,7 +62,7 @@ def main() -> None:
             logger.info("job.completed id=%s result=%s", job.id, json.dumps(result))
         except Exception as error:  # noqa: BLE001
             store.fail_job(job.id, str(error))
-            logger.exception("job.failed id=%s", job.id)
+            logger.exception("job.failed id=%s attempt=%s", job.id, job.attempt_count)
 
 
 if __name__ == "__main__":

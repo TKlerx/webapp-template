@@ -3,6 +3,16 @@ x-app-image: &app-image
   build:
     context: .
     dockerfile: Dockerfile.app
+    target: runner
+    args:
+      BASE_PATH: ${BASE_PATH}
+
+x-migrate-image: &migrate-image
+  image: ${APP_IMAGE_NAME:-business-app-starter}:latest
+  build:
+    context: .
+    dockerfile: Dockerfile.app
+    target: migrate-runner
     args:
       BASE_PATH: ${BASE_PATH}
 
@@ -23,18 +33,21 @@ services:
     restart: unless-stopped
 
   migrate:
-    <<: *app-image
+    <<: *migrate-image
     user: "0:0"
     env_file: .env
     environment:
-      DATABASE_URL: "postgresql://starter:starter@postgres:5432/business_app_starter?schema=public"
       NODE_ENV: "production"
       PORT: "3270"
       PRISMA_CONFIG_PATH: "prisma.config.postgres.ts"
     volumes:
       - uploads_data:/app/uploads
     command: >
-      sh -c "node scripts/prisma-predeploy-check.js
+      sh -c "case \"$DATABASE_URL\" in
+      file:*) echo 'Docker Compose requires a PostgreSQL DATABASE_URL in .env. SQLite file URLs are not allowed here.' >&2; exit 1 ;;
+      '') echo 'Docker Compose requires DATABASE_URL to be set in .env.' >&2; exit 1 ;;
+      esac
+      && node scripts/prisma-predeploy-check.js
       && npx prisma migrate deploy --config prisma.config.postgres.ts"
     depends_on:
       postgres:
@@ -45,7 +58,6 @@ services:
     <<: *app-image
     env_file: .env
     environment:
-      DATABASE_URL: "postgresql://starter:starter@postgres:5432/business_app_starter?schema=public"
       NODE_ENV: "production"
       PORT: "3270"
     volumes:
@@ -58,6 +70,12 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    command: >
+      sh -c "case \"$DATABASE_URL\" in
+      file:*) echo 'Docker Compose requires a PostgreSQL DATABASE_URL in .env. SQLite file URLs are not allowed here.' >&2; exit 1 ;;
+      '') echo 'Docker Compose requires DATABASE_URL to be set in .env.' >&2; exit 1 ;;
+      esac
+      && npm run start"
 
   worker:
     image: ${WORKER_IMAGE_NAME:-business-app-starter-worker}:latest
@@ -66,7 +84,6 @@ services:
       dockerfile: Dockerfile.worker
     env_file: .env
     environment:
-      DATABASE_URL: "postgresql://starter:starter@postgres:5432/business_app_starter?schema=public"
       WORKER_POLL_INTERVAL_SECONDS: "3"
     restart: unless-stopped
     depends_on:
@@ -74,6 +91,12 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    command: >
+      sh -c "case \"$DATABASE_URL\" in
+      file:*) echo 'Docker Compose requires a PostgreSQL DATABASE_URL in .env. SQLite file URLs are not allowed here.' >&2; exit 1 ;;
+      '') echo 'Docker Compose requires DATABASE_URL to be set in .env.' >&2; exit 1 ;;
+      esac
+      && uv run starter-worker"
 
 volumes:
   postgres_data:

@@ -7,13 +7,13 @@
     Usage: ./validate.ps1 [phase]
     Phases:
       all      - typecheck + lint + duplication + semgrep + test (default, pre-commit)
-      full     - all quality checks + Playwright E2E tests (recommended before merge; skips continuity freshness)
+      full     - all quality checks + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
       continuity - check whether CONTINUE.md / CONTINUE_LOG.md need a refresh
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
       quality  - lint + duplication + semgrep
-      commit   - validate all + continuity, then git add + commit + push
+      commit   - validate all + blocking shipped-deps audit + continuity, then git add + commit + push
 #>
 
 param(
@@ -32,6 +32,18 @@ function Write-Pass($msg) { Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Fail($msg) { Write-Host "  [FAIL] $msg" -ForegroundColor Red }
 function Write-Warn($msg) { Write-Host "  [SKIP] $msg" -ForegroundColor Yellow }
 function Write-Info($msg) { Write-Host "  [INFO] $msg" -ForegroundColor DarkGray }
+
+$AllowedProductionAuditPackages = @(
+    "@hono/node-server",
+    "@prisma/dev",
+    "defu",
+    "drizzle-orm",
+    "hono",
+    "prisma",
+    "vite"
+)
+
+$PackagePublishTimeCache = @{}
 
 function Invoke-ShellCommand([string]$commandLine, [switch]$CaptureOutput) {
     if ($IsWindows -or $env:OS -eq "Windows_NT") {
@@ -517,28 +529,111 @@ function Test-ContinuityFreshness {
     }
 }
 
-function Test-ProductionDependencyAudit {
-    Write-Step "Production dependency audit (npm audit --omit=dev)"
+function Test-ProductionDependencyAudit([switch]$Blocking) {
+    Write-Step "Production dependency audit (npm audit --omit=dev --omit=optional)"
     try {
-        $result = Invoke-NativeCommandCaptured "npm audit --omit=dev"
-        if ($result.ExitCode -ne 0) {
-            $result.Output | Out-Host
-            throw "production dependency audit failed"
+        $result = Invoke-NativeCommandCaptured "npm audit --omit=dev --omit=optional --json"
+        $rawOutput = ($result.Output -join "`n").Trim()
+
+        if ($result.ExitCode -eq 0) {
+            $audit = $null
+            if ($rawOutput) {
+                try {
+                    $audit = $rawOutput | ConvertFrom-Json
+                } catch {
+                    $audit = $null
+                }
+            }
+
+            if ($audit -and $audit.metadata -and $audit.metadata.vulnerabilities) {
+                $vulns = $audit.metadata.vulnerabilities
+                Write-Pass "production dependency audit passed ($($vulns.total) vulnerabilities)"
+            } else {
+                Write-Pass "production dependency audit passed"
+            }
+
+            return
         }
 
-        $summaryLine = $result.Output |
-            Select-String -Pattern 'found\s+(\d+)\s+vulnerabilities' |
-            Select-Object -Last 1
+        $audit = $null
+        if ($rawOutput) {
+            try {
+                $audit = $rawOutput | ConvertFrom-Json
+            } catch {
+                $audit = $null
+            }
+        }
 
-        if ($summaryLine -and $summaryLine.Matches.Count -gt 0) {
-            $vulnerabilities = $summaryLine.Matches[0].Groups[1].Value
-            Write-Pass "production dependency audit passed ($vulnerabilities vulnerabilities)"
+        if ($audit -and $audit.metadata -and $audit.metadata.vulnerabilities) {
+            $vulns = $audit.metadata.vulnerabilities
+            $affectedPackages = @($audit.vulnerabilities.PSObject.Properties.Name | Sort-Object)
+            $unexpectedPackages = @(
+                $affectedPackages |
+                    Where-Object { $AllowedProductionAuditPackages -notcontains $_ }
+            )
+            $packageStatuses = @(Get-AuditPackageStatuses $audit)
+            $summary = "$($vulns.total) vulnerabilities ($($vulns.high) high, $($vulns.moderate) moderate, $($vulns.low) low, $($vulns.critical) critical)"
+
+            $shouldFail = $Blocking -or $unexpectedPackages.Count -gt 0
+
+            if ($shouldFail) {
+                Write-Fail "production dependency audit failed"
+            } else {
+                Write-Warn "production dependency audit reported only allowlisted vulnerabilities"
+            }
+
+            Write-Host $summary -ForegroundColor Yellow
+            if ($affectedPackages.Count -gt 0) {
+                Write-Host ("Affected packages: " + ($affectedPackages -join ", ")) -ForegroundColor Yellow
+            }
+            if ($unexpectedPackages.Count -gt 0) {
+                Write-Host ("Unexpected packages: " + ($unexpectedPackages -join ", ")) -ForegroundColor Yellow
+            } else {
+                Write-Host ("Allowlisted packages: " + ($AllowedProductionAuditPackages -join ", ")) -ForegroundColor Yellow
+                Write-Host "This repo enforces npm min-release-age=7. If the fixed package versions are newer than that cooldown window, the allowlisted audit can stay red temporarily." -ForegroundColor Yellow
+            }
+            if ($packageStatuses.Count -gt 0) {
+                Write-Host "Per-package fix status:" -ForegroundColor Yellow
+                foreach ($packageStatus in $packageStatuses) {
+                    $detail = $packageStatus.Status
+                    if ($packageStatus.FixPackage -and $packageStatus.FixVersion) {
+                        $detail += " -> $($packageStatus.FixPackage)@$($packageStatus.FixVersion)"
+                    }
+                    if ($packageStatus.PublishedAt) {
+                        $detail += " (published $($packageStatus.PublishedAt.UtcDateTime.ToString('yyyy-MM-dd HH:mm')) UTC)"
+                    }
+                    if ($packageStatus.IsSemVerMajor) {
+                        $detail += " [semver-major]"
+                    }
+                    Write-Host ("  - {0}: {1}" -f $packageStatus.PackageName, $detail) -ForegroundColor Yellow
+                }
+            }
         } else {
-            Write-Pass "production dependency audit passed"
+            if ($rawOutput) {
+                $rawOutput | Out-Host
+            }
+
+            if ($Blocking) {
+                Write-Fail "production dependency audit failed"
+            } else {
+                Write-Fail "production dependency audit failed"
+            }
+            Write-Host "npm audit returned a non-zero status but did not produce machine-readable details." -ForegroundColor Yellow
+            $script:failures += "prod-audit"
+            return
+        }
+
+        if ($Blocking -or ($unexpectedPackages -and $unexpectedPackages.Count -gt 0)) {
+            $script:failures += "prod-audit"
         }
     } catch {
         Write-Fail "production dependency audit failed"
-        $script:failures += "prod-audit"
+        Write-Host $_.Exception.Message -ForegroundColor Yellow
+        if ($Blocking) {
+            $script:failures += "prod-audit"
+        } else {
+            Write-Host "Continuing because production audit is advisory in the `full` phase." -ForegroundColor Yellow
+        }
     }
 }
 
@@ -553,6 +648,138 @@ function Get-DuplicationThreshold {
     }
 
     return ([double]$config.threshold).ToString("0.##")
+}
+
+function Get-NpmMinReleaseAgeDays {
+    if (-not (Test-Path ".npmrc" -PathType Leaf)) {
+        return $null
+    }
+
+    $npmrcContent = Get-Content ".npmrc" -Raw
+    $match = [regex]::Match($npmrcContent, '(?m)^\s*min-release-age\s*=\s*(\d+)\s*$')
+    if (-not $match.Success) {
+        return $null
+    }
+
+    return [int]$match.Groups[1].Value
+}
+
+function Get-PackagePublishTimestamp([string]$packageName, [string]$version) {
+    if ([string]::IsNullOrWhiteSpace($packageName) -or [string]::IsNullOrWhiteSpace($version)) {
+        return $null
+    }
+
+    $cacheKey = "$packageName@$version"
+    if ($PackagePublishTimeCache.ContainsKey($cacheKey)) {
+        return $PackagePublishTimeCache[$cacheKey]
+    }
+
+    $escapedPackageName = $packageName.Replace('"', '\"')
+    $result = Invoke-NativeCommandCaptured "npm view ""$escapedPackageName"" time --json"
+    if ($result.ExitCode -ne 0) {
+        $PackagePublishTimeCache[$cacheKey] = $null
+        return $null
+    }
+
+    $rawOutput = ($result.Output -join "`n").Trim()
+    if (-not $rawOutput) {
+        $PackagePublishTimeCache[$cacheKey] = $null
+        return $null
+    }
+
+    try {
+        $publishTime = $null
+        $escapedVersion = [regex]::Escape($version)
+        $regexMatch = [regex]::Match($rawOutput, '"' + $escapedVersion + '"\s*:\s*"([^"]+)"')
+        if ($regexMatch.Success) {
+            $publishTime = $regexMatch.Groups[1].Value
+        }
+
+        if (-not $publishTime) {
+            $timeData = $rawOutput | ConvertFrom-Json
+            $publishTimeProperty = $timeData.PSObject.Properties.Match($version) | Select-Object -First 1
+            $publishTime = if ($publishTimeProperty) { $publishTimeProperty.Value } else { $null }
+        }
+
+        if (-not $publishTime) {
+            $PackagePublishTimeCache[$cacheKey] = $null
+            return $null
+        }
+
+        $parsedTimestamp = [DateTimeOffset]::Parse($publishTime)
+        $PackagePublishTimeCache[$cacheKey] = $parsedTimestamp
+        return $parsedTimestamp
+    } catch {
+        $PackagePublishTimeCache[$cacheKey] = $null
+        return $null
+    }
+}
+
+function Get-AuditPackageStatuses($audit) {
+    $minReleaseAgeDays = Get-NpmMinReleaseAgeDays
+    $cutoff = if ($null -ne $minReleaseAgeDays) {
+        [DateTimeOffset]::UtcNow.AddDays(-$minReleaseAgeDays)
+    } else {
+        $null
+    }
+
+    $statuses = @()
+
+    foreach ($property in $audit.vulnerabilities.PSObject.Properties) {
+        $packageName = $property.Name
+        $vulnerability = $property.Value
+        $fixAvailable = $vulnerability.fixAvailable
+
+        if ($null -eq $fixAvailable -or $fixAvailable -eq $false) {
+            $statuses += [pscustomobject]@{
+                PackageName = $packageName
+                Status = "No fix available at all"
+                FixPackage = $null
+                FixVersion = $null
+                PublishedAt = $null
+                IsSemVerMajor = $false
+            }
+            continue
+        }
+
+        if ($fixAvailable -is [bool]) {
+            $statuses += [pscustomobject]@{
+                PackageName = $packageName
+                Status = "Fix available (version not specified by npm audit)"
+                FixPackage = $null
+                FixVersion = $null
+                PublishedAt = $null
+                IsSemVerMajor = $false
+            }
+            continue
+        }
+
+        $fixPackageName = $fixAvailable.name
+        $fixVersion = $fixAvailable.version
+        $publishTimestamp = Get-PackagePublishTimestamp $fixPackageName $fixVersion
+        $isSemVerMajor = [bool]$fixAvailable.isSemVerMajor
+
+        $statusText = if ([string]::IsNullOrWhiteSpace($fixPackageName) -or [string]::IsNullOrWhiteSpace($fixVersion)) {
+            "Fix available (version not specified by npm audit)"
+        } elseif ($null -eq $publishTimestamp -or $null -eq $cutoff) {
+            "Fix available (publish date unavailable)"
+        } elseif ($publishTimestamp -gt $cutoff) {
+            "Fix available (with release date skip)"
+        } else {
+            "Fix available (with normal min release date)"
+        }
+
+        $statuses += [pscustomobject]@{
+            PackageName = $packageName
+            Status = $statusText
+            FixPackage = $fixPackageName
+            FixVersion = $fixVersion
+            PublishedAt = $publishTimestamp
+            IsSemVerMajor = $isSemVerMajor
+        }
+    }
+
+    return @($statuses | Sort-Object PackageName)
 }
 
 $failures = @()
@@ -710,7 +937,7 @@ if ($Phase -in "continuity", "commit") {
 }
 
 if ($Phase -in "full", "commit") {
-    Test-ProductionDependencyAudit
+    Test-ProductionDependencyAudit -Blocking:($Phase -eq "commit")
 }
 
 if ($Phase -in "full", "e2e") {

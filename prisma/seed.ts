@@ -1,15 +1,28 @@
 import "dotenv/config";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { createRequire } from "node:module";
 import { PrismaPg } from "@prisma/adapter-pg";
+import type { SqlDriverAdapterFactory } from "@prisma/client/runtime/client";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "../generated/prisma/client";
 import { AuthMethod, Role, ThemePreference, UserStatus } from "../generated/prisma/enums";
 import { validatePasswordComplexity } from "../src/lib/auth";
 
+const require = createRequire(import.meta.url);
+
+function createAdapter(connectionString: string) {
+  if (connectionString.startsWith("file:")) {
+    const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3") as {
+      PrismaBetterSqlite3: new (options: { url: string }) => SqlDriverAdapterFactory;
+    };
+
+    return new PrismaBetterSqlite3({ url: connectionString });
+  }
+
+  return new PrismaPg({ connectionString });
+}
+
 const connectionString = process.env.DATABASE_URL ?? "file:./dev.db";
-const adapter = connectionString.startsWith("file:")
-  ? new PrismaBetterSqlite3({ url: connectionString })
-  : new PrismaPg({ connectionString });
+const adapter = createAdapter(connectionString);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {

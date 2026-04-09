@@ -4,10 +4,9 @@ import json
 import sqlite3
 from contextlib import closing
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 import psycopg
 from psycopg.rows import dict_row
@@ -37,6 +36,12 @@ class JobStore:
 
         return self._claim_postgres_job()
 
+    def requeue_stale_jobs(self) -> int:
+        if self._is_sqlite:
+            return self._requeue_stale_sqlite_jobs()
+
+        return self._requeue_stale_postgres_jobs()
+
     def complete_job(self, job_id: str, result: dict[str, Any]) -> None:
         payload = json.dumps(result)
         if self._is_sqlite:
@@ -47,6 +52,7 @@ class JobStore:
                     SET status = 'COMPLETED',
                         result = ?,
                         error = NULL,
+                        lockedAt = NULL,
                         finishedAt = CURRENT_TIMESTAMP,
                         updatedAt = CURRENT_TIMESTAMP
                     WHERE id = ?
@@ -64,6 +70,7 @@ class JobStore:
                     SET status = 'COMPLETED',
                         result = %s,
                         error = NULL,
+                        "lockedAt" = NULL,
                         "finishedAt" = NOW(),
                         "updatedAt" = NOW()
                     WHERE id = %s
@@ -74,35 +81,10 @@ class JobStore:
 
     def fail_job(self, job_id: str, error: str) -> None:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
-                connection.execute(
-                    """
-                    UPDATE BackgroundJob
-                    SET status = 'FAILED',
-                        error = ?,
-                        finishedAt = CURRENT_TIMESTAMP,
-                        updatedAt = CURRENT_TIMESTAMP
-                    WHERE id = ?
-                    """,
-                    (error, job_id),
-                )
-                connection.commit()
+            self._fail_sqlite_job(job_id, error)
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    """
-                    UPDATE "BackgroundJob"
-                    SET status = 'FAILED',
-                        error = %s,
-                        "finishedAt" = NOW(),
-                        "updatedAt" = NOW()
-                    WHERE id = %s
-                    """,
-                    (error, job_id),
-                )
-            connection.commit()
+        self._fail_postgres_job(job_id, error)
 
     def _claim_sqlite_job(self) -> BackgroundJob | None:
         with closing(sqlite3.connect(self._sqlite_path)) as connection:
@@ -185,6 +167,147 @@ class JobStore:
             attempt_count=row["attemptCount"],
         )
 
+    def _requeue_stale_sqlite_jobs(self) -> int:
+        with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            cursor = connection.execute(
+                """
+                UPDATE BackgroundJob
+                SET status = 'PENDING',
+                    error = CASE
+                        WHEN error IS NULL OR error = '' THEN 'Worker lock expired; job requeued.'
+                        ELSE error || '\nWorker lock expired; job requeued.'
+                    END,
+                    availableAt = CURRENT_TIMESTAMP,
+                    lockedAt = NULL,
+                    workerId = NULL,
+                    updatedAt = CURRENT_TIMESTAMP
+                WHERE status = 'IN_PROGRESS'
+                  AND lockedAt IS NOT NULL
+                  AND datetime(lockedAt) <= datetime('now', ?)
+                """,
+                (f"-{self._config.stale_lock_seconds} seconds",),
+            )
+            connection.commit()
+            return int(cursor.rowcount or 0)
+
+    def _requeue_stale_postgres_jobs(self) -> int:
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "BackgroundJob"
+                    SET status = 'PENDING',
+                        error = CASE
+                            WHEN error IS NULL OR error = '' THEN 'Worker lock expired; job requeued.'
+                            ELSE error || E'\nWorker lock expired; job requeued.'
+                        END,
+                        "availableAt" = NOW(),
+                        "lockedAt" = NULL,
+                        "workerId" = NULL,
+                        "updatedAt" = NOW()
+                    WHERE status = 'IN_PROGRESS'
+                      AND "lockedAt" IS NOT NULL
+                      AND "lockedAt" <= NOW() - (%s * INTERVAL '1 second')
+                    """,
+                    (self._config.stale_lock_seconds,),
+                )
+                row_count = int(cursor.rowcount or 0)
+            connection.commit()
+            return row_count
+
+    def _fail_sqlite_job(self, job_id: str, error: str) -> None:
+        with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            connection.row_factory = sqlite3.Row
+            row = connection.execute(
+                "SELECT attemptCount FROM BackgroundJob WHERE id = ?",
+                (job_id,),
+            ).fetchone()
+            if row is None:
+                return
+
+            attempt_count = int(row["attemptCount"])
+            should_retry = attempt_count < self._config.max_attempts
+            if should_retry:
+                connection.execute(
+                    """
+                    UPDATE BackgroundJob
+                    SET status = 'PENDING',
+                        error = ?,
+                        availableAt = ?,
+                        lockedAt = NULL,
+                        finishedAt = NULL,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (error, _sqlite_timestamp_after_seconds(self._retry_delay_seconds(attempt_count)), job_id),
+                )
+            else:
+                connection.execute(
+                    """
+                    UPDATE BackgroundJob
+                    SET status = 'FAILED',
+                        error = ?,
+                        lockedAt = NULL,
+                        finishedAt = CURRENT_TIMESTAMP,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (error, job_id),
+                )
+            connection.commit()
+
+    def _fail_postgres_job(self, job_id: str, error: str) -> None:
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT "attemptCount" FROM "BackgroundJob" WHERE id = %s',
+                    (job_id,),
+                )
+                row = cursor.fetchone()
+                if row is None:
+                    connection.commit()
+                    return
+
+                attempt_count = int(row[0])
+                should_retry = attempt_count < self._config.max_attempts
+                if should_retry:
+                    cursor.execute(
+                        """
+                        UPDATE "BackgroundJob"
+                        SET status = 'PENDING',
+                            error = %s,
+                            "availableAt" = %s,
+                            "lockedAt" = NULL,
+                            "finishedAt" = NULL,
+                            "updatedAt" = NOW()
+                        WHERE id = %s
+                        """,
+                        (
+                            error,
+                            datetime.now(timezone.utc)
+                            + timedelta(seconds=self._retry_delay_seconds(attempt_count)),
+                            job_id,
+                        ),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        UPDATE "BackgroundJob"
+                        SET status = 'FAILED',
+                            error = %s,
+                            "lockedAt" = NULL,
+                            "finishedAt" = NOW(),
+                            "updatedAt" = NOW()
+                        WHERE id = %s
+                        """,
+                        (error, job_id),
+                    )
+            connection.commit()
+
+    def _retry_delay_seconds(self, attempt_count: int) -> float:
+        multiplier = max(attempt_count, 1)
+        return max(self._config.retry_backoff_seconds, 0) * multiplier
+
 
 def _parse_payload(value: str | None) -> dict[str, Any]:
     if not value:
@@ -196,3 +319,8 @@ def _parse_payload(value: str | None) -> dict[str, Any]:
         return {"raw": value}
 
     return parsed if isinstance(parsed, dict) else {"value": parsed}
+
+
+def _sqlite_timestamp_after_seconds(delay_seconds: float) -> str:
+    scheduled_for = datetime.now(timezone.utc) + timedelta(seconds=delay_seconds)
+    return scheduled_for.strftime("%Y-%m-%d %H:%M:%S")

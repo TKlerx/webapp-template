@@ -1,6 +1,21 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { createRequire } from "node:module";
 import { PrismaPg } from "@prisma/adapter-pg";
+import type { SqlDriverAdapterFactory } from "@prisma/client/runtime/client";
 import { PrismaClient } from "../../generated/prisma/client";
+
+const require = createRequire(import.meta.url);
+
+function createAdapter(connectionString: string) {
+  if (connectionString.startsWith("file:")) {
+    const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3") as {
+      PrismaBetterSqlite3: new (options: { url: string }) => SqlDriverAdapterFactory;
+    };
+
+    return new PrismaBetterSqlite3({ url: connectionString });
+  }
+
+  return new PrismaPg({ connectionString });
+}
 
 function createPrismaClient() {
   return new PrismaClient({ adapter });
@@ -13,9 +28,7 @@ declare global {
 }
 
 const connectionString = process.env.DATABASE_URL ?? "file:./dev.db";
-const adapter = connectionString.startsWith("file:")
-  ? new PrismaBetterSqlite3({ url: connectionString })
-  : new PrismaPg({ connectionString });
+const adapter = createAdapter(connectionString);
 
 export const prisma: AppPrismaClient = globalThis.prisma ?? createPrismaClient();
 
