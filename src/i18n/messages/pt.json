@@ -107,6 +107,7 @@
     "title": "Tarefas em segundo plano",
     "description": "Tarefas recentes do worker em toda a aplicacao. Esta pagina mostra fila, falhas e payloads.",
     "showingRecent": "A mostrar as ultimas {count} tarefas",
+    "retryScheduled": "Nova tentativa {attempt} as {time}",
     "empty": "Ainda nao existem tarefas em segundo plano.",
     "notAssigned": "Nao atribuido",
     "system": "Sistema",

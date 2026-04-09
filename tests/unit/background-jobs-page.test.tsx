@@ -45,8 +45,18 @@ import BackgroundJobsPage from "@/app/(dashboard)/background-jobs/page";
 describe("background jobs dashboard page", () => {
   afterEach(() => {
     vi.clearAllMocks();
-    getTranslations.mockResolvedValue((key: string, values?: { count?: number }) =>
-      key === "showingRecent" ? `Showing the latest ${values?.count ?? 0} jobs` : key,
+    getTranslations.mockResolvedValue(
+      (key: string, values?: { count?: number; attempt?: number; time?: string }) => {
+        if (key === "showingRecent") {
+          return `Showing the latest ${values?.count ?? 0} jobs`;
+        }
+
+        if (key === "retryScheduled") {
+          return `Retry ${values?.attempt ?? 0} at ${values?.time ?? ""}`;
+        }
+
+        return key;
+      },
     );
   });
 
@@ -70,12 +80,12 @@ describe("background jobs dashboard page", () => {
       {
         id: "job-1",
         jobType: "echo",
-        status: "FAILED",
+        status: "PENDING",
         payload: "{\"message\":\"hello\"}",
         result: null,
         error: "boom",
         attemptCount: 2,
-        availableAt: new Date("2026-03-31T10:00:00Z"),
+        availableAt: new Date("2026-03-31T10:05:00Z"),
         createdAt: new Date("2026-03-31T10:00:00Z"),
         updatedAt: new Date("2026-03-31T10:01:00Z"),
         workerId: null,
@@ -117,10 +127,11 @@ describe("background jobs dashboard page", () => {
     });
     expect(text).toContain("echo");
     expect(text).toContain("noop");
-    expect(text).toContain("FAILED");
+    expect(text).toContain("PENDING");
     expect(text).toContain("COMPLETED");
     expect(text).toContain("Admin User");
     expect(text).toContain("boom");
+    expect(text).toContain("Retry 3 at");
     expect(text).toContain("Showing the latest 2 jobs");
   });
 });

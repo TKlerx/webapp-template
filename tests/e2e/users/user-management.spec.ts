@@ -36,14 +36,17 @@ test("admin creates a local user, user logs in and changes password", async ({
     await expectOnDashboard(adminPage);
     await adminPage.goto(`${appBasePath}/users`);
 
-    const createUserCard = adminPage
-      .getByRole("heading", { name: "Create local user" })
-      .locator("xpath=..");
+    await adminPage.getByRole("button", { name: "Create user" }).first().click();
+    const createUserDialog = adminPage.getByRole("dialog");
+    await expect(createUserDialog).toBeVisible();
 
-    await createUserCard.getByPlaceholder("Email").fill(createdUser.email);
-    await createUserCard.getByPlaceholder("Name").fill(createdUser.name);
-    await createUserCard.locator("select").selectOption(Role.SCOPE_USER);
-    await createUserCard.getByPlaceholder("Temporary password").fill(createdUser.temporaryPassword);
+    await createUserDialog.getByPlaceholder("Email").fill(createdUser.email);
+    await createUserDialog.getByPlaceholder("Name").fill(createdUser.name);
+    await createUserDialog.getByRole("combobox", { name: "Role" }).click();
+    await adminPage.getByRole("option", { name: "Scoped User" }).click();
+    await createUserDialog
+      .getByPlaceholder("Temporary password")
+      .fill(createdUser.temporaryPassword);
     await Promise.all([
       adminPage.waitForResponse(
         (response) =>
@@ -51,7 +54,7 @@ test("admin creates a local user, user logs in and changes password", async ({
           response.request().method() === "POST" &&
           response.status() === 201,
       ),
-      createUserCard.getByRole("button", { name: "Create user" }).click(),
+      createUserDialog.getByRole("button", { name: "Create user" }).click(),
     ]);
     await adminPage.reload();
 

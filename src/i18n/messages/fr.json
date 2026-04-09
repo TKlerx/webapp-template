@@ -107,6 +107,7 @@
     "title": "Taches en arriere-plan",
     "description": "Taches recentes du worker dans l'application. Cette page affiche la file, les erreurs et les charges utiles.",
     "showingRecent": "Affichage des {count} dernieres taches",
+    "retryScheduled": "Nouvel essai {attempt} a {time}",
     "empty": "Aucune tache en arriere-plan n'a encore ete creee.",
     "notAssigned": "Non assigne",
     "system": "Systeme",

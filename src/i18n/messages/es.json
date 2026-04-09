@@ -107,6 +107,7 @@
     "title": "Trabajos en segundo plano",
     "description": "Trabajos recientes del worker en toda la aplicacion. Esta pagina muestra la cola, fallos y cargas utiles.",
     "showingRecent": "Mostrando los ultimos {count} trabajos",
+    "retryScheduled": "Reintento {attempt} a las {time}",
     "empty": "Todavia no hay trabajos en segundo plano.",
     "notAssigned": "Sin asignar",
     "system": "Sistema",

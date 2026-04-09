@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
-import { clsx } from "clsx";
+import { Button as ShadcnButton } from "@/components/shadcn/button";
+import { cn } from "@/lib/utils";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary";
@@ -7,14 +8,15 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 export function Button({ className, variant = "primary", ...props }: ButtonProps) {
   return (
-    <button
-      className={clsx(
-        "rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60",
+    <ShadcnButton
+      className={cn(
+        "rounded-full px-4 py-2 text-sm font-semibold shadow-sm",
         variant === "primary"
-          ? "bg-[var(--accent)] text-[var(--accent-foreground)] shadow-sm hover:brightness-105"
-          : "border border-black/15 bg-[var(--panel)] text-[var(--foreground)] shadow-sm hover:border-black/25 hover:bg-[color:color-mix(in_srgb,var(--panel)_92%,var(--foreground)_8%)] dark:border-white/15 dark:hover:border-white/30 dark:hover:bg-[color:color-mix(in_srgb,var(--panel)_88%,white_12%)]",
+          ? "bg-[var(--accent)] text-[var(--accent-foreground)] hover:brightness-105"
+          : "border border-black/15 bg-[var(--panel)] text-[var(--foreground)] hover:border-black/25 hover:bg-[color:color-mix(in_srgb,var(--panel)_92%,var(--foreground)_8%)] dark:border-white/15 dark:hover:border-white/30 dark:hover:bg-[color:color-mix(in_srgb,var(--panel)_88%,white_12%)]",
         className,
       )}
+      variant={variant === "primary" ? "default" : "outline"}
       {...props}
     />
   );

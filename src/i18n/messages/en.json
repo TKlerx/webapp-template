@@ -107,6 +107,7 @@
     "title": "Background Jobs",
     "description": "Recent worker jobs across the application. Use this page to watch queue activity, failures, and job payloads.",
     "showingRecent": "Showing the latest {count} jobs",
+    "retryScheduled": "Retry {attempt} at {time}",
     "empty": "No background jobs have been queued yet.",
     "notAssigned": "Not assigned",
     "system": "System",

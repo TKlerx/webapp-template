@@ -5,6 +5,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { AuthMethod, Role, UserStatus } from "../../../generated/prisma/enums";
 import { Role as RoleEnum, UserStatus as UserStatusEnum } from "../../../generated/prisma/enums";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/shadcn/select";
 import { withBasePath } from "@/lib/base-path";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
@@ -79,29 +86,36 @@ export function UserManagementTable({
                 </td>
                 <td className="py-3 opacity-70">{entry.email}</td>
                 <td className="py-3">
-                  <select
-                    className="rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-[var(--panel)]"
+                  <Select
                     disabled={!canEditSelfRole || Boolean(isBusy)}
                     value={entry.role}
-                    onChange={(event) =>
+                    onValueChange={(value) =>
                       void runAction(
                         `${entry.id}-role`,
                         `/api/users/${entry.id}/role`,
                         {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ role: event.target.value }),
+                          body: JSON.stringify({ role: value }),
                         },
-                        t("roleUpdated", { role: t(`roles.${event.target.value as Role}`) }),
+                        t("roleUpdated", { role: t(`roles.${value as Role}`) }),
                       )
                     }
                   >
-                    {Object.values(RoleEnum).map((role) => (
-                      <option key={role} value={role}>
-                        {t(`roles.${role}`)}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger
+                      aria-label={t("role")}
+                      className="w-[13rem] rounded-2xl border-black/10 bg-white px-3 py-2 shadow-none dark:border-white/10 dark:bg-[var(--panel)]"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
+                      {Object.values(RoleEnum).map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {t(`roles.${role}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </td>
                 <td className="py-3">
                   <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold dark:bg-white/10">

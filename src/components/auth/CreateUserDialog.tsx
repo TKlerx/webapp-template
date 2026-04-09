@@ -4,27 +4,58 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Role } from "../../../generated/prisma/enums";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/shadcn/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/shadcn/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/shadcn/select";
 import { Button } from "@/components/ui/Button";
 import { Form } from "@/components/ui/Form";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
 
+const initialForm: {
+  email: string;
+  name: string;
+  role: Role;
+  temporaryPassword: string;
+} = {
+  email: "",
+  name: "",
+  role: Role.SCOPE_USER,
+  temporaryPassword: "",
+};
+
 export function CreateUserDialog() {
-  const [form, setForm] = useState<{
-    email: string;
-    name: string;
-    role: Role;
-    temporaryPassword: string;
-  }>({
-    email: "",
-    name: "",
-    role: Role.SCOPE_USER,
-    temporaryPassword: "",
-  });
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(initialForm);
   const { pushToast } = useToast();
   const router = useRouter();
   const t = useTranslations("users");
+  const tCommon = useTranslations("common");
+
+  function resetForm() {
+    setForm(initialForm);
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,51 +70,88 @@ export function CreateUserDialog() {
       return;
     }
     pushToast(t("userCreated"));
-    setForm({ email: "", name: "", role: Role.SCOPE_USER, temporaryPassword: "" });
+    resetForm();
+    setOpen(false);
     router.refresh();
   }
 
   return (
-    <div className="rounded-2xl border border-black/10 bg-[var(--panel)] p-4 sm:p-6 dark:border-white/10">
-      <h2 className="text-xl font-semibold">{t("createUser")}</h2>
-      <Form className="mt-4" onSubmit={handleSubmit}>
-        <Input
-          placeholder={t("emailPlaceholder")}
-          type="email"
-          value={form.email}
-          onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-          required
-        />
-        <Input
-          placeholder={t("namePlaceholder")}
-          value={form.name}
-          onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-          required
-        />
-        <select
-          className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm dark:border-white/10 dark:bg-[var(--panel)]"
-          value={form.role}
-          onChange={(event) =>
-            setForm((current) => ({ ...current, role: event.target.value as Role }))
-          }
-        >
-          {Object.values(Role).map((role) => (
-            <option key={role} value={role}>
-              {t(`roles.${role}`)}
-            </option>
-          ))}
-        </select>
-        <Input
-          placeholder={t("temporaryPassword")}
-          type="password"
-          value={form.temporaryPassword}
-          onChange={(event) =>
-            setForm((current) => ({ ...current, temporaryPassword: event.target.value }))
-          }
-          required
-        />
-        <Button type="submit">{t("createButton")}</Button>
-      </Form>
-    </div>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          resetForm();
+        }
+      }}
+    >
+      <Card className="gap-4 rounded-2xl border-black/10 bg-[var(--panel)] py-0 shadow-none dark:border-white/10">
+        <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
+          <CardTitle className="text-xl">{t("createUser")}</CardTitle>
+          <CardDescription>{t("createButton")}</CardDescription>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+          <DialogTrigger asChild>
+            <Button type="button">{t("createButton")}</Button>
+          </DialogTrigger>
+        </CardContent>
+      </Card>
+
+      <DialogContent className="max-w-xl rounded-3xl border-black/10 bg-[var(--panel)] dark:border-white/10 dark:bg-[var(--panel)]">
+        <DialogHeader>
+          <DialogTitle>{t("createUser")}</DialogTitle>
+          <DialogDescription>{t("createButton")}</DialogDescription>
+        </DialogHeader>
+
+        <Form className="mt-2" onSubmit={handleSubmit}>
+          <Input
+            placeholder={t("emailPlaceholder")}
+            type="email"
+            value={form.email}
+            onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+            required
+          />
+          <Input
+            placeholder={t("namePlaceholder")}
+            value={form.name}
+            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+            required
+          />
+          <Select
+            value={form.role}
+            onValueChange={(value) => setForm((current) => ({ ...current, role: value as Role }))}
+          >
+            <SelectTrigger
+              aria-label={t("role")}
+              className="w-full rounded-2xl border-black/10 bg-white px-4 py-3 shadow-none dark:border-white/10 dark:bg-[var(--panel)]"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
+              {Object.values(Role).map((role) => (
+                <SelectItem key={role} value={role}>
+                  {t(`roles.${role}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            placeholder={t("temporaryPassword")}
+            type="password"
+            value={form.temporaryPassword}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, temporaryPassword: event.target.value }))
+            }
+            required
+          />
+          <DialogFooter className="mt-2">
+            <Button onClick={() => setOpen(false)} type="button" variant="secondary">
+              {tCommon("cancel")}
+            </Button>
+            <Button type="submit">{t("createButton")}</Button>
+          </DialogFooter>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }

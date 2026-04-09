@@ -66,6 +66,14 @@ export default async function BackgroundJobsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold">{job.jobType}</h2>
                     <StatusBadge status={job.status} />
+                    {showRetryHint(job) ? (
+                      <RetryBadge
+                        label={t("retryScheduled", {
+                          attempt: job.attemptCount + 1,
+                          time: formatDate(job.availableAt),
+                        })}
+                      />
+                    ) : null}
                   </div>
                   <p className="mt-2 break-all font-mono text-xs opacity-55">{job.id}</p>
                 </div>
@@ -129,6 +137,29 @@ function StatusBadge({ status }: { status: string }) {
   }[status] ?? "bg-slate-500/15 text-slate-700 dark:text-slate-300";
 
   return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>{status}</span>;
+}
+
+function RetryBadge({ label }: { label: string }) {
+  return (
+    <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+      {label}
+    </span>
+  );
+}
+
+function showRetryHint(job: {
+  status: string;
+  attemptCount: number;
+  error: string | null;
+  availableAt: Date;
+  updatedAt: Date;
+}) {
+  return (
+    job.status === "PENDING" &&
+    job.attemptCount > 0 &&
+    Boolean(job.error) &&
+    job.availableAt.getTime() > job.updatedAt.getTime()
+  );
 }
 
 function MetaRow({ label, value }: { label: string; value: string }) {

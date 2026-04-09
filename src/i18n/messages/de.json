@@ -107,6 +107,7 @@
     "title": "Hintergrundjobs",
     "description": "Letzte Worker-Jobs der Anwendung. Diese Seite zeigt Warteschlange, Fehler und Jobdaten.",
     "showingRecent": "Zeigt die letzten {count} Jobs",
+    "retryScheduled": "Wiederholung {attempt} um {time}",
     "empty": "Es wurden noch keine Hintergrundjobs erstellt.",
     "notAssigned": "Nicht zugewiesen",
     "system": "System",
