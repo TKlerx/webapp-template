@@ -1,0 +1,113 @@
+# Security Actions
+
+Updated: 2026-04-10
+
+This document turns the broader review in [followups.md](/c:/dev/gvi-finance-starter/docs/security/followups.md) into a maintained action tracker. Completed items stay here as an audit trail; remaining items are the next concrete implementation targets.
+
+## Completed
+
+### Action 1: Restrict Background Jobs Endpoint
+
+Status: Completed
+
+Changes landed:
+- `POST /api/background-jobs` now requires `PLATFORM_ADMIN`.
+- Job types are allowlisted in `src/services/api/background-jobs.ts`.
+- Payloads larger than 10KB are rejected.
+- Unit coverage was added for allowed requests, unsupported job types, and oversized payloads.
+
+Files:
+- [src/app/api/background-jobs/route.ts](/c:/dev/gvi-finance-starter/src/app/api/background-jobs/route.ts)
+- [src/services/api/background-jobs.ts](/c:/dev/gvi-finance-starter/src/services/api/background-jobs.ts)
+- [tests/unit/background-jobs-route.test.ts](/c:/dev/gvi-finance-starter/tests/unit/background-jobs-route.test.ts)
+
+Follow-up:
+- Optional rate limiting is still open if this endpoint grows beyond current admin/internal usage.
+
+### Action 2: Add Production Placeholder Guards
+
+Status: Partially completed
+
+Changes landed:
+- `INITIAL_ADMIN_PASSWORD` now fails fast in production when still set to the default `ChangeMe123!`.
+- Docker Compose now rejects blank/default `POSTGRES_PASSWORD` values in the production-style `app`, `migrate`, and `worker` flows.
+
+Files:
+- [prisma/seed.ts](/c:/dev/gvi-finance-starter/prisma/seed.ts)
+- [docker-compose.yml](/c:/dev/gvi-finance-starter/docker-compose.yml)
+
+Remaining:
+- A shared app startup guard for additional placeholder or unsafe production values is still open.
+
+### Action 3: Run App Container As Non-Root
+
+Status: Completed
+
+Changes landed:
+- The runtime `runner` stage in `Dockerfile.app` now creates and uses a dedicated non-root user.
+- Writable paths are created and assigned before switching users.
+- The Compose `migrate` service keeps `user: "0:0"` with an inline note that this is intentional.
+
+Files:
+- [Dockerfile.app](/c:/dev/gvi-finance-starter/Dockerfile.app)
+- [docker-compose.yml](/c:/dev/gvi-finance-starter/docker-compose.yml)
+
+### Action 4: Add Network Isolation In Docker Compose
+
+Status: Completed
+
+Changes landed:
+- Compose services now join an explicit `internal` network instead of relying only on the default bridge layout.
+
+Files:
+- [docker-compose.yml](/c:/dev/gvi-finance-starter/docker-compose.yml)
+
+## Remaining
+
+### Action 5: Add Rate Limiting To Background Job Creation
+
+Priority: Low to Medium
+
+Problem:
+- Role restriction and validation are now in place, but an admin could still create excessive jobs quickly.
+
+What to do:
+- Count recent jobs by `createdByUserId` over a short window.
+- Reject job creation when the threshold is exceeded.
+- Return a clear 429-style error payload.
+
+Suggested files:
+- [src/services/api/background-jobs.ts](/c:/dev/gvi-finance-starter/src/services/api/background-jobs.ts)
+
+### Action 6: Centralize Production Startup Guards
+
+Priority: Medium
+
+Problem:
+- Production placeholder checks now exist in a few targeted places, but they are not centralized.
+
+What to do:
+- Add a shared startup validation module for production-only checks.
+- Use it to validate high-risk placeholders and dangerous defaults consistently.
+
+Suggested files:
+- `src/lib/startup-guards.ts`
+- runtime startup entry points that should fail fast in production
+
+### Action 7: Review Security-Relevant Audit Coverage
+
+Priority: Medium
+
+Problem:
+- The app already audits useful events, but there is still room to tighten visibility around security-relevant behavior.
+
+What to do:
+- Review failed auth, role changes, approvals, audit exports, and queue creation for operational visibility.
+- Decide which events should stay UI-only and which should be promoted to external alerting or incident review.
+
+## Not Actionable / Already Handled
+
+- Auth/authorization route enforcement for existing admin mutations is already in place.
+- Better Auth production secret guard is already implemented.
+- Azure AD placeholder detection already disables SSO when credentials are obviously fake.
+- The approve route does not need a last-admin guard because it cannot remove admin capability.

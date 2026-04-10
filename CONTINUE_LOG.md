@@ -7,9 +7,15 @@
 - Updated the app runtime image to run as a non-root user and moved the Compose services onto an explicit internal network.
 - Extended the background-jobs route unit tests and verified the full repo with `docker compose config`, the focused route test, and `./validate.ps1 full`.
 
+## 2026-04-10 11:00:00
+
+- Moved the security planning docs into `docs/security/` so they live in a clearer documentation subsection.
+- Reworked the former `security-actions.md` note into a maintained action tracker with explicit completed and remaining sections.
+- Updated continuity references to point at the new `docs/security/followups.md` and `docs/security/actions.md` locations.
+
 ## 2026-04-10 01:50:00
 
-- Added `docs/security-followups.md` as a handoff note for the next security-focused session.
+- Added `docs/security/followups.md` as a handoff note for the next security-focused session.
 - Ranked the remaining realistic concerns by practical priority instead of mixing runtime, deploy-time, and operational issues together.
 - Captured a suggested order for the next follow-up pass so work can resume quickly tomorrow.
 
