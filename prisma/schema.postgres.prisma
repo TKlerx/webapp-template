@@ -30,6 +30,16 @@ enum ThemePreference {
   DARK
 }
 
+enum TokenType {
+  PAT
+  CLI_LOGIN
+}
+
+enum TokenStatus {
+  ACTIVE
+  REVOKED
+}
+
 enum AuditAction {
   USER_CREATED
   ROLE_CHANGED
@@ -41,6 +51,11 @@ enum AuditAction {
   AUTH_PASSWORD_CHANGED
   AUTH_LOGOUT_SUCCEEDED
   AUDIT_EXPORT_REQUESTED
+  PAT_CREATED
+  PAT_REVOKED
+  PAT_RENEWED
+  PAT_DELETED
+  CLI_LOGIN_COMPLETED
 }
 
 enum BackgroundJobStatus {
@@ -69,6 +84,8 @@ model User {
   scopeAssignments   UserScopeAssignment[]
   auditEntries       AuditEntry[]            @relation("AuditActor")
   backgroundJobs     BackgroundJob[]         @relation("BackgroundJobCreator")
+  personalAccessTokens PersonalAccessToken[]
+  cliAuthCodes       CliAuthCode[]
 }
 
 model Session {
@@ -155,6 +172,43 @@ model AuditEntry {
   @@index([actorId])
   @@index([scopeId])
   @@index([createdAt])
+}
+
+model PersonalAccessToken {
+  id           String      @id @default(cuid())
+  name         String
+  tokenHash    String      @unique
+  tokenPrefix  String
+  userId       String
+  type         TokenType
+  expiresAt    DateTime
+  lastUsedAt   DateTime?
+  status       TokenStatus @default(ACTIVE)
+  revokedAt    DateTime?
+  renewalCount Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([tokenHash])
+  @@index([userId, status])
+  @@index([status, expiresAt])
+}
+
+model CliAuthCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  state       String
+  callbackUrl String
+  userId      String?
+  exchanged   Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([expiresAt])
 }
 
 model BackgroundJob {

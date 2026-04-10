@@ -16,13 +16,13 @@
 
 **Purpose**: Database schema, new enum values, environment variables
 
-- [ ] T001 Add `TokenType`, `TokenStatus` enums and `PersonalAccessToken` model to `prisma/schema.prisma` per data-model.md
-- [ ] T002 Add `CliAuthCode` model to `prisma/schema.prisma` per data-model.md
-- [ ] T003 Add new `AuditAction` values (`PAT_CREATED`, `PAT_REVOKED`, `PAT_RENEWED`, `PAT_DELETED`, `CLI_LOGIN_COMPLETED`) to `prisma/schema.prisma`
-- [ ] T004 Mirror all schema changes (T001-T003) to `prisma/schema.postgres.prisma`
-- [ ] T005 Run SQLite migration (`npm run prisma:migrate`) and regenerate Prisma client (`npm run prisma:generate`)
-- [ ] T006 Run PostgreSQL migration (`npm run prisma:migrate:postgres`)
-- [ ] T007 Add `PAT_TOKEN_PREFIX`, `PAT_DEFAULT_EXPIRY_DAYS`, `CLI_TOKEN_DEFAULT_EXPIRY_DAYS`, `PAT_MAX_ACTIVE_PER_USER` to `.env.example` with defaults
+- [X] T001 Add `TokenType`, `TokenStatus` enums and `PersonalAccessToken` model to `prisma/schema.prisma` per data-model.md
+- [X] T002 Add `CliAuthCode` model to `prisma/schema.prisma` per data-model.md
+- [X] T003 Add new `AuditAction` values (`PAT_CREATED`, `PAT_REVOKED`, `PAT_RENEWED`, `PAT_DELETED`, `CLI_LOGIN_COMPLETED`) to `prisma/schema.prisma`
+- [X] T004 Mirror all schema changes (T001-T003) to `prisma/schema.postgres.prisma`
+- [X] T005 Run SQLite migration (`npm run prisma:migrate`) and regenerate Prisma client (`npm run prisma:generate`)
+- [X] T006 Run PostgreSQL migration (`npm run prisma:migrate:postgres`)
+- [X] T007 Add `PAT_TOKEN_PREFIX`, `PAT_DEFAULT_EXPIRY_DAYS`, `CLI_TOKEN_DEFAULT_EXPIRY_DAYS`, `PAT_MAX_ACTIVE_PER_USER` to `.env.example` with defaults
 
 ---
 
@@ -32,10 +32,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Create token service in `src/services/api/tokens.ts` with functions: `generateToken(prefix)`, `hashToken(tokenValue)`, `createToken(userId, name, expiresInDays, type)`, `validateToken(tokenValue)` returning user, `listTokens(userId, showAll)`, `revokeToken(tokenId, userId)`, `renewToken(tokenId, userId, expiresInDays)`, `deleteToken(tokenId, userId)`, `countActiveTokens(userId)`. Use `crypto.randomBytes(32)` and `crypto.createHash('sha256')`. Read prefix from `PAT_TOKEN_PREFIX` env var.
-- [ ] T009 Create token auth middleware in `src/lib/token-auth.ts` with `resolveTokenUser(request)` that checks `Authorization: Bearer` then `X-API-Key` headers, calls `validateToken()`, checks user status (reject INACTIVE/PENDING_APPROVAL), and updates `lastUsedAt` asynchronously (fire-and-forget)
-- [ ] T010 Integrate token auth fallback into `src/services/api/route-context.ts`: modify `requireRouteUser()` to call `resolveTokenUser(request)` when `getSessionUser()` returns null. Pass the `Request` object through.
-- [ ] T011 Update `src/services/api/types.ts` to pass `Request` through `RouteUserResult` chain if needed by the middleware integration
+- [X] T008 Create token service in `src/services/api/tokens.ts` with functions: `generateToken(prefix)`, `hashToken(tokenValue)`, `createToken(userId, name, expiresInDays, type)`, `validateToken(tokenValue)` returning user, `listTokens(userId, showAll)`, `revokeToken(tokenId, userId)`, `renewToken(tokenId, userId, expiresInDays)`, `deleteToken(tokenId, userId)`, `countActiveTokens(userId)`. Use `crypto.randomBytes(32)` and `crypto.createHash('sha256')`. Read prefix from `PAT_TOKEN_PREFIX` env var.
+- [X] T009 Create token auth middleware in `src/lib/token-auth.ts` with `resolveTokenUser(request)` that checks `Authorization: Bearer` then `X-API-Key` headers, calls `validateToken()`, checks user status (reject INACTIVE/PENDING_APPROVAL), and updates `lastUsedAt` asynchronously (fire-and-forget)
+- [X] T010 Integrate token auth fallback into `src/services/api/route-context.ts`: modify `requireRouteUser()` to call `resolveTokenUser(request)` when `getSessionUser()` returns null. Pass the `Request` object through.
+- [X] T011 Update `src/services/api/types.ts` to pass `Request` through `RouteUserResult` chain if needed by the middleware integration
 
 **Checkpoint**: PAT authentication works for all existing API routes via Bearer/X-API-Key headers
 
@@ -49,16 +49,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Create `POST /api/tokens` route in `src/app/api/tokens/route.ts` — session-only auth, validate name (1-100 chars, unique per user) and expiresInDays (7/30/60/90/180/365), enforce active token limit (default 10), call `createToken()`, return token value once. Add audit entry `PAT_CREATED`.
-- [ ] T013 [US1] Create `GET /api/tokens` route in `src/app/api/tokens/route.ts` — session or PAT auth, call `listTokens()` with `showAll` query param, return token list (never include tokenHash or tokenValue)
-- [ ] T014 [P] [US1] Add i18n translation keys for token management UI to all 5 locale files in `src/i18n/messages/{en,de,es,fr,pt}.json` — namespace `tokens` with keys for: page title, create button, token name label, expiration label, expiration options, copy token message, token list headers, empty state, status labels, error messages
-- [ ] T015 [US1] Create `src/components/tokens/create-token-dialog.tsx` — form with name input and expiration dropdown (7d/30d/60d/90d/180d/1y), submit calls POST /api/tokens, displays token value once with copy button, uses i18n keys
-- [ ] T016 [US1] Create `src/components/tokens/token-value-display.tsx` — displays the one-time token value with copy-to-clipboard button and warning that it won't be shown again, uses i18n keys
-- [ ] T017 [US1] Create `src/components/tokens/token-list.tsx` — table showing name, prefix, type, status, expiration, last used, creation date; responsive (mobile-friendly); uses i18n keys; supports dark mode
-- [ ] T018 [US1] Create PAT management page at `src/app/(app)/settings/tokens/page.tsx` — server component, requires session auth, renders token-list and create-token-dialog, uses i18n
-- [ ] T019 [US1] Add navigation link to token management page in user settings/profile area
-- [ ] T019a [US1] Create unit tests in `tests/unit/token-service.test.ts` — test generateToken, hashToken, createToken, validateToken, listTokens, countActiveTokens. Cover: valid creation, duplicate name rejection, token limit enforcement, expired token rejection, inactive user rejection.
-- [ ] T019b [US1] Create integration tests in `tests/integration/token-api.test.ts` — test POST /api/tokens (valid, duplicate name, limit reached), GET /api/tokens (list, showAll filter), Bearer auth on existing endpoints (valid token, expired, revoked, wrong role).
+- [X] T012 [US1] Create `POST /api/tokens` route in `src/app/api/tokens/route.ts` — session-only auth, validate name (1-100 chars, unique per user) and expiresInDays (7/30/60/90/180/365), enforce active token limit (default 10), call `createToken()`, return token value once. Add audit entry `PAT_CREATED`.
+- [X] T013 [US1] Create `GET /api/tokens` route in `src/app/api/tokens/route.ts` — session or PAT auth, call `listTokens()` with `showAll` query param, return token list (never include tokenHash or tokenValue)
+- [X] T014 [P] [US1] Add i18n translation keys for token management UI to all 5 locale files in `src/i18n/messages/{en,de,es,fr,pt}.json` — namespace `tokens` with keys for: page title, create button, token name label, expiration label, expiration options, copy token message, token list headers, empty state, status labels, error messages
+- [X] T015 [US1] Create `src/components/tokens/create-token-dialog.tsx` — form with name input and expiration dropdown (7d/30d/60d/90d/180d/1y), submit calls POST /api/tokens, displays token value once with copy button, uses i18n keys
+- [X] T016 [US1] Create `src/components/tokens/token-value-display.tsx` — displays the one-time token value with copy-to-clipboard button and warning that it won't be shown again, uses i18n keys
+- [X] T017 [US1] Create `src/components/tokens/token-list.tsx` — table showing name, prefix, type, status, expiration, last used, creation date; responsive (mobile-friendly); uses i18n keys; supports dark mode
+- [X] T018 [US1] Create PAT management page at `src/app/(app)/settings/tokens/page.tsx` — server component, requires session auth, renders token-list and create-token-dialog, uses i18n
+- [X] T019 [US1] Add navigation link to token management page in user settings/profile area
+- [X] T019a [US1] Create unit tests in `tests/unit/token-service.test.ts` — test generateToken, hashToken, createToken, validateToken, listTokens, countActiveTokens. Cover: valid creation, duplicate name rejection, token limit enforcement, expired token rejection, inactive user rejection.
+- [X] T019b [US1] Create integration tests in `tests/integration/token-api.test.ts` — test POST /api/tokens (valid, duplicate name, limit reached), GET /api/tokens (list, showAll filter), Bearer auth on existing endpoints (valid token, expired, revoked, wrong role).
 
 **Checkpoint**: Users can create PATs via UI, copy the token value, and authenticate API requests with `Authorization: Bearer <token>`
 
@@ -72,13 +72,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Create `POST /api/tokens/[id]/revoke` route in `src/app/api/tokens/[id]/revoke/route.ts` — session-only, verify token ownership, set status to REVOKED with revokedAt timestamp, add audit entry `PAT_REVOKED`
-- [ ] T021 [US2] Create `POST /api/tokens/[id]/renew` route in `src/app/api/tokens/[id]/renew/route.ts` — session-only, verify token ownership, reject if revoked, generate new token value, update hash/prefix/expiresAt/renewalCount, return new value once, add audit entry `PAT_RENEWED`
-- [ ] T022 [US2] Create `DELETE /api/tokens/[id]` route in `src/app/api/tokens/[id]/route.ts` — session-only, verify token ownership, hard delete, add audit entry `PAT_DELETED`
-- [ ] T023 [US2] Add revoke, renew, and delete action buttons to `src/components/tokens/token-list.tsx` — revoke button (active tokens only), renew button (active tokens only, shows new value), delete button (all tokens), confirmation dialogs, uses i18n keys
-- [ ] T024 [US2] Add "show all" toggle to `src/components/tokens/token-list.tsx` to reveal tokens revoked/expired >90 days ago (auto-hidden by default), uses i18n keys
-- [ ] T025 [US2] Add status badges (active/revoked/expired) and revocation date display to `src/components/tokens/token-list.tsx`, uses i18n keys
-- [ ] T025a [US2] Add integration tests to `tests/integration/token-api.test.ts` — test POST revoke (success, already revoked, not owned), POST renew (success, revoked token rejected, new value works, old value fails), DELETE (success, not found).
+- [X] T020 [US2] Create `POST /api/tokens/[id]/revoke` route in `src/app/api/tokens/[id]/revoke/route.ts` — session-only, verify token ownership, set status to REVOKED with revokedAt timestamp, add audit entry `PAT_REVOKED`
+- [X] T021 [US2] Create `POST /api/tokens/[id]/renew` route in `src/app/api/tokens/[id]/renew/route.ts` — session-only, verify token ownership, reject if revoked, generate new token value, update hash/prefix/expiresAt/renewalCount, return new value once, add audit entry `PAT_RENEWED`
+- [X] T022 [US2] Create `DELETE /api/tokens/[id]` route in `src/app/api/tokens/[id]/route.ts` — session-only, verify token ownership, hard delete, add audit entry `PAT_DELETED`
+- [X] T023 [US2] Add revoke, renew, and delete action buttons to `src/components/tokens/token-list.tsx` — revoke button (active tokens only), renew button (active tokens only, shows new value), delete button (all tokens), confirmation dialogs, uses i18n keys
+- [X] T024 [US2] Add "show all" toggle to `src/components/tokens/token-list.tsx` to reveal tokens revoked/expired >90 days ago (auto-hidden by default), uses i18n keys
+- [X] T025 [US2] Add status badges (active/revoked/expired) and revocation date display to `src/components/tokens/token-list.tsx`, uses i18n keys
+- [X] T025a [US2] Add integration tests to `tests/integration/token-api.test.ts` — test POST revoke (success, already revoked, not owned), POST renew (success, revoked token rejected, new value works, old value fails), DELETE (success, not found).
 
 **Checkpoint**: Full token lifecycle works — create, use, revoke (visible with status), renew (new value), delete (gone)
 
@@ -92,13 +92,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T026 [US3] Write OpenAPI 3.1 YAML specification at `public/openapi.yaml` documenting all existing endpoints (auth, users, audit, background-jobs, health, locale) plus new token and cli-auth endpoints, with request/response schemas, auth requirements, and error responses
-- [ ] T027 [US3] Create `GET /api/openapi` route in `src/app/api/openapi/route.ts` — any authenticated user, read `openapi.yaml`, inject configured base path into `servers` section, serve with `Content-Type: application/yaml`
-- [ ] T028 [US3] Create API documentation page at `src/app/(app)/docs/api/page.tsx` — server component, requires session auth, embeds Swagger UI loading the OpenAPI spec from `/api/openapi`, uses i18n for page title
-- [ ] T029 [P] [US3] Add i18n translation keys for API docs page to all 5 locale files — namespace `apiDocs` with keys for page title, description
-- [ ] T030 [US3] Add navigation link to API docs page in the app navigation
-- [ ] T030a [US3] Create integration test in `tests/integration/openapi.test.ts` — test GET /api/openapi returns valid YAML with correct Content-Type, base path injected, all endpoint groups present.
-- [ ] T030b [US3] Create E2E test in `tests/e2e/api-docs.spec.ts` — verify docs page loads, Swagger UI renders, endpoint groups visible.
+- [X] T026 [US3] Write OpenAPI 3.1 YAML specification at `public/openapi.yaml` documenting all existing endpoints (auth, users, audit, background-jobs, health, locale) plus new token and cli-auth endpoints, with request/response schemas, auth requirements, and error responses
+- [X] T027 [US3] Create `GET /api/openapi` route in `src/app/api/openapi/route.ts` — any authenticated user, read `openapi.yaml`, inject configured base path into `servers` section, serve with `Content-Type: application/yaml`
+- [X] T028 [US3] Create API documentation page at `src/app/(app)/docs/api/page.tsx` — server component, requires session auth, embeds Swagger UI loading the OpenAPI spec from `/api/openapi`, uses i18n for page title
+- [X] T029 [P] [US3] Add i18n translation keys for API docs page to all 5 locale files — namespace `apiDocs` with keys for page title, description
+- [X] T030 [US3] Add navigation link to API docs page in the app navigation
+- [X] T030a [US3] Create integration test in `tests/integration/openapi.test.ts` — test GET /api/openapi returns valid YAML with correct Content-Type, base path injected, all endpoint groups present.
+- [X] T030b [US3] Create E2E test in `tests/e2e/api-docs.spec.ts` — verify docs page loads, Swagger UI renders, endpoint groups visible.
 
 **Checkpoint**: All API endpoints are browsable via Swagger UI at `/docs/api`, base path is correctly reflected
 
@@ -112,14 +112,14 @@
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Create CLI auth service in `src/services/api/cli-auth.ts` with functions: `createAuthCode(callbackUrl, state)`, `bindAuthCodeToUser(codeId, userId)`, `exchangeAuthCode(code, state)` returning token, `cleanupExpiredCodes()`. Auth codes expire after 60 seconds, are single-use, and validate state parameter.
-- [ ] T032 [US4] Create `GET /api/cli-auth/authorize` route in `src/app/api/cli-auth/authorize/route.ts` — public endpoint, validate `callback_url` (must be localhost/127.0.0.1), validate `state` param, create CliAuthCode, redirect to login page with return URL pointing to `/cli-login`
-- [ ] T033 [US4] Create `POST /api/cli-auth/token` route in `src/app/api/cli-auth/token/route.ts` — public endpoint, validate code and state, call `exchangeAuthCode()`, return token + user info. Token type is CLI_LOGIN with 30-day default expiry.
-- [ ] T034 [US4] Create CLI login landing page at `src/app/cli-login/page.tsx` — requires session, reads auth code ID from query params, binds user to auth code, generates authorization code, redirects browser to CLI's callback_url with code and state params. Shows success/error message briefly before redirect.
-- [ ] T035 [P] [US4] Add i18n translation keys for CLI login page to all 5 locale files — namespace `cliLogin` with keys for: redirecting message, success message, error message
-- [ ] T036 [US4] Ensure all cli-auth endpoints respect base path configuration per FR-022 — verify URLs in redirects include the configured base path
-- [ ] T036a [US4] Create integration tests in `tests/integration/cli-auth.test.ts` — test GET /api/cli-auth/authorize (valid redirect, non-localhost rejected, missing state rejected), POST /api/cli-auth/token (valid exchange, expired code, reused code, state mismatch).
-- [ ] T036b [US4] Verify Azure SSO compatibility with CLI browser login flow per FR-023 — confirm that when a user authenticates via Azure SSO during the CLI flow, the server correctly redirects to the CLI's localhost callback with the auth code. No Entra app registration changes needed.
+- [X] T031 [US4] Create CLI auth service in `src/services/api/cli-auth.ts` with functions: `createAuthCode(callbackUrl, state)`, `bindAuthCodeToUser(codeId, userId)`, `exchangeAuthCode(code, state)` returning token, `cleanupExpiredCodes()`. Auth codes expire after 60 seconds, are single-use, and validate state parameter.
+- [X] T032 [US4] Create `GET /api/cli-auth/authorize` route in `src/app/api/cli-auth/authorize/route.ts` — public endpoint, validate `callback_url` (must be localhost/127.0.0.1), validate `state` param, create CliAuthCode, redirect to login page with return URL pointing to `/cli-login`
+- [X] T033 [US4] Create `POST /api/cli-auth/token` route in `src/app/api/cli-auth/token/route.ts` — public endpoint, validate code and state, call `exchangeAuthCode()`, return token + user info. Token type is CLI_LOGIN with 30-day default expiry.
+- [X] T034 [US4] Create CLI login landing page at `src/app/cli-login/page.tsx` — requires session, reads auth code ID from query params, binds user to auth code, generates authorization code, redirects browser to CLI's callback_url with code and state params. Shows success/error message briefly before redirect.
+- [X] T035 [P] [US4] Add i18n translation keys for CLI login page to all 5 locale files — namespace `cliLogin` with keys for: redirecting message, success message, error message
+- [X] T036 [US4] Ensure all cli-auth endpoints respect base path configuration per FR-022 — verify URLs in redirects include the configured base path
+- [X] T036a [US4] Create integration tests in `tests/integration/cli-auth.test.ts` — test GET /api/cli-auth/authorize (valid redirect, non-localhost rejected, missing state rejected), POST /api/cli-auth/token (valid exchange, expired code, reused code, state mismatch).
+- [X] T036b [US4] Verify Azure SSO compatibility with CLI browser login flow per FR-023 — confirm that when a user authenticates via Azure SSO during the CLI flow, the server correctly redirects to the CLI's localhost callback with the auth code. No Entra app registration changes needed.
 
 **Checkpoint**: A client can initiate browser login at `/api/cli-auth/authorize`, user authenticates (local or SSO), and the client receives a valid token via localhost callback
 
@@ -133,7 +133,7 @@
 
 ### Implementation for User Story 5
 
-- [ ] T037 [US5] Verify `X-API-Key` header support already works from T009 (token-auth middleware checks both headers). If not, add X-API-Key fallback in `src/lib/token-auth.ts`. Verify Bearer takes precedence when both are present.
+- [X] T037 [US5] Verify `X-API-Key` header support already works from T009 (token-auth middleware checks both headers). If not, add X-API-Key fallback in `src/lib/token-auth.ts`. Verify Bearer takes precedence when both are present.
 
 **Checkpoint**: API requests work with both `Authorization: Bearer` and `X-API-Key` headers
 
@@ -147,13 +147,13 @@
 
 ### Implementation for User Story 6
 
-- [ ] T038 [US6] Create `GET /api/admin/tokens` route in `src/app/api/admin/tokens/route.ts` — requires PLATFORM_ADMIN role, list all tokens across all users with user info (name, email), support `showAll` and `userId` query params
-- [ ] T039 [US6] Create `POST /api/admin/tokens/[id]/revoke` route in `src/app/api/admin/tokens/[id]/revoke/route.ts` — requires PLATFORM_ADMIN, revoke any user's token, add audit entry
-- [ ] T040 [US6] Create `DELETE /api/admin/tokens/[id]` route in `src/app/api/admin/tokens/[id]/route.ts` — requires PLATFORM_ADMIN, delete any user's token, add audit entry
-- [ ] T041 [P] [US6] Add i18n translation keys for admin token management to all 5 locale files — namespace `adminTokens` with keys for page title, user column, filter by user
-- [ ] T042 [US6] Create admin token management page at `src/app/(app)/admin/tokens/page.tsx` — requires PLATFORM_ADMIN, shows all tokens with owner info, revoke/delete actions, user filter, show-all toggle, uses i18n
-- [ ] T043 [US6] Add navigation link to admin token management in admin area navigation
-- [ ] T043a [US6] Add integration tests to `tests/integration/token-api.test.ts` — test admin GET /api/admin/tokens (lists all users' tokens, userId filter), admin POST revoke (other user's token), admin DELETE (other user's token), non-admin rejected with 403.
+- [X] T038 [US6] Create `GET /api/admin/tokens` route in `src/app/api/admin/tokens/route.ts` — requires PLATFORM_ADMIN role, list all tokens across all users with user info (name, email), support `showAll` and `userId` query params
+- [X] T039 [US6] Create `POST /api/admin/tokens/[id]/revoke` route in `src/app/api/admin/tokens/[id]/revoke/route.ts` — requires PLATFORM_ADMIN, revoke any user's token, add audit entry
+- [X] T040 [US6] Create `DELETE /api/admin/tokens/[id]` route in `src/app/api/admin/tokens/[id]/route.ts` — requires PLATFORM_ADMIN, delete any user's token, add audit entry
+- [X] T041 [P] [US6] Add i18n translation keys for admin token management to all 5 locale files — namespace `adminTokens` with keys for page title, user column, filter by user
+- [X] T042 [US6] Create admin token management page at `src/app/(app)/admin/tokens/page.tsx` — requires PLATFORM_ADMIN, shows all tokens with owner info, revoke/delete actions, user filter, show-all toggle, uses i18n
+- [X] T043 [US6] Add navigation link to admin token management in admin area navigation
+- [X] T043a [US6] Add integration tests to `tests/integration/token-api.test.ts` — test admin GET /api/admin/tokens (lists all users' tokens, userId filter), admin POST revoke (other user's token), admin DELETE (other user's token), non-admin rejected with 403.
 
 **Checkpoint**: Admin can see all users' tokens, revoke/delete them, and revoked tokens immediately stop authenticating
 
@@ -163,14 +163,14 @@
 
 **Purpose**: Validation, security, cleanup
 
-- [ ] T044 Update OpenAPI spec at `public/openapi.yaml` to include all new token and cli-auth endpoints added in Phases 3-8
-- [ ] T045 Add toast notifications for all token operations (create, revoke, renew, delete) in token management UI components per constitution VIII (3-second display)
-- [ ] T046 Verify all token management pages are responsive on mobile viewports per constitution X — test token-list table, create dialog, admin page
-- [ ] T047 Verify dark mode works for all new token management UI components
-- [ ] T047a Create E2E test in `tests/e2e/token-management.spec.ts` — test full token lifecycle via UI: create token, copy value, verify token list shows it, revoke it, verify status badge, renew another, delete one.
-- [ ] T048 Run `npm run validate` (typecheck + lint + duplication check + semgrep + unit tests) and fix any issues
-- [ ] T049 Update `CONTINUE.md` and `CONTINUE_LOG.md` with feature completion status
-- [ ] T049a Update `ACTIVE_SPECS.md` — add spec 012 entry at start of implementation; remove entry when all tasks are complete per constitution VI
+- [X] T044 Update OpenAPI spec at `public/openapi.yaml` to include all new token and cli-auth endpoints added in Phases 3-8
+- [X] T045 Add toast notifications for all token operations (create, revoke, renew, delete) in token management UI components per constitution VIII (3-second display)
+- [X] T046 Verify all token management pages are responsive on mobile viewports per constitution X — test token-list table, create dialog, admin page
+- [X] T047 Verify dark mode works for all new token management UI components
+- [X] T047a Create E2E test in `tests/e2e/token-management.spec.ts` — test full token lifecycle via UI: create token, copy value, verify token list shows it, revoke it, verify status badge, renew another, delete one.
+- [X] T048 Run `npm run validate` (typecheck + lint + duplication check + semgrep + unit tests) and fix any issues
+- [X] T049 Update `CONTINUE.md` and `CONTINUE_LOG.md` with feature completion status
+- [X] T049a Update `ACTIVE_SPECS.md` — add spec 012 entry at start of implementation; remove entry when all tasks are complete per constitution VI
 
 ---
 
@@ -264,3 +264,7 @@ T019 navigation link
 - Token prefix is configurable via `PAT_TOKEN_PREFIX` env var per clarification
 - All UI text must use next-intl keys per constitution IX
 - All new pages must be responsive per constitution X
+
+
+
+

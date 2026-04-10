@@ -368,3 +368,32 @@
 - Latest non-continuity commit: 5e558fe Merge branch '013-cli-client' into template-main.
 - Active specs: none.
 - Next focus: no next task.
+## 2026-04-10 12:55:00
+
+- Branch snapshot refreshed for  12-openapi-and-pat.
+- Active spec 012 is in progress with PAT auth, admin token management, OpenAPI docs, and CLI browser login support implemented.
+- Remaining 012 work is focused on migrations execution follow-through plus integration/E2E validation tasks (T005, T006, T011, T019b, T025a, T030a, T030b, T036a, T036b, T043a, T046, T047, T047a, T049).
+- Validation passed with 
+pm run validate, but Prisma migrate commands still fail in this environment with a generic schema engine error, so migration SQL was checked in manually for follow-up.
+
+## 2026-04-10 17:05:00
+
+- Added integration coverage for PAT CRUD/auth, OpenAPI serving, and CLI auth routes; 
+pm test now includes 	ests/integration/** through itest.config.ts.
+- Added Playwright coverage for /docs/api, full token lifecycle UI, mobile/dark-mode token views, and the mock Azure SSO CLI callback flow.
+- Spec 012 is now down to T005, T006, and T011 only; all other implementation, integration, and E2E tasks are marked complete in specs/012-openapi-and-pat/tasks.md.
+
+## 2026-04-10 17:06:00
+
+- Closed T011 by threading optional Request through RouteUserResult in src/services/api/types.ts and returning it from equireRouteUser() when available.
+- 
+pm run validate is green again after the typing update; only T005 and T006 remain open for spec 012.
+
+## 2026-04-10 17:20:00
+
+- Completed T005 by bootstrapping dev.db, running 
+pm run prisma:migrate, and confirming 
+pm run prisma:generate still succeeds.
+- Completed T006 by updating prisma:migrate:postgres to use prisma migrate deploy --config prisma.config.postgres.ts and verifying it against a live PostgreSQL 18 container on 127.0.0.1:54329.
+- Spec 012 is fully complete; removed it from ACTIVE_SPECS.md and refreshed continuity state.
+

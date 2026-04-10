@@ -3,7 +3,7 @@ import type { SessionUser } from "@/lib/auth";
 import type { AuditAction, Role, UserStatus } from "../../../generated/prisma/enums";
 
 export type RouteErrorResult = { error: Response };
-export type RouteUserResult<TUser = SessionUser> = RouteErrorResult | { user: TUser };
+export type RouteUserResult<TUser = SessionUser> = RouteErrorResult | { user: TUser; request?: Request };
 
 export type RouteParamsWithId = Promise<{ id: string }>;
 

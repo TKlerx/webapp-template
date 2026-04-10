@@ -71,7 +71,7 @@ describe("authorizeRoute", () => {
       },
     );
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       user: {
         id: "user-1",
         role: Role.SCOPE_USER,

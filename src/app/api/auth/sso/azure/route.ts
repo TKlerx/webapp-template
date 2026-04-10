@@ -12,10 +12,19 @@ function redirectTo(request: Request, target: string) {
   return NextResponse.redirect(new URL(`${basePath}${target}`, request.url));
 }
 
+function getSafeRedirectTarget(value: string | null) {
+  if (!value?.startsWith("/") || value.startsWith("//")) {
+    return null;
+  }
+
+  return value;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const mockEmail = url.searchParams.get("email");
   const mockName = url.searchParams.get("name");
+  const requestedRedirect = getSafeRedirectTarget(url.searchParams.get("redirectTo"));
   const allowProdMockSso = process.env.E2E_ALLOW_PROD_MOCK_SSO === "1";
 
   if (
@@ -76,7 +85,9 @@ export async function GET(request: Request) {
     });
 
     const redirectTarget =
-      user.status === UserStatus.PENDING_APPROVAL ? "/pending" : "/dashboard";
+      user.status === UserStatus.PENDING_APPROVAL
+        ? "/pending"
+        : requestedRedirect ?? "/dashboard";
 
     const authResponse = await auth.api.signInEmail({
       body: {
@@ -101,7 +112,7 @@ export async function GET(request: Request) {
   const authResponse = await auth.api.signInSocial({
     body: {
       provider: "microsoft",
-      callbackURL: getAbsoluteAppUrl("/dashboard"),
+      callbackURL: getAbsoluteAppUrl(requestedRedirect ?? "/dashboard"),
     },
     headers: new Headers(request.headers),
     asResponse: true,

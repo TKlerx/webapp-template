@@ -4,7 +4,7 @@ import { parseAuditListRequest } from "@/services/api/audit-filters";
 import { Role } from "../../../../generated/prisma/enums";
 
 export async function GET(request: Request) {
-  const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN]);
+  const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
   if ("error" in auth) {
     return auth.error;
   }

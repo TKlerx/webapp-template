@@ -6,12 +6,12 @@ import {
 import { Role } from "../../generated/prisma/enums";
 import type { AuthorizeRouteOptions } from "@/services/api/types";
 
-export async function requireApiUser() {
-  return requireRouteUser();
+export async function requireApiUser(request?: Request) {
+  return requireRouteUser(request);
 }
 
-export async function requireApiUserWithRoles(roles: Role[]) {
-  return requireRouteUserWithRoles(roles);
+export async function requireApiUserWithRoles(roles: Role[], request?: Request) {
+  return requireRouteUserWithRoles(roles, request);
 }
 
 export async function authorizeRoute(request: Request, options: AuthorizeRouteOptions = {}) {

@@ -1,13 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Role, UserStatus } from "../../../../generated/prisma/enums";
 
-const { getSessionUser, checkScopeAccess } = vi.hoisted(() => ({
+const { getSessionUser, checkScopeAccess, resolveTokenUser } = vi.hoisted(() => ({
   getSessionUser: vi.fn(),
   checkScopeAccess: vi.fn(),
+  resolveTokenUser: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({
   getSessionUser,
+}));
+
+vi.mock("@/lib/token-auth", () => ({
+  resolveTokenUser,
 }));
 
 vi.mock("@/lib/rbac", async () => {
@@ -31,6 +36,7 @@ describe("route context service", () => {
 
   it("rejects requests without an authenticated user", async () => {
     getSessionUser.mockResolvedValue(null);
+    resolveTokenUser.mockResolvedValue(null);
 
     const result = await requireRouteUser();
 
@@ -55,6 +61,26 @@ describe("route context service", () => {
     }
   });
 
+  it("falls back to token authentication when no session is present", async () => {
+    getSessionUser.mockResolvedValue(null);
+    resolveTokenUser.mockResolvedValue({
+      id: "user-2",
+      role: Role.PLATFORM_ADMIN,
+      status: UserStatus.ACTIVE,
+    });
+
+    const result = await requireRouteUser(new Request("http://localhost/api/users"));
+
+    expect(result).toMatchObject({
+      user: {
+        id: "user-2",
+        role: Role.PLATFORM_ADMIN,
+        status: UserStatus.ACTIVE,
+      },
+    });
+    expect(resolveTokenUser).toHaveBeenCalled();
+  });
+
   it("enforces scope-restricted access", async () => {
     getSessionUser.mockResolvedValue({
       id: "user-1",
@@ -71,7 +97,7 @@ describe("route context service", () => {
       },
     );
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       user: {
         id: "user-1",
         role: Role.SCOPE_USER,

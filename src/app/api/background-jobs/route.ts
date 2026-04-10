@@ -5,8 +5,8 @@ import {
   listBackgroundJobsForUser,
 } from "@/services/api/background-jobs";
 
-export async function GET() {
-  const auth = await requireApiUser();
+export async function GET(request: Request) {
+  const auth = await requireApiUser(request);
   if ("error" in auth) {
     return auth.error;
   }
@@ -19,7 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN]);
+  const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
   if ("error" in auth) {
     return auth.error;
   }

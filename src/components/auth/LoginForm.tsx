@@ -18,6 +18,7 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const { pushToast } = useToast();
   const t = useTranslations("auth");
+  const redirectTo = searchParams.get("redirectTo");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,7 +29,7 @@ export function LoginForm() {
       const response = await fetch(withBasePath("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, redirectTo }),
       });
 
       const payload = (await response.json()) as { error?: string; redirectTo?: string };
@@ -69,7 +70,13 @@ export function LoginForm() {
       ) : null}
 
       <div className="mt-6">
-        <a href={withBasePath("/api/auth/sso/azure")}>
+        <a
+          href={withBasePath(
+            redirectTo
+              ? `/api/auth/sso/azure?redirectTo=${encodeURIComponent(redirectTo)}`
+              : "/api/auth/sso/azure",
+          )}
+        >
           <Button className="w-full" type="button">
             {t("signInAzure")}
           </Button>

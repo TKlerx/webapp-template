@@ -4,8 +4,8 @@
 
 ## Current Snapshot
 
-- Updated: 2026-04-09 20:14:38
-- Branch: `template-main`
+- Updated: 2026-04-10 17:20:00
+- Branch: `012-openapi-and-pat`
 
 ## Recent Non-Continuity Commits
 
@@ -36,7 +36,7 @@
 
 ## Next Recommended Actions
 
-1. No unchecked tasks detected in the active specs.
+1. No unchecked tasks remain in the active specs.
 
 ## Manual Notes
 
@@ -57,3 +57,16 @@
 - Added production placeholder guards for the initial admin password in [prisma/seed.ts](/c:/dev/gvi-finance-starter/prisma/seed.ts) and for Docker Compose Postgres secrets in [docker-compose.yml](/c:/dev/gvi-finance-starter/docker-compose.yml).
 - Hardened the runtime container in [Dockerfile.app](/c:/dev/gvi-finance-starter/Dockerfile.app) to run the app as a non-root user and attached the Compose services to an explicit internal network.
 - Verification completed successfully with `npm run typecheck`, `npm run lint`, and `./validate.ps1 full`.
+- Rebased [012-openapi-and-pat](/c:/dev/gvi-finance-starter/specs/012-openapi-and-pat/tasks.md) onto the current `template-main` baseline and marked the implemented 012 tasks in [tasks.md](/c:/dev/gvi-finance-starter/specs/012-openapi-and-pat/tasks.md).
+- Added PAT and CLI auth schema support to [prisma/schema.prisma](/c:/dev/gvi-finance-starter/prisma/schema.prisma) and [prisma/schema.postgres.prisma](/c:/dev/gvi-finance-starter/prisma/schema.postgres.prisma), plus checked-in migration SQL under [prisma/migrations/20260410123650_add_openapi_and_pat_support/migration.sql](/c:/dev/gvi-finance-starter/prisma/migrations/20260410123650_add_openapi_and_pat_support/migration.sql) and [prisma/migrations-postgres/20260410123650_add_openapi_and_pat_support/migration.sql](/c:/dev/gvi-finance-starter/prisma/migrations-postgres/20260410123650_add_openapi_and_pat_support/migration.sql).
+- Added PAT token services in [src/services/api/tokens.ts](/c:/dev/gvi-finance-starter/src/services/api/tokens.ts), CLI auth services in [src/services/api/cli-auth.ts](/c:/dev/gvi-finance-starter/src/services/api/cli-auth.ts), and token fallback auth in [src/lib/token-auth.ts](/c:/dev/gvi-finance-starter/src/lib/token-auth.ts) wired through [src/services/api/route-context.ts](/c:/dev/gvi-finance-starter/src/services/api/route-context.ts) and [src/lib/route-auth.ts](/c:/dev/gvi-finance-starter/src/lib/route-auth.ts).
+- Added PAT, admin token, CLI auth, and OpenAPI routes under [src/app/api/tokens](/c:/dev/gvi-finance-starter/src/app/api/tokens/route.ts), [src/app/api/admin/tokens](/c:/dev/gvi-finance-starter/src/app/api/admin/tokens/route.ts), [src/app/api/cli-auth](/c:/dev/gvi-finance-starter/src/app/api/cli-auth/authorize/route.ts), and [src/app/api/openapi/route.ts](/c:/dev/gvi-finance-starter/src/app/api/openapi/route.ts).
+- Added token management, admin token management, API docs, and CLI redirect UI in [src/app/(dashboard)/settings/tokens/page.tsx](/c:/dev/gvi-finance-starter/src/app/(dashboard)/settings/tokens/page.tsx), [src/app/(dashboard)/admin/tokens/page.tsx](/c:/dev/gvi-finance-starter/src/app/(dashboard)/admin/tokens/page.tsx), [src/app/(dashboard)/docs/api/page.tsx](/c:/dev/gvi-finance-starter/src/app/(dashboard)/docs/api/page.tsx), [src/app/cli-login/page.tsx](/c:/dev/gvi-finance-starter/src/app/cli-login/page.tsx), and new client components under [src/components/tokens](/c:/dev/gvi-finance-starter/src/components/tokens/token-list.tsx) plus [src/components/docs/swagger-ui.tsx](/c:/dev/gvi-finance-starter/src/components/docs/swagger-ui.tsx).
+- Updated [src/components/auth/LoginForm.tsx](/c:/dev/gvi-finance-starter/src/components/auth/LoginForm.tsx) and the auth routes to preserve safe `redirectTo` targets so the CLI browser login flow works for both local sign-in and Azure SSO.
+- Added locale and navigation support for tokens, admin tokens, API docs, and CLI login across [src/i18n/messages/en.json](/c:/dev/gvi-finance-starter/src/i18n/messages/en.json), [src/i18n/messages/de.json](/c:/dev/gvi-finance-starter/src/i18n/messages/de.json), [src/i18n/messages/es.json](/c:/dev/gvi-finance-starter/src/i18n/messages/es.json), [src/i18n/messages/fr.json](/c:/dev/gvi-finance-starter/src/i18n/messages/fr.json), [src/i18n/messages/pt.json](/c:/dev/gvi-finance-starter/src/i18n/messages/pt.json), and [src/components/ui/Navigation.tsx](/c:/dev/gvi-finance-starter/src/components/ui/Navigation.tsx).
+- Added PAT-focused unit coverage in [tests/unit/token-service.test.ts](/c:/dev/gvi-finance-starter/tests/unit/token-service.test.ts) and extended [tests/unit/services/api/route-context.test.ts](/c:/dev/gvi-finance-starter/tests/unit/services/api/route-context.test.ts) for token fallback; `npm run validate` now passes.
+- Added route-level integration coverage in [tests/integration/token-api.test.ts](/c:/dev/gvi-finance-starter/tests/integration/token-api.test.ts), [tests/integration/openapi.test.ts](/c:/dev/gvi-finance-starter/tests/integration/openapi.test.ts), and [tests/integration/cli-auth.test.ts](/c:/dev/gvi-finance-starter/tests/integration/cli-auth.test.ts), and updated [vitest.config.ts](/c:/dev/gvi-finance-starter/vitest.config.ts) so the integration suite runs as part of `npm test`.
+- Added Playwright coverage for the docs page, token lifecycle, mobile/dark-mode token UI, and mock Azure SSO CLI flow in [tests/e2e/api-docs.spec.ts](/c:/dev/gvi-finance-starter/tests/e2e/api-docs.spec.ts), [tests/e2e/token-management.spec.ts](/c:/dev/gvi-finance-starter/tests/e2e/token-management.spec.ts), and [tests/e2e/auth/cli-sso-flow.spec.ts](/c:/dev/gvi-finance-starter/tests/e2e/auth/cli-sso-flow.spec.ts).
+- Closed T011 by updating [src/services/api/types.ts](/c:/dev/gvi-finance-starter/src/services/api/types.ts) and [src/services/api/route-context.ts](/c:/dev/gvi-finance-starter/src/services/api/route-context.ts) so authenticated route results can carry the originating `Request` when present.
+- Resolved the SQLite migrate bootstrap issue by initializing [dev.db](/c:/dev/gvi-finance-starter/dev.db) before running Prisma, then verified [package.json](/c:/dev/gvi-finance-starter/package.json) `prisma:migrate` succeeds and Prisma client generation still works.
+- Switched [package.json](/c:/dev/gvi-finance-starter/package.json) `prisma:migrate:postgres` to `prisma migrate deploy --config prisma.config.postgres.ts`, and verified it successfully applies the checked-in PostgreSQL migrations against a live Postgres 18 test container.

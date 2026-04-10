@@ -1,11 +1,12 @@
 import { getSessionUser } from "@/lib/auth";
 import { jsonError } from "@/lib/http";
+import { resolveTokenUser } from "@/lib/token-auth";
 import { checkScopeAccess, checkRole } from "@/lib/rbac";
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 import type { AuthorizeRouteOptions, RouteUserResult } from "@/services/api/types";
 
-export async function requireRouteUser(): Promise<RouteUserResult> {
-  const user = await getSessionUser();
+export async function requireRouteUser(request?: Request): Promise<RouteUserResult> {
+  const user = (await getSessionUser()) ?? (request ? await resolveTokenUser(request) : null);
 
   if (!user) {
     return { error: jsonError("Not authenticated", 401) };
@@ -15,11 +16,14 @@ export async function requireRouteUser(): Promise<RouteUserResult> {
     return { error: jsonError("Your account is pending approval", 403) };
   }
 
-  return { user };
+  return request ? { user, request } : { user };
 }
 
-export async function requireRouteUserWithRoles(roles: Role[]): Promise<RouteUserResult> {
-  const auth = await requireRouteUser();
+export async function requireRouteUserWithRoles(
+  roles: Role[],
+  request?: Request,
+): Promise<RouteUserResult> {
+  const auth = await requireRouteUser(request);
   if ("error" in auth) {
     return auth;
   }
@@ -47,7 +51,7 @@ export async function authorizeRouteContext(
   request: Request,
   options: AuthorizeRouteOptions = {},
 ): Promise<RouteUserResult> {
-  const auth = await requireRouteUser();
+  const auth = await requireRouteUser(request);
   if ("error" in auth) {
     return auth;
   }

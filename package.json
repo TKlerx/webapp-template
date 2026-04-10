@@ -24,7 +24,7 @@
     "prisma:generate": "prisma generate",
     "prisma:generate:postgres": "prisma generate --config prisma.config.postgres.ts",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:postgres": "prisma migrate dev --config prisma.config.postgres.ts",
+    "prisma:migrate:postgres": "prisma migrate deploy --config prisma.config.postgres.ts",
     "prisma:seed": "tsx prisma/seed.ts"
   },
   "keywords": [],

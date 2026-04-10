@@ -7,6 +7,14 @@ import { jsonError } from "@/lib/http";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { AuditAction, AuthMethod, UserStatus } from "../../../../../generated/prisma/enums";
 
+function getSafeRedirectTarget(redirectTo?: string) {
+  if (!redirectTo?.startsWith("/") || redirectTo.startsWith("//")) {
+    return null;
+  }
+
+  return redirectTo;
+}
+
 export async function POST(request: Request) {
   const rateLimit = checkRateLimit(getClientIp(request), "login");
   if (!rateLimit.allowed) {
@@ -18,6 +26,7 @@ export async function POST(request: Request) {
   const body = (await request.json()) as {
     email?: string;
     password?: string;
+    redirectTo?: string;
   };
 
   if (!body.email || !body.password) {
@@ -97,7 +106,8 @@ export async function POST(request: Request) {
       mustChangePassword: user.mustChangePassword,
     },
     mustChangePassword: user.mustChangePassword,
-    redirectTo: user.mustChangePassword ? "/change-password" : "/dashboard",
+    redirectTo:
+      user.mustChangePassword ? "/change-password" : getSafeRedirectTarget(body.redirectTo) ?? "/dashboard",
   });
 
   return applySetCookieHeaders(response, authResponse);

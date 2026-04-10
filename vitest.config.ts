@@ -9,7 +9,12 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html"],
     },
-    include: ["tests/unit/**/*.test.ts", "tests/unit/**/*.test.tsx"],
+    include: [
+      "tests/unit/**/*.test.ts",
+      "tests/unit/**/*.test.tsx",
+      "tests/integration/**/*.test.ts",
+      "tests/integration/**/*.test.tsx",
+    ],
   },
   resolve: {
     alias: {

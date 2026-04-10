@@ -9,11 +9,14 @@ export function Navigation({ user }: { user: SessionUser }) {
   const t = useTranslations("nav");
 
   const links = [{ href: "/dashboard", label: t("dashboard") }];
+  links.push({ href: "/settings/tokens", label: t("tokens") });
+  links.push({ href: "/docs/api", label: t("apiDocs") });
 
   if (user.role === Role.PLATFORM_ADMIN) {
     links.push({ href: "/background-jobs", label: t("backgroundJobs") });
     links.push({ href: "/users", label: t("users") });
     links.push({ href: "/audit-trail", label: t("auditTrail") });
+    links.push({ href: "/admin/tokens", label: t("adminTokens") });
   }
 
   return (

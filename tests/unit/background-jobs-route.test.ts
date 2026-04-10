@@ -149,7 +149,7 @@ describe("background jobs route", () => {
       },
     ] as never);
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/background-jobs"));
 
     if (!response) {
       throw new Error("Expected response");
