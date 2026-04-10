@@ -8,6 +8,9 @@ export type CreateBackgroundJobBody = {
   payload?: unknown;
 };
 
+const ALLOWED_BACKGROUND_JOB_TYPES = new Set(["echo", "noop"]);
+const MAX_BACKGROUND_JOB_PAYLOAD_LENGTH = 10 * 1024;
+
 export function safeParseJobJson(value: string | null) {
   if (!value) {
     return null;
@@ -46,14 +49,24 @@ export async function listBackgroundJobsForUser(user: SessionUser) {
 }
 
 export async function createBackgroundJobForUser(userId: string, body: CreateBackgroundJobBody) {
-  if (!body.jobType?.trim()) {
+  const jobType = body.jobType?.trim();
+  if (!jobType) {
     return { error: jsonError("jobType is required", 400) };
+  }
+
+  if (!ALLOWED_BACKGROUND_JOB_TYPES.has(jobType)) {
+    return { error: jsonError("Unsupported jobType", 400) };
+  }
+
+  const payloadJson = JSON.stringify(body.payload ?? {});
+  if (payloadJson.length > MAX_BACKGROUND_JOB_PAYLOAD_LENGTH) {
+    return { error: jsonError("payload exceeds 10KB limit", 400) };
   }
 
   const job = await prisma.backgroundJob.create({
     data: {
-      jobType: body.jobType.trim(),
-      payload: JSON.stringify(body.payload ?? {}),
+      jobType,
+      payload: payloadJson,
       createdByUserId: userId,
     },
   });

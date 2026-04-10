@@ -37,6 +37,12 @@ async function main() {
     throw new Error("INITIAL_ADMIN_PASSWORD does not meet the required password complexity policy.");
   }
 
+  if (process.env.NODE_ENV === "production" && password === "ChangeMe123!") {
+    throw new Error(
+      "FATAL: INITIAL_ADMIN_PASSWORD is still set to the default development value in production.",
+    );
+  }
+
   const existingCount = await prisma.user.count();
 
   if (existingCount > 0) {

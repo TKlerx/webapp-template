@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
 import { Role } from "../../generated/prisma/enums";
 
-const { requireApiUser } = vi.hoisted(() => ({
+const { requireApiUser, requireApiUserWithRoles } = vi.hoisted(() => ({
   requireApiUser: vi.fn(),
+  requireApiUserWithRoles: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -12,6 +13,7 @@ vi.mock("@/lib/db", () => ({
 
 vi.mock("@/lib/route-auth", () => ({
   requireApiUser,
+  requireApiUserWithRoles,
 }));
 
 import { GET, POST } from "@/app/api/background-jobs/route";
@@ -22,8 +24,8 @@ describe("background jobs route", () => {
   });
 
   it("creates a new background job for the current user", async () => {
-    requireApiUser.mockResolvedValue({
-      user: { id: "user-1", role: Role.SCOPE_USER },
+    requireApiUserWithRoles.mockResolvedValue({
+      user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
     });
 
     prismaMock.backgroundJob.create.mockResolvedValue({
@@ -39,7 +41,7 @@ describe("background jobs route", () => {
       lockedAt: null,
       finishedAt: null,
       workerId: null,
-      createdByUserId: "user-1",
+      createdByUserId: "admin-1",
       createdAt: new Date("2026-03-31T00:00:00Z"),
       updatedAt: new Date("2026-03-31T00:00:00Z"),
     } as never);
@@ -67,6 +69,58 @@ describe("background jobs route", () => {
         status: "PENDING",
         payload: { message: "hello" },
       },
+    });
+  });
+
+  it("rejects unsupported job types", async () => {
+    requireApiUserWithRoles.mockResolvedValue({
+      user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
+    });
+
+    const response = await POST(new Request("http://localhost/api/background-jobs", {
+      method: "POST",
+      body: JSON.stringify({
+        jobType: "report",
+        payload: { message: "hello" },
+      }),
+      headers: {
+        "content-type": "application/json",
+      },
+    }));
+
+    if (!response) {
+      throw new Error("Expected response");
+    }
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "Unsupported jobType",
+    });
+  });
+
+  it("rejects oversized payloads", async () => {
+    requireApiUserWithRoles.mockResolvedValue({
+      user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
+    });
+
+    const response = await POST(new Request("http://localhost/api/background-jobs", {
+      method: "POST",
+      body: JSON.stringify({
+        jobType: "echo",
+        payload: { data: "x".repeat(11 * 1024) },
+      }),
+      headers: {
+        "content-type": "application/json",
+      },
+    }));
+
+    if (!response) {
+      throw new Error("Expected response");
+    }
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "payload exceeds 10KB limit",
     });
   });
 

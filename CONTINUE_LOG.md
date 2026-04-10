@@ -1,5 +1,12 @@
 # Continue Log
 
+## 2026-04-10 10:45:00
+
+- Implemented the concrete security actions for the background-jobs endpoint by requiring `PLATFORM_ADMIN` for job creation, allowlisting job types, and rejecting payloads larger than 10KB.
+- Added a production seed guard for the default initial admin password and added Compose command guards that reject blank/default Postgres passwords in the production-style container flow.
+- Updated the app runtime image to run as a non-root user and moved the Compose services onto an explicit internal network.
+- Extended the background-jobs route unit tests and verified the full repo with `docker compose config`, the focused route test, and `./validate.ps1 full`.
+
 ## 2026-04-10 01:50:00
 
 - Added `docs/security-followups.md` as a handoff note for the next security-focused session.

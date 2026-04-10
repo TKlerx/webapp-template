@@ -1,4 +1,5 @@
-import { requireApiUser } from "@/lib/route-auth";
+import { requireApiUser, requireApiUserWithRoles } from "@/lib/route-auth";
+import { Role } from "../../../../generated/prisma/enums";
 import {
   createBackgroundJobForUser,
   listBackgroundJobsForUser,
@@ -18,7 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireApiUser();
+  const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN]);
   if ("error" in auth) {
     return auth.error;
   }

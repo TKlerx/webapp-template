@@ -39,6 +39,10 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/prisma.config.postgres.ts ./prisma.config.postgres.ts
 COPY --from=builder /app/scripts ./scripts
-RUN mkdir -p /app/uploads /data
+RUN groupadd --system --gid 1001 nodejs \
+    && useradd --system --uid 1001 --gid nodejs nextjs \
+    && mkdir -p /app/uploads /data \
+    && chown -R nextjs:nodejs /app /data
+USER nextjs
 EXPOSE 3270
 CMD ["npm", "run", "start"]

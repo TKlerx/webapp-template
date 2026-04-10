@@ -30,22 +30,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    networks: [internal]
     restart: unless-stopped
 
   migrate:
     <<: *migrate-image
+    # Intentional: migrations may need root to prepare mounted paths before the app starts.
     user: "0:0"
     env_file: .env
     environment:
       NODE_ENV: "production"
       PORT: "3270"
       PRISMA_CONFIG_PATH: "prisma.config.postgres.ts"
+    networks: [internal]
     volumes:
       - uploads_data:/app/uploads
     command: >
-      sh -c "case \"$DATABASE_URL\" in
+      sh -c "case \"$$DATABASE_URL\" in
       file:*) echo 'Docker Compose requires a PostgreSQL DATABASE_URL in .env. SQLite file URLs are not allowed here.' >&2; exit 1 ;;
       '') echo 'Docker Compose requires DATABASE_URL to be set in .env.' >&2; exit 1 ;;
+      esac
+      && case \"$$POSTGRES_PASSWORD\" in
+      ''|starter) echo 'Docker Compose production flow requires POSTGRES_PASSWORD in .env to be set to a non-default secret.' >&2; exit 1 ;;
       esac
       && node scripts/prisma-predeploy-check.js
       && npx prisma migrate deploy --config prisma.config.postgres.ts"
@@ -60,6 +66,7 @@ services:
     environment:
       NODE_ENV: "production"
       PORT: "3270"
+    networks: [internal]
     volumes:
       - uploads_data:/app/uploads
     ports:
@@ -71,9 +78,12 @@ services:
       migrate:
         condition: service_completed_successfully
     command: >
-      sh -c "case \"$DATABASE_URL\" in
+      sh -c "case \"$$DATABASE_URL\" in
       file:*) echo 'Docker Compose requires a PostgreSQL DATABASE_URL in .env. SQLite file URLs are not allowed here.' >&2; exit 1 ;;
       '') echo 'Docker Compose requires DATABASE_URL to be set in .env.' >&2; exit 1 ;;
+      esac
+      && case \"$$POSTGRES_PASSWORD\" in
+      ''|starter) echo 'Docker Compose production flow requires POSTGRES_PASSWORD in .env to be set to a non-default secret.' >&2; exit 1 ;;
       esac
       && npm run start"
 
@@ -85,6 +95,7 @@ services:
     env_file: .env
     environment:
       WORKER_POLL_INTERVAL_SECONDS: "3"
+    networks: [internal]
     restart: unless-stopped
     depends_on:
       postgres:
@@ -92,11 +103,18 @@ services:
       migrate:
         condition: service_completed_successfully
     command: >
-      sh -c "case \"$DATABASE_URL\" in
+      sh -c "case \"$$DATABASE_URL\" in
       file:*) echo 'Docker Compose requires a PostgreSQL DATABASE_URL in .env. SQLite file URLs are not allowed here.' >&2; exit 1 ;;
       '') echo 'Docker Compose requires DATABASE_URL to be set in .env.' >&2; exit 1 ;;
       esac
+      && case \"$$POSTGRES_PASSWORD\" in
+      ''|starter) echo 'Docker Compose production flow requires POSTGRES_PASSWORD in .env to be set to a non-default secret.' >&2; exit 1 ;;
+      esac
       && uv run starter-worker"
+
+networks:
+  internal:
+    driver: bridge
 
 volumes:
   postgres_data:
