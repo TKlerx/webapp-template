@@ -64,7 +64,7 @@ describe("cli auth routes", () => {
     cleanupExpiredCodes.mockResolvedValue(undefined);
     exchangeAuthCode
       .mockResolvedValueOnce({
-        token: "gvi_pat_cli_token",
+        token: "starter_pat_cli_token",
         expiresAt: "2026-05-10T12:00:00.000Z",
         user: {
           name: "CLI User",
@@ -95,7 +95,7 @@ describe("cli auth routes", () => {
     }
     expect(successResponse.status).toBe(200);
     await expect(successResponse.json()).resolves.toMatchObject({
-      token: "gvi_pat_cli_token",
+      token: "starter_pat_cli_token",
       user: {
         email: "cli@example.com",
       },

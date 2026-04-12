@@ -22,7 +22,7 @@ describe("token service", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-10T12:00:00.000Z"));
-    process.env.PAT_TOKEN_PREFIX = "gvi_pat";
+    process.env.PAT_TOKEN_PREFIX = "starter_pat";
     process.env.PAT_DEFAULT_EXPIRY_DAYS = "90";
     process.env.CLI_TOKEN_DEFAULT_EXPIRY_DAYS = "30";
     process.env.PAT_MAX_ACTIVE_PER_USER = "10";
@@ -38,10 +38,10 @@ describe("token service", () => {
   });
 
   it("generates prefixed tokens and extracts the display prefix from the random segment", () => {
-    const token = generateToken("gvi_pat");
+    const token = generateToken("starter_pat");
 
-    expect(token).toMatch(/^gvi_pat_[A-Za-z0-9_-]+$/);
-    expect(getTokenDisplayPrefix("gvi_pat_abcdefgh1234")).toBe("abcdefgh");
+    expect(token).toMatch(/^starter_pat_[A-Za-z0-9_-]+$/);
+    expect(getTokenDisplayPrefix("starter_pat_abcdefgh1234")).toBe("abcdefgh");
   });
 
   it("hashes tokens deterministically", () => {
@@ -78,7 +78,7 @@ describe("token service", () => {
       throw new Error("Expected token creation to succeed");
     }
     expect(result.token.name).toBe("My Script");
-    expect(result.token.tokenValue).toMatch(/^gvi_pat_/);
+    expect(result.token.tokenValue).toMatch(/^starter_pat_/);
     expect(prismaMock.personalAccessToken.create).toHaveBeenCalled();
   });
 

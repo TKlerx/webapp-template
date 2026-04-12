@@ -3,6 +3,9 @@ node_modules/
 coverage/
 dist/
 build/
+cli/dist/
+cli/starterctl
+cli/starterctl.exe
 generated/
 uploads/
 .venv/

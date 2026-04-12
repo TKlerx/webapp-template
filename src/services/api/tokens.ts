@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
 import { TokenStatus, TokenType, UserStatus } from "../../../generated/prisma/enums";
 
-const DEFAULT_PAT_PREFIX = "gvi_pat";
+const DEFAULT_PAT_PREFIX = "starter_pat";
 const DEFAULT_PAT_EXPIRY_DAYS = 90;
 const DEFAULT_CLI_EXPIRY_DAYS = 30;
 const DEFAULT_PAT_LIMIT = 10;

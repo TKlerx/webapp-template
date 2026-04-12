@@ -26,6 +26,7 @@ vi.mock("@/lib/audit", () => ({
 }));
 
 import { GET as getBackgroundJobs, POST as postBackgroundJobs } from "@/app/api/background-jobs/route";
+import { GET as getAuthMe } from "@/app/api/auth/me/route";
 import { GET as getAdminTokens } from "@/app/api/admin/tokens/route";
 import { DELETE as deleteAdminToken } from "@/app/api/admin/tokens/[id]/route";
 import { POST as revokeAdminToken } from "@/app/api/admin/tokens/[id]/revoke/route";
@@ -38,7 +39,7 @@ describe("token API integration", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-10T12:00:00.000Z"));
-    process.env.PAT_TOKEN_PREFIX = "gvi_pat";
+    process.env.PAT_TOKEN_PREFIX = "starter_pat";
     process.env.PAT_MAX_ACTIVE_PER_USER = "10";
     process.env.PAT_DEFAULT_EXPIRY_DAYS = "90";
   });
@@ -221,7 +222,7 @@ describe("token API integration", () => {
     const validResponse = await getBackgroundJobs(
       new Request("http://localhost/api/background-jobs", {
         headers: {
-          authorization: "Bearer gvi_pat_validtoken",
+          authorization: "Bearer starter_pat_validtoken",
         },
       }),
     );
@@ -229,6 +230,42 @@ describe("token API integration", () => {
     expect(validResponse.status).toBe(200);
     await expect(validResponse.json()).resolves.toMatchObject({
       jobs: [{ id: "job-1", createdByUserId: "user-1" }],
+    });
+
+    prismaMock.personalAccessToken.findUnique.mockResolvedValueOnce({
+      id: "token-1",
+      status: TokenStatus.ACTIVE,
+      expiresAt: new Date("2026-05-10T12:00:00.000Z"),
+      user: {
+        id: "user-1",
+        email: "member@example.com",
+        name: "Member",
+        role: Role.SCOPE_USER,
+        status: UserStatus.ACTIVE,
+        themePreference: ThemePreference.LIGHT,
+        mustChangePassword: false,
+        authMethod: "LOCAL",
+      },
+    } as never);
+    prismaMock.personalAccessToken.update.mockResolvedValue({} as never);
+
+    const meResponse = await getAuthMe(
+      new Request("http://localhost/api/auth/me", {
+        headers: {
+          authorization: "Bearer starter_pat_validtoken",
+        },
+      }),
+    );
+
+    expect(meResponse.status).toBe(200);
+    await expect(meResponse.json()).resolves.toMatchObject({
+      user: {
+        id: "user-1",
+        email: "member@example.com",
+        name: "Member",
+        role: Role.SCOPE_USER,
+        status: UserStatus.ACTIVE,
+      },
     });
 
     prismaMock.personalAccessToken.findUnique.mockResolvedValueOnce({
@@ -245,7 +282,7 @@ describe("token API integration", () => {
     const expiredResponse = await getBackgroundJobs(
       new Request("http://localhost/api/background-jobs", {
         headers: {
-          authorization: "Bearer gvi_pat_expired",
+          authorization: "Bearer starter_pat_expired",
         },
       }),
     );
@@ -266,7 +303,7 @@ describe("token API integration", () => {
     const revokedResponse = await getBackgroundJobs(
       new Request("http://localhost/api/background-jobs", {
         headers: {
-          authorization: "Bearer gvi_pat_revoked",
+          authorization: "Bearer starter_pat_revoked",
         },
       }),
     );
@@ -297,7 +334,7 @@ describe("token API integration", () => {
       new Request("http://localhost/api/background-jobs", {
         method: "POST",
         headers: {
-          authorization: "Bearer gvi_pat_validtoken",
+          authorization: "Bearer starter_pat_validtoken",
           "content-type": "application/json",
         },
         body: JSON.stringify({
