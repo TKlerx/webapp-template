@@ -428,4 +428,5 @@ pm run prisma:generate still succeeds.
 - Added a separate end-user guide in `docs/cli-user-guide.md` and linked it from both `README.md` and `cli/README.md` so people can find usage instructions without reading the build-oriented CLI README.
 - Added a short CLI cheat sheet to the top of `docs/cli-user-guide.md` and highlighted it from `README.md` so common commands are available as quick copy/paste examples.
 - Added a documented PowerShell bootstrap flow in `docs/cli-user-guide.md` for creating the first PAT through the app API before the CLI is configured.
+- Added a prominent dated reminder in `docs/security/actions.md`, `docs/security/followups.md`, and `CONTINUE.md` to upgrade `next` and `next-intl` on 2026-04-17, when both security fixes clear the repo's 7-day cooldown window.
 

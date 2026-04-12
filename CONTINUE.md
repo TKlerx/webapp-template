@@ -36,7 +36,8 @@
 
 ## Next Recommended Actions
 
-1. No unchecked tasks remain in the active specs.
+1. On 2026-04-17, upgrade `next` to `16.2.3` or newer and `next-intl` to `4.9.1` or newer, then run `.\validate.ps1 all` and re-run `npm audit --omit=dev --omit=optional`.
+2. No unchecked tasks remain in the active specs.
 
 ## Manual Notes
 
@@ -85,4 +86,5 @@
 - Added a separate end-user CLI guide at [docs/cli-user-guide.md](/c:/dev/webapp-template/docs/cli-user-guide.md) for login, configuration, common commands, audit usage, background jobs, output formats, shell completion, logout, and troubleshooting.
 - Added a short copy/paste CLI cheat sheet at the top of [docs/cli-user-guide.md](/c:/dev/webapp-template/docs/cli-user-guide.md) and pointed to it from [README.md](/c:/dev/webapp-template/README.md) for faster onboarding.
 - Added a documented “bootstrap your first PAT” PowerShell flow to [docs/cli-user-guide.md](/c:/dev/webapp-template/docs/cli-user-guide.md), showing how to log into the app API and create a PAT before the CLI itself is configured.
+- Documented a prominent security follow-up to upgrade `next` and `next-intl` on 2026-04-17, which is the first date both patched versions clear the repo's 7-day dependency cooldown window.
 

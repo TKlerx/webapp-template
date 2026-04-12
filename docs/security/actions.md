@@ -64,6 +64,29 @@ Files:
 
 ## Remaining
 
+### Action 0: Upgrade `next` And `next-intl` After Cooldown Window
+
+Priority: High
+
+Target date: 2026-04-17
+
+Problem:
+- `npm audit --omit=dev --omit=optional` currently reports production vulnerabilities in `next` and `next-intl`.
+- The repo enforces `min-release-age=7` in `.npmrc`, so the fixed versions should not be installed immediately after release.
+
+What to do on 2026-04-17:
+- Upgrade `next` to `16.2.3` or newer.
+- Upgrade `next-intl` to `4.9.1` or newer.
+- Run `.\validate.ps1 all`.
+- Re-run `npm audit --omit=dev --omit=optional` and confirm the production audit is clean.
+
+Why 2026-04-17:
+- `next@16.2.3` was published on 2026-04-08 and clears the 7-day cooldown earlier.
+- `next-intl@4.9.1` was published on 2026-04-10, so 2026-04-17 is the first date when both fixes are outside the cooldown window.
+
+Suggested command:
+- `npm install next@16.2.3 next-intl@4.9.1`
+
 ### Action 5: Add Rate Limiting To Background Job Creation
 
 Priority: Low to Medium

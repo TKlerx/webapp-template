@@ -18,7 +18,22 @@ Next steps:
 - Make sure example values stay fake in tracked files.
 - Consider a startup guard that rejects obviously-placeholder secrets in production, similar to the Better Auth secret check.
 
-## 2. Build/Deploy Tooling Supply Chain Surface
+## 2. Time-Bound Runtime Dependency Upgrade On 2026-04-17
+
+Risk:
+- `npm audit --omit=dev --omit=optional` currently reports production vulnerabilities in `next` and `next-intl`.
+- The fixes exist, but the repo's `min-release-age=7` policy means they should not be installed immediately.
+
+Why it matters:
+- The `next` advisory is a high-severity denial-of-service issue affecting App Router server function endpoints.
+- This is primarily an availability risk rather than a direct data-exposure issue, but it is still the most urgent runtime dependency follow-up right now.
+
+Next steps:
+- On 2026-04-17, upgrade `next` to `16.2.3` or newer and `next-intl` to `4.9.1` or newer.
+- Run `.\validate.ps1 all`.
+- Re-run `npm audit --omit=dev --omit=optional` and confirm production runtime audit is clean again.
+
+## 3. Build/Deploy Tooling Supply Chain Surface
 
 Risk:
 - Prisma CLI is not part of the shipped app runtime, but it is still executed in build and migration flows.
@@ -32,7 +47,7 @@ Next steps:
 - Periodically review builder and migration image contents.
 - Consider pinning and reviewing deploy-time tools more explicitly if the template becomes widely reused.
 
-## 3. Authentication And Authorization Review Depth
+## 4. Authentication And Authorization Review Depth
 
 Risk:
 - Auth and user-admin flows are sensitive and deserve regular review even when tests pass.
@@ -46,7 +61,7 @@ Next steps:
 - Re-check SSO linking and revocation flows against the intended threat model.
 - Verify cookie, proxy, and `AUTH_BASE_URL` behavior in real production topology.
 
-## 4. Queue Abuse And Background Job Guardrails
+## 5. Queue Abuse And Background Job Guardrails
 
 Risk:
 - The worker is now more reliable, but queue creation and execution still need abuse boundaries.
@@ -60,7 +75,7 @@ Next steps:
 - Add payload size limits and validation for queued jobs.
 - Consider rate limiting or role-based restrictions around job creation endpoints if they grow beyond admin/internal use.
 
-## 5. Runtime Hardening Around Deployment Defaults
+## 6. Runtime Hardening Around Deployment Defaults
 
 Risk:
 - Secure outcomes still depend on correct deployment choices.
@@ -74,7 +89,7 @@ Next steps:
 - Confirm container runtime users, writable paths, and volume expectations are as narrow as possible.
 - Document the intended production deployment posture more explicitly.
 
-## 6. Observability For Security-Relevant Events
+## 7. Observability For Security-Relevant Events
 
 Risk:
 - Auditing exists, but security response is only as good as how visible suspicious activity is.
@@ -86,7 +101,7 @@ Next steps:
 - Review whether failed auth attempts, role changes, approval actions, and export actions are sufficiently surfaced.
 - Decide which events should trigger alerts or operational review outside the app UI.
 
-## 7. Dependency Policy Maintenance
+## 8. Dependency Policy Maintenance
 
 Risk:
 - The current dependency posture is much better, but it still relies on ongoing discipline.
@@ -102,7 +117,8 @@ Next steps:
 
 ## Suggested Order For Tomorrow
 
-1. Review secrets and production config handling.
-2. Do a focused auth/authorization review.
-3. Tighten queue input validation and abuse guardrails.
-4. Revisit deploy-time tooling exposure and whether any extra hardening is worth the complexity.
+1. On 2026-04-17, upgrade `next` and `next-intl` after the cooldown window clears.
+2. Review secrets and production config handling.
+3. Do a focused auth/authorization review.
+4. Tighten queue input validation and abuse guardrails.
+5. Revisit deploy-time tooling exposure and whether any extra hardening is worth the complexity.
