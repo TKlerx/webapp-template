@@ -1,9 +1,9 @@
-# Implementation Plan: API Route Refactor
+﻿# Implementation Plan: API Route Refactor
 
-**Branch**: `011-route-refactor` | **Date**: 2026-04-01 | **Spec**: `C:\dev\gvi-finance-starter\specs\011-route-refactor\spec.md`
-**Input**: Feature specification from `C:\dev\gvi-finance-starter\specs\011-route-refactor\spec.md`
+**Branch**: `011-route-refactor` | **Date**: 2026-04-01 | **Spec**: `C:\dev\webapp-template\specs\011-route-refactor\spec.md`
+**Input**: Feature specification from `C:\dev\webapp-template\specs\011-route-refactor\spec.md`
 
-**Required First Step**: Read `C:\dev\gvi-finance-starter\CONTINUE.md` before planning or implementation so the current handoff context, open risks, and recommended next actions are carried forward. Completed during planning.
+**Required First Step**: Read `C:\dev\webapp-template\CONTINUE.md` before planning or implementation so the current handoff context, open risks, and recommended next actions are carried forward. Completed during planning.
 
 ## Summary
 
@@ -82,11 +82,11 @@ prisma/
 worker/
 ```
 
-**Structure Decision**: Keep the existing single Next.js application layout. Shared route orchestration will move into `C:\dev\gvi-finance-starter\src\services\api\...`, while lower-level utilities that are not route-specific remain in `C:\dev\gvi-finance-starter\src\lib\...`. Route files under `src/app/api` stay as thin entrypoints that parse HTTP input and preserve endpoint-specific response contracts.
+**Structure Decision**: Keep the existing single Next.js application layout. Shared route orchestration will move into `C:\dev\webapp-template\src\services\api\...`, while lower-level utilities that are not route-specific remain in `C:\dev\webapp-template\src\lib\...`. Route files under `src/app/api` stay as thin entrypoints that parse HTTP input and preserve endpoint-specific response contracts.
 
 ## Phase 0 Research Outcome
 
-Research output is documented in `C:\dev\gvi-finance-starter\specs\011-route-refactor\research.md`.
+Research output is documented in `C:\dev\webapp-template\specs\011-route-refactor\research.md`.
 
 Key decisions:
 
@@ -100,10 +100,10 @@ Key decisions:
 
 Design artifacts produced for this plan:
 
-- `C:\dev\gvi-finance-starter\specs\011-route-refactor\data-model.md`
-- `C:\dev\gvi-finance-starter\specs\011-route-refactor\contracts\api-invariants.md`
-- `C:\dev\gvi-finance-starter\specs\011-route-refactor\contracts\service-boundaries.md`
-- `C:\dev\gvi-finance-starter\specs\011-route-refactor\quickstart.md`
+- `C:\dev\webapp-template\specs\011-route-refactor\data-model.md`
+- `C:\dev\webapp-template\specs\011-route-refactor\contracts\api-invariants.md`
+- `C:\dev\webapp-template\specs\011-route-refactor\contracts\service-boundaries.md`
+- `C:\dev\webapp-template\specs\011-route-refactor\quickstart.md`
 
 Planned design shape:
 
@@ -140,3 +140,4 @@ Planned design shape:
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
 | Newer spec planned while repo continuity still references `010` | User explicitly requested `011-route-refactor` planning on 2026-04-01 | Waiting for continuity cleanup would block requested planning work even though `specs/OVERVIEW.md` already marks `010` complete |
+

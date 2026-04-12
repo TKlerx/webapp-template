@@ -1,4 +1,4 @@
-# Command Schema: GVI CLI
+﻿# Command Schema: GVI CLI
 
 **Date**: 2026-04-09
 
@@ -12,12 +12,12 @@
 
 ## Commands
 
-### gvi login
+### starterctl login
 
 Authenticate via browser login flow.
 
 ```
-gvi login --server <url>
+starterctl login --server <url>
 ```
 
 | Flag | Required | Description |
@@ -30,24 +30,24 @@ gvi login --server <url>
 
 ---
 
-### gvi logout
+### starterctl logout
 
 Remove stored credentials.
 
 ```
-gvi logout
+starterctl logout
 ```
 
 **Behavior**: Deletes token from config file. Confirms action.
 
 ---
 
-### gvi configure
+### starterctl configure
 
 Manually set server URL and PAT.
 
 ```
-gvi configure --server <url> --token <pat>
+starterctl configure --server <url> --token <pat>
 ```
 
 | Flag | Required | Description |
@@ -59,24 +59,24 @@ gvi configure --server <url> --token <pat>
 
 ---
 
-### gvi version
+### starterctl version
 
 Show CLI and server version.
 
 ```
-gvi version
+starterctl version
 ```
 
 **Output**: CLI version, server URL, server version (from health endpoint). If not configured, shows only CLI version.
 
 ---
 
-### gvi health
+### starterctl health
 
 Check server health.
 
 ```
-gvi health
+starterctl health
 ```
 
 **Output**: Server status, database status, server version.
@@ -85,12 +85,12 @@ gvi health
 
 ---
 
-### gvi users list
+### starterctl users list
 
 List users.
 
 ```
-gvi users list [--status <status>]
+starterctl users list [--status <status>]
 ```
 
 | Flag | Required | Description |
@@ -103,48 +103,48 @@ gvi users list [--status <status>]
 
 ---
 
-### gvi users approve
+### starterctl users approve
 
 Approve a pending user.
 
 ```
-gvi users approve <user-id>
+starterctl users approve <user-id>
 ```
 
 **Dynamic completion**: `<user-id>` completes to pending user IDs (fetched from API with `?status=PENDING_APPROVAL`).
 
 ---
 
-### gvi users deactivate
+### starterctl users deactivate
 
 Deactivate a user.
 
 ```
-gvi users deactivate <user-id>
+starterctl users deactivate <user-id>
 ```
 
 **Dynamic completion**: `<user-id>` completes to active user IDs.
 
 ---
 
-### gvi users reactivate
+### starterctl users reactivate
 
 Reactivate a user.
 
 ```
-gvi users reactivate <user-id>
+starterctl users reactivate <user-id>
 ```
 
 **Dynamic completion**: `<user-id>` completes to inactive user IDs.
 
 ---
 
-### gvi users role
+### starterctl users role
 
 Change a user's role.
 
 ```
-gvi users role <user-id> --role <role>
+starterctl users role <user-id> --role <role>
 ```
 
 | Flag | Required | Description |
@@ -155,12 +155,12 @@ gvi users role <user-id> --role <role>
 
 ---
 
-### gvi audit list
+### starterctl audit list
 
 List recent audit entries.
 
 ```
-gvi audit list [--action <action>] [--from <date>] [--to <date>] [--actor <user-id>]
+starterctl audit list [--action <action>] [--from <date>] [--to <date>] [--actor <user-id>]
 ```
 
 | Flag | Required | Description |
@@ -174,36 +174,36 @@ gvi audit list [--action <action>] [--from <date>] [--to <date>] [--actor <user-
 
 ---
 
-### gvi audit export
+### starterctl audit export
 
 Export audit data.
 
 ```
-gvi audit export [--from <date>] [--to <date>] [--format <format>]
+starterctl audit export [--from <date>] [--to <date>] [--format <format>]
 ```
 
 **Behavior**: Outputs all audit entries matching filters to stdout. Default format: JSON when piped, table when interactive.
 
 ---
 
-### gvi jobs list
+### starterctl jobs list
 
 List background jobs.
 
 ```
-gvi jobs list
+starterctl jobs list
 ```
 
 **Output columns**: ID, Type, Status, Created
 
 ---
 
-### gvi jobs create
+### starterctl jobs create
 
 Create a background job.
 
 ```
-gvi jobs create --type <job-type> --payload <json>
+starterctl jobs create --type <job-type> --payload <json>
 ```
 
 | Flag | Required | Description |
@@ -213,13 +213,13 @@ gvi jobs create --type <job-type> --payload <json>
 
 ---
 
-### gvi completion
+### starterctl completion
 
 Generate or install shell completion scripts.
 
 ```
-gvi completion bash|zsh|powershell|fish
-gvi completion install
+starterctl completion bash|zsh|powershell|fish
+starterctl completion install
 ```
 
 **Subcommands**:
@@ -233,3 +233,4 @@ When stdout is not a terminal (piped or redirected):
 - Colors and progress indicators are disabled
 - Update notifications are suppressed
 - All diagnostic output goes to stderr
+

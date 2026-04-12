@@ -1,4 +1,4 @@
-# Quickstart: API Route Refactor
+﻿# Quickstart: API Route Refactor
 
 **Feature**: 011-route-refactor | **Date**: 2026-04-01
 
@@ -11,7 +11,7 @@
 
 ## Implementation Order
 
-1. Create `C:\dev\gvi-finance-starter\src\services\api\` and move route-specific orchestration there, while keeping infrastructure helpers such as Prisma/auth wrappers in `src/lib`.
+1. Create `C:\dev\webapp-template\src\services\api\` and move route-specific orchestration there, while keeping infrastructure helpers such as Prisma/auth wrappers in `src/lib`.
 2. Refactor the user-admin routes first:
    - `src/app/api/users/route.ts`
    - `src/app/api/users/[id]/approve/route.ts`
@@ -52,6 +52,7 @@ npm run duplication
 
 ## Planned Output Locations
 
-- Shared services: `C:\dev\gvi-finance-starter\src\services\api\...`
-- Existing route entrypoints remain in `C:\dev\gvi-finance-starter\src\app\api\...`
-- Regression tests remain in `C:\dev\gvi-finance-starter\tests\unit\...`
+- Shared services: `C:\dev\webapp-template\src\services\api\...`
+- Existing route entrypoints remain in `C:\dev\webapp-template\src\app\api\...`
+- Regression tests remain in `C:\dev\webapp-template\tests\unit\...`
+

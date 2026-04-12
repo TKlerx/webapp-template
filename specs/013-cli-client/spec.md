@@ -1,4 +1,4 @@
-# Feature Specification: Cross-Platform CLI Client
+﻿# Feature Specification: Cross-Platform CLI Client
 
 **Feature Branch**: `013-cli-client`  
 **Created**: 2026-04-08  
@@ -11,11 +11,11 @@
 
 ### Session 2026-04-09
 
-- Q: What should the CLI binary name be? → A: `gvi` (changeable later as a build-time setting).
-- Q: How should the CLI be distributed? → A: GitHub Releases with pre-built binaries per platform (Windows .exe, Linux/macOS binaries). Package manager support can be added later.
-- Q: Where and how should CLI configuration be stored? → A: `~/.config/gvi/config.json` (Linux/macOS), `%APPDATA%\gvi\config.json` (Windows). JSON format. Only stores server URL and token (PAT or browser-login token). Never stores usernames or passwords.
-- Q: How should CLI updates be handled? → A: Non-blocking update check on launch. Prints a one-line notification if a newer version exists on GitHub Releases. No auto-update.
-- Q: What environment variable names for configuration? → A: `GVI_SERVER_URL` and `GVI_TOKEN`.
+- Q: What should the CLI binary name be? â†’ A: `starterctl` (changeable later as a build-time setting).
+- Q: How should the CLI be distributed? â†’ A: GitHub Releases with pre-built binaries per platform (Windows .exe, Linux/macOS binaries). Package manager support can be added later.
+- Q: Where and how should CLI configuration be stored? â†’ A: `~/.config/starterctl/config.json` (Linux/macOS), `%APPDATA%\starterctl\config.json` (Windows). JSON format. Only stores server URL and token (PAT or browser-login token). Never stores usernames or passwords.
+- Q: How should CLI updates be handled? â†’ A: Non-blocking update check on launch. Prints a one-line notification if a newer version exists on GitHub Releases. No auto-update.
+- Q: What environment variable names for configuration? â†’ A: `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN`.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -150,10 +150,10 @@ A user or monitoring script checks the application health status via the CLI. Th
 ### Functional Requirements
 
 - **FR-001**: CLI MUST support Windows, Linux, and macOS as target platforms.
-- **FR-002**: CLI MUST provide a `login` command that opens the user's browser to the server's login page and receives a token via localhost callback (default auth method). This works with both local login and Azure SSO — the CLI is agnostic to how the user authenticates in the browser.
+- **FR-002**: CLI MUST provide a `login` command that opens the user's browser to the server's login page and receives a token via localhost callback (default auth method). This works with both local login and Azure SSO â€” the CLI is agnostic to how the user authenticates in the browser.
 - **FR-003**: CLI MUST provide a `configure` command to manually set server URL and PAT for non-interactive environments (CI, scripts, headless servers).
 - **FR-003a**: CLI MUST authenticate against the server using the stored token (from browser login or PAT) via the API's `Authorization: Bearer` header.
-- **FR-004**: CLI MUST store configuration in `~/.config/gvi/config.json` (Linux/macOS) or `%APPDATA%\gvi\config.json` (Windows) as JSON, with file permissions restricted to owner read/write only. The config file stores only server URL and token (PAT or browser-login token). The CLI MUST NOT store usernames, passwords, or any other credentials.
+- **FR-004**: CLI MUST store configuration in `~/.config/starterctl/config.json` (Linux/macOS) or `%APPDATA%\starterctl\config.json` (Windows) as JSON, with file permissions restricted to owner read/write only. The config file stores only server URL and token (PAT or browser-login token). The CLI MUST NOT store usernames, passwords, or any other credentials.
 - **FR-005**: CLI MUST provide commands that mirror the API resource structure: `users`, `audit`, `jobs`, `health`.
 - **FR-006**: CLI MUST support output formats: table (default for interactive), JSON, and CSV, selectable via `--format` flag.
 - **FR-007**: CLI MUST provide shell autocompletion for commands, subcommands, and flag names for bash, zsh, PowerShell, and fish shells.
@@ -163,17 +163,17 @@ A user or monitoring script checks the application health status via the CLI. Th
 - **FR-011**: CLI MUST display helpful error messages for authentication failures, permission errors, and connectivity issues.
 - **FR-012**: CLI MUST provide a `--help` flag for every command and subcommand with usage examples.
 - **FR-013**: CLI MUST support a `--verbose` flag for detailed request/response logging for debugging.
-- **FR-014**: CLI MUST support setting the server URL and token via environment variables `GVI_SERVER_URL` and `GVI_TOKEN` as an alternative to the configuration file. Environment variables take precedence over the config file when set.
+- **FR-014**: CLI MUST support setting the server URL and token via environment variables `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN` as an alternative to the configuration file. Environment variables take precedence over the config file when set.
 - **FR-015**: CLI MUST provide a `version` command that displays the CLI version, server URL, and server version (via health endpoint).
 - **FR-016**: CLI MUST exit with appropriate exit codes (0 for success, non-zero for errors) to support scripting.
-- **FR-016a**: CLI MUST check for newer versions on GitHub Releases at launch and display a non-blocking one-line notification if an update is available (e.g., "Update available: v1.2.3 → https://..."). This check MUST NOT delay command execution or block output.
+- **FR-016a**: CLI MUST check for newer versions on GitHub Releases at launch and display a non-blocking one-line notification if an update is available (e.g., "Update available: v1.2.3 â†’ https://..."). This check MUST NOT delay command execution or block output.
 - **FR-017**: CLI MUST support the `X-API-Key` header as an alternative authentication method (matching spec 012).
 - **FR-018**: CLI MUST correctly handle server URLs that include a base path (e.g., `https://example.com/app`) for reverse proxy deployments. All API requests must prepend the base path.
 - **FR-019**: CLI MUST provide a `logout` command that removes the locally stored token and confirms the action.
 
 ### Key Entities
 
-- **CLI Configuration**: Local per-user JSON file containing server URL and API token only (no usernames or passwords). Stored at `~/.config/gvi/config.json` (Linux/macOS) or `%APPDATA%\gvi\config.json` (Windows).
+- **CLI Configuration**: Local per-user JSON file containing server URL and API token only (no usernames or passwords). Stored at `~/.config/starterctl/config.json` (Linux/macOS) or `%APPDATA%\starterctl\config.json` (Windows).
 - **Command**: A top-level resource group (e.g., `users`, `audit`, `jobs`, `health`) that maps to an API endpoint group.
 - **Subcommand**: An action within a command (e.g., `list`, `create`, `approve`, `export`) that maps to a specific API operation.
 
@@ -192,7 +192,7 @@ A user or monitoring script checks the application health status via the CLI. Th
 ## Assumptions
 
 - The CLI is a companion tool distributed separately from the web application (not bundled with the server).
-- The CLI binary name is `gvi`. This is a build-time setting and can be changed later without code changes.
+- The CLI binary name is `starterctl`. This is a build-time setting and can be changed later without code changes.
 - The CLI supports one configured server at a time (no multi-server profile management in initial version).
 - Dynamic autocompletion makes API calls on each Tab press; results are not cached across invocations.
 - The browser login flow (`cli login`) is the default and recommended auth method for interactive use. PAT configuration (`cli configure --token`) is the alternative for non-interactive environments.
@@ -202,4 +202,5 @@ A user or monitoring script checks the application health status via the CLI. Th
 
 ## Dependencies
 
-- **Depends on**: Spec 012 (OpenAPI & Personal Access Tokens) — requires PAT auth and CLI browser login flow
+- **Depends on**: Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow
+

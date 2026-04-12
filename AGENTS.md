@@ -1,4 +1,4 @@
-﻿# gvi-finance-starter Development Guidelines
+﻿# webapp-template Development Guidelines
 
 Auto-generated from all feature plans. Last updated: 2026-04-01
 
@@ -36,3 +36,4 @@ TypeScript 5.9 on Next.js 16 App Router (React 19): Follow standard conventions
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
+

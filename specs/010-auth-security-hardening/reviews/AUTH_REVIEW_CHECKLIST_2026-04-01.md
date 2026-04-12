@@ -1,4 +1,4 @@
-# Auth & Security Review Checklist
+﻿# Auth & Security Review Checklist
 
 ## Review Snapshot (2026-04-01)
 
@@ -6,27 +6,27 @@ This file is a dated review copy of `AUTH_REVIEW_CHECKLIST.md`. The original che
 
 ### Findings
 
-1. High: There is still no rate limiting or lockout protection on either the login or password-change endpoints. The login route accepts repeated credential attempts with no throttling at [src/app/api/auth/login/route.ts](C:/dev/gvi-finance-starter/src/app/api/auth/login/route.ts#L8), and the password-change route likewise has no abuse control at [src/app/api/auth/change-password/route.ts](C:/dev/gvi-finance-starter/src/app/api/auth/change-password/route.ts#L8). A repo-wide search found no rate-limit implementation in `src/`.
+1. High: There is still no rate limiting or lockout protection on either the login or password-change endpoints. The login route accepts repeated credential attempts with no throttling at [src/app/api/auth/login/route.ts](C:/dev/webapp-template/src/app/api/auth/login/route.ts#L8), and the password-change route likewise has no abuse control at [src/app/api/auth/change-password/route.ts](C:/dev/webapp-template/src/app/api/auth/change-password/route.ts#L8). A repo-wide search found no rate-limit implementation in `src/`.
 
-2. High: Proxy/origin handling trusts forwarded host and proto headers unconditionally. Better Auth enables `trustedProxyHeaders: true` at [src/lib/better-auth.ts](C:/dev/gvi-finance-starter/src/lib/better-auth.ts#L52), and `getExternalOrigin` will trust `x-forwarded-host` / `x-forwarded-proto` whenever `AUTH_BASE_URL` is unset at [src/lib/azure-auth.ts](C:/dev/gvi-finance-starter/src/lib/azure-auth.ts#L17). That creates avoidable host-header / callback-origin risk in misconfigured or direct deployments.
+2. High: Proxy/origin handling trusts forwarded host and proto headers unconditionally. Better Auth enables `trustedProxyHeaders: true` at [src/lib/better-auth.ts](C:/dev/webapp-template/src/lib/better-auth.ts#L52), and `getExternalOrigin` will trust `x-forwarded-host` / `x-forwarded-proto` whenever `AUTH_BASE_URL` is unset at [src/lib/azure-auth.ts](C:/dev/webapp-template/src/lib/azure-auth.ts#L17). That creates avoidable host-header / callback-origin risk in misconfigured or direct deployments.
 
-3. High: The `id_token` fallback path still decodes JWT payload claims without any signature validation. When Microsoft Graph userinfo fails, `fetchAzureUserProfile` falls back to `decodeJwtPayload(idToken)` at [src/lib/azure-auth.ts](C:/dev/gvi-finance-starter/src/lib/azure-auth.ts#L124) and consumes those claims at [src/lib/azure-auth.ts](C:/dev/gvi-finance-starter/src/lib/azure-auth.ts#L149). That matches the checklist’s explicit “known gap” item and remains a real security weakness.
+3. High: The `id_token` fallback path still decodes JWT payload claims without any signature validation. When Microsoft Graph userinfo fails, `fetchAzureUserProfile` falls back to `decodeJwtPayload(idToken)` at [src/lib/azure-auth.ts](C:/dev/webapp-template/src/lib/azure-auth.ts#L124) and consumes those claims at [src/lib/azure-auth.ts](C:/dev/webapp-template/src/lib/azure-auth.ts#L149). That matches the checklistâ€™s explicit â€œknown gapâ€ item and remains a real security weakness.
 
-4. Medium: Login still leaks account existence through different execution paths and timing. Unknown emails return immediately after `prisma.user.findUnique` at [src/app/api/auth/login/route.ts](C:/dev/gvi-finance-starter/src/app/api/auth/login/route.ts#L19), while existing emails continue into Better Auth password verification at [src/app/api/auth/login/route.ts](C:/dev/gvi-finance-starter/src/app/api/auth/login/route.ts#L31). The error text is generic, but the timing difference is still observable.
+4. Medium: Login still leaks account existence through different execution paths and timing. Unknown emails return immediately after `prisma.user.findUnique` at [src/app/api/auth/login/route.ts](C:/dev/webapp-template/src/app/api/auth/login/route.ts#L19), while existing emails continue into Better Auth password verification at [src/app/api/auth/login/route.ts](C:/dev/webapp-template/src/app/api/auth/login/route.ts#L31). The error text is generic, but the timing difference is still observable.
 
-5. Medium: `GET /api/users` still passes the `status` query parameter directly to Prisma without enum validation. The cast happens at [src/app/api/users/route.ts](C:/dev/gvi-finance-starter/src/app/api/users/route.ts#L17), and the unvalidated value is used in the query at [src/app/api/users/route.ts](C:/dev/gvi-finance-starter/src/app/api/users/route.ts#L19). An invalid status can therefore turn into a server error instead of a clean `400`.
+5. Medium: `GET /api/users` still passes the `status` query parameter directly to Prisma without enum validation. The cast happens at [src/app/api/users/route.ts](C:/dev/webapp-template/src/app/api/users/route.ts#L17), and the unvalidated value is used in the query at [src/app/api/users/route.ts](C:/dev/webapp-template/src/app/api/users/route.ts#L19). An invalid status can therefore turn into a server error instead of a clean `400`.
 
-6. Medium: Audit hooks exist but are not actually used for auth and user-admin events. The logging helper is defined at [src/lib/audit.ts](C:/dev/gvi-finance-starter/src/lib/audit.ts#L13), but the only `logAudit(` reference in `src/` is that definition itself. That means the checklist items for successful/failed logins, password changes, role changes, and user status changes are currently unmet.
+6. Medium: Audit hooks exist but are not actually used for auth and user-admin events. The logging helper is defined at [src/lib/audit.ts](C:/dev/webapp-template/src/lib/audit.ts#L13), but the only `logAudit(` reference in `src/` is that definition itself. That means the checklist items for successful/failed logins, password changes, role changes, and user status changes are currently unmet.
 
-7. Low: The seed path still hashes whatever `INITIAL_ADMIN_PASSWORD` is provided without enforcing the same server-side complexity policy used elsewhere. The seed reads env vars at [prisma/seed.ts](C:/dev/gvi-finance-starter/prisma/seed.ts#L15) and hashes directly at [prisma/seed.ts](C:/dev/gvi-finance-starter/prisma/seed.ts#L37), but does not call `validatePasswordComplexity`.
+7. Low: The seed path still hashes whatever `INITIAL_ADMIN_PASSWORD` is provided without enforcing the same server-side complexity policy used elsewhere. The seed reads env vars at [prisma/seed.ts](C:/dev/webapp-template/prisma/seed.ts#L15) and hashes directly at [prisma/seed.ts](C:/dev/webapp-template/prisma/seed.ts#L37), but does not call `validatePasswordComplexity`.
 
 ### Verified Strengths
 
-- Production startup rejects a missing or fallback auth secret at [src/lib/better-auth.ts](C:/dev/gvi-finance-starter/src/lib/better-auth.ts#L33).
-- Password hashing uses bcrypt with cost 12 at [src/lib/auth.ts](C:/dev/gvi-finance-starter/src/lib/auth.ts#L13).
-- Password change revokes other active sessions at [src/app/api/auth/change-password/route.ts](C:/dev/gvi-finance-starter/src/app/api/auth/change-password/route.ts#L70).
-- Protected dashboard pages enforce server-side auth via `requireSession()` at [src/app/(dashboard)/layout.tsx](C:/dev/gvi-finance-starter/src/app/(dashboard)/layout.tsx#L12).
-- `.env` files and SQLite databases are ignored in [.gitignore](C:/dev/gvi-finance-starter/.gitignore#L12) and [.gitignore](C:/dev/gvi-finance-starter/.gitignore#L16).
+- Production startup rejects a missing or fallback auth secret at [src/lib/better-auth.ts](C:/dev/webapp-template/src/lib/better-auth.ts#L33).
+- Password hashing uses bcrypt with cost 12 at [src/lib/auth.ts](C:/dev/webapp-template/src/lib/auth.ts#L13).
+- Password change revokes other active sessions at [src/app/api/auth/change-password/route.ts](C:/dev/webapp-template/src/app/api/auth/change-password/route.ts#L70).
+- Protected dashboard pages enforce server-side auth via `requireSession()` at [src/app/(dashboard)/layout.tsx](C:/dev/webapp-template/src/app/(dashboard)/layout.tsx#L12).
+- `.env` files and SQLite databases are ignored in [.gitignore](C:/dev/webapp-template/.gitignore#L12) and [.gitignore](C:/dev/webapp-template/.gitignore#L16).
 
 ### Scope Note
 
@@ -73,7 +73,7 @@ Sections 1-10 focus on auth flow correctness. Sections 11-21 cover broader appli
 - [ ] Login returns a generic error for wrong email or wrong password (no user enumeration)
 - [ ] Login rejects INACTIVE users with a clear message and does not create a session
 - [ ] Login does not leak whether the email exists via timing or error message differences
-- [ ] Self-service signup is disabled (if intended) — no public registration endpoint
+- [ ] Self-service signup is disabled (if intended) â€” no public registration endpoint
 - [ ] SSO initiation verifies that SSO is properly configured before redirecting
 - [ ] SSO callback validates the OAuth state parameter to prevent CSRF (security)
 - [ ] SSO callback handles token exchange errors gracefully without leaking internal details
@@ -121,7 +121,7 @@ Sections 1-10 focus on auth flow correctness. Sections 11-21 cover broader appli
 ## 10. Seed / Initial Setup
 
 - [ ] Seed requires env vars for the initial admin credentials (not hardcoded)
-- [ ] Seed is idempotent — does not create duplicates on re-run
+- [ ] Seed is idempotent â€” does not create duplicates on re-run
 - [ ] Seeded admin has `mustChangePassword = true`
 - [ ] Seeded credential account uses the same hashing as the rest of the app
 
@@ -174,7 +174,7 @@ Sections 1-10 focus on auth flow correctness. Sections 11-21 cover broader appli
 ## 17. Input Validation and Sanitization
 
 - [ ] All API endpoints validate and reject unexpected or malformed request bodies
-- [ ] File uploads (if any) validate file type, size, and content — not just the extension
+- [ ] File uploads (if any) validate file type, size, and content â€” not just the extension
 - [ ] Numeric inputs are parsed and range-checked (no unbounded values passed to queries or allocations)
 - [ ] String inputs that end up in URLs, redirects, or headers are validated to prevent injection (CRLF, open redirect)
 - [ ] JSON parsing errors are caught and return 400, not 500 with a stack trace
@@ -216,7 +216,7 @@ Sections 1-10 focus on auth flow correctness. Sections 11-21 cover broader appli
 - [ ] The session endpoint does not return more user data than the client needs
 - [ ] Database backups and dev.db files are in `.gitignore`
 - [ ] `console.log` statements in production code do not output sensitive request bodies or auth tokens
-- [ ] Prisma query results are mapped to response shapes — full model objects are not returned directly
+- [ ] Prisma query results are mapped to response shapes â€” full model objects are not returned directly
 - [ ] Access tokens and refresh tokens from OAuth providers are not exposed to the client
 
 ## 22. Open Redirect
@@ -253,3 +253,4 @@ Sections 1-10 focus on auth flow correctness. Sections 11-21 cover broader appli
 3. For failures, note the file and line, and whether it is a bug, a missing feature, or an accepted risk.
 4. Sections 1-10 cover auth flow correctness. Sections 11-24 cover broader application security.
 5. Some items overlap intentionally (e.g., CSRF state validation appears in both auth and CSRF sections) to ensure coverage regardless of which section the reviewer starts with.
+

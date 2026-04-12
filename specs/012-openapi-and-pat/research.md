@@ -1,10 +1,10 @@
-# Research: OpenAPI Specification & Personal Access Tokens
+﻿# Research: OpenAPI Specification & Personal Access Tokens
 
 **Date**: 2026-04-09 | **Spec**: [spec.md](./spec.md)
 
 ## Token Generation & Hashing
 
-**Decision**: Use Node.js `crypto.randomBytes(32)` for token generation, prefixed with a configurable prefix from `.env` (`PAT_TOKEN_PREFIX`, default `gvi_pat`). Hash with `crypto.createHash('sha256')` for storage.
+**Decision**: Use Node.js `crypto.randomBytes(32)` for token generation, prefixed with a configurable prefix from `.env` (`PAT_TOKEN_PREFIX`, default `starter_pat`). Hash with `crypto.createHash('sha256')` for storage.
 
 **Rationale**: SHA-256 is appropriate for token hashing (unlike passwords, tokens have high entropy so brute-forcing is infeasible). bcrypt is unnecessarily slow for this use case. The project already uses `crypto` (Node.js built-in), so no new dependency.
 
@@ -27,9 +27,9 @@
 ## CLI Browser Login Flow
 
 **Decision**: Implement a lightweight OAuth2-like authorization code flow with three components:
-1. `GET /api/cli-auth/authorize?callback_url=http://localhost:PORT&state=RANDOM` — stores a `CliAuthCode` record, redirects to login page with return URL
-2. Login page (existing) — after successful login, redirects to a `/cli-login` page that generates the auth code and redirects to the CLI's callback
-3. `POST /api/cli-auth/token` — exchanges auth code for a PAT-like token
+1. `GET /api/cli-auth/authorize?callback_url=http://localhost:PORT&state=RANDOM` â€” stores a `CliAuthCode` record, redirects to login page with return URL
+2. Login page (existing) â€” after successful login, redirects to a `/cli-login` page that generates the auth code and redirects to the CLI's callback
+3. `POST /api/cli-auth/token` â€” exchanges auth code for a PAT-like token
 
 **Rationale**: Reuses the existing login page and session infrastructure. The `/cli-login` page acts as the intermediary that has access to the authenticated session and can generate the authorization code. This avoids modifying the existing login flow.
 
@@ -51,7 +51,7 @@
 
 ## Token Format & Display
 
-**Decision**: Token format is `{prefix}_{base64url(randomBytes(32))}` where prefix comes from `PAT_TOKEN_PREFIX` env var (default: `gvi_pat`). Display prefix in the UI is the first 8 characters after the prefix separator (e.g., `gvi_pat_a1b2c3d4...`).
+**Decision**: Token format is `{prefix}_{base64url(randomBytes(32))}` where prefix comes from `PAT_TOKEN_PREFIX` env var (default: `starter_pat`). Display prefix in the UI is the first 8 characters after the prefix separator (e.g., `starter_pat_a1b2c3d4...`).
 
 **Rationale**: Base64url encoding is URL-safe and compact. 32 random bytes = 256 bits of entropy. The configurable prefix enables different instances to use different prefixes (e.g., `myapp_pat_`). 8-character display suffix is enough to distinguish tokens visually.
 
@@ -74,4 +74,5 @@
 
 **Decision**: Add new `AuditAction` enum values: `PAT_CREATED`, `PAT_REVOKED`, `PAT_RENEWED`, `PAT_DELETED`, `CLI_LOGIN_COMPLETED`. Use the existing `AuditEntry` model and `createAuditEntry()` service function.
 
-**Rationale**: Follows the existing audit pattern. No structural changes needed — just new enum values and audit calls in the token service.
+**Rationale**: Follows the existing audit pattern. No structural changes needed â€” just new enum values and audit calls in the token service.
+

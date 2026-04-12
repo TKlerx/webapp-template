@@ -1,4 +1,4 @@
-# Tasks: Cross-Platform CLI Client
+﻿# Tasks: Cross-Platform CLI Client
 
 **Input**: Design documents from `/specs/013-cli-client/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/command-schema.md, quickstart.md
@@ -18,10 +18,10 @@
 
 **Purpose**: Initialize Go project, install dependencies, create project scaffold
 
-- [ ] T001 Create `cli/` directory and initialize Go module with `go mod init` in `cli/go.mod`
-- [ ] T002 Add cobra, go-pretty, browser, term, and testify dependencies to `cli/go.mod` by running `go get github.com/spf13/cobra github.com/jedib0t/go-pretty/v6 github.com/pkg/browser golang.org/x/term github.com/stretchr/testify`
-- [ ] T003 Create directory structure: `cli/cmd/`, `cli/internal/config/`, `cli/internal/client/`, `cli/internal/auth/`, `cli/internal/output/`, `cli/internal/update/`
-- [ ] T004 Create `cli/main.go` entry point that calls `cmd.Execute()`
+- [X] T001 Create `cli/` directory and initialize Go module with `go mod init` in `cli/go.mod`
+- [X] T002 Add cobra, go-pretty, browser, term, and testify dependencies to `cli/go.mod` by running `go get github.com/spf13/cobra github.com/jedib0t/go-pretty/v6 github.com/pkg/browser golang.org/x/term github.com/stretchr/testify`
+- [X] T003 Create directory structure: `cli/cmd/`, `cli/internal/config/`, `cli/internal/client/`, `cli/internal/auth/`, `cli/internal/output/`, `cli/internal/update/`
+- [X] T004 Create `cli/main.go` entry point that calls `cmd.Execute()`
 
 ---
 
@@ -29,45 +29,45 @@
 
 **Purpose**: Root command, config management, HTTP client, and output formatters that all commands depend on
 
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+**âš ï¸ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Create root cobra command in `cli/cmd/root.go` — define `gvi` root command with global persistent flags: `--format` (`-f`, string, default `table`), `--verbose` (`-v`, bool), `--help` (`-h`). Set up pre-run hook for version check. Set version string from build-time ldflags.
-- [ ] T006 Implement config manager in `cli/internal/config/config.go` — read/write JSON config at `~/.config/gvi/config.json` (Linux/macOS) or `%APPDATA%\gvi\config.json` (Windows). Fields: `server_url`, `token`. Support `GVI_SERVER_URL` and `GVI_TOKEN` environment variable overrides (env vars take precedence). Set file permissions to 0600 on creation. Functions: `Load() (*Config, error)`, `Save(config *Config) error`, `ConfigDir() string`, `Clear() error`.
-- [ ] T007 Implement HTTP client in `cli/internal/client/client.go` — create `Client` struct initialized from config. Set `Authorization: Bearer <token>` header on all requests. Prepend server URL (including base path) to all API paths. Handle HTTP errors (401→exit code 2, 403→exit code 4, connection error→exit code 3, other→exit code 1). Support `--verbose` flag to log request method/URL/status and response body to stderr. Functions: `NewClient(config *Config) *Client`, `Get(path string) (*Response, error)`, `Post(path string, body interface{}) (*Response, error)`, `Delete(path string) (*Response, error)`.
-- [ ] T008 [P] Implement output formatters in `cli/internal/output/format.go` — format selection from `--format` flag. Auto-detect non-interactive (piped) output via `golang.org/x/term` and switch from table to JSON automatically. All diagnostic output to stderr, data output to stdout.
-- [ ] T009 [P] Implement table formatter in `cli/internal/output/table.go` — use go-pretty to render aligned, colored tables. Disable colors when non-interactive. Function: `RenderTable(headers []string, rows [][]string)`.
-- [ ] T010 [P] Implement JSON formatter in `cli/internal/output/json.go` — pretty-print JSON to stdout with `encoding/json`. Function: `RenderJSON(data interface{})`.
-- [ ] T011 [P] Implement CSV formatter in `cli/internal/output/csv.go` — write CSV to stdout with `encoding/csv`. Function: `RenderCSV(headers []string, rows [][]string)`.
-- [ ] T011a Create unit tests in `cli/tests/config_test.go` — test Load/Save/Clear, env var overrides (GVI_SERVER_URL, GVI_TOKEN take precedence), config dir detection per platform, file permissions 0600.
-- [ ] T011b Create unit tests in `cli/tests/client_test.go` — test Bearer header injection, base path prepending, HTTP error→exit code mapping (401→2, 403→4, connection→3), verbose logging to stderr.
-- [ ] T011c Create unit tests in `cli/tests/output_test.go` — test table/JSON/CSV formatters produce correct output, non-interactive detection switches table→JSON.
+- [X] T005 Create root cobra command in `cli/cmd/root.go` â€” define `starterctl` root command with global persistent flags: `--format` (`-f`, string, default `table`), `--verbose` (`-v`, bool), `--help` (`-h`). Set up pre-run hook for version check. Set version string from build-time ldflags.
+- [X] T006 Implement config manager in `cli/internal/config/config.go` â€” read/write JSON config at `~/.config/starterctl/config.json` (Linux/macOS) or `%APPDATA%\starterctl\config.json` (Windows). Fields: `server_url`, `token`. Support `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN` environment variable overrides (env vars take precedence). Set file permissions to 0600 on creation. Functions: `Load() (*Config, error)`, `Save(config *Config) error`, `ConfigDir() string`, `Clear() error`.
+- [X] T007 Implement HTTP client in `cli/internal/client/client.go` â€” create `Client` struct initialized from config. Set `Authorization: Bearer <token>` header on all requests. Prepend server URL (including base path) to all API paths. Handle HTTP errors (401â†’exit code 2, 403â†’exit code 4, connection errorâ†’exit code 3, otherâ†’exit code 1). Support `--verbose` flag to log request method/URL/status and response body to stderr. Functions: `NewClient(config *Config) *Client`, `Get(path string) (*Response, error)`, `Post(path string, body interface{}) (*Response, error)`, `Delete(path string) (*Response, error)`.
+- [X] T008 [P] Implement output formatters in `cli/internal/output/format.go` â€” format selection from `--format` flag. Auto-detect non-interactive (piped) output via `golang.org/x/term` and switch from table to JSON automatically. All diagnostic output to stderr, data output to stdout.
+- [X] T009 [P] Implement table formatter in `cli/internal/output/table.go` â€” use go-pretty to render aligned, colored tables. Disable colors when non-interactive. Function: `RenderTable(headers []string, rows [][]string)`.
+- [X] T010 [P] Implement JSON formatter in `cli/internal/output/json.go` â€” pretty-print JSON to stdout with `encoding/json`. Function: `RenderJSON(data interface{})`.
+- [X] T011 [P] Implement CSV formatter in `cli/internal/output/csv.go` â€” write CSV to stdout with `encoding/csv`. Function: `RenderCSV(headers []string, rows [][]string)`.
+- [X] T011a Create unit tests in `cli/tests/config_test.go` â€” test Load/Save/Clear, env var overrides (STARTERCTL_SERVER_URL, STARTERCTL_TOKEN take precedence), config dir detection per platform, file permissions 0600.
+- [X] T011b Create unit tests in `cli/tests/client_test.go` â€” test Bearer header injection, base path prepending, HTTP errorâ†’exit code mapping (401â†’2, 403â†’4, connectionâ†’3), verbose logging to stderr.
+- [X] T011c Create unit tests in `cli/tests/output_test.go` â€” test table/JSON/CSV formatters produce correct output, non-interactive detection switches tableâ†’JSON.
 
-**Checkpoint**: Project compiles, `gvi --help` works, config reads/writes, HTTP client sends authenticated requests, output formatters work
+**Checkpoint**: Project compiles, `starterctl --help` works, config reads/writes, HTTP client sends authenticated requests, output formatters work
 
 ---
 
-## Phase 3: User Story 1 - Browser Login and Run First Command (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - Browser Login and Run First Command (Priority: P1) ðŸŽ¯ MVP
 
-**Goal**: Users can authenticate via browser login or PAT, and run their first command (`gvi users list`)
+**Goal**: Users can authenticate via browser login or PAT, and run their first command (`starterctl users list`)
 
-**Independent Test**: Run `gvi login --server <url>`, complete browser login, run `gvi users list`, verify output
+**Independent Test**: Run `starterctl login --server <url>`, complete browser login, run `starterctl users list`, verify output
 
-**⚠️ Pre-check**: Verify actual server API paths for user management (approve, deactivate, reactivate, role) against the running server or spec 012's OpenAPI spec before implementing T017-T019. Adjust paths if they differ.
+**âš ï¸ Pre-check**: Verify actual server API paths for user management (approve, deactivate, reactivate, role) against the running server or spec 012's OpenAPI spec before implementing T017-T019. Adjust paths if they differ.
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Implement browser login flow in `cli/internal/auth/browser.go` — start temporary HTTP server on random available localhost port, construct authorize URL (`/api/cli-auth/authorize?callback_url=http://localhost:PORT/callback&state=RANDOM`), open browser with `github.com/pkg/browser`, wait for callback (max 120s timeout), extract code and state from callback query params, validate state matches, exchange code for token via `POST /api/cli-auth/token`, return token and user info. Handle: browser can't open (print URL to stderr), timeout (suggest PAT auth), cancel (clean shutdown).
-- [ ] T013 [US1] Create `gvi login` command in `cli/cmd/login.go` — `--server` flag (required on first use, saved to config). Call browser login flow. On success: save server_url and token to config, print user name and role. On failure: print error with suggestion.
-- [ ] T014 [US1] Create `gvi logout` command in `cli/cmd/logout.go` — remove token from config, confirm action. Exit 0.
-- [ ] T015 [US1] Create `gvi configure` command in `cli/cmd/configure.go` — `--server` (required) and `--token` (required) flags. Save to config. Validate by calling `/api/health`. Print user name and role on success.
-- [ ] T016 [US1] Create `gvi users list` command in `cli/cmd/users.go` — `--status` flag (optional, filter by ACTIVE/PENDING_APPROVAL/INACTIVE). Call `GET /api/users?status=<status>`. Render table with columns: ID, Name, Email, Role, Status. Support all output formats.
-- [ ] T017 [US1] Create `gvi users approve` subcommand in `cli/cmd/users.go` — positional arg `<user-id>`. Call `POST /api/users/<id>/approve`. Print confirmation message.
-- [ ] T018 [US1] Create `gvi users deactivate` and `gvi users reactivate` subcommands in `cli/cmd/users.go` — positional arg `<user-id>`. Call `POST /api/users/<id>/deactivate` or `POST /api/users/<id>/reactivate`. Print confirmation.
-- [ ] T019 [US1] Create `gvi users role` subcommand in `cli/cmd/users_role.go` — positional arg `<user-id>`, `--role` flag (required). Call `PUT /api/users/<id>/role` with role body. Print confirmation.
-- [ ] T019a [US1] Create tests in `cli/tests/login_test.go` — test browser login flow: localhost server starts, state parameter generated/validated, code exchange, token saved to config. Test timeout (120s), headless fallback (print URL), invalid state rejection.
-- [ ] T019b [US1] Create tests in `cli/tests/users_test.go` — test users list (table output, --status filter, JSON output), approve (success, 404), deactivate/reactivate, role change. Mock HTTP responses.
+- [X] T012 [US1] Implement browser login flow in `cli/internal/auth/browser.go` â€” start temporary HTTP server on random available localhost port, construct authorize URL (`/api/cli-auth/authorize?callback_url=http://localhost:PORT/callback&state=RANDOM`), open browser with `github.com/pkg/browser`, wait for callback (max 120s timeout), extract code and state from callback query params, validate state matches, exchange code for token via `POST /api/cli-auth/token`, return token and user info. Handle: browser can't open (print URL to stderr), timeout (suggest PAT auth), cancel (clean shutdown).
+- [X] T013 [US1] Create `starterctl login` command in `cli/cmd/login.go` â€” `--server` flag (required on first use, saved to config). Call browser login flow. On success: save server_url and token to config, print user name and role. On failure: print error with suggestion.
+- [X] T014 [US1] Create `starterctl logout` command in `cli/cmd/logout.go` â€” remove token from config, confirm action. Exit 0.
+- [X] T015 [US1] Create `starterctl configure` command in `cli/cmd/configure.go` â€” `--server` (required) and `--token` (required) flags. Save to config. Validate by calling `/api/health`. Print user name and role on success.
+- [X] T016 [US1] Create `starterctl users list` command in `cli/cmd/users.go` â€” `--status` flag (optional, filter by ACTIVE/PENDING_APPROVAL/INACTIVE). Call `GET /api/users?status=<status>`. Render table with columns: ID, Name, Email, Role, Status. Support all output formats.
+- [X] T017 [US1] Create `starterctl users approve` subcommand in `cli/cmd/users.go` â€” positional arg `<user-id>`. Call `POST /api/users/<id>/approve`. Print confirmation message.
+- [X] T018 [US1] Create `starterctl users deactivate` and `starterctl users reactivate` subcommands in `cli/cmd/users.go` â€” positional arg `<user-id>`. Call `POST /api/users/<id>/deactivate` or `POST /api/users/<id>/reactivate`. Print confirmation.
+- [X] T019 [US1] Create `starterctl users role` subcommand in `cli/cmd/users_role.go` â€” positional arg `<user-id>`, `--role` flag (required). Call `PUT /api/users/<id>/role` with role body. Print confirmation.
+- [X] T019a [US1] Create tests in `cli/tests/login_test.go` â€” test browser login flow: localhost server starts, state parameter generated/validated, code exchange, token saved to config. Test timeout (120s), headless fallback (print URL), invalid state rejection.
+- [X] T019b [US1] Create tests in `cli/tests/users_test.go` â€” test users list (table output, --status filter, JSON output), approve (success, 404), deactivate/reactivate, role change. Mock HTTP responses.
 
-**Checkpoint**: `gvi login` opens browser, authenticates, stores token. `gvi configure` sets PAT. `gvi users list/approve/deactivate/reactivate/role` all work.
+**Checkpoint**: `starterctl login` opens browser, authenticates, stores token. `starterctl configure` sets PAT. `starterctl users list/approve/deactivate/reactivate/role` all work.
 
 ---
 
@@ -75,7 +75,7 @@
 
 **Goal**: Full user management via CLI (already covered by US1 implementation)
 
-**Note**: User Story 2 (Manage Users via CLI) is fully implemented by T016-T019 in Phase 3. All user management commands are part of the `gvi users` command group. No additional tasks needed.
+**Note**: User Story 2 (Manage Users via CLI) is fully implemented by T016-T019 in Phase 3. All user management commands are part of the `starterctl users` command group. No additional tasks needed.
 
 **Checkpoint**: All user management commands work as specified in Phase 3.
 
@@ -85,13 +85,13 @@
 
 **Goal**: Tab completion for commands, subcommands, flags, and dynamic server-side values
 
-**Independent Test**: Install completions, type `gvi us<Tab>` → completes to `gvi users`, type `gvi users approve <Tab>` → shows pending user IDs
+**Independent Test**: Install completions, type `starterctl us<Tab>` â†’ completes to `starterctl users`, type `starterctl users approve <Tab>` â†’ shows pending user IDs
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Add static shell completion registration to all commands in `cli/cmd/users.go`, `cli/cmd/users_role.go`, `cli/cmd/audit.go`, `cli/cmd/jobs.go` — register `ValidArgs` for subcommands and `RegisterFlagCompletionFunc` for flag values (e.g., `--status` → ACTIVE/PENDING_APPROVAL/INACTIVE, `--role` → PLATFORM_ADMIN/SCOPE_ADMIN/SCOPE_USER, `--format` → table/json/csv)
-- [ ] T021 [US3] Add dynamic completion for user IDs in `cli/cmd/users.go` — set `ValidArgsFunction` on approve/deactivate/reactivate/role subcommands to query `GET /api/users` and return matching user IDs. Filter by appropriate status (e.g., approve shows only PENDING_APPROVAL users).
-- [ ] T022 [US3] Add dynamic completion for `--role` flag in `cli/cmd/users_role.go` — return PLATFORM_ADMIN, SCOPE_ADMIN, SCOPE_USER
+- [X] T020 [US3] Add static shell completion registration to all commands in `cli/cmd/users.go`, `cli/cmd/users_role.go`, `cli/cmd/audit.go`, `cli/cmd/jobs.go` â€” register `ValidArgs` for subcommands and `RegisterFlagCompletionFunc` for flag values (e.g., `--status` â†’ ACTIVE/PENDING_APPROVAL/INACTIVE, `--role` â†’ PLATFORM_ADMIN/SCOPE_ADMIN/SCOPE_USER, `--format` â†’ table/json/csv)
+- [X] T021 [US3] Add dynamic completion for user IDs in `cli/cmd/users.go` â€” set `ValidArgsFunction` on approve/deactivate/reactivate/role subcommands to query `GET /api/users` and return matching user IDs. Filter by appropriate status (e.g., approve shows only PENDING_APPROVAL users).
+- [X] T022 [US3] Add dynamic completion for `--role` flag in `cli/cmd/users_role.go` â€” return PLATFORM_ADMIN, SCOPE_ADMIN, SCOPE_USER
 
 **Checkpoint**: Tab completion works for all commands, subcommands, flags, and dynamically fetches user IDs from server
 
@@ -101,16 +101,16 @@
 
 **Goal**: Query and export audit trail via CLI with filtering and format options
 
-**Independent Test**: Run `gvi audit list`, verify entries shown. Run `gvi audit export --format csv > audit.csv`, verify valid CSV.
+**Independent Test**: Run `starterctl audit list`, verify entries shown. Run `starterctl audit export --format csv > audit.csv`, verify valid CSV.
 
 ### Implementation for User Story 4
 
-- [ ] T023 [US4] Create `gvi audit list` command in `cli/cmd/audit.go` — flags: `--action`, `--from` (ISO 8601 date), `--to` (ISO 8601 date), `--actor` (user ID). Call `GET /api/audit` with query params. Render table with columns: ID, Action, Entity, Actor, Date. Support all output formats.
-- [ ] T024 [US4] Create `gvi audit export` subcommand in `cli/cmd/audit.go` — flags: `--from`, `--to`, `--format` (override global, default JSON when piped). Call `GET /api/audit` with query params (same endpoint as `audit list`). Output to stdout for piping. Difference from `audit list`: defaults to JSON format when piped, omits interactive table chrome.
-- [ ] T025 [P] [US4] Add dynamic completion for `--action` flag in `cli/cmd/audit.go` — return available AuditAction values. Add dynamic completion for `--actor` flag to return user IDs.
-- [ ] T025a [US4] Create tests in `cli/tests/audit_test.go` — test audit list (with --action, --from, --to, --actor filters), audit export (JSON and CSV output to stdout). Mock HTTP responses.
+- [X] T023 [US4] Create `starterctl audit list` command in `cli/cmd/audit.go` â€” flags: `--action`, `--from` (ISO 8601 date), `--to` (ISO 8601 date), `--actor` (user ID). Call `GET /api/audit` with query params. Render table with columns: ID, Action, Entity, Actor, Date. Support all output formats.
+- [X] T024 [US4] Create `starterctl audit export` subcommand in `cli/cmd/audit.go` â€” flags: `--from`, `--to`, `--format` (override global, default JSON when piped). Call `GET /api/audit` with query params (same endpoint as `audit list`). Output to stdout for piping. Difference from `audit list`: defaults to JSON format when piped, omits interactive table chrome.
+- [X] T025 [P] [US4] Add dynamic completion for `--action` flag in `cli/cmd/audit.go` â€” return available AuditAction values. Add dynamic completion for `--actor` flag to return user IDs.
+- [X] T025a [US4] Create tests in `cli/tests/audit_test.go` â€” test audit list (with --action, --from, --to, --actor filters), audit export (JSON and CSV output to stdout). Mock HTTP responses.
 
-**Checkpoint**: `gvi audit list` shows entries with filters, `gvi audit export --format csv > file.csv` produces valid CSV
+**Checkpoint**: `starterctl audit list` shows entries with filters, `starterctl audit export --format csv > file.csv` produces valid CSV
 
 ---
 
@@ -118,15 +118,15 @@
 
 **Goal**: Create and list background jobs via CLI
 
-**Independent Test**: Run `gvi jobs create --type test --payload '{}'`, verify job created. Run `gvi jobs list`, verify it appears.
+**Independent Test**: Run `starterctl jobs create --type test --payload '{}'`, verify job created. Run `starterctl jobs list`, verify it appears.
 
 ### Implementation for User Story 5
 
-- [ ] T026 [US5] Create `gvi jobs list` command in `cli/cmd/jobs.go` — call `GET /api/background-jobs`. Render table with columns: ID, Type, Status, Created. Support all output formats.
-- [ ] T027 [US5] Create `gvi jobs create` subcommand in `cli/cmd/jobs.go` — flags: `--type` (required), `--payload` (required, JSON string). Call `POST /api/background-jobs` with body. Print job ID and status on success.
-- [ ] T027a [US5] Add tests to `cli/tests/jobs_test.go` — test jobs list (table output), jobs create (--type, --payload). Mock HTTP responses.
+- [X] T026 [US5] Create `starterctl jobs list` command in `cli/cmd/jobs.go` â€” call `GET /api/background-jobs`. Render table with columns: ID, Type, Status, Created. Support all output formats.
+- [X] T027 [US5] Create `starterctl jobs create` subcommand in `cli/cmd/jobs.go` â€” flags: `--type` (required), `--payload` (required, JSON string). Call `POST /api/background-jobs` with body. Print job ID and status on success.
+- [X] T027a [US5] Add tests to `cli/tests/jobs_test.go` â€” test jobs list (table output), jobs create (--type, --payload). Mock HTTP responses.
 
-**Checkpoint**: `gvi jobs list` shows jobs, `gvi jobs create` creates new jobs
+**Checkpoint**: `starterctl jobs list` shows jobs, `starterctl jobs create` creates new jobs
 
 ---
 
@@ -134,14 +134,14 @@
 
 **Goal**: Generate and install shell completion scripts for bash, zsh, PowerShell, fish
 
-**Independent Test**: Run `gvi completion bash`, verify valid bash completion script output. Run `gvi completion install`, verify script installed.
+**Independent Test**: Run `starterctl completion bash`, verify valid bash completion script output. Run `starterctl completion install`, verify script installed.
 
 ### Implementation for User Story 6
 
-- [ ] T028 [US6] Create `gvi completion` command in `cli/cmd/completion.go` — subcommands: `bash`, `zsh`, `powershell`, `fish` that output the respective completion script to stdout using cobra's built-in `GenBashCompletionV2`, `GenZshCompletion`, `GenPowerShellCompletionWithDesc`, `GenFishCompletion`.
-- [ ] T029 [US6] Create `gvi completion install` subcommand in `cli/cmd/completion.go` — auto-detect current shell, install completion script to appropriate location (bash: `~/.bash_completion.d/gvi`, zsh: `~/.zsh/completion/_gvi`, PowerShell: profile directory, fish: `~/.config/fish/completions/gvi.fish`). Print manual instructions if auto-install not possible.
+- [X] T028 [US6] Create `starterctl completion` command in `cli/cmd/completion.go` â€” subcommands: `bash`, `zsh`, `powershell`, `fish` that output the respective completion script to stdout using cobra's built-in `GenBashCompletionV2`, `GenZshCompletion`, `GenPowerShellCompletionWithDesc`, `GenFishCompletion`.
+- [X] T029 [US6] Create `starterctl completion install` subcommand in `cli/cmd/completion.go` â€” auto-detect current shell, install completion script to appropriate location (bash: `~/.bash_completion.d/starterctl`, zsh: `~/.zsh/completion/_starterctl`, PowerShell: profile directory, fish: `~/.config/fish/completions/starterctl.fish`). Print manual instructions if auto-install not possible.
 
-**Checkpoint**: `gvi completion bash|zsh|powershell|fish` outputs valid scripts, `gvi completion install` installs for the current shell
+**Checkpoint**: `starterctl completion bash|zsh|powershell|fish` outputs valid scripts, `starterctl completion install` installs for the current shell
 
 ---
 
@@ -149,14 +149,14 @@
 
 **Goal**: Check server health status and display CLI/server version
 
-**Independent Test**: Run `gvi health`, verify status shown. Run `gvi version`, verify CLI and server version displayed.
+**Independent Test**: Run `starterctl health`, verify status shown. Run `starterctl version`, verify CLI and server version displayed.
 
 ### Implementation for User Story 7
 
-- [ ] T030 [US7] Create `gvi health` command in `cli/cmd/health.go` — call `GET /api/health`. Render status, database connectivity, server version. Exit code 0 (healthy), 3 (unreachable), 1 (unhealthy). Support all output formats.
-- [ ] T031 [US7] Create `gvi version` command in `cli/cmd/version.go` — display CLI version (from build-time ldflags), server URL (from config), server version (from health endpoint if configured). If not configured, show only CLI version.
+- [X] T030 [US7] Create `starterctl health` command in `cli/cmd/health.go` â€” call `GET /api/health`. Render status, database connectivity, server version. Exit code 0 (healthy), 3 (unreachable), 1 (unhealthy). Support all output formats.
+- [X] T031 [US7] Create `starterctl version` command in `cli/cmd/version.go` â€” display CLI version (from build-time ldflags), server URL (from config), server version (from health endpoint if configured). If not configured, show only CLI version.
 
-**Checkpoint**: `gvi health` shows server status, `gvi version` shows CLI and server versions
+**Checkpoint**: `starterctl health` shows server status, `starterctl version` shows CLI and server versions
 
 ---
 
@@ -164,12 +164,12 @@
 
 **Purpose**: Update notifications and cross-platform release setup
 
-- [ ] T032 Implement version check in `cli/internal/update/check.go` — on each command invocation, check GitHub Releases API (`GET /repos/{owner}/{repo}/releases/latest`) in a background goroutine. Cache result in `~/.config/gvi/version-check.json` for 24 hours. Print one-line notification to stderr if newer version available. Never block command execution. Suppress in non-interactive mode.
-- [ ] T033 Wire version check into root command pre-run hook in `cli/cmd/root.go` — call update check as goroutine, print notification in post-run if update available
-- [ ] T034 Create GoReleaser config at `cli/.goreleaser.yaml` — build for 6 targets (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64, windows/arm64), set binary name to `gvi`, inject version via ldflags, create tar.gz (Linux/macOS) and zip (Windows) archives, generate checksums
-- [ ] T035 [P] Create GitHub Actions release workflow at `.github/workflows/cli-release.yml` — trigger on tag push (`cli-v*`), run GoReleaser to build and publish to GitHub Releases
+- [X] T032 Implement version check in `cli/internal/update/check.go` â€” on each command invocation, check GitHub Releases API (`GET /repos/{owner}/{repo}/releases/latest`) in a background goroutine. Cache result in `~/.config/starterctl/version-check.json` for 24 hours. Print one-line notification to stderr if newer version available. Never block command execution. Suppress in non-interactive mode.
+- [X] T033 Wire version check into root command pre-run hook in `cli/cmd/root.go` â€” call update check as goroutine, print notification in post-run if update available
+- [X] T034 Create GoReleaser config at `cli/.goreleaser.yaml` â€” build for 6 targets (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64, windows/arm64), set binary name to `starterctl`, inject version via ldflags, create tar.gz (Linux/macOS) and zip (Windows) archives, generate checksums
+- [X] T035 [P] Create GitHub Actions release workflow at `.github/workflows/cli-release.yml` â€” trigger on tag push (`cli-v*`), run GoReleaser to build and publish to GitHub Releases
 
-**Checkpoint**: `gvi` prints update notification when newer version exists, GoReleaser builds all 6 platform binaries
+**Checkpoint**: `starterctl` prints update notification when newer version exists, GoReleaser builds all 6 platform binaries
 
 ---
 
@@ -177,13 +177,13 @@
 
 **Purpose**: Error handling, help text, final validation
 
-- [ ] T036 Add `--help` usage examples to every command in `cli/cmd/*.go` — include realistic examples in cobra `Example` field (e.g., `gvi users list --status ACTIVE --format json`)
-- [ ] T037 Add `X-API-Key` header support in `cli/internal/client/client.go` — add `GVI_AUTH_HEADER` env var (values: `bearer` or `api-key`, default `bearer`) to select which header the client uses. No CLI flag needed — Bearer is the default and X-API-Key is for special integration scenarios only.
-- [ ] T038 Verify all commands handle base path correctly — test with server URL like `https://example.com/app`, ensure API paths are `https://example.com/app/api/users` not `https://example.com/api/users`
-- [ ] T039 Verify exit codes are correct for all error scenarios — auth error (2), connection error (3), permission error (4), general error (1), success (0)
-- [ ] T040 Run `go vet ./...` and `go test ./...` in `cli/` and fix any issues
-- [ ] T041 Update `CONTINUE.md` and `CONTINUE_LOG.md` with CLI feature completion status
-- [ ] T041a Update `ACTIVE_SPECS.md` — add spec 013 entry at start of implementation; remove entry when all tasks are complete per constitution VI
+- [X] T036 Add `--help` usage examples to every command in `cli/cmd/*.go` â€” include realistic examples in cobra `Example` field (e.g., `starterctl users list --status ACTIVE --format json`)
+- [X] T037 Add `X-API-Key` header support in `cli/internal/client/client.go` â€” add `STARTERCTL_AUTH_HEADER` env var (values: `bearer` or `api-key`, default `bearer`) to select which header the client uses. No CLI flag needed â€” Bearer is the default and X-API-Key is for special integration scenarios only.
+- [X] T038 Verify all commands handle base path correctly â€” test with server URL like `https://example.com/app`, ensure API paths are `https://example.com/app/api/users` not `https://example.com/api/users`
+- [X] T039 Verify exit codes are correct for all error scenarios â€” auth error (2), connection error (3), permission error (4), general error (1), success (0)
+- [X] T040 Run `go vet ./...` and `go test ./...` in `cli/` and fix any issues
+- [X] T041 Update `CONTINUE.md` and `CONTINUE_LOG.md` with CLI feature completion status
+- [X] T041a Update `ACTIVE_SPECS.md` â€” add spec 013 entry at start of implementation; remove entry when all tasks are complete per constitution VI
 
 ---
 
@@ -191,10 +191,10 @@
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies — start immediately
+- **Setup (Phase 1)**: No dependencies â€” start immediately
 - **Foundational (Phase 2)**: Depends on Phase 1
 - **User Stories (Phase 3-9)**: All depend on Phase 2 (root command, config, HTTP client, formatters)
-  - US1 (Phase 3): Core — login + users commands
+  - US1 (Phase 3): Core â€” login + users commands
   - US2 (Phase 4): No additional tasks (covered by US1)
   - US3 (Phase 5): Depends on US1 (adds completions to existing commands)
   - US4 (Phase 6): Independent of US1 (audit commands)
@@ -206,13 +206,13 @@
 
 ### User Story Dependencies
 
-- **US1 (P1)**: After Phase 2 — no story dependencies
-- **US2 (P1)**: Covered by US1 — no additional work
-- **US3 (P2)**: After US1 — adds completions to commands created in US1
-- **US4 (P2)**: After Phase 2 — fully independent
-- **US5 (P2)**: After Phase 2 — fully independent
-- **US6 (P3)**: After Phase 2 — fully independent
-- **US7 (P3)**: After Phase 2 — fully independent
+- **US1 (P1)**: After Phase 2 â€” no story dependencies
+- **US2 (P1)**: Covered by US1 â€” no additional work
+- **US3 (P2)**: After US1 â€” adds completions to commands created in US1
+- **US4 (P2)**: After Phase 2 â€” fully independent
+- **US5 (P2)**: After Phase 2 â€” fully independent
+- **US6 (P3)**: After Phase 2 â€” fully independent
+- **US7 (P3)**: After Phase 2 â€” fully independent
 
 ### Parallel Opportunities
 
@@ -231,7 +231,7 @@
 ```text
 # After Phase 2, launch in parallel:
 T012 [P] Browser login flow (internal/auth/browser.go)
-T013-T015 are sequential (login → logout → configure depend on auth flow)
+T013-T015 are sequential (login â†’ logout â†’ configure depend on auth flow)
 
 # Then users commands in parallel:
 T016 [P] users list
@@ -248,21 +248,21 @@ T019 [P] users role
 
 1. Complete Phase 1: Setup (Go project scaffold)
 2. Complete Phase 2: Foundational (root command, config, HTTP client, formatters)
-3. Complete Phase 3: US1 — browser login + PAT configure + users commands
-4. **STOP and VALIDATE**: `gvi login`, then `gvi users list` against running server
+3. Complete Phase 3: US1 â€” browser login + PAT configure + users commands
+4. **STOP and VALIDATE**: `starterctl login`, then `starterctl users list` against running server
 5. Build with `go build` and test on current platform
 
 ### Incremental Delivery
 
-1. Setup + Foundational → `gvi --help` works
-2. US1 → Login and user management (MVP!)
-3. US3 → Shell completions make everything faster
-4. US4 → Audit queries and exports
-5. US5 → Background job management
-6. US6 → Completion install for new users
-7. US7 → Health checks and version info
-8. Distribution → GoReleaser for all platforms
-9. Polish → Help text, error handling, validation
+1. Setup + Foundational â†’ `starterctl --help` works
+2. US1 â†’ Login and user management (MVP!)
+3. US3 â†’ Shell completions make everything faster
+4. US4 â†’ Audit queries and exports
+5. US5 â†’ Background job management
+6. US6 â†’ Completion install for new users
+7. US7 â†’ Health checks and version info
+8. Distribution â†’ GoReleaser for all platforms
+9. Polish â†’ Help text, error handling, validation
 
 ---
 
@@ -270,8 +270,9 @@ T019 [P] users role
 
 - CLI is a Go project in `cli/` subdirectory, separate from the Next.js web app
 - Server must have spec 012 implemented (PAT auth + CLI login flow) for testing
-- Binary name `gvi` is set via GoReleaser and ldflags — changeable later
+- Binary name `starterctl` is set via GoReleaser and ldflags â€” changeable later
 - Config never stores usernames or passwords, only server URL and token
-- Environment variables `GVI_SERVER_URL` and `GVI_TOKEN` override config file
-- Non-interactive detection auto-switches table→JSON for piped output
+- Environment variables `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN` override config file
+- Non-interactive detection auto-switches tableâ†’JSON for piped output
 - Update check is non-blocking (goroutine) with 24h cache
+

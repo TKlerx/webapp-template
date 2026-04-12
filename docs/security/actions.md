@@ -1,8 +1,8 @@
-# Security Actions
+﻿# Security Actions
 
 Updated: 2026-04-10
 
-This document turns the broader review in [followups.md](/c:/dev/gvi-finance-starter/docs/security/followups.md) into a maintained action tracker. Completed items stay here as an audit trail; remaining items are the next concrete implementation targets.
+This document turns the broader review in [followups.md](/c:/dev/webapp-template/docs/security/followups.md) into a maintained action tracker. Completed items stay here as an audit trail; remaining items are the next concrete implementation targets.
 
 ## Completed
 
@@ -17,9 +17,9 @@ Changes landed:
 - Unit coverage was added for allowed requests, unsupported job types, and oversized payloads.
 
 Files:
-- [src/app/api/background-jobs/route.ts](/c:/dev/gvi-finance-starter/src/app/api/background-jobs/route.ts)
-- [src/services/api/background-jobs.ts](/c:/dev/gvi-finance-starter/src/services/api/background-jobs.ts)
-- [tests/unit/background-jobs-route.test.ts](/c:/dev/gvi-finance-starter/tests/unit/background-jobs-route.test.ts)
+- [src/app/api/background-jobs/route.ts](/c:/dev/webapp-template/src/app/api/background-jobs/route.ts)
+- [src/services/api/background-jobs.ts](/c:/dev/webapp-template/src/services/api/background-jobs.ts)
+- [tests/unit/background-jobs-route.test.ts](/c:/dev/webapp-template/tests/unit/background-jobs-route.test.ts)
 
 Follow-up:
 - Optional rate limiting is still open if this endpoint grows beyond current admin/internal usage.
@@ -33,8 +33,8 @@ Changes landed:
 - Docker Compose now rejects blank/default `POSTGRES_PASSWORD` values in the production-style `app`, `migrate`, and `worker` flows.
 
 Files:
-- [prisma/seed.ts](/c:/dev/gvi-finance-starter/prisma/seed.ts)
-- [docker-compose.yml](/c:/dev/gvi-finance-starter/docker-compose.yml)
+- [prisma/seed.ts](/c:/dev/webapp-template/prisma/seed.ts)
+- [docker-compose.yml](/c:/dev/webapp-template/docker-compose.yml)
 
 Remaining:
 - A shared app startup guard for additional placeholder or unsafe production values is still open.
@@ -49,8 +49,8 @@ Changes landed:
 - The Compose `migrate` service keeps `user: "0:0"` with an inline note that this is intentional.
 
 Files:
-- [Dockerfile.app](/c:/dev/gvi-finance-starter/Dockerfile.app)
-- [docker-compose.yml](/c:/dev/gvi-finance-starter/docker-compose.yml)
+- [Dockerfile.app](/c:/dev/webapp-template/Dockerfile.app)
+- [docker-compose.yml](/c:/dev/webapp-template/docker-compose.yml)
 
 ### Action 4: Add Network Isolation In Docker Compose
 
@@ -60,7 +60,7 @@ Changes landed:
 - Compose services now join an explicit `internal` network instead of relying only on the default bridge layout.
 
 Files:
-- [docker-compose.yml](/c:/dev/gvi-finance-starter/docker-compose.yml)
+- [docker-compose.yml](/c:/dev/webapp-template/docker-compose.yml)
 
 ## Remaining
 
@@ -77,7 +77,7 @@ What to do:
 - Return a clear 429-style error payload.
 
 Suggested files:
-- [src/services/api/background-jobs.ts](/c:/dev/gvi-finance-starter/src/services/api/background-jobs.ts)
+- [src/services/api/background-jobs.ts](/c:/dev/webapp-template/src/services/api/background-jobs.ts)
 
 ### Action 6: Centralize Production Startup Guards
 
@@ -111,3 +111,4 @@ What to do:
 - Better Auth production secret guard is already implemented.
 - Azure AD placeholder detection already disables SSO when credentials are obviously fake.
 - The approve route does not need a last-admin guard because it cannot remove admin capability.
+

@@ -1,20 +1,20 @@
-# Data Model: Cross-Platform CLI Client
+﻿# Data Model: Cross-Platform CLI Client
 
 **Date**: 2026-04-09 | **Spec**: [spec.md](./spec.md)
 
 ## Local Data Structures
 
-The CLI is a client application — it does not have a database. All persistent state is in the config file.
+The CLI is a client application â€” it does not have a database. All persistent state is in the config file.
 
 ### Config File
 
-**Location**: `~/.config/gvi/config.json` (Linux/macOS), `%APPDATA%\gvi\config.json` (Windows)
+**Location**: `~/.config/starterctl/config.json` (Linux/macOS), `%APPDATA%\starterctl\config.json` (Windows)
 **Permissions**: 0600 (owner read/write only)
 
 ```json
 {
   "server_url": "https://my-app.example.com/app",
-  "token": "gvi_pat_a1b2c3d4e5f6..."
+  "token": "starter_pat_a1b2c3d4e5f6..."
 }
 ```
 
@@ -25,7 +25,7 @@ The CLI is a client application — it does not have a database. All persistent 
 
 ### Version Check Cache
 
-**Location**: `~/.config/gvi/version-check.json` (Linux/macOS), `%APPDATA%\gvi\version-check.json` (Windows)
+**Location**: `~/.config/starterctl/version-check.json` (Linux/macOS), `%APPDATA%\starterctl\version-check.json` (Windows)
 
 ```json
 {
@@ -107,19 +107,19 @@ type LoginResponse struct {
 ```mermaid
 stateDiagram-v2
     [*] --> Unconfigured : first install
-    Unconfigured --> Authenticated : gvi login / gvi configure
-    Authenticated --> Unconfigured : gvi logout
-    Authenticated --> Authenticated : gvi login (re-login)
+    Unconfigured --> Authenticated : starterctl login / starterctl configure
+    Authenticated --> Unconfigured : starterctl logout
+    Authenticated --> Authenticated : starterctl login (re-login)
     Authenticated --> TokenExpired : token expires
-    TokenExpired --> Authenticated : gvi login / gvi configure
+    TokenExpired --> Authenticated : starterctl login / starterctl configure
 ```
 
 ## Environment Variables
 
 | Variable | Overrides | Description |
 |----------|-----------|-------------|
-| `GVI_SERVER_URL` | config.server_url | Server URL |
-| `GVI_TOKEN` | config.token | API token |
+| `STARTERCTL_SERVER_URL` | config.server_url | Server URL |
+| `STARTERCTL_TOKEN` | config.token | API token |
 
 Environment variables take precedence over the config file.
 
@@ -132,3 +132,4 @@ Environment variables take precedence over the config file.
 | 2 | Authentication error (no token, expired, unauthorized) |
 | 3 | Connection error (server unreachable) |
 | 4 | Permission error (role insufficient) |
+

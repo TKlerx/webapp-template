@@ -1,4 +1,4 @@
-# Quickstart: Cross-Platform CLI Client
+﻿# Quickstart: Cross-Platform CLI Client
 
 **Date**: 2026-04-09
 
@@ -13,9 +13,9 @@
 
 ```bash
 cd cli/
-go mod init github.com/<org>/gvi-cli
+go mod init github.com/<org>/starterctl
 go mod tidy
-go build -o gvi .
+go build -o starterctl .
 ```
 
 ## Development Sequence
@@ -26,7 +26,7 @@ Create `cli/` directory with `main.go`, `go.mod`, and the `cmd/` + `internal/` p
 
 ### 2. Config Management
 
-Implement `internal/config/config.go`: read/write JSON config file at platform-appropriate path. Handle `GVI_SERVER_URL` and `GVI_TOKEN` environment variable overrides.
+Implement `internal/config/config.go`: read/write JSON config file at platform-appropriate path. Handle `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN` environment variable overrides.
 
 ### 3. HTTP Client
 
@@ -79,10 +79,10 @@ go test -cover ./...            # With coverage
 
 ```bash
 # Local build
-go build -o gvi .
+go build -o starterctl .
 
 # Cross-compile for Linux
-GOOS=linux GOARCH=amd64 go build -o gvi-linux-amd64 .
+GOOS=linux GOARCH=amd64 go build -o starterctl-linux-amd64 .
 
 # Full release (all platforms)
 goreleaser release --snapshot --clean
@@ -92,15 +92,16 @@ goreleaser release --snapshot --clean
 
 ```bash
 # Browser login
-./gvi login --server http://localhost:3000
+./starterctl login --server http://localhost:3000
 
 # PAT auth
-./gvi configure --server http://localhost:3000 --token gvi_pat_abc123...
+./starterctl configure --server http://localhost:3000 --token starter_pat_abc123...
 
 # Run commands
-./gvi users list
-./gvi users list --format json
-./gvi audit export --format csv > audit.csv
-./gvi health
-./gvi version
+./starterctl users list
+./starterctl users list --format json
+./starterctl audit export --format csv > audit.csv
+./starterctl health
+./starterctl version
 ```
+

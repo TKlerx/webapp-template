@@ -1,4 +1,4 @@
-# Research: Cross-Platform CLI Client
+﻿# Research: Cross-Platform CLI Client
 
 **Date**: 2026-04-09 | **Spec**: [spec.md](./spec.md)
 
@@ -6,7 +6,7 @@
 
 **Decision**: Go 1.22+ for the CLI implementation.
 
-**Rationale**: Go compiles to single static binaries per platform with zero runtime dependencies — exactly what FR-009 requires. The Go CLI ecosystem is mature: cobra (used by kubectl, gh, docker) provides command parsing, shell completions (bash/zsh/PowerShell/fish), and help generation out of the box. Cross-compilation is trivial (`GOOS=windows GOARCH=amd64 go build`). GoReleaser automates building for all 6 platform targets and publishing to GitHub Releases.
+**Rationale**: Go compiles to single static binaries per platform with zero runtime dependencies â€” exactly what FR-009 requires. The Go CLI ecosystem is mature: cobra (used by kubectl, gh, docker) provides command parsing, shell completions (bash/zsh/PowerShell/fish), and help generation out of the box. Cross-compilation is trivial (`GOOS=windows GOARCH=amd64 go build`). GoReleaser automates building for all 6 platform targets and publishing to GitHub Releases.
 
 **Alternatives considered**:
 - **Rust (clap)**: Better performance but slower development. The team is TypeScript-focused; Go's simplicity is more approachable.
@@ -29,7 +29,7 @@
 
 **Decision**: Use `github.com/jedib0t/go-pretty/v6/table` for table output, `encoding/json` (stdlib) for JSON, `encoding/csv` (stdlib) for CSV.
 
-**Rationale**: go-pretty provides aligned, colored tables with automatic column width. JSON and CSV are stdlib — no dependencies needed. Non-interactive detection uses `os.IsTerminal()` (golang.org/x/term) to auto-switch from table to JSON when piped.
+**Rationale**: go-pretty provides aligned, colored tables with automatic column width. JSON and CSV are stdlib â€” no dependencies needed. Non-interactive detection uses `os.IsTerminal()` (golang.org/x/term) to auto-switch from table to JSON when piped.
 
 **Alternatives considered**:
 - **tablewriter**: Less maintained, fewer features.
@@ -53,11 +53,11 @@
 ```json
 {
   "server_url": "https://my-app.example.com/app",
-  "token": "gvi_pat_a1b2c3d4..."
+  "token": "starter_pat_a1b2c3d4..."
 }
 ```
 
-**Rationale**: JSON is simple, human-readable, and debuggable. The config contains only two fields — no need for YAML, TOML, or a library like viper. On Windows, Go's `os.Chmod` doesn't enforce Unix permissions but the file is in the user's AppData directory which is already user-scoped.
+**Rationale**: JSON is simple, human-readable, and debuggable. The config contains only two fields â€” no need for YAML, TOML, or a library like viper. On Windows, Go's `os.Chmod` doesn't enforce Unix permissions but the file is in the user's AppData directory which is already user-scoped.
 
 **Alternatives considered**:
 - **Viper**: Too heavy for 2 config fields. Pulls in many transitive dependencies.
@@ -66,7 +66,7 @@
 
 ## Version Check
 
-**Decision**: On each command invocation, make a non-blocking background HTTP request to the GitHub Releases API (`GET /repos/{owner}/{repo}/releases/latest`) to check for newer versions. Cache the result for 24 hours in the config directory (`~/.config/gvi/version-check.json`). Print a one-line notification to stderr if an update is available.
+**Decision**: On each command invocation, make a non-blocking background HTTP request to the GitHub Releases API (`GET /repos/{owner}/{repo}/releases/latest`) to check for newer versions. Cache the result for 24 hours in the config directory (`~/.config/starterctl/version-check.json`). Print a one-line notification to stderr if an update is available.
 
 **Rationale**: Non-blocking means the check doesn't delay command execution. 24-hour cache means at most one API call per day. Printing to stderr ensures it doesn't interfere with JSON/CSV output piped to other tools.
 
@@ -89,8 +89,9 @@
 
 **Decision**: Use cobra's `RegisterFlagCompletionFunc` and `ValidArgsFunction` for dynamic completions. For values that require server queries (user IDs, role names), the completion function makes an API call using the stored token and returns results.
 
-**Rationale**: Cobra has first-class support for dynamic completion functions. The completion function receives the current command line state and returns suggestions. For server-side values, it calls the API (e.g., `GET /api/users` for user ID completion). Results are not cached — each Tab press makes a fresh API call. This ensures completions are always up-to-date.
+**Rationale**: Cobra has first-class support for dynamic completion functions. The completion function receives the current command line state and returns suggestions. For server-side values, it calls the API (e.g., `GET /api/users` for user ID completion). Results are not cached â€” each Tab press makes a fresh API call. This ensures completions are always up-to-date.
 
 **Alternatives considered**:
 - **Cached completions**: Would show stale data. With ~10 users, API calls are fast enough.
 - **Static-only completions**: Would miss the user IDs and other dynamic values that make completions truly useful.
+

@@ -1,4 +1,4 @@
-# Feature Specification: OpenAPI Specification & Personal Access Tokens
+﻿# Feature Specification: OpenAPI Specification & Personal Access Tokens
 
 **Feature Branch**: `012-openapi-and-pat`  
 **Created**: 2026-04-08  
@@ -11,11 +11,11 @@
 
 ### Session 2026-04-09
 
-- Q: What token format structure should be used? → A: Prefixed format (`<PREFIX>_<random>`), with the prefix configurable via `.env`.
-- Q: How should revoked/expired tokens be handled over time? → A: Auto-hide in the UI after 90 days, with a "show all" toggle. Never auto-delete from the database (audit trail preserved).
-- Q: Where should PAT management live in the UI? → A: Under the user's profile/account settings page (new section or tab). Admin token management is a separate view in the admin panel.
-- Q: Who can access the API documentation page? → A: Any authenticated user regardless of role (not public, not role-restricted).
-- Q: How is the CLI browser login flow protected against CSRF? → A: CLI generates a random `state` parameter, includes it in the authorization request, and validates it on callback (standard OAuth2 pattern).
+- Q: What token format structure should be used? â†’ A: Prefixed format (`<PREFIX>_<random>`), with the prefix configurable via `.env`.
+- Q: How should revoked/expired tokens be handled over time? â†’ A: Auto-hide in the UI after 90 days, with a "show all" toggle. Never auto-delete from the database (audit trail preserved).
+- Q: Where should PAT management live in the UI? â†’ A: Under the user's profile/account settings page (new section or tab). Admin token management is a separate view in the admin panel.
+- Q: Who can access the API documentation page? â†’ A: Any authenticated user regardless of role (not public, not role-restricted).
+- Q: How is the CLI browser login flow protected against CSRF? â†’ A: CLI generates a random `state` parameter, includes it in the authorization request, and validates it on callback (standard OAuth2 pattern).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -130,7 +130,7 @@ A platform admin can view all tokens (active, revoked, expired) across all users
 - What happens when an expired token is used? The system returns 401 with a clear error message indicating the token has expired.
 - What happens when a malformed or unknown token is provided? The system returns 401 without revealing whether the token format was wrong or the token was simply unknown.
 - What happens when the token limit per user is reached? The system prevents creation and suggests revoking or deleting existing tokens. Revoked tokens don't count toward the limit.
-- What happens when a user tries to renew a revoked token? The system rejects the request — only active tokens can be renewed.
+- What happens when a user tries to renew a revoked token? The system rejects the request â€” only active tokens can be renewed.
 - What happens when a user renews a token that is currently in use by a script? The old token value immediately stops working. The user must update the script with the new value.
 - Can a revoked token be un-revoked? No. If the user needs the token again, they should create a new one or renew a different active token.
 - How does rate limiting work for PAT-authenticated requests? The same rate limits apply as for session-authenticated requests, keyed by user identity.
@@ -162,7 +162,7 @@ A platform admin can view all tokens (active, revoked, expired) across all users
 - **FR-014**: System MUST record token usage (last-used timestamp) on each authenticated request.
 - **FR-015**: System MUST log PAT creation, revocation, renewal, deletion, and authentication events in the audit trail.
 - **FR-016**: System MUST store tokens securely using one-way hashing (only the hash is persisted; the plaintext is shown once at creation).
-- **FR-016a**: Tokens MUST use a prefixed format: `<PREFIX>_<random>` (e.g., `gvi_pat_a1b2c3...`). The prefix is configurable via an environment variable (`.env`). This makes tokens identifiable, greppable in configs, and detectable by leaked credential scanners.
+- **FR-016a**: Tokens MUST use a prefixed format: `<PREFIX>_<random>` (e.g., `starter_pat_a1b2c3...`). The prefix is configurable via an environment variable (`.env`). This makes tokens identifiable, greppable in configs, and detectable by leaked credential scanners.
 - **FR-017**: System MUST provide an authorization endpoint that accepts a localhost callback URL and a `state` parameter from a CLI client, and redirects to the existing login page. The `state` parameter MUST be returned unchanged in the callback redirect for CSRF protection.
 - **FR-018**: System MUST redirect the browser to the CLI's localhost callback URL with a temporary, single-use authorization code after successful login.
 - **FR-019**: System MUST provide a token exchange endpoint where a CLI can trade a valid authorization code for an API token.
@@ -175,7 +175,7 @@ A platform admin can view all tokens (active, revoked, expired) across all users
 
 ### Key Entities
 
-- **PersonalAccessToken**: Represents a user-created token for programmatic API access. Key attributes: name, hashed token value, display prefix (first N characters of the prefixed token for identification), owning user, creation date, expiration date, last-used date, status (active/revoked/expired), revocation date (if revoked), renewal count. Token format: `<configurable_prefix>_<random>` (e.g., `gvi_pat_a1b2c3...`).
+- **PersonalAccessToken**: Represents a user-created token for programmatic API access. Key attributes: name, hashed token value, display prefix (first N characters of the prefixed token for identification), owning user, creation date, expiration date, last-used date, status (active/revoked/expired), revocation date (if revoked), renewal count. Token format: `<configurable_prefix>_<random>` (e.g., `starter_pat_a1b2c3...`).
 - **OpenAPI Specification**: A machine-readable document describing all API endpoints, their inputs, outputs, and authentication requirements.
 
 ## Success Criteria *(mandatory)*
@@ -205,3 +205,4 @@ A platform admin can view all tokens (active, revoked, expired) across all users
 - The browser login flow only accepts localhost callback URLs (not arbitrary redirect URIs) for security.
 - The application's existing base path support is leveraged for all new endpoints. No additional reverse proxy configuration is needed beyond what the app already requires.
 - Azure SSO (Entra) works with the browser login flow without additional app registration changes. The Entra callback URL points at the server, not at the CLI's localhost.
+

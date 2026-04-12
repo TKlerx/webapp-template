@@ -19,6 +19,7 @@ These files are intentionally committed into the template so copied repos still 
 - Next.js 16 app router
 - Prisma starter data model with SQLite for local development
 - PostgreSQL-backed Docker deployment
+- Go-based `starterctl` CLI with PAT-backed API access and GoReleaser packaging
 - uv-managed Python worker skeleton for background jobs
 - Azure SSO and local login
 - role-based access control
@@ -68,6 +69,21 @@ Guidelines:
 ```
 
 `all` includes dependency cooldown validation for npm and uv support.
+
+## CLI
+
+The Go CLI lives in [`cli/`](./cli/) and has its own guide at [`cli/README.md`](./cli/README.md).
+
+For day-to-day CLI usage, see the user guide at [`docs/cli-user-guide.md`](./docs/cli-user-guide.md).
+It now starts with a short copy/paste CLI cheat sheet for the most common workflows.
+
+That guide covers:
+
+- building `starterctl`
+- local PAT-based configuration
+- smoke testing against `http://localhost:3270`
+- manual cross-platform builds
+- GoReleaser snapshot packaging
 
 ## Docker Deployment
 

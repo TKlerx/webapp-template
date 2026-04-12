@@ -1,4 +1,4 @@
-# API Endpoints Contract: OpenAPI & Personal Access Tokens
+﻿# API Endpoints Contract: OpenAPI & Personal Access Tokens
 
 **Date**: 2026-04-09
 
@@ -27,7 +27,7 @@ Create a new personal access token.
   "token": {
     "id": "clx...",
     "name": "my-script",
-    "tokenValue": "gvi_pat_a1b2c3d4e5f6...",
+    "tokenValue": "starter_pat_a1b2c3d4e5f6...",
     "tokenPrefix": "a1b2c3d4",
     "type": "PAT",
     "expiresAt": "2026-07-08T00:00:00Z",
@@ -49,7 +49,7 @@ List the authenticated user's tokens.
 
 **Auth**: Session or PAT
 **Query params**:
-- `showAll`: boolean (default: false) — include tokens revoked/expired >90 days ago
+- `showAll`: boolean (default: false) â€” include tokens revoked/expired >90 days ago
 
 **Response 200**:
 ```json
@@ -112,7 +112,7 @@ Generate a new token value for an active token, invalidating the old value.
   "token": {
     "id": "clx...",
     "name": "my-script",
-    "tokenValue": "gvi_pat_x9y8z7w6...",
+    "tokenValue": "starter_pat_x9y8z7w6...",
     "tokenPrefix": "x9y8z7w6",
     "expiresAt": "2026-07-08T00:00:00Z",
     "renewalCount": 1
@@ -230,7 +230,7 @@ Exchange authorization code for an API token.
 **Response 200**:
 ```json
 {
-  "token": "gvi_pat_a1b2c3d4...",
+  "token": "starter_pat_a1b2c3d4...",
   "expiresAt": "2026-05-09T00:00:00Z",
   "user": {
     "name": "John Doe",
@@ -276,3 +276,4 @@ All errors follow the existing pattern:
 ```
 
 With appropriate HTTP status codes: 400 (bad request), 401 (not authenticated), 403 (not authorized), 404 (not found), 409 (conflict), 429 (limit reached).
+

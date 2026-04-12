@@ -1,5 +1,26 @@
 # Continue Log
 
+## 2026-04-12 18:30:00
+
+- Started spec `013-cli-client` on `main` and added it to `ACTIVE_SPECS.md` because the CLI work is not fully complete yet.
+- Scaffolded a standalone Go CLI module under `cli/` with root command wiring, config storage, HTTP client/auth helpers, output renderers, command implementations, release config, and initial Go tests.
+- Reconciled the CLI against the real server routes before implementing it, including the current `PATCH` user mutation endpoints and the split between `/api/audit` and `/api/audit/export`.
+- Left the remaining spec tasks open where work is still partial or blocked by the missing Go toolchain, especially richer test coverage, final exit-code validation, and `go test` / `go vet`.
+
+## 2026-04-12 19:05:00
+
+- Installed Go support for the session and verified the CLI module with `go test ./...`, `go vet ./...`, and `go build ./...` from `cli/`.
+- Fixed the issues that surfaced under real validation: added `go.sum`, corrected query-string preservation in the shared HTTP client, and updated the config permission test to respect Windows semantics.
+- Expanded CLI test coverage for browser-login fallback and invalid-state handling, user mutation routes, forbidden/connection exit-code mapping, and audit export behavior.
+- Switched the working branch from `main` to `013-cli-client` and reduced the remaining spec work to a single open item: the `gvi configure` success output still cannot print authenticated user identity cleanly without a suitable server endpoint.
+
+## 2026-04-12 18:55:00
+
+- Closed the final spec-013 gap by adding `/api/auth/me`, which reuses the existing shared session-or-token route auth and returns the authenticated user payload for PAT and CLI-token flows.
+- Updated `gvi configure` to call both `/api/health` and `/api/auth/me`, then print the authenticated user name and role before finishing.
+- Installed local Node dependencies, regenerated Prisma client artifacts, and verified the new web-side route with `npm exec -- tsc --noEmit` plus `npm exec -- vitest run tests/integration/token-api.test.ts`.
+- Re-ran `go test ./...` and `go vet ./...` in `cli/`; spec `013-cli-client` is now fully complete and has been removed from `ACTIVE_SPECS.md`.
+
 ## 2026-04-10 10:45:00
 
 - Implemented the concrete security actions for the background-jobs endpoint by requiring `PLATFORM_ADMIN` for job creation, allowlisting job types, and rejecting payloads larger than 10KB.
@@ -396,4 +417,15 @@ pm run prisma:migrate, and confirming
 pm run prisma:generate still succeeds.
 - Completed T006 by updating prisma:migrate:postgres to use prisma migrate deploy --config prisma.config.postgres.ts and verifying it against a live PostgreSQL 18 container on 127.0.0.1:54329.
 - Spec 012 is fully complete; removed it from ACTIVE_SPECS.md and refreshed continuity state.
+
+## 2026-04-13 00:22:00
+
+- Added a local `.env` for smoke testing the SQLite dev setup on `http://localhost:3270`.
+- Bootstrapped the local SQLite database through `node scripts/ensure-local-db.mjs`, which pushed the schema, marked existing migrations as applied, and seeded the initial admin user.
+- Performed a live CLI smoke test against the running Next app: `/api/health` returned `ok`, local login through `/api/auth/login` succeeded for `admin@example.com`, PAT creation through `/api/tokens` returned a usable `starter_pat_*` token, and `starterctl health`, `starterctl version`, and `starterctl users list --format json` all succeeded against the live server.
+- Rechecked the earlier `STARTERCTL_CONFIG_DIR` concern and confirmed there is no CLI persistence bug there; the failed smoke command was a race caused by running `starterctl configure` and the next command in parallel before `config.json` had been written.
+- Added CLI documentation in `cli/README.md` and linked it from the root `README.md`, with concrete instructions for building, configuring, smoke testing, cross-platform builds, GoReleaser usage, and troubleshooting.
+- Added a separate end-user guide in `docs/cli-user-guide.md` and linked it from both `README.md` and `cli/README.md` so people can find usage instructions without reading the build-oriented CLI README.
+- Added a short CLI cheat sheet to the top of `docs/cli-user-guide.md` and highlighted it from `README.md` so common commands are available as quick copy/paste examples.
+- Added a documented PowerShell bootstrap flow in `docs/cli-user-guide.md` for creating the first PAT through the app API before the CLI is configured.
 
