@@ -1,6 +1,6 @@
 ﻿# Security Actions
 
-Updated: 2026-04-10
+Updated: 2026-04-21
 
 This document turns the broader review in [followups.md](/c:/dev/webapp-template/docs/security/followups.md) into a maintained action tracker. Completed items stay here as an audit trail; remaining items are the next concrete implementation targets.
 
@@ -62,6 +62,40 @@ Changes landed:
 Files:
 - [docker-compose.yml](/c:/dev/webapp-template/docker-compose.yml)
 
+### Action 8: Harden Mock SSO Production Guard
+
+Status: Completed
+
+Changes landed:
+- Added a hard crash guard if `E2E_MOCK_SSO=1` in `NODE_ENV=production`, regardless of any override flag.
+- Removed `E2E_ALLOW_PROD_MOCK_SSO` bypass — mock SSO now only works in non-production.
+
+Files:
+- [src/app/api/auth/sso/azure/route.ts](/c:/dev/webapp-template/src/app/api/auth/sso/azure/route.ts)
+
+### Action 9: Add Account-Level Login Rate Limiting
+
+Status: Completed
+
+Changes landed:
+- Login route now rate-limits by email (10 attempts / 15 min) in addition to IP-based limiting.
+- Prevents brute-force against a specific account even when attacker spoofs `X-Forwarded-For`.
+- `checkRateLimit` now accepts optional `windowMs` and `maxAttempts` overrides.
+
+Files:
+- [src/lib/rate-limit.ts](/c:/dev/webapp-template/src/lib/rate-limit.ts)
+- [src/app/api/auth/login/route.ts](/c:/dev/webapp-template/src/app/api/auth/login/route.ts)
+
+### Action 10: Add Rate Limiting To CLI Auth Token Exchange
+
+Status: Completed
+
+Changes landed:
+- `POST /api/cli-auth/token` now checks IP-based rate limit before processing.
+
+Files:
+- [src/app/api/cli-auth/token/route.ts](/c:/dev/webapp-template/src/app/api/cli-auth/token/route.ts)
+
 ## Remaining
 
 ### Action 0: Upgrade `next` And `next-intl` After Cooldown Window
@@ -86,6 +120,23 @@ Why 2026-04-17:
 
 Suggested command:
 - `npm install next@16.2.3 next-intl@4.9.1`
+
+### Action 11: Move Rate Limiting To Shared Store For Multi-Instance Deployments
+
+Priority: Medium (when scaling beyond single instance)
+
+Problem:
+- Rate limit state lives in process memory (`Map`). Server restart resets counters; multiple replicas maintain independent state, giving attackers N× the allowed attempts across N instances.
+
+What to do:
+- Replace the in-memory `Map` with Redis or a database-backed counter.
+- Alternatively, use a reverse proxy rate limiter (nginx, Cloudflare, API gateway) as the primary defense and keep the in-memory store as a fallback.
+
+Known limitation:
+- Acceptable for single-instance deployments. Document the constraint for operators scaling the app.
+
+Suggested files:
+- [src/lib/rate-limit.ts](/c:/dev/webapp-template/src/lib/rate-limit.ts)
 
 ### Action 5: Add Rate Limiting To Background Job Creation
 

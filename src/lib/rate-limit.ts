@@ -1,10 +1,17 @@
 type RateLimitEntry = {
   count: number;
   windowStart: number;
+  windowMs: number;
+  maxAttempts: number;
 };
 
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
+type RateLimitOptions = {
+  windowMs?: number;
+  maxAttempts?: number;
+};
+
+const DEFAULT_WINDOW_MS = 15 * 60 * 1000;
+const DEFAULT_MAX_ATTEMPTS = 5;
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
@@ -17,7 +24,7 @@ function getKey(ip: string, endpoint: string) {
 
 function cleanupExpiredEntries(now: number) {
   for (const [key, entry] of rateLimitStore.entries()) {
-    if (now - entry.windowStart >= WINDOW_MS) {
+    if (now - entry.windowStart >= entry.windowMs) {
       rateLimitStore.delete(key);
     }
   }
@@ -54,34 +61,42 @@ export function getClientIp(request: Request): string {
   return "unknown";
 }
 
-export function checkRateLimit(ip: string, endpoint: string): { allowed: boolean; retryAfterMs: number } {
+export function checkRateLimit(
+  key: string,
+  endpoint: string,
+  options?: RateLimitOptions,
+): { allowed: boolean; retryAfterMs: number } {
   if (process.env.E2E_DISABLE_RATE_LIMIT === "1") {
     return { allowed: true, retryAfterMs: 0 };
   }
 
   ensureCleanupTimer();
 
+  const windowMs = options?.windowMs ?? DEFAULT_WINDOW_MS;
+  const maxAttempts = options?.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const now = Date.now();
-  const key = getKey(ip, endpoint);
-  const existing = rateLimitStore.get(key);
+  const compositeKey = getKey(key, endpoint);
+  const existing = rateLimitStore.get(compositeKey);
 
-  if (!existing || now - existing.windowStart >= WINDOW_MS) {
-    rateLimitStore.set(key, {
+  if (!existing || now - existing.windowStart >= existing.windowMs) {
+    rateLimitStore.set(compositeKey, {
       count: 1,
       windowStart: now,
+      windowMs,
+      maxAttempts,
     });
     return { allowed: true, retryAfterMs: 0 };
   }
 
-  if (existing.count >= MAX_ATTEMPTS) {
+  if (existing.count >= existing.maxAttempts) {
     return {
       allowed: false,
-      retryAfterMs: Math.max(0, WINDOW_MS - (now - existing.windowStart)),
+      retryAfterMs: Math.max(0, existing.windowMs - (now - existing.windowStart)),
     };
   }
 
   existing.count += 1;
-  rateLimitStore.set(key, existing);
+  rateLimitStore.set(compositeKey, existing);
   return { allowed: true, retryAfterMs: 0 };
 }
 

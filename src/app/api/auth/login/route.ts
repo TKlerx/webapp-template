@@ -34,6 +34,14 @@ export async function POST(request: Request) {
   }
 
   const email = body.email.toLowerCase();
+
+  const accountLimit = checkRateLimit(email, "login-account", { maxAttempts: 10 });
+  if (!accountLimit.allowed) {
+    const response = jsonError("Too many login attempts for this account. Please try again later.", 429);
+    response.headers.set("Retry-After", Math.ceil(accountLimit.retryAfterMs / 1000).toString());
+    return response;
+  }
+
   const user = await prisma.user.findUnique({
     where: { email },
   });
