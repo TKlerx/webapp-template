@@ -19,14 +19,8 @@ _TOKEN_CACHE: dict[str, Any] = {
 
 
 def send_graph_mail(payload: dict[str, Any]) -> None:
-    mailbox = (os.environ.get("MAIL_DEFAULT_MAILBOX") or "").strip()
-    if not mailbox:
-        raise ValueError("MAIL_DEFAULT_MAILBOX is required for notification delivery jobs.")
-
-    client_id = _required_env("GRAPH_CLIENT_ID")
-    client_secret = _required_env("GRAPH_CLIENT_SECRET")
-    tenant_id = _required_env("GRAPH_TENANT_ID")
-    access_token = _get_access_token(client_id, client_secret, tenant_id)
+    mailbox = _resolve_mailbox()
+    access_token = _get_graph_access_token()
 
     recipient_email = str(payload.get("recipientEmail") or "").strip().lower()
     if not recipient_email:
@@ -64,29 +58,66 @@ def send_graph_mail(payload: dict[str, Any]) -> None:
         "saveToSentItems": True,
     }
 
-    url = f"{GRAPH_BASE_URL}/users/{urllib.parse.quote(mailbox)}/sendMail"
-    request = urllib.request.Request(
-        url,
-        data=json.dumps(request_body).encode("utf-8"),
+    _graph_request(
+        access_token,
+        f"/users/{urllib.parse.quote(mailbox)}/sendMail",
         method="POST",
-        headers={
-            "Authorization": f"Bearer {access_token}",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        },
+        payload=request_body,
+        allow_empty=True,
+        error_prefix="Graph sendMail failed",
     )
 
-    try:
-        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-        with urllib.request.urlopen(request, timeout=30) as response:
-            status = response.getcode()
-            if status not in {202, 204}:
-                raise RuntimeError(f"Graph sendMail returned unexpected status {status}")
-    except urllib.error.HTTPError as error:
-        details = error.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"Graph sendMail failed: {error.code} {details}") from error
-    except urllib.error.URLError as error:
-        raise RuntimeError(f"Graph sendMail request failed: {error.reason}") from error
+
+def list_graph_mail_messages(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    mailbox = str(payload.get("mailbox") or "").strip() or _resolve_mailbox()
+    folder = str(payload.get("folder") or "inbox").strip() or "inbox"
+    top = int(payload.get("top") or 25)
+    top = max(1, min(top, 100))
+    unread_only = bool(payload.get("unreadOnly"))
+    query = {
+        "$top": str(top),
+        "$orderby": "receivedDateTime DESC",
+        "$select": "id,subject,from,receivedDateTime,isRead,bodyPreview,conversationId,internetMessageId",
+    }
+    if unread_only:
+        query["$filter"] = "isRead eq false"
+
+    search = urllib.parse.urlencode(query)
+    response = _graph_request(
+        _get_graph_access_token(),
+        f"/users/{urllib.parse.quote(mailbox)}/mailFolders/{urllib.parse.quote(folder)}/messages?{search}",
+        error_prefix="Graph list messages failed",
+    )
+    value = response.get("value")
+    return value if isinstance(value, list) else []
+
+
+def get_graph_mail_message(mailbox: str, message_id: str) -> dict[str, Any]:
+    query = urllib.parse.urlencode(
+        {
+            "$select": "id,subject,from,receivedDateTime,isRead,bodyPreview,conversationId,internetMessageId,toRecipients,ccRecipients,replyTo,body,internetMessageHeaders",
+        }
+    )
+    response = _graph_request(
+        _get_graph_access_token(),
+        f"/users/{urllib.parse.quote(mailbox)}/messages/{urllib.parse.quote(message_id)}?{query}",
+        error_prefix="Graph get message failed",
+    )
+    return response if isinstance(response, dict) else {}
+
+
+def _resolve_mailbox() -> str:
+    mailbox = (os.environ.get("MAIL_DEFAULT_MAILBOX") or "").strip()
+    if not mailbox:
+        raise ValueError("MAIL_DEFAULT_MAILBOX is required for Graph mail jobs.")
+    return mailbox
+
+
+def _get_graph_access_token() -> str:
+    client_id = _required_env("GRAPH_CLIENT_ID")
+    client_secret = _required_env("GRAPH_CLIENT_SECRET")
+    tenant_id = _required_env("GRAPH_TENANT_ID")
+    return _get_access_token(client_id, client_secret, tenant_id)
 
 
 def _required_env(name: str) -> str:
@@ -138,3 +169,39 @@ def _get_access_token(client_id: str, client_secret: str, tenant_id: str) -> str
     _TOKEN_CACHE["access_token"] = access_token
     _TOKEN_CACHE["expires_at"] = time.time() + expires_in
     return access_token
+
+
+def _graph_request(
+    access_token: str,
+    path: str,
+    *,
+    method: str = "GET",
+    payload: dict[str, Any] | None = None,
+    allow_empty: bool = False,
+    error_prefix: str,
+) -> dict[str, Any]:
+    request = urllib.request.Request(
+        f"{GRAPH_BASE_URL}{path}",
+        data=json.dumps(payload).encode("utf-8") if payload is not None else None,
+        method=method,
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/json",
+            **({"Content-Type": "application/json"} if payload is not None else {}),
+        },
+    )
+
+    try:
+        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+        with urllib.request.urlopen(request, timeout=30) as response:
+            status = response.getcode()
+            if allow_empty and status in {202, 204}:
+                return {}
+
+            body = response.read().decode("utf-8")
+            return json.loads(body) if body else {}
+    except urllib.error.HTTPError as error:
+        details = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"{error_prefix}: {error.code} {details}") from error
+    except urllib.error.URLError as error:
+        raise RuntimeError(f"{error_prefix}: {error.reason}") from error

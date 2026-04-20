@@ -8,7 +8,12 @@ export type CreateBackgroundJobBody = {
   payload?: unknown;
 };
 
-const ALLOWED_BACKGROUND_JOB_TYPES = new Set(["echo", "noop", "notification_delivery"]);
+const ALLOWED_BACKGROUND_JOB_TYPES = new Set([
+  "echo",
+  "noop",
+  "notification_delivery",
+  "inbound_mail_poll",
+]);
 const MAX_BACKGROUND_JOB_PAYLOAD_LENGTH = 10 * 1024;
 
 export function safeParseJobJson(value: string | null) {

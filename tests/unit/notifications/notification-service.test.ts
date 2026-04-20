@@ -36,6 +36,7 @@ describe("notification service", () => {
     prismaMock.notification.create
       .mockResolvedValueOnce({ id: "notification-1" } as never)
       .mockResolvedValueOnce({ id: "notification-2" } as never);
+    prismaMock.notification.update.mockResolvedValue({} as never);
     prismaMock.backgroundJob.create.mockResolvedValue({ id: "job-1" } as never);
 
     await queueUserCreatedNotifications({
@@ -58,6 +59,7 @@ describe("notification service", () => {
       }),
     });
     expect(prismaMock.notification.create).toHaveBeenCalledTimes(2);
+    expect(prismaMock.notification.update).toHaveBeenCalledTimes(2);
     expect(prismaMock.backgroundJob.create).toHaveBeenCalledTimes(2);
     expect(prismaMock.backgroundJob.create).toHaveBeenNthCalledWith(
       1,
@@ -65,7 +67,9 @@ describe("notification service", () => {
         data: expect.objectContaining({
           jobType: "notification_delivery",
           createdByUserId: "admin-1",
-          payload: expect.stringContaining('"notificationId":"notification-1"'),
+          payload: expect.stringMatching(
+            /"notificationId":"notification-1".*\[notification:notification-1\]/,
+          ),
         }),
       }),
     );
@@ -85,6 +89,7 @@ describe("notification service", () => {
     ] as never);
     prismaMock.notificationEvent.create.mockResolvedValue({ id: "event-2" } as never);
     prismaMock.notification.create.mockResolvedValue({ id: "notification-3" } as never);
+    prismaMock.notification.update.mockResolvedValue({} as never);
     prismaMock.backgroundJob.create.mockResolvedValue({ id: "job-3" } as never);
 
     await queueRoleChangedNotifications({
@@ -102,6 +107,7 @@ describe("notification service", () => {
     });
 
     expect(prismaMock.notification.create).toHaveBeenCalledTimes(1);
+    expect(prismaMock.notification.update).toHaveBeenCalledTimes(1);
     expect(prismaMock.backgroundJob.create).toHaveBeenCalledTimes(1);
     expect(prismaMock.notification.create).toHaveBeenCalledWith({
       data: expect.objectContaining({

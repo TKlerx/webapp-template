@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import {
   AuthMethod,
+  NotificationEventType,
+  NotificationStatus,
   Role,
   ThemePreference,
   UserStatus,
@@ -16,7 +18,9 @@ type Operation =
   | "updateUserStatus"
   | "assignUserToScope"
   | "addAuditEntryFixture"
-  | "seedBackgroundJob";
+  | "seedBackgroundJob"
+  | "seedNotificationTypeConfiguration"
+  | "seedNotificationFixture";
 
 function normalizeEmail(email: string) {
   return email.toLowerCase();
@@ -288,6 +292,130 @@ async function main() {
       });
 
       process.stdout.write(JSON.stringify(job.id));
+      break;
+    }
+
+    case "seedNotificationTypeConfiguration": {
+      const input = await readJson<{
+        eventType: NotificationEventType;
+        enabled: boolean;
+        updatedByEmail?: string;
+      }>();
+
+      const normalizedEmail = input.updatedByEmail ? normalizeEmail(input.updatedByEmail) : null;
+      const user = normalizedEmail
+        ? await prisma.user.findUnique({
+            where: { email: normalizedEmail },
+            select: { id: true },
+          })
+        : null;
+
+      const config = await (
+        prisma as unknown as {
+          notificationTypeConfiguration: {
+            upsert(args: {
+              where: { eventType: NotificationEventType };
+              update: { enabled: boolean; updatedByUserId: string | null };
+              create: {
+                eventType: NotificationEventType;
+                enabled: boolean;
+                updatedByUserId: string | null;
+              };
+            }): Promise<{ eventType: NotificationEventType }>;
+          };
+        }
+      ).notificationTypeConfiguration.upsert({
+        where: {
+          eventType: input.eventType,
+        },
+        update: {
+          enabled: input.enabled,
+          updatedByUserId: user?.id ?? null,
+        },
+        create: {
+          eventType: input.eventType,
+          enabled: input.enabled,
+          updatedByUserId: user?.id ?? null,
+        },
+      });
+
+      process.stdout.write(JSON.stringify(config.eventType));
+      break;
+    }
+
+    case "seedNotificationFixture": {
+      const input = await readJson<{
+        eventType: NotificationEventType;
+        actorEmail?: string;
+        affectedUserEmail?: string;
+        recipientEmail: string;
+        recipientUserEmail?: string;
+        locale?: string;
+        subject: string;
+        bodyText?: string;
+        bodyHtml?: string | null;
+        status?: NotificationStatus;
+        retryCount?: number;
+        providerMessageId?: string | null;
+        lastError?: string | null;
+        sentAt?: string | null;
+        payload?: unknown;
+      }>();
+
+      const [actor, affectedUser, recipientUser] = await Promise.all([
+        input.actorEmail
+          ? prisma.user.findUnique({
+              where: { email: normalizeEmail(input.actorEmail) },
+              select: { id: true },
+            })
+          : null,
+        input.affectedUserEmail
+          ? prisma.user.findUnique({
+              where: { email: normalizeEmail(input.affectedUserEmail) },
+              select: { id: true },
+            })
+          : null,
+        input.recipientUserEmail
+          ? prisma.user.findUnique({
+              where: { email: normalizeEmail(input.recipientUserEmail) },
+              select: { id: true },
+            })
+          : null,
+      ]);
+
+      const event = await prisma.notificationEvent.create({
+        data: {
+          eventType: input.eventType,
+          actorId: actor?.id ?? null,
+          affectedUserId: affectedUser?.id ?? null,
+          payload: JSON.stringify(input.payload ?? {}),
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const notification = await prisma.notification.create({
+        data: {
+          eventId: event.id,
+          recipientEmail: normalizeEmail(input.recipientEmail),
+          recipientUserId: recipientUser?.id ?? null,
+          locale: input.locale ?? "en",
+          subject: input.subject,
+          bodyText: input.bodyText ?? input.subject,
+          bodyHtml: input.bodyHtml ?? null,
+          status: input.status ?? NotificationStatus.QUEUED,
+          retryCount: input.retryCount ?? 0,
+          providerMessageId: input.providerMessageId ?? null,
+          lastError: input.lastError ?? null,
+          sentAt: input.sentAt ? new Date(input.sentAt) : null,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      process.stdout.write(JSON.stringify(notification.id));
       break;
     }
   }

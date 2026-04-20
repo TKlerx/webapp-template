@@ -56,7 +56,7 @@
 
 - [X] T010 [P] [US1] Add notification service unit coverage in `tests/unit/notifications/`
 - [X] T011 [P] [US1] Add notification route/service integration coverage in `tests/integration/`
-- [ ] T012 [P] [US1] Add end-to-end coverage for an event-triggered notification flow in `tests/e2e/`
+- [X] T012 [P] [US1] Add end-to-end coverage for an event-triggered notification flow in `tests/e2e/`
 
 ### Implementation for User Story 1
 
@@ -78,15 +78,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T018 [P] [US2] Add API/service tests for notification settings and log filtering in `tests/integration/`
-- [ ] T019 [P] [US2] Add UI coverage for notification settings and log views in `tests/e2e/`
+- [X] T018 [P] [US2] Add API/service tests for notification settings and log filtering in `tests/integration/`
+- [X] T019 [P] [US2] Add UI coverage for notification settings and log views in `tests/e2e/`
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Add notification type configuration persistence and services under `prisma/` and `src/services/notifications/`
-- [ ] T021 [US2] Add admin notification log and settings routes under `src/app/api/notifications/`
-- [ ] T022 [US2] Add notification settings and log UI under `src/app/(dashboard)/` and supporting components under `src/components/`
-- [ ] T023 [US2] Add RBAC-aware navigation and i18n strings for notification management in `src/components/ui/Navigation.tsx` and `src/i18n/messages/*.json`
+- [X] T020 [US2] Add notification type configuration persistence and services under `prisma/` and `src/services/notifications/`
+- [X] T021 [US2] Add admin notification log and settings routes under `src/app/api/notifications/`
+- [X] T022 [US2] Add notification settings and log UI under `src/app/(dashboard)/` and supporting components under `src/components/`
+- [X] T023 [US2] Add RBAC-aware navigation and i18n strings for notification management in `src/components/ui/Navigation.tsx` and `src/i18n/messages/*.json`
 
 **Checkpoint**: PLATFORM_ADMIN users can manage notification behavior and inspect delivery history, with scoped visibility rules applied where required.
 
@@ -100,15 +100,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T024 [P] [US3] Add worker and inbound-processing tests under `worker/tests/` and `tests/integration/`
-- [ ] T025 [P] [US3] Add regression coverage for bounce correlation and reference matching in `tests/unit/`
+- [X] T024 [P] [US3] Add worker and inbound-processing tests under `worker/tests/` and `tests/integration/`
+- [X] T025 [P] [US3] Add regression coverage for bounce correlation and reference matching in `tests/unit/`
 
 ### Implementation for User Story 3
 
-- [ ] T026 [US3] Add inbound-email persistence models in `prisma/schema.prisma` and `prisma/schema.postgres.prisma`
-- [ ] T027 [US3] Implement shared mailbox polling and deduplication in the worker under `worker/src/`
-- [ ] T028 [US3] Add bounce/NDR correlation and notification status updates in `src/services/notifications/`
-- [ ] T029 [US3] Add reference-matching hooks for downstream application linkage in `src/services/notifications/` or a dedicated inbound module
+- [X] T026 [US3] Add inbound-email persistence models in `prisma/schema.prisma` and `prisma/schema.postgres.prisma`
+- [X] T027 [US3] Implement shared mailbox polling and deduplication in the worker under `worker/src/`
+- [X] T028 [US3] Add bounce/NDR correlation and notification status updates in `src/services/notifications/`
+- [X] T029 [US3] Add reference-matching hooks for downstream application linkage in `src/services/notifications/` or a dedicated inbound module
 
 **Checkpoint**: Inbound mailbox messages are polled, stored, and processed without duplicating or losing messages.
 
@@ -120,7 +120,7 @@
 
 - [X] T030 [Governance] Add the missing implementation-spec package for feature 014 in `specs/014-shared-mailbox-notifications/`
 - [X] T031 [Governance] Update `ACTIVE_SPECS.md`, `CONTINUE.md`, and `CONTINUE_LOG.md` to reflect that the Graph mail foundation is complete but the broader feature remains open
-- [ ] T032 [Governance] Remove feature 014 from `ACTIVE_SPECS.md` only when all remaining tasks are complete
+- [X] T032 [Governance] Remove feature 014 from `ACTIVE_SPECS.md` only when all remaining tasks are complete
 
 ---
 

@@ -5,6 +5,11 @@ import {
   type NotificationTemplateKind,
 } from "@/lib/mail/templates/notifications";
 import {
+  appendNotificationReferenceHtml,
+  appendNotificationReferenceText,
+} from "@/services/notifications/inbound";
+import { getNotificationTypeConfiguration } from "@/services/notifications/admin";
+import {
   NotificationEventType,
   Role,
   UserStatus,
@@ -161,6 +166,11 @@ export async function queueUserStatusChangedNotifications(input: {
 }
 
 async function queueNotifications(input: QueueNotificationContext) {
+  const config = await getNotificationTypeConfiguration(input.eventType);
+  if (!config.enabled) {
+    return;
+  }
+
   if (input.recipients.length === 0) {
     return;
   }
@@ -201,13 +211,24 @@ async function queueNotifications(input: QueueNotificationContext) {
         },
       });
 
+      const bodyText = appendNotificationReferenceText(rendered.bodyText, notification.id);
+      const bodyHtml = appendNotificationReferenceHtml(rendered.bodyHtml, notification.id);
+
+      await tx.notification.update({
+        where: { id: notification.id },
+        data: {
+          bodyText,
+          bodyHtml,
+        },
+      });
+
       const jobPayload: NotificationJobPayload = {
         notificationId: notification.id,
         recipientEmail: recipient.email,
         recipientName: recipient.name,
         subject: rendered.subject,
-        bodyText: rendered.bodyText,
-        bodyHtml: rendered.bodyHtml,
+        bodyText,
+        bodyHtml,
       };
 
       await tx.backgroundJob.create({

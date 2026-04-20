@@ -81,6 +81,13 @@ enum NotificationStatus {
   BOUNCED
 }
 
+enum InboundEmailStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
 model User {
   id                 String                  @id @default(cuid())
   email              String                  @unique
@@ -264,6 +271,14 @@ model NotificationEvent {
   @@index([affectedUserId, createdAt])
 }
 
+model NotificationTypeConfiguration {
+  eventType       NotificationEventType @id
+  enabled         Boolean               @default(true)
+  updatedByUserId String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+}
+
 model Notification {
   id               String             @id @default(cuid())
   eventId          String
@@ -286,4 +301,33 @@ model Notification {
   @@index([status, createdAt])
   @@index([recipientEmail, status])
   @@index([recipientUserId, createdAt])
+}
+
+model InboundEmail {
+  id                     String             @id @default(cuid())
+  providerMessageId      String             @unique
+  mailbox                String
+  internetMessageId      String?
+  conversationId         String?
+  senderEmail            String?
+  senderName             String?
+  subject                String
+  bodyPreview            String?
+  bodyText               String?
+  bodyHtml               String?
+  inReplyTo              String?
+  referenceIds           String             @default("[]")
+  receivedAt             DateTime
+  processingStatus       InboundEmailStatus @default(RECEIVED)
+  processingNotes        String?
+  correlatedNotificationId String?
+  linkedEntityType       String?
+  linkedEntityId         String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@index([processingStatus, receivedAt])
+  @@index([mailbox, receivedAt])
+  @@index([correlatedNotificationId, receivedAt])
+  @@index([linkedEntityType, linkedEntityId])
 }

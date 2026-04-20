@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from starter_worker.config import WorkerConfig, load_config
 from starter_worker.db import JobStore
-from starter_worker.main import process_job
+from starter_worker.main import process_inbound_mail_poll, process_job
 
 
 class WorkerTests(unittest.TestCase):
@@ -53,6 +53,55 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result["notificationId"], "notification-1")
         self.assertEqual(result["status"], "sent")
         self.assertIn("processedAt", result)
+
+    def test_process_inbound_mail_poll_stores_bounces_and_entity_links(self) -> None:
+        with patch(
+            "starter_worker.main.list_graph_mail_messages",
+            return_value=[
+                {"id": "msg-bounce"},
+                {"id": "msg-link"},
+            ],
+        ), patch(
+            "starter_worker.main.get_graph_mail_message",
+            side_effect=[
+                {
+                    "id": "msg-bounce",
+                    "subject": "Undeliverable [notification:notification-1]",
+                    "bodyPreview": "Delivery failed",
+                    "receivedDateTime": "2026-04-20T10:00:00Z",
+                    "from": {"emailAddress": {"address": "postmaster@example.com", "name": "Postmaster"}},
+                    "body": {"contentType": "text", "content": "Delivery failed [notification:notification-1]"},
+                    "internetMessageHeaders": [],
+                },
+                {
+                    "id": "msg-link",
+                    "subject": "Question [ref:Scope:scope-7]",
+                    "bodyPreview": "Can you help?",
+                    "receivedDateTime": "2026-04-20T10:05:00Z",
+                    "from": {"emailAddress": {"address": "person@example.com", "name": "Person"}},
+                    "body": {"contentType": "text", "content": "Following up on [ref:Scope:scope-7]"},
+                    "internetMessageHeaders": [],
+                },
+            ],
+        ):
+            self._insert_notification("notification-1")
+            store = self._make_store()
+            result = process_inbound_mail_poll(store, {"mailbox": "shared@example.com"})
+
+        self.assertEqual(result["created"], 2)
+        self.assertEqual(result["bounced"], 1)
+        self.assertEqual(result["linked"], 1)
+
+        inbound_bounce = self._fetch_inbound_email("msg-bounce")
+        inbound_link = self._fetch_inbound_email("msg-link")
+        bounced_notification = self._fetch_notification("notification-1")
+
+        self.assertEqual(inbound_bounce["processingStatus"], "PROCESSED")
+        self.assertEqual(inbound_bounce["correlatedNotificationId"], "notification-1")
+        self.assertEqual(inbound_link["processingStatus"], "PROCESSED")
+        self.assertEqual(inbound_link["linkedEntityType"], "Scope")
+        self.assertEqual(inbound_link["linkedEntityId"], "scope-7")
+        self.assertEqual(bounced_notification["status"], "BOUNCED")
 
     def test_sqlite_job_store_claims_and_completes_job(self) -> None:
         self._insert_job(job_id="job-1", job_type="noop", payload={"message": "hello"})
@@ -201,6 +250,43 @@ class WorkerTests(unittest.TestCase):
                 )
                 """
             )
+            connection.execute(
+                """
+                CREATE TABLE Notification (
+                    id TEXT PRIMARY KEY,
+                    status TEXT NOT NULL DEFAULT 'QUEUED',
+                    lastError TEXT,
+                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE InboundEmail (
+                    id TEXT PRIMARY KEY,
+                    providerMessageId TEXT NOT NULL UNIQUE,
+                    mailbox TEXT NOT NULL,
+                    internetMessageId TEXT,
+                    conversationId TEXT,
+                    senderEmail TEXT,
+                    senderName TEXT,
+                    subject TEXT NOT NULL,
+                    bodyPreview TEXT,
+                    bodyText TEXT,
+                    bodyHtml TEXT,
+                    inReplyTo TEXT,
+                    referenceIds TEXT NOT NULL DEFAULT '[]',
+                    receivedAt TEXT NOT NULL,
+                    processingStatus TEXT NOT NULL DEFAULT 'RECEIVED',
+                    processingNotes TEXT,
+                    correlatedNotificationId TEXT,
+                    linkedEntityType TEXT,
+                    linkedEntityId TEXT,
+                    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
             connection.commit()
 
     def _insert_job(self, job_id: str, job_type: str, payload: dict[str, object]) -> None:
@@ -222,6 +308,39 @@ class WorkerTests(unittest.TestCase):
             row = connection.execute(
                 "SELECT * FROM BackgroundJob WHERE id = ?",
                 (job_id,),
+            ).fetchone()
+
+        assert row is not None
+        return row
+
+    def _insert_notification(self, notification_id: str) -> None:
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                """
+                INSERT INTO Notification (id, status, lastError, updatedAt)
+                VALUES (?, 'SENT', NULL, CURRENT_TIMESTAMP)
+                """,
+                (notification_id,),
+            )
+            connection.commit()
+
+    def _fetch_notification(self, notification_id: str) -> sqlite3.Row:
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.row_factory = sqlite3.Row
+            row = connection.execute(
+                "SELECT * FROM Notification WHERE id = ?",
+                (notification_id,),
+            ).fetchone()
+
+        assert row is not None
+        return row
+
+    def _fetch_inbound_email(self, inbound_email_id: str) -> sqlite3.Row:
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.row_factory = sqlite3.Row
+            row = connection.execute(
+                "SELECT * FROM InboundEmail WHERE id = ?",
+                (inbound_email_id,),
             ).fetchone()
 
         assert row is not None

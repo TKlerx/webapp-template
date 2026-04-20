@@ -434,3 +434,18 @@ pm run prisma:generate still succeeds.
 
 - 2026-04-19: Added the missing implementation-spec package for feature 014 under `specs/014-shared-mailbox-notifications/`, documenting the delivered Graph mail foundation and breaking the remaining work into outbound notifications, admin management, and inbound processing phases.
 - 2026-04-19: Implemented the first executable product slice of feature 014 by adding durable notification persistence, localized notification templates, background-job-backed async delivery, and Python worker support for `notification_delivery` jobs sent through Microsoft Graph.
+- 2026-04-20: Added the feature 014 admin notification management slice with durable notification-type configuration, admin-only notification log/settings routes, the `/admin/notifications` dashboard surface, and integration coverage for filters and event-type toggles.
+
+## 2026-04-20 17:47:39
+
+- Closed spec `014-shared-mailbox-notifications` task `T019` by adding Playwright coverage for the admin notification settings and log UI in `tests/e2e/notifications/admin-notifications.spec.ts`.
+- Extended the E2E database fixture worker so browser tests can seed notification type configuration and notification log records directly without depending on a long user-management setup chain.
+- Verified the new browser coverage with `npm exec -- tsc --noEmit` and `npm exec -- playwright test tests/e2e/notifications/admin-notifications.spec.ts` using a local `BETTER_AUTH_SECRET` override for the production-style Playwright server.
+
+## 2026-04-20 18:05:00
+
+- Closed the remaining open 014 E2E task with `tests/e2e/notifications/event-notifications.spec.ts`, covering a real admin-driven user creation flow that produces queued notification records in the admin log.
+- Implemented the inbound mailbox slice for feature 014: added `InboundEmail` persistence plus migrations, marker-based notification/reference parsing in `src/services/notifications/inbound.ts`, and outbound notification reference stamping in `src/services/notifications/service.ts`.
+- Extended the Python worker with `inbound_mail_poll` processing, shared-mailbox message list/get support, inbound deduplication, bounce correlation, and reference-based entity linking.
+- Added focused validation for the inbound slice with `uv run python -m unittest tests.test_main`, targeted Vitest coverage for inbound helpers/processing, and a green `./validate.ps1 all`.
+- Feature `014-shared-mailbox-notifications` is now fully complete and has been removed from `ACTIVE_SPECS.md`.

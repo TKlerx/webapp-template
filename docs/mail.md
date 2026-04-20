@@ -22,7 +22,6 @@ Not implemented yet:
 - attachments
 - draft handling
 - delete / move / mark-as-read mutations
-- notification admin UI and notification-type controls
 - non-Graph providers
 
 ## Environment Variables
@@ -81,6 +80,21 @@ Currently wired events:
 
 Delivery is asynchronous through the Python worker. The worker uses the same shared
 Graph application credentials and shared mailbox configuration as the Next.js app.
+
+## Admin Visibility
+
+Platform administrators now have a notification management surface under
+`/admin/notifications` backed by:
+
+- `GET /api/notifications` for recent delivery log entries
+- `GET /api/notifications/settings` for the current event-type switches
+- `PATCH /api/notifications/settings/[eventType]` to enable or disable supported event types
+
+The first configurable event types are:
+
+- `USER_CREATED`
+- `ROLE_CHANGED`
+- `USER_STATUS_CHANGED`
 
 ## Microsoft Graph Permissions
 

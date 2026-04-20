@@ -6,7 +6,7 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- `014-shared-mailbox-notifications` - In progress. The provider-neutral Graph mail foundation is implemented in `src/lib/mail/`; remaining work is durable notifications, admin management, and inbound processing.
+- None.
 
 ## Maintenance Rules
 
