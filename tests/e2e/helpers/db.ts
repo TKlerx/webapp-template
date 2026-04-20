@@ -3,6 +3,8 @@ import { execFileSync } from "node:child_process";
 import {
   AuditAction,
   AuthMethod,
+  NotificationEventType,
+  NotificationStatus,
   Role,
   type ThemePreference,
   UserStatus,
@@ -104,5 +106,40 @@ export function seedBackgroundJob(input: {
   return runDbWorker<typeof input, string>("seedBackgroundJob", input);
 }
 
-export { AuditAction, AuthMethod, Role, UserStatus };
+export function seedNotificationTypeConfiguration(input: {
+  eventType: NotificationEventType;
+  enabled: boolean;
+  updatedByEmail?: string;
+}) {
+  return runDbWorker<typeof input, string>("seedNotificationTypeConfiguration", input);
+}
+
+export function seedNotificationFixture(input: {
+  eventType: NotificationEventType;
+  actorEmail?: string;
+  affectedUserEmail?: string;
+  recipientEmail: string;
+  recipientUserEmail?: string;
+  locale?: string;
+  subject: string;
+  bodyText?: string;
+  bodyHtml?: string | null;
+  status?: NotificationStatus;
+  retryCount?: number;
+  providerMessageId?: string | null;
+  lastError?: string | null;
+  sentAt?: string | null;
+  payload?: unknown;
+}) {
+  return runDbWorker<typeof input, string>("seedNotificationFixture", input);
+}
+
+export {
+  AuditAction,
+  AuthMethod,
+  NotificationEventType,
+  NotificationStatus,
+  Role,
+  UserStatus,
+};
 export type { ThemePreference };

@@ -22,6 +22,7 @@ These files are intentionally committed into the template so copied repos still 
 - Go-based `starterctl` CLI with PAT-backed API access and GoReleaser packaging
 - uv-managed Python worker skeleton for background jobs
 - Azure SSO and local login
+- mail abstraction layer with Microsoft Graph-backed shared mailbox read/send support
 - role-based access control
 - user administration
 - dashboard home screen
@@ -91,6 +92,14 @@ That guide covers:
 - Docker Compose overrides `DATABASE_URL` so `app` and `migrate` use PostgreSQL.
 - `docker compose build app` builds one shared image reused by both `migrate` and `app`.
 - `docker compose up -d worker` starts the Python background worker against the same Postgres database.
+
+## Mail Integration
+
+- The current mail abstraction lives under [`src/lib/mail`](./src/lib/mail/) and currently supports the `graph` provider only.
+- The first implementation supports reading mailbox messages and sending mail through Microsoft Graph with application credentials.
+- Configure `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_TENANT_ID`, `MAIL_PROVIDER=graph`, and `MAIL_DEFAULT_MAILBOX` in your environment.
+- For shared mailboxes, assign the needed Graph mail permissions to the Entra app and scope access appropriately in Exchange.
+- See [`docs/mail.md`](./docs/mail.md) for the current abstraction shape, environment variables, permissions, and sample usage.
 
 ## Monitoring And Logging
 

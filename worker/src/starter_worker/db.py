@@ -86,6 +86,287 @@ class JobStore:
 
         self._fail_postgres_job(job_id, error)
 
+    def mark_notification_processing(self, notification_id: str, attempt_count: int) -> None:
+        retry_count = max(attempt_count - 1, 0)
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE Notification
+                    SET status = 'SENDING',
+                        retryCount = ?,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (retry_count, notification_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "Notification"
+                    SET status = 'SENDING',
+                        "retryCount" = %s,
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (retry_count, notification_id),
+                )
+            connection.commit()
+
+    def mark_notification_sent(self, notification_id: str, attempt_count: int) -> None:
+        retry_count = max(attempt_count - 1, 0)
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE Notification
+                    SET status = 'SENT',
+                        retryCount = ?,
+                        lastError = NULL,
+                        sentAt = CURRENT_TIMESTAMP,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (retry_count, notification_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "Notification"
+                    SET status = 'SENT',
+                        "retryCount" = %s,
+                        "lastError" = NULL,
+                        "sentAt" = NOW(),
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (retry_count, notification_id),
+                )
+            connection.commit()
+
+    def mark_notification_failed(
+        self,
+        notification_id: str,
+        error: str,
+        attempt_count: int,
+        *,
+        will_retry: bool,
+    ) -> None:
+        retry_count = max(attempt_count - 1, 0)
+        status = "RETRYING" if will_retry else "FAILED"
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE Notification
+                    SET status = ?,
+                        retryCount = ?,
+                        lastError = ?,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (status, retry_count, error, notification_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "Notification"
+                    SET status = %s,
+                        "retryCount" = %s,
+                        "lastError" = %s,
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (status, retry_count, error, notification_id),
+                )
+            connection.commit()
+
+    def has_inbound_email(self, provider_message_id: str) -> bool:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                row = connection.execute(
+                    'SELECT 1 FROM InboundEmail WHERE providerMessageId = ? LIMIT 1',
+                    (provider_message_id,),
+                ).fetchone()
+                return row is not None
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT 1 FROM "InboundEmail" WHERE "providerMessageId" = %s LIMIT 1',
+                    (provider_message_id,),
+                )
+                row = cursor.fetchone()
+            connection.commit()
+            return row is not None
+
+    def create_inbound_email(self, payload: dict[str, Any]) -> str:
+        reference_ids = json.dumps(payload.get("referenceIds") or [])
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                cursor = connection.execute(
+                    """
+                    INSERT INTO InboundEmail (
+                        id, providerMessageId, mailbox, internetMessageId, conversationId,
+                        senderEmail, senderName, subject, bodyPreview, bodyText, bodyHtml,
+                        inReplyTo, referenceIds, receivedAt, processingStatus, createdAt, updatedAt
+                    ) VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RECEIVED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                    )
+                    """,
+                    (
+                        payload["id"],
+                        payload["providerMessageId"],
+                        payload["mailbox"],
+                        payload.get("internetMessageId"),
+                        payload.get("conversationId"),
+                        payload.get("senderEmail"),
+                        payload.get("senderName"),
+                        payload.get("subject") or "",
+                        payload.get("bodyPreview"),
+                        payload.get("bodyText"),
+                        payload.get("bodyHtml"),
+                        payload.get("inReplyTo"),
+                        reference_ids,
+                        payload["receivedAt"],
+                    ),
+                )
+                connection.commit()
+                return str(payload["id"] if cursor.rowcount else payload["id"])
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO "InboundEmail" (
+                        id, "providerMessageId", mailbox, "internetMessageId", "conversationId",
+                        "senderEmail", "senderName", subject, "bodyPreview", "bodyText", "bodyHtml",
+                        "inReplyTo", "referenceIds", "receivedAt", "processingStatus", "createdAt", "updatedAt"
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'RECEIVED', NOW(), NOW()
+                    )
+                    """,
+                    (
+                        payload["id"],
+                        payload["providerMessageId"],
+                        payload["mailbox"],
+                        payload.get("internetMessageId"),
+                        payload.get("conversationId"),
+                        payload.get("senderEmail"),
+                        payload.get("senderName"),
+                        payload.get("subject") or "",
+                        payload.get("bodyPreview"),
+                        payload.get("bodyText"),
+                        payload.get("bodyHtml"),
+                        payload.get("inReplyTo"),
+                        reference_ids,
+                        payload["receivedAt"],
+                    ),
+                )
+            connection.commit()
+        return str(payload["id"])
+
+    def update_inbound_email(
+        self,
+        inbound_email_id: str,
+        *,
+        processing_status: str,
+        processing_notes: str,
+        correlated_notification_id: str | None = None,
+        linked_entity_type: str | None = None,
+        linked_entity_id: str | None = None,
+    ) -> None:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE InboundEmail
+                    SET processingStatus = ?,
+                        processingNotes = ?,
+                        correlatedNotificationId = ?,
+                        linkedEntityType = ?,
+                        linkedEntityId = ?,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (
+                        processing_status,
+                        processing_notes,
+                        correlated_notification_id,
+                        linked_entity_type,
+                        linked_entity_id,
+                        inbound_email_id,
+                    ),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "InboundEmail"
+                    SET "processingStatus" = %s,
+                        "processingNotes" = %s,
+                        "correlatedNotificationId" = %s,
+                        "linkedEntityType" = %s,
+                        "linkedEntityId" = %s,
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (
+                        processing_status,
+                        processing_notes,
+                        correlated_notification_id,
+                        linked_entity_type,
+                        linked_entity_id,
+                        inbound_email_id,
+                    ),
+                )
+            connection.commit()
+
+    def mark_notification_bounced(self, notification_id: str, error: str) -> None:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE Notification
+                    SET status = 'BOUNCED',
+                        lastError = ?,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (error, notification_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "Notification"
+                    SET status = 'BOUNCED',
+                        "lastError" = %s,
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (error, notification_id),
+                )
+            connection.commit()
+
     def _claim_sqlite_job(self) -> BackgroundJob | None:
         with closing(sqlite3.connect(self._sqlite_path)) as connection:
             connection.row_factory = sqlite3.Row

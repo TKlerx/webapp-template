@@ -6,7 +6,7 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- None right now.
+- None.
 
 ## Maintenance Rules
 

@@ -1,6 +1,6 @@
 # Business App Starter Specs Overview
 
-Last Updated: 2026-04-12
+Last Updated: 2026-04-20
 
 Purpose: Track the status of all planned features, their implementation progress, and next steps.
 
@@ -24,6 +24,7 @@ Purpose: Track the status of all planned features, their implementation progress
 | 011 | API Route Refactor | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
 | 012 | Openapi And Pat | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
 | 013 | Cli Client | Fully Implemented | Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow | Large | Review, commit, and propagate the finished feature |
+| 014 | Shared Mailbox Notifications | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
 
 ## Implementation Roadmap
 
@@ -33,6 +34,7 @@ Purpose: Track the status of all planned features, their implementation progress
 - 011 API Route Refactor: fully implemented
 - 012 Openapi And Pat: fully implemented
 - 013 Cli Client: fully implemented
+- 014 Shared Mailbox Notifications: fully implemented
 
 ### Begin Immediately
 

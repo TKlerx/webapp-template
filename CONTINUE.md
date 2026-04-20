@@ -4,8 +4,8 @@
 
 ## Current Snapshot
 
-- Updated: 2026-04-13 00:22:00
-- Branch: `013-cli-client`
+- Updated: 2026-04-20 17:47:39
+- Branch: `014-shared-mailbox-notifications`
 
 ## Recent Non-Continuity Commits
 
@@ -17,27 +17,37 @@
 
 ## Git Status
 
-- M .env.example
--  M Dockerfile.app
--  M docker-compose.yml
--  M package-lock.json
--  M package.json
--  M prisma/seed.ts
--  M src/app/globals.css
--  M src/lib/db.ts
--  M validate.ps1
-- ?? components.json
-- ?? src/components/shadcn/
-- ?? src/lib/utils.ts
+- M `CONTINUE.md`
+- M `CONTINUE_LOG.md`
+- M `docs/mail.md`
+- M `next-env.d.ts`
+- M `prisma/schema.prisma`
+- M `prisma/schema.postgres.prisma`
+- M `specs/014-shared-mailbox-notifications/tasks.md`
+- M `specs/OVERVIEW.md`
+- M `src/components/ui/Navigation.tsx`
+- M `src/i18n/messages/*.json`
+- M `src/services/notifications/service.ts`
+- M `tests/e2e/helpers/db.ts`
+- M `tests/e2e/helpers/db-worker.ts`
+- ?? `prisma/migrations*/20260420090000_add_notification_type_configuration/`
+- ?? `src/app/(dashboard)/admin/notifications/`
+- ?? `src/app/api/notifications/`
+- ?? `src/components/notifications/`
+- ?? `src/services/notifications/admin.ts`
+- ?? `tests/e2e/notifications/`
+- ?? `tests/integration/notification-admin-api.test.ts`
+- ?? `.codex/config.toml` (local, keep uncommitted)
 
 ## Active Specs
 
-- No active spec folders detected.
+- No specs are currently open. Feature `014-shared-mailbox-notifications` is now fully implemented and removed from `ACTIVE_SPECS.md`.
 
 ## Next Recommended Actions
 
-1. On 2026-04-17, upgrade `next` to `16.2.3` or newer and `next-intl` to `4.9.1` or newer, then run `.\validate.ps1 all` and re-run `npm audit --omit=dev --omit=optional`.
-2. No unchecked tasks remain in the active specs.
+1. Review, commit, and propagate the completed `014-shared-mailbox-notifications` feature branch.
+2. Re-check the pending `next` / `next-intl` security upgrade plan against the current cooldown policy before the next dependency update batch.
+3. Decide whether the next follow-up should expand inbound mail handling beyond marker-based routing into a concrete application workflow.
 
 ## Manual Notes
 
@@ -87,4 +97,17 @@
 - Added a short copy/paste CLI cheat sheet at the top of [docs/cli-user-guide.md](/c:/dev/webapp-template/docs/cli-user-guide.md) and pointed to it from [README.md](/c:/dev/webapp-template/README.md) for faster onboarding.
 - Added a documented “bootstrap your first PAT” PowerShell flow to [docs/cli-user-guide.md](/c:/dev/webapp-template/docs/cli-user-guide.md), showing how to log into the app API and create a PAT before the CLI itself is configured.
 - Documented a prominent security follow-up to upgrade `next` and `next-intl` on 2026-04-17, which is the first date both patched versions clear the repo's 7-day dependency cooldown window.
+- Added a provider-neutral mail abstraction under [src/lib/mail](/c:/dev/webapp-template/src/lib/mail/index.ts) with a first Graph-only implementation for listing mailbox messages, fetching a message by ID, and sending mail through Microsoft Graph application credentials.
+- Documented the new Graph mail capability and configuration in [docs/mail.md](/c:/dev/webapp-template/docs/mail.md) and updated [.env.example](/c:/dev/webapp-template/.env.example) with `MAIL_PROVIDER` and `MAIL_DEFAULT_MAILBOX`.
+- Added the missing implementation-spec package for [014-shared-mailbox-notifications](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/spec.md), including the phased [plan.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/plan.md), [research.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/research.md), [data-model.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/data-model.md), [quickstart.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/quickstart.md), [contracts/mail-service.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/contracts/mail-service.md), and [tasks.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/tasks.md).
+- Added durable outbound notifications for spec 014 with new `NotificationEvent` and `Notification` persistence in Prisma, localized notification templates under [src/lib/mail/templates/notifications.ts](/c:/dev/webapp-template/src/lib/mail/templates/notifications.ts), queueing/delivery services under [src/services/notifications/service.ts](/c:/dev/webapp-template/src/services/notifications/service.ts), and worker-side `notification_delivery` processing via [worker/src/starter_worker/graph_mail.py](/c:/dev/webapp-template/worker/src/starter_worker/graph_mail.py).
+- Wired outbound notifications into the existing user-management flows for local user creation, role changes, and status changes in [src/services/api/user-admin.ts](/c:/dev/webapp-template/src/services/api/user-admin.ts), with focused coverage in [tests/unit/notifications/notification-service.test.ts](/c:/dev/webapp-template/tests/unit/notifications/notification-service.test.ts), [tests/integration/notification-user-events.test.ts](/c:/dev/webapp-template/tests/integration/notification-user-events.test.ts), and [worker/tests/test_main.py](/c:/dev/webapp-template/worker/tests/test_main.py).
+- Added the spec 014 admin management slice with persistent notification type configuration, admin-only log/settings APIs under [src/app/api/notifications](/c:/dev/webapp-template/src/app/api/notifications/route.ts), the dashboard page at [src/app/(dashboard)/admin/notifications/page.tsx](/c:/dev/webapp-template/src/app/(dashboard)/admin/notifications/page.tsx), the client panel in [src/components/notifications/NotificationAdminPanel.tsx](/c:/dev/webapp-template/src/components/notifications/NotificationAdminPanel.tsx), and route coverage in [tests/integration/notification-admin-api.test.ts](/c:/dev/webapp-template/tests/integration/notification-admin-api.test.ts).
+- Closed T019 for feature 014 with Playwright coverage in [tests/e2e/notifications/admin-notifications.spec.ts](/c:/dev/webapp-template/tests/e2e/notifications/admin-notifications.spec.ts), covering admin visibility, event-type toggling, and notification-log filtering.
+- Extended the E2E Prisma fixture helpers in [tests/e2e/helpers/db.ts](/c:/dev/webapp-template/tests/e2e/helpers/db.ts) and [tests/e2e/helpers/db-worker.ts](/c:/dev/webapp-template/tests/e2e/helpers/db-worker.ts) so browser tests can seed notification settings and outbound notification records directly.
+- Closed T012 with [tests/e2e/notifications/event-notifications.spec.ts](/c:/dev/webapp-template/tests/e2e/notifications/event-notifications.spec.ts), which creates a user through the real admin UI and verifies the resulting queued notification records in the admin log.
+- Implemented the inbound processing slice for feature 014 by adding `InboundEmail` persistence in [prisma/schema.prisma](/c:/dev/webapp-template/prisma/schema.prisma) and [prisma/schema.postgres.prisma](/c:/dev/webapp-template/prisma/schema.postgres.prisma), checked-in migrations under `prisma/migrations*/20260420181500_add_inbound_emails/`, and marker-based bounce/reference handling in [src/services/notifications/inbound.ts](/c:/dev/webapp-template/src/services/notifications/inbound.ts).
+- Updated the notification pipeline in [src/services/notifications/service.ts](/c:/dev/webapp-template/src/services/notifications/service.ts) so outbound mail carries durable `[notification:...]` references, enabling reliable inbound bounce correlation without provider-specific webhook support.
+- Added shared-mailbox polling and inbound classification to the Python worker in [worker/src/starter_worker/main.py](/c:/dev/webapp-template/worker/src/starter_worker/main.py), [worker/src/starter_worker/db.py](/c:/dev/webapp-template/worker/src/starter_worker/db.py), and [worker/src/starter_worker/graph_mail.py](/c:/dev/webapp-template/worker/src/starter_worker/graph_mail.py), plus coverage in [worker/tests/test_main.py](/c:/dev/webapp-template/worker/tests/test_main.py), [tests/integration/notification-inbound.test.ts](/c:/dev/webapp-template/tests/integration/notification-inbound.test.ts), and [tests/unit/notifications/inbound-processing.test.ts](/c:/dev/webapp-template/tests/unit/notifications/inbound-processing.test.ts).
+- Feature `014-shared-mailbox-notifications` is now complete, and [ACTIVE_SPECS.md](/c:/dev/webapp-template/ACTIVE_SPECS.md) has been cleared accordingly.
 
