@@ -31,6 +31,29 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result["echo"], {"message": "hello"})
         self.assertIn("processedAt", result)
 
+    def test_process_job_notification_delivery_sends_mail(self) -> None:
+        with patch("starter_worker.main.send_graph_mail") as send_graph_mail:
+            result = process_job(
+                type(
+                    "Job",
+                    (),
+                    {
+                        "job_type": "notification_delivery",
+                        "payload": {
+                            "notificationId": "notification-1",
+                            "recipientEmail": "user@example.com",
+                            "subject": "Test",
+                            "bodyText": "Hello",
+                        },
+                    },
+                )()
+            )
+
+        send_graph_mail.assert_called_once()
+        self.assertEqual(result["notificationId"], "notification-1")
+        self.assertEqual(result["status"], "sent")
+        self.assertIn("processedAt", result)
+
     def test_sqlite_job_store_claims_and_completes_job(self) -> None:
         self._insert_job(job_id="job-1", job_type="noop", payload={"message": "hello"})
         store = self._make_store()

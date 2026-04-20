@@ -86,6 +86,113 @@ class JobStore:
 
         self._fail_postgres_job(job_id, error)
 
+    def mark_notification_processing(self, notification_id: str, attempt_count: int) -> None:
+        retry_count = max(attempt_count - 1, 0)
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE Notification
+                    SET status = 'SENDING',
+                        retryCount = ?,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (retry_count, notification_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "Notification"
+                    SET status = 'SENDING',
+                        "retryCount" = %s,
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (retry_count, notification_id),
+                )
+            connection.commit()
+
+    def mark_notification_sent(self, notification_id: str, attempt_count: int) -> None:
+        retry_count = max(attempt_count - 1, 0)
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE Notification
+                    SET status = 'SENT',
+                        retryCount = ?,
+                        lastError = NULL,
+                        sentAt = CURRENT_TIMESTAMP,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (retry_count, notification_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "Notification"
+                    SET status = 'SENT',
+                        "retryCount" = %s,
+                        "lastError" = NULL,
+                        "sentAt" = NOW(),
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (retry_count, notification_id),
+                )
+            connection.commit()
+
+    def mark_notification_failed(
+        self,
+        notification_id: str,
+        error: str,
+        attempt_count: int,
+        *,
+        will_retry: bool,
+    ) -> None:
+        retry_count = max(attempt_count - 1, 0)
+        status = "RETRYING" if will_retry else "FAILED"
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE Notification
+                    SET status = ?,
+                        retryCount = ?,
+                        lastError = ?,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (status, retry_count, error, notification_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "Notification"
+                    SET status = %s,
+                        "retryCount" = %s,
+                        "lastError" = %s,
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (status, retry_count, error, notification_id),
+                )
+            connection.commit()
+
     def _claim_sqlite_job(self) -> BackgroundJob | None:
         with closing(sqlite3.connect(self._sqlite_path)) as connection:
             connection.row_factory = sqlite3.Row

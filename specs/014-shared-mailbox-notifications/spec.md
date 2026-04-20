@@ -2,10 +2,12 @@
 
 **Feature Branch**: `014-shared-mailbox-notifications`  
 **Created**: 2026-04-13  
-**Status**: Draft  
+**Status**: In Progress  
 **Input**: User description: "Send and receive emails using a shared mailbox (Microsoft 365) for sending notification emails when application events occur (role changes, approvals, task assignments) and receiving/processing incoming emails. Integrates with existing auth and RBAC system."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.
+>
+> Delivery is incremental. The first slice establishes a provider-neutral mail abstraction with Microsoft Graph-backed shared mailbox read/send support; later slices layer notification workflows, admin management, and inbound processing on top.
 
 ## User Scenarios & Testing *(mandatory)*
 

@@ -34,7 +34,13 @@ The worker supports both:
 Retries remain visible through the existing `BackgroundJob` fields:
 `status`, `attemptCount`, `availableAt`, `workerId`, and `error`.
 
-## Supported Demo Job Types
+## Supported Job Types
 
 - `noop`
 - `echo`
+- `notification_delivery`
+
+`notification_delivery` sends queued notification emails through Microsoft Graph
+using `MAIL_DEFAULT_MAILBOX`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, and
+`GRAPH_TENANT_ID`. Notification delivery status is mirrored in the `Notification`
+table so retries and terminal failures stay visible to the application.

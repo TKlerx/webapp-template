@@ -32,12 +32,13 @@
 
 ## Active Specs
 
-- No active spec folders detected.
+- `014-shared-mailbox-notifications` is now active. The Graph mail foundation is complete; notification workflows, admin controls, and inbound processing remain open.
 
 ## Next Recommended Actions
 
-1. On 2026-04-17, upgrade `next` to `16.2.3` or newer and `next-intl` to `4.9.1` or newer, then run `.\validate.ps1 all` and re-run `npm audit --omit=dev --omit=optional`.
-2. No unchecked tasks remain in the active specs.
+1. Finish the next executable slice of spec 014 by adding durable outbound notification records and async delivery on top of `src/lib/mail`.
+2. Build the admin visibility/logging surface for spec 014 before tackling inbound polling.
+3. Re-check the pending `next` / `next-intl` security upgrade plan against the current cooldown policy before the next dependency update batch.
 
 ## Manual Notes
 
@@ -87,4 +88,9 @@
 - Added a short copy/paste CLI cheat sheet at the top of [docs/cli-user-guide.md](/c:/dev/webapp-template/docs/cli-user-guide.md) and pointed to it from [README.md](/c:/dev/webapp-template/README.md) for faster onboarding.
 - Added a documented “bootstrap your first PAT” PowerShell flow to [docs/cli-user-guide.md](/c:/dev/webapp-template/docs/cli-user-guide.md), showing how to log into the app API and create a PAT before the CLI itself is configured.
 - Documented a prominent security follow-up to upgrade `next` and `next-intl` on 2026-04-17, which is the first date both patched versions clear the repo's 7-day dependency cooldown window.
+- Added a provider-neutral mail abstraction under [src/lib/mail](/c:/dev/webapp-template/src/lib/mail/index.ts) with a first Graph-only implementation for listing mailbox messages, fetching a message by ID, and sending mail through Microsoft Graph application credentials.
+- Documented the new Graph mail capability and configuration in [docs/mail.md](/c:/dev/webapp-template/docs/mail.md) and updated [.env.example](/c:/dev/webapp-template/.env.example) with `MAIL_PROVIDER` and `MAIL_DEFAULT_MAILBOX`.
+- Added the missing implementation-spec package for [014-shared-mailbox-notifications](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/spec.md), including the phased [plan.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/plan.md), [research.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/research.md), [data-model.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/data-model.md), [quickstart.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/quickstart.md), [contracts/mail-service.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/contracts/mail-service.md), and [tasks.md](/c:/dev/webapp-template/specs/014-shared-mailbox-notifications/tasks.md).
+- Added durable outbound notifications for spec 014 with new `NotificationEvent` and `Notification` persistence in Prisma, localized notification templates under [src/lib/mail/templates/notifications.ts](/c:/dev/webapp-template/src/lib/mail/templates/notifications.ts), queueing/delivery services under [src/services/notifications/service.ts](/c:/dev/webapp-template/src/services/notifications/service.ts), and worker-side `notification_delivery` processing via [worker/src/starter_worker/graph_mail.py](/c:/dev/webapp-template/worker/src/starter_worker/graph_mail.py).
+- Wired outbound notifications into the existing user-management flows for local user creation, role changes, and status changes in [src/services/api/user-admin.ts](/c:/dev/webapp-template/src/services/api/user-admin.ts), with focused coverage in [tests/unit/notifications/notification-service.test.ts](/c:/dev/webapp-template/tests/unit/notifications/notification-service.test.ts), [tests/integration/notification-user-events.test.ts](/c:/dev/webapp-template/tests/integration/notification-user-events.test.ts), and [worker/tests/test_main.py](/c:/dev/webapp-template/worker/tests/test_main.py).
 

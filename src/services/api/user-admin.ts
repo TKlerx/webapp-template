@@ -3,6 +3,11 @@ import { safeLogAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
 import { requireRouteUser, requireRouteUserWithRoles } from "@/services/api/route-context";
+import {
+  safeQueueRoleChangedNotifications,
+  safeQueueUserCreatedNotifications,
+  safeQueueUserStatusChangedNotifications,
+} from "@/services/notifications/service";
 import type {
   ManagedUserResult,
   ManagedUserStatusUpdateOptions,
@@ -108,6 +113,11 @@ export async function createLocalUser(
       role: body.role,
       authMethod: "LOCAL",
     },
+  });
+
+  await safeQueueUserCreatedNotifications({
+    actorId,
+    user,
   });
 
   return {
@@ -233,6 +243,16 @@ export async function updateManagedUserStatus(
     nextStatus,
   });
 
+  await safeQueueUserStatusChangedNotifications({
+    actorId: actor.id,
+    user: {
+      ...user,
+      status: updated.status,
+    },
+    previousStatus: user.status,
+    nextStatus: updated.status,
+  });
+
   return Response.json({ user: { id: updated.id, status: updated.status } });
 }
 
@@ -275,6 +295,16 @@ export async function updateManagedUserRole(
       from: managed.user.role,
       to: updated.role,
     },
+  });
+
+  await safeQueueRoleChangedNotifications({
+    actorId: managed.actor.id,
+    user: {
+      ...managed.user,
+      role: updated.role,
+    },
+    previousRole: managed.user.role,
+    nextRole: updated.role,
   });
 
   return { user: { id: updated.id, role: updated.role } };

@@ -429,4 +429,8 @@ pm run prisma:generate still succeeds.
 - Added a short CLI cheat sheet to the top of `docs/cli-user-guide.md` and highlighted it from `README.md` so common commands are available as quick copy/paste examples.
 - Added a documented PowerShell bootstrap flow in `docs/cli-user-guide.md` for creating the first PAT through the app API before the CLI is configured.
 - Added a prominent dated reminder in `docs/security/actions.md`, `docs/security/followups.md`, and `CONTINUE.md` to upgrade `next` and `next-intl` on 2026-04-17, when both security fixes clear the repo's 7-day cooldown window.
+- Added a provider-neutral mail abstraction in `src/lib/mail` with a first Microsoft Graph implementation using application credentials for shared-mailbox-style read/send operations.
+- Added focused unit coverage for Graph token acquisition, mailbox listing, message fetch, provider selection, and send-mail behavior, plus documentation in `docs/mail.md` and `.env.example`.
 
+- 2026-04-19: Added the missing implementation-spec package for feature 014 under `specs/014-shared-mailbox-notifications/`, documenting the delivered Graph mail foundation and breaking the remaining work into outbound notifications, admin management, and inbound processing phases.
+- 2026-04-19: Implemented the first executable product slice of feature 014 by adding durable notification persistence, localized notification templates, background-job-backed async delivery, and Python worker support for `notification_delivery` jobs sent through Microsoft Graph.

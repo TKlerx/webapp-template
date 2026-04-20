@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from .config import load_config
 from .db import BackgroundJob, JobStore
+from .graph_mail import send_graph_mail
 
 
 logging.basicConfig(
@@ -27,6 +28,18 @@ def process_job(job: BackgroundJob) -> dict[str, object]:
     if job.job_type == "echo":
         return {
             "echo": job.payload,
+            "processedAt": datetime.now(timezone.utc).isoformat(),
+        }
+
+    if job.job_type == "notification_delivery":
+        notification_id = str(job.payload.get("notificationId") or "").strip()
+        if not notification_id:
+            raise ValueError("notification_delivery job payload is missing notificationId")
+
+        send_graph_mail(job.payload)
+        return {
+            "notificationId": notification_id,
+            "status": "sent",
             "processedAt": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -57,10 +70,24 @@ def main() -> None:
 
         logger.info("job.claimed id=%s type=%s attempt=%s", job.id, job.job_type, job.attempt_count)
         try:
+            notification_id = str(job.payload.get("notificationId") or "").strip()
+            if job.job_type == "notification_delivery" and notification_id:
+                store.mark_notification_processing(notification_id, job.attempt_count)
+
             result = process_job(job)
             store.complete_job(job.id, result)
+            if job.job_type == "notification_delivery" and notification_id:
+                store.mark_notification_sent(notification_id, job.attempt_count)
             logger.info("job.completed id=%s result=%s", job.id, json.dumps(result))
         except Exception as error:  # noqa: BLE001
+            notification_id = str(job.payload.get("notificationId") or "").strip()
+            if job.job_type == "notification_delivery" and notification_id:
+                store.mark_notification_failed(
+                    notification_id,
+                    str(error),
+                    job.attempt_count,
+                    will_retry=job.attempt_count < config.max_attempts,
+                )
             store.fail_job(job.id, str(error))
             logger.exception("job.failed id=%s attempt=%s", job.id, job.attempt_count)
 

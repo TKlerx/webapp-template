@@ -65,6 +65,22 @@ enum BackgroundJobStatus {
   FAILED
 }
 
+enum NotificationEventType {
+  USER_CREATED
+  ROLE_CHANGED
+  USER_STATUS_CHANGED
+  SCOPE_ASSIGNMENT_CHANGED
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENDING
+  RETRYING
+  SENT
+  FAILED
+  BOUNCED
+}
+
 model User {
   id                 String                  @id @default(cuid())
   email              String                  @unique
@@ -232,4 +248,42 @@ model BackgroundJob {
   @@index([status, availableAt])
   @@index([createdByUserId, createdAt])
   @@index([jobType, createdAt])
+}
+
+model NotificationEvent {
+  id             String                @id @default(cuid())
+  eventType      NotificationEventType
+  actorId        String?
+  affectedUserId String?
+  payload        String                @default("{}")
+  createdAt      DateTime              @default(now())
+  notifications  Notification[]
+
+  @@index([eventType, createdAt])
+  @@index([actorId, createdAt])
+  @@index([affectedUserId, createdAt])
+}
+
+model Notification {
+  id               String             @id @default(cuid())
+  eventId          String
+  recipientEmail   String
+  recipientUserId  String?
+  locale           String             @default("en")
+  subject          String
+  bodyText         String
+  bodyHtml         String?
+  status           NotificationStatus @default(QUEUED)
+  retryCount       Int                @default(0)
+  providerMessageId String?
+  lastError        String?
+  sentAt           DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  event            NotificationEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([status, createdAt])
+  @@index([recipientEmail, status])
+  @@index([recipientUserId, createdAt])
 }
