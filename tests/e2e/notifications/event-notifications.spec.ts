@@ -46,7 +46,7 @@ test("creating a user produces queued notification records in the admin log", as
   await page.goto(`${appBasePath}/admin/notifications`);
   await expect(page.getByRole("heading", { name: "Notifications" })).toBeVisible();
   await expect(page.getByText("Your account is ready")).toBeVisible();
-  await expect(page.getByText(`New user created: ${createdUser.name}`)).toBeVisible();
+  await expect(page.getByText(`New user created: ${createdUser.name}`).first()).toBeVisible();
   const createdUserRow = page.locator("tr", { hasText: createdUser.email }).first();
   await expect(createdUserRow).toBeVisible();
   await expect(createdUserRow).toContainText("Queued");

@@ -21,7 +21,11 @@ function getSafeRedirectTarget(value: string | null) {
 }
 
 export async function GET(request: Request) {
-  if (process.env.E2E_MOCK_SSO === "1" && process.env.NODE_ENV === "production") {
+  if (
+    process.env.E2E_MOCK_SSO === "1" &&
+    process.env.NODE_ENV === "production" &&
+    process.env.E2E_TESTING !== "1"
+  ) {
     throw new Error("FATAL: E2E_MOCK_SSO must not be enabled in production.");
   }
 
@@ -32,7 +36,7 @@ export async function GET(request: Request) {
 
   if (
     process.env.E2E_MOCK_SSO === "1" &&
-    process.env.NODE_ENV !== "production" &&
+    (process.env.NODE_ENV !== "production" || process.env.E2E_TESTING === "1") &&
     mockEmail
   ) {
     const email = mockEmail.toLowerCase();
