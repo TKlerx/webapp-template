@@ -1,6 +1,6 @@
 # Business App Starter Specs Overview
 
-Last Updated: 2026-04-20
+Last Updated: 2026-04-24
 
 Purpose: Track the status of all planned features, their implementation progress, and next steps.
 
@@ -25,6 +25,7 @@ Purpose: Track the status of all planned features, their implementation progress
 | 012 | Openapi And Pat | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
 | 013 | Cli Client | Fully Implemented | Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow | Large | Review, commit, and propagate the finished feature |
 | 014 | Shared Mailbox Notifications | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
+| 015 | Teams Messaging Skeleton | Analyzed | - | Task planning | Run `/speckit.plan` and `/speckit.tasks` |
 
 ## Implementation Roadmap
 
@@ -42,4 +43,4 @@ Purpose: Track the status of all planned features, their implementation progress
 
 ### Blocked / Prep Needed
 
-- No planned features are blocked on clarify/analyze/planning work
+- 015 Teams Messaging Skeleton: Run `/speckit.plan` and `/speckit.tasks`

@@ -1,5 +1,11 @@
 # Continue Log
 
+## 2026-04-23 00:00:00
+
+- Created and switched to branch `015-teams-messaging-skeleton` for a new Microsoft Teams integration skeleton feature.
+- Added specification artifacts under `specs/015-teams-messaging-skeleton/`, including a complete `spec.md` and quality checklist.
+- Updated `.specify/feature.json` to point at `specs/015-teams-messaging-skeleton` and refreshed `specs/OVERVIEW.md` via the overview updater script.
+
 ## 2026-04-12 18:30:00
 
 - Started spec `013-cli-client` on `main` and added it to `ACTIVE_SPECS.md` because the CLI work is not fully complete yet.

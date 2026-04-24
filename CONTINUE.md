@@ -4,8 +4,8 @@
 
 ## Current Snapshot
 
-- Updated: 2026-04-20 17:47:39
-- Branch: `014-shared-mailbox-notifications`
+- Updated: 2026-04-23 00:00:00
+- Branch: `015-teams-messaging-skeleton`
 
 ## Recent Non-Continuity Commits
 
@@ -45,12 +45,13 @@
 
 ## Next Recommended Actions
 
-1. Review, commit, and propagate the completed `014-shared-mailbox-notifications` feature branch.
-2. Re-check the pending `next` / `next-intl` security upgrade plan against the current cooldown policy before the next dependency update batch.
-3. Decide whether the next follow-up should expand inbound mail handling beyond marker-based routing into a concrete application workflow.
+1. Run `/speckit.plan` for `015-teams-messaging-skeleton` to turn the new Teams skeleton spec into phased implementation artifacts.
+2. Review, commit, and propagate the completed `014-shared-mailbox-notifications` feature branch.
+3. Re-check the pending `next` / `next-intl` security upgrade plan against the current cooldown policy before the next dependency update batch.
 
 ## Manual Notes
 
+- Added a new specification package for Teams integration skeleton under [specs/015-teams-messaging-skeleton/spec.md](/c:/dev/webapp-template/specs/015-teams-messaging-skeleton/spec.md) with outbound delivery, controlled read-only intake, assumptions/dependencies, and a completed quality checklist.
 - Added shadcn configuration in [components.json](/c:/dev/webapp-template/components.json) with the `ui` alias pointed at `@/components/shadcn` to avoid collisions with the existing custom `src/components/ui` components on Windows.
 - Added the shared `cn()` utility in [src/lib/utils.ts](/c:/dev/webapp-template/src/lib/utils.ts) and extended [src/app/globals.css](/c:/dev/webapp-template/src/app/globals.css) with shadcn-compatible design tokens while preserving the current theme variables.
 - Installed a starter shadcn component set in `src/components/shadcn`: `button`, `input`, `label`, `textarea`, `card`, `table`, `dialog`, `dropdown-menu`, `sheet`, and `select`.
