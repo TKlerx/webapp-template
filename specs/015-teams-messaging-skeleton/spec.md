@@ -22,7 +22,7 @@ A platform administrator can configure a Teams destination and send outbound ope
 **Acceptance Scenarios**:
 
 1. **Given** a platform administrator has saved a valid Teams destination, **When** a supported notification event occurs, **Then** an outbound Teams message is queued and delivered to that destination.
-2. **Given** Teams delivery is disabled for an event type, **When** that event occurs, **Then** no Teams message is sent and the event continues without Teams-side failure.
+2. **Given** Teams delivery is globally disabled, **When** a notification event occurs, **Then** no Teams message is sent and the event continues without Teams-side failure.
 
 ---
 
@@ -59,9 +59,9 @@ A platform administrator can view Teams integration status, delivery outcomes, a
 ### Edge Cases
 
 - When the configured Teams destination is invalid, deleted, or inaccessible at send time: retry up to 3 attempts at a fixed interval, then mark as permanently failed and surface the failure to administrators in the integration status view.
-- How does the system handle duplicate inbound reads caused by retries or polling overlap?
-- How does the system behave when tenant permissions are insufficient for one capability (send or read) but available for the other?
-- What happens when message content exceeds Teams size limits or includes unsupported formatting?
+- Duplicate inbound reads from retries or polling overlap are prevented via unique constraint on `providerMessageId` (Graph message ID). Duplicates are silently skipped.
+- When tenant permissions are insufficient for one capability (send or read) but available for the other, each capability degrades independently. Permission errors are surfaced in the admin status view.
+- When message content exceeds the Teams 28KB limit, outbound messages are truncated with an ellipsis marker and the `truncated` flag is set in the delivery record. Inbound messages exceeding 64KB store a truncated preview.
 
 ## Requirements *(mandatory)*
 
@@ -82,7 +82,7 @@ A platform administrator can view Teams integration status, delivery outcomes, a
 
 ### Key Entities *(include if feature involves data)*
 
-- **Teams Integration Configuration**: Administrative settings that control whether Teams sending and Teams intake are enabled, and which event types can trigger outbound messages.
+- **Teams Integration Configuration**: Administrative settings that control whether Teams sending and Teams intake are globally enabled or disabled.
 - **Teams Delivery Target**: A named Teams destination approved for outbound messaging, including identifier, active status, and ownership metadata for auditing.
 - **Teams Outbound Message Record**: A durable record of each attempted Teams send, with payload summary, destination, attempt time, and outcome.
 - **Teams Intake Subscription**: A controlled mapping of approved Teams conversations that are allowed for read-only intake.
@@ -121,3 +121,9 @@ A platform administrator can view Teams integration status, delivery outcomes, a
 - Q: Retry behavior on failed outbound delivery? → A: Up to 3 attempts at fixed interval, then permanent fail surfaced to admin. No exponential backoff for skeleton scope.
 - Q: Where does Teams configuration UI live? → A: Dedicated subsection under Settings → Integrations → Teams.
 - Q: How are Graph API credentials stored? → A: Environment variables — reuse existing Azure AD app registration credentials already configured for SSO.
+
+### Session 2026-04-27
+
+- Q: Why is ChannelMessage.Send not visible under Application permissions? -> A: This permission is delegated-only in Microsoft Graph.
+- Q: How should outbound Teams channel sends be authorized? -> A: Add an admin-triggered delegated OAuth consent flow and send on behalf of the consenting administrator.
+- Q: Does inbound polling change? -> A: No, inbound polling remains application-permission based and independent from delegated send consent.

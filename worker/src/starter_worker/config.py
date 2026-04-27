@@ -17,6 +17,7 @@ class WorkerConfig:
     max_attempts: int
     retry_backoff_seconds: float
     stale_lock_seconds: float
+    teams_poll_interval_seconds: float
 
 
 def load_shared_env(env_path: Path | None = None) -> None:
@@ -34,4 +35,5 @@ def load_config(env_path: Path | None = None) -> WorkerConfig:
         max_attempts=int(os.environ.get("WORKER_MAX_ATTEMPTS", "3")),
         retry_backoff_seconds=float(os.environ.get("WORKER_RETRY_BACKOFF_SECONDS", "15")),
         stale_lock_seconds=float(os.environ.get("WORKER_STALE_LOCK_SECONDS", "300")),
+        teams_poll_interval_seconds=float(os.environ.get("TEAMS_POLL_INTERVAL_SECONDS", "60")),
     )

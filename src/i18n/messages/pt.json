@@ -18,7 +18,8 @@
     "notifications": "Notificacoes",
     "tokens": "Tokens",
     "apiDocs": "API Docs",
-    "adminTokens": "Admin Tokens"
+    "adminTokens": "Admin Tokens",
+    "teamsIntegrations": "Teams"
   },
   "auth": {
     "signIn": "Entrar",
@@ -257,5 +258,65 @@
     "errorTitle": "CLI login failed",
     "redirecting": "Returning to your CLI callback now...",
     "errorMessage": "This CLI login request is missing or has already expired."
+  },
+  "teams": {
+    "eyebrow": "Teams Ops",
+    "title": "Teams Integration",
+    "description": "Configure Microsoft Teams delivery targets, intake subscriptions, and health controls.",
+    "toggles": {
+      "title": "Integration toggles",
+      "sendEnabled": "Enable outbound Teams delivery",
+      "intakeEnabled": "Enable inbound Teams intake"
+    },
+    "targets": {
+      "title": "Delivery targets",
+      "name": "Target name",
+      "teamId": "Team ID",
+      "channelId": "Channel ID",
+      "teamName": "Team name (optional)",
+      "channelName": "Channel name (optional)",
+      "add": "Add target"
+    },
+    "subscriptions": {
+      "title": "Intake subscriptions",
+      "teamId": "Team ID",
+      "channelId": "Channel ID",
+      "teamName": "Team name (optional)",
+      "channelName": "Channel name (optional)",
+      "add": "Add subscription",
+      "lastPolled": "Last polled"
+    },
+    "health": {
+      "title": "Integration health",
+      "sendFailures": "Send failures (24h)",
+      "intakeFailures": "Intake failures (24h)",
+      "lastSend": "Last successful send",
+      "lastIntake": "Last successful intake"
+    },
+    "common": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "delete": "Delete"
+    },
+    "messages": {
+      "saved": "Settings saved",
+      "saveFailed": "Could not save settings",
+      "targetCreated": "Target created",
+      "targetCreateFailed": "Could not create target",
+      "targetUpdateFailed": "Could not update target",
+      "targetDeleteFailed": "Could not delete target",
+      "subscriptionCreated": "Subscription created",
+      "subscriptionCreateFailed": "Could not create subscription",
+      "subscriptionUpdateFailed": "Could not update subscription",
+      "subscriptionDeleteFailed": "Could not delete subscription"
+    },
+    "consent": {
+      "title": "Delegated send consent",
+      "connected": "Connected for delegated channel sending",
+      "notConnected": "Not connected. Outbound channel sends may fail without delegated consent.",
+      "connectButton": "Connect Teams consent",
+      "expiresAt": "Token expires: {value}",
+      "noExpiry": "No token expiry information available."
+    }
   }
 }

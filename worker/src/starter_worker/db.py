@@ -367,6 +367,350 @@ class JobStore:
                 )
             connection.commit()
 
+    def mark_teams_outbound_processing(self, outbound_message_id: str, attempt_count: int) -> None:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE TeamsOutboundMessage
+                    SET status = 'SENDING',
+                        attemptCount = ?,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (attempt_count, outbound_message_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "TeamsOutboundMessage"
+                    SET status = 'SENDING',
+                        "attemptCount" = %s,
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (attempt_count, outbound_message_id),
+                )
+            connection.commit()
+
+    def mark_teams_outbound_sent(self, outbound_message_id: str, graph_message_id: str | None) -> None:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE TeamsOutboundMessage
+                    SET status = 'SENT',
+                        graphMessageId = ?,
+                        lastError = NULL,
+                        sentAt = CURRENT_TIMESTAMP,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (graph_message_id, outbound_message_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "TeamsOutboundMessage"
+                    SET status = 'SENT',
+                        "graphMessageId" = %s,
+                        "lastError" = NULL,
+                        "sentAt" = NOW(),
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (graph_message_id, outbound_message_id),
+                )
+            connection.commit()
+
+    def mark_teams_outbound_failed(
+        self,
+        outbound_message_id: str,
+        error: str,
+        attempt_count: int,
+        *,
+        will_retry: bool,
+    ) -> None:
+        status = "RETRYING" if will_retry else "FAILED"
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE TeamsOutboundMessage
+                    SET status = ?,
+                        attemptCount = ?,
+                        lastError = ?,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (status, attempt_count, error, outbound_message_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "TeamsOutboundMessage"
+                    SET status = %s,
+                        "attemptCount" = %s,
+                        "lastError" = %s,
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (status, attempt_count, error, outbound_message_id),
+                )
+            connection.commit()
+
+    def has_teams_inbound_message(self, provider_message_id: str) -> bool:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                row = connection.execute(
+                    "SELECT 1 FROM TeamsInboundMessage WHERE providerMessageId = ? LIMIT 1",
+                    (provider_message_id,),
+                ).fetchone()
+                return row is not None
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT 1 FROM "TeamsInboundMessage" WHERE "providerMessageId" = %s LIMIT 1',
+                    (provider_message_id,),
+                )
+                row = cursor.fetchone()
+            connection.commit()
+            return row is not None
+
+    def create_teams_inbound_message(self, payload: dict[str, Any]) -> str:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    INSERT INTO TeamsInboundMessage (
+                        id, subscriptionId, providerMessageId, teamId, channelId, senderDisplayName,
+                        senderUserId, content, contentType, truncated, processingStatus,
+                        processingNotes, messageCreatedAt, createdAt, updatedAt
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RECEIVED', NULL, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    """,
+                    (
+                        payload["id"],
+                        payload["subscriptionId"],
+                        payload["providerMessageId"],
+                        payload["teamId"],
+                        payload["channelId"],
+                        payload.get("senderDisplayName"),
+                        payload.get("senderUserId"),
+                        payload.get("content"),
+                        payload.get("contentType"),
+                        bool(payload.get("truncated")),
+                        payload["messageCreatedAt"],
+                    ),
+                )
+                connection.commit()
+            return str(payload["id"])
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO "TeamsInboundMessage" (
+                        id, "subscriptionId", "providerMessageId", "teamId", "channelId", "senderDisplayName",
+                        "senderUserId", content, "contentType", truncated, "processingStatus",
+                        "processingNotes", "messageCreatedAt", "createdAt", "updatedAt"
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'RECEIVED', NULL, %s, NOW(), NOW())
+                    """,
+                    (
+                        payload["id"],
+                        payload["subscriptionId"],
+                        payload["providerMessageId"],
+                        payload["teamId"],
+                        payload["channelId"],
+                        payload.get("senderDisplayName"),
+                        payload.get("senderUserId"),
+                        payload.get("content"),
+                        payload.get("contentType"),
+                        bool(payload.get("truncated")),
+                        payload["messageCreatedAt"],
+                    ),
+                )
+            connection.commit()
+        return str(payload["id"])
+
+    def update_teams_subscription_poll_state(
+        self,
+        subscription_id: str,
+        delta_token: str | None,
+    ) -> None:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.execute(
+                    """
+                    UPDATE TeamsIntakeSubscription
+                    SET deltaToken = ?,
+                        lastPolledAt = CURRENT_TIMESTAMP,
+                        updatedAt = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    (delta_token, subscription_id),
+                )
+                connection.commit()
+            return
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "TeamsIntakeSubscription"
+                    SET "deltaToken" = %s,
+                        "lastPolledAt" = NOW(),
+                        "updatedAt" = NOW()
+                    WHERE id = %s
+                    """,
+                    (delta_token, subscription_id),
+                )
+            connection.commit()
+
+    def list_active_teams_subscriptions(self) -> list[dict[str, Any]]:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.row_factory = sqlite3.Row
+                rows = connection.execute(
+                    """
+                    SELECT id, teamId, channelId, deltaToken
+                    FROM TeamsIntakeSubscription
+                    WHERE active = 1
+                    ORDER BY createdAt ASC
+                    """
+                ).fetchall()
+                return [dict(row) for row in rows]
+
+        with psycopg.connect(self._config.database_url, row_factory=dict_row) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT id, "teamId", "channelId", "deltaToken"
+                    FROM "TeamsIntakeSubscription"
+                    WHERE active = true
+                    ORDER BY "createdAt" ASC
+                    """
+                )
+                rows = cursor.fetchall()
+            connection.commit()
+            return list(rows)
+
+    def create_teams_intake_poll_job_if_missing(self) -> bool:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                existing = connection.execute(
+                    """
+                    SELECT 1 FROM BackgroundJob
+                    WHERE jobType = 'teams_intake_poll'
+                      AND status IN ('PENDING', 'IN_PROGRESS')
+                    LIMIT 1
+                    """
+                ).fetchone()
+                if existing:
+                    return False
+
+                connection.execute(
+                    """
+                    INSERT INTO BackgroundJob (
+                        id, jobType, status, payload, attemptCount, availableAt, createdAt, updatedAt
+                    ) VALUES (
+                        lower(hex(randomblob(16))),
+                        'teams_intake_poll',
+                        'PENDING',
+                        '{}',
+                        0,
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    )
+                    """
+                )
+                connection.commit()
+                return True
+
+        with psycopg.connect(self._config.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT 1 FROM "BackgroundJob"
+                    WHERE "jobType" = 'teams_intake_poll'
+                      AND status IN ('PENDING', 'IN_PROGRESS')
+                    LIMIT 1
+                    """
+                )
+                if cursor.fetchone():
+                    connection.commit()
+                    return False
+
+                cursor.execute(
+                    """
+                    INSERT INTO "BackgroundJob" (
+                        id, "jobType", status, payload, "attemptCount", "availableAt", "createdAt", "updatedAt"
+                    ) VALUES (
+                        md5(random()::text || clock_timestamp()::text),
+                        'teams_intake_poll',
+                        'PENDING',
+                        '{}',
+                        0,
+                        NOW(),
+                        NOW(),
+                        NOW()
+                    )
+                    """
+                )
+            connection.commit()
+            return True
+
+    def get_teams_integration_flags(self) -> dict[str, bool]:
+        if self._is_sqlite:
+            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+                connection.row_factory = sqlite3.Row
+                row = connection.execute(
+                    """
+                    SELECT sendEnabled, intakeEnabled
+                    FROM TeamsIntegrationConfig
+                    ORDER BY createdAt ASC
+                    LIMIT 1
+                    """
+                ).fetchone()
+                if not row:
+                    return {"sendEnabled": False, "intakeEnabled": False}
+                return {
+                    "sendEnabled": bool(row["sendEnabled"]),
+                    "intakeEnabled": bool(row["intakeEnabled"]),
+                }
+
+        with psycopg.connect(self._config.database_url, row_factory=dict_row) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT "sendEnabled", "intakeEnabled"
+                    FROM "TeamsIntegrationConfig"
+                    ORDER BY "createdAt" ASC
+                    LIMIT 1
+                    """
+                )
+                row = cursor.fetchone()
+            connection.commit()
+            if not row:
+                return {"sendEnabled": False, "intakeEnabled": False}
+            return {
+                "sendEnabled": bool(row["sendEnabled"]),
+                "intakeEnabled": bool(row["intakeEnabled"]),
+            }
+
     def _claim_sqlite_job(self) -> BackgroundJob | None:
         with closing(sqlite3.connect(self._sqlite_path)) as connection:
             connection.row_factory = sqlite3.Row

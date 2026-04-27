@@ -9,6 +9,7 @@ import {
   appendNotificationReferenceText,
 } from "@/services/notifications/inbound";
 import { getNotificationTypeConfiguration } from "@/services/notifications/admin";
+import { safeQueueTeamsMessages } from "@/services/teams/service";
 import {
   NotificationEventType,
   Role,
@@ -175,6 +176,7 @@ async function queueNotifications(input: QueueNotificationContext) {
     return;
   }
 
+  let createdEventId: string | null = null;
   await prisma.$transaction(async (tx) => {
     const event = await tx.notificationEvent.create({
       data: {
@@ -184,6 +186,7 @@ async function queueNotifications(input: QueueNotificationContext) {
         payload: JSON.stringify(input.payload),
       },
     });
+    createdEventId = event.id;
 
     for (const recipient of input.recipients) {
       const rendered = renderNotificationTemplate({
@@ -240,6 +243,15 @@ async function queueNotifications(input: QueueNotificationContext) {
       });
     }
   });
+
+  if (createdEventId) {
+    await safeQueueTeamsMessages({
+      actorId: input.actorId,
+      eventType: input.eventType,
+      eventId: createdEventId,
+      payload: input.payload,
+    });
+  }
 }
 
 async function buildRecipients(actorId: string, user: NotificationUser) {

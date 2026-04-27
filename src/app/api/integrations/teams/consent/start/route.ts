@@ -1,0 +1,37 @@
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { requireApiUserWithRoles } from "@/lib/route-auth";
+import {
+  createTeamsConsentState,
+  getTeamsAuthorizeUrl,
+  getTeamsConsentCookiePath,
+  TEAMS_CONSENT_STATE_COOKIE,
+} from "@/services/teams/consent";
+import { Role } from "../../../../../../../generated/prisma/enums";
+
+export async function GET(request: Request) {
+  const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
+  if ("error" in auth) {
+    return auth.error;
+  }
+
+  const url = new URL(request.url);
+  const redirectTo = url.searchParams.get("redirectTo");
+  const safeRedirect =
+    redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
+      ? redirectTo
+      : "/admin/integrations/teams";
+
+  const state = createTeamsConsentState();
+  const cookieStore = await cookies();
+  cookieStore.set(TEAMS_CONSENT_STATE_COOKIE, `${state}:${safeRedirect}`, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: getTeamsConsentCookiePath(),
+    maxAge: 10 * 60,
+  });
+
+  const authorizeUrl = getTeamsAuthorizeUrl(request, state);
+  return NextResponse.redirect(authorizeUrl);
+}

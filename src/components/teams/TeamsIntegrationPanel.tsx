@@ -1,0 +1,362 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import { withBasePath } from "@/lib/base-path";
+import { useToast } from "@/components/ui/Toast";
+
+type TeamsConfigResponse = {
+  sendEnabled: boolean;
+  intakeEnabled: boolean;
+  updatedAt: string | Date;
+  health: {
+    lastSuccessfulSend: string | Date | null;
+    lastSuccessfulIntake: string | Date | null;
+    recentSendFailures: number;
+    recentIntakeFailures: number;
+  };
+  recentActivity: Array<Record<string, unknown>>;
+};
+
+type TeamsDeliveryTarget = {
+  id: string;
+  name: string;
+  teamId: string;
+  channelId: string;
+  teamName: string | null;
+  channelName: string | null;
+  active: boolean;
+  createdAt: string | Date;
+};
+
+type TeamsIntakeSubscription = {
+  id: string;
+  teamId: string;
+  channelId: string;
+  teamName: string | null;
+  channelName: string | null;
+  active: boolean;
+  lastPolledAt: string | Date | null;
+  createdAt: string | Date;
+};
+
+type TeamsConsentStatus = {
+  connected: boolean;
+  scope: string | null;
+  expiresAt: string | Date | null;
+  updatedAt: string | Date | null;
+};
+
+export function TeamsIntegrationPanel({
+  initialConfig,
+  initialTargets,
+  initialSubscriptions,
+  initialConsentStatus,
+}: {
+  initialConfig: TeamsConfigResponse;
+  initialTargets: TeamsDeliveryTarget[];
+  initialSubscriptions: TeamsIntakeSubscription[];
+  initialConsentStatus: TeamsConsentStatus;
+}) {
+  const t = useTranslations("teams");
+  const { pushToast } = useToast();
+  const [config, setConfig] = useState(initialConfig);
+  const [targets, setTargets] = useState(initialTargets);
+  const [subscriptions, setSubscriptions] = useState(initialSubscriptions);
+  const [consentStatus, setConsentStatus] = useState(initialConsentStatus);
+  const [saving, setSaving] = useState(false);
+  const [newTarget, setNewTarget] = useState({
+    name: "",
+    teamId: "",
+    channelId: "",
+    teamName: "",
+    channelName: "",
+  });
+  const [newSubscription, setNewSubscription] = useState({
+    teamId: "",
+    channelId: "",
+    teamName: "",
+    channelName: "",
+  });
+
+  const healthCards = useMemo(
+    () => [
+      { label: t("health.sendFailures"), value: config.health.recentSendFailures },
+      { label: t("health.intakeFailures"), value: config.health.recentIntakeFailures },
+      {
+        label: t("health.lastSend"),
+        value: config.health.lastSuccessfulSend ? formatDate(config.health.lastSuccessfulSend) : "-",
+      },
+      {
+        label: t("health.lastIntake"),
+        value: config.health.lastSuccessfulIntake ? formatDate(config.health.lastSuccessfulIntake) : "-",
+      },
+    ],
+    [config.health, t],
+  );
+
+  async function refresh() {
+    const [configResponse, targetsResponse, subscriptionsResponse, consentResponse] = await Promise.all([
+      fetch(withBasePath("/api/integrations/teams")),
+      fetch(withBasePath("/api/integrations/teams/targets")),
+      fetch(withBasePath("/api/integrations/teams/subscriptions")),
+      fetch(withBasePath("/api/integrations/teams/consent/status")),
+    ]);
+
+    if (configResponse.ok) {
+      const payload = (await configResponse.json()) as TeamsConfigResponse;
+      setConfig(payload);
+    }
+    if (targetsResponse.ok) {
+      const payload = (await targetsResponse.json()) as { targets: TeamsDeliveryTarget[] };
+      setTargets(payload.targets);
+    }
+    if (subscriptionsResponse.ok) {
+      const payload = (await subscriptionsResponse.json()) as {
+        subscriptions: TeamsIntakeSubscription[];
+      };
+      setSubscriptions(payload.subscriptions);
+    }
+    if (consentResponse.ok) {
+      const payload = (await consentResponse.json()) as TeamsConsentStatus;
+      setConsentStatus(payload);
+    }
+  }
+
+  async function saveConfig(next: Partial<Pick<TeamsConfigResponse, "sendEnabled" | "intakeEnabled">>) {
+    setSaving(true);
+    try {
+      const response = await fetch(withBasePath("/api/integrations/teams"), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+
+      if (!response.ok) {
+        pushToast(t("messages.saveFailed"));
+        return;
+      }
+
+      const payload = (await response.json()) as TeamsConfigResponse;
+      setConfig(payload);
+      pushToast(t("messages.saved"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function addTarget() {
+    const response = await fetch(withBasePath("/api/integrations/teams/targets"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newTarget),
+    });
+
+    if (!response.ok) {
+      pushToast(t("messages.targetCreateFailed"));
+      return;
+    }
+
+    setNewTarget({
+      name: "",
+      teamId: "",
+      channelId: "",
+      teamName: "",
+      channelName: "",
+    });
+    await refresh();
+    pushToast(t("messages.targetCreated"));
+  }
+
+  async function toggleTarget(targetId: string, active: boolean) {
+    const response = await fetch(withBasePath(`/api/integrations/teams/targets/${encodeURIComponent(targetId)}`), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active }),
+    });
+    if (!response.ok) {
+      pushToast(t("messages.targetUpdateFailed"));
+      return;
+    }
+    await refresh();
+  }
+
+  async function removeTarget(targetId: string) {
+    const response = await fetch(withBasePath(`/api/integrations/teams/targets/${encodeURIComponent(targetId)}`), {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      pushToast(t("messages.targetDeleteFailed"));
+      return;
+    }
+    await refresh();
+  }
+
+  async function addSubscription() {
+    const response = await fetch(withBasePath("/api/integrations/teams/subscriptions"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newSubscription),
+    });
+
+    if (!response.ok) {
+      pushToast(t("messages.subscriptionCreateFailed"));
+      return;
+    }
+
+    setNewSubscription({
+      teamId: "",
+      channelId: "",
+      teamName: "",
+      channelName: "",
+    });
+    await refresh();
+    pushToast(t("messages.subscriptionCreated"));
+  }
+
+  async function toggleSubscription(subscriptionId: string, active: boolean) {
+    const response = await fetch(
+      withBasePath(`/api/integrations/teams/subscriptions/${encodeURIComponent(subscriptionId)}`),
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active }),
+      },
+    );
+    if (!response.ok) {
+      pushToast(t("messages.subscriptionUpdateFailed"));
+      return;
+    }
+    await refresh();
+  }
+
+  async function removeSubscription(subscriptionId: string) {
+    const response = await fetch(
+      withBasePath(`/api/integrations/teams/subscriptions/${encodeURIComponent(subscriptionId)}`),
+      { method: "DELETE" },
+    );
+    if (!response.ok) {
+      pushToast(t("messages.subscriptionDeleteFailed"));
+      return;
+    }
+    await refresh();
+  }
+
+  return (
+    <div className="space-y-8">
+      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
+        <h2 className="text-lg font-semibold">{t("consent.title")}</h2>
+        <p className="mt-2 text-sm opacity-70">
+          {consentStatus.connected ? t("consent.connected") : t("consent.notConnected")}
+        </p>
+        <p className="mt-1 text-xs opacity-65">
+          {consentStatus.expiresAt
+            ? t("consent.expiresAt", { value: formatDate(consentStatus.expiresAt) })
+            : t("consent.noExpiry")}
+        </p>
+        <a
+          className="mt-3 inline-block rounded bg-black px-3 py-1 text-white dark:bg-white dark:text-black"
+          href={withBasePath("/api/integrations/teams/consent/start?redirectTo=/admin/integrations/teams")}
+        >
+          {t("consent.connectButton")}
+        </a>
+      </section>
+
+      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
+        <h2 className="text-lg font-semibold">{t("toggles.title")}</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="flex items-center justify-between rounded-xl border border-black/10 p-3 dark:border-white/10">
+            <span>{t("toggles.sendEnabled")}</span>
+            <input
+              type="checkbox"
+              checked={config.sendEnabled}
+              disabled={saving}
+              onChange={(event) => void saveConfig({ sendEnabled: event.target.checked })}
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-xl border border-black/10 p-3 dark:border-white/10">
+            <span>{t("toggles.intakeEnabled")}</span>
+            <input
+              type="checkbox"
+              checked={config.intakeEnabled}
+              disabled={saving}
+              onChange={(event) => void saveConfig({ intakeEnabled: event.target.checked })}
+            />
+          </label>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
+        <h2 className="text-lg font-semibold">{t("targets.title")}</h2>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          <input className="rounded border px-2 py-1" placeholder={t("targets.name")} value={newTarget.name} onChange={(e)=>setNewTarget((v)=>({ ...v, name: e.target.value }))} />
+          <input className="rounded border px-2 py-1" placeholder={t("targets.teamId")} value={newTarget.teamId} onChange={(e)=>setNewTarget((v)=>({ ...v, teamId: e.target.value }))} />
+          <input className="rounded border px-2 py-1" placeholder={t("targets.channelId")} value={newTarget.channelId} onChange={(e)=>setNewTarget((v)=>({ ...v, channelId: e.target.value }))} />
+          <input className="rounded border px-2 py-1" placeholder={t("targets.teamName")} value={newTarget.teamName} onChange={(e)=>setNewTarget((v)=>({ ...v, teamName: e.target.value }))} />
+          <input className="rounded border px-2 py-1" placeholder={t("targets.channelName")} value={newTarget.channelName} onChange={(e)=>setNewTarget((v)=>({ ...v, channelName: e.target.value }))} />
+        </div>
+        <button className="mt-3 rounded bg-black px-3 py-1 text-white dark:bg-white dark:text-black" onClick={() => void addTarget()}>{t("targets.add")}</button>
+        <div className="mt-4 space-y-2">
+          {targets.map((target) => (
+            <div key={target.id} className="flex flex-wrap items-center gap-3 rounded border border-black/10 p-3 dark:border-white/10">
+              <div className="min-w-[14rem] flex-1">
+                <p className="font-medium">{target.name}</p>
+                <p className="text-xs opacity-70">{target.teamId} / {target.channelId}</p>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={target.active} onChange={(event) => void toggleTarget(target.id, event.target.checked)} />
+                {target.active ? t("common.active") : t("common.inactive")}
+              </label>
+              <button className="rounded border px-3 py-1" onClick={() => void removeTarget(target.id)}>{t("common.delete")}</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
+        <h2 className="text-lg font-semibold">{t("subscriptions.title")}</h2>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <input className="rounded border px-2 py-1" placeholder={t("subscriptions.teamId")} value={newSubscription.teamId} onChange={(e)=>setNewSubscription((v)=>({ ...v, teamId: e.target.value }))} />
+          <input className="rounded border px-2 py-1" placeholder={t("subscriptions.channelId")} value={newSubscription.channelId} onChange={(e)=>setNewSubscription((v)=>({ ...v, channelId: e.target.value }))} />
+          <input className="rounded border px-2 py-1" placeholder={t("subscriptions.teamName")} value={newSubscription.teamName} onChange={(e)=>setNewSubscription((v)=>({ ...v, teamName: e.target.value }))} />
+          <input className="rounded border px-2 py-1" placeholder={t("subscriptions.channelName")} value={newSubscription.channelName} onChange={(e)=>setNewSubscription((v)=>({ ...v, channelName: e.target.value }))} />
+        </div>
+        <button className="mt-3 rounded bg-black px-3 py-1 text-white dark:bg-white dark:text-black" onClick={() => void addSubscription()}>{t("subscriptions.add")}</button>
+        <div className="mt-4 space-y-2">
+          {subscriptions.map((subscription) => (
+            <div key={subscription.id} className="flex flex-wrap items-center gap-3 rounded border border-black/10 p-3 dark:border-white/10">
+              <div className="min-w-[14rem] flex-1">
+                <p className="font-medium">{subscription.teamName ?? subscription.teamId} / {subscription.channelName ?? subscription.channelId}</p>
+                <p className="text-xs opacity-70">{t("subscriptions.lastPolled")}: {subscription.lastPolledAt ? formatDate(subscription.lastPolledAt) : "-"}</p>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={subscription.active} onChange={(event) => void toggleSubscription(subscription.id, event.target.checked)} />
+                {subscription.active ? t("common.active") : t("common.inactive")}
+              </label>
+              <button className="rounded border px-3 py-1" onClick={() => void removeSubscription(subscription.id)}>{t("common.delete")}</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
+        <h2 className="text-lg font-semibold">{t("health.title")}</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {healthCards.map((card) => (
+            <article key={card.label} className="rounded-xl border border-black/10 p-3 dark:border-white/10">
+              <p className="text-xs uppercase tracking-wider opacity-60">{card.label}</p>
+              <p className="mt-2 text-lg font-semibold">{String(card.value)}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function formatDate(value: string | Date) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(value instanceof Date ? value : new Date(value));
+}

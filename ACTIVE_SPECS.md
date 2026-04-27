@@ -6,7 +6,7 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- None.
+- 015-teams-messaging-skeleton (in progress): Core implementation landed across Prisma schemas/migrations, Teams API/services/UI, worker handlers, and coverage checks. Remaining: quickstart validation timing (T038) with real Teams tenant configuration.
 
 ## Maintenance Rules
 

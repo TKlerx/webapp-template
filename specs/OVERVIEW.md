@@ -1,6 +1,6 @@
 # Business App Starter Specs Overview
 
-Last Updated: 2026-04-24
+Last Updated: 2026-04-27
 
 Purpose: Track the status of all planned features, their implementation progress, and next steps.
 
@@ -9,7 +9,7 @@ Purpose: Track the status of all planned features, their implementation progress
 | Status | Meaning | Expected Artifacts |
 | --- | --- | --- |
 | Planned | The feature intent is captured, but no clarification work has been recorded yet. | `spec.md` only |
-| Clarified | The open scope and decision questions have been resolved. | `spec.md` + `clarify.md` |
+| Clarified | The open scope and decision questions have been resolved. | `spec.md` with `## Clarifications` section (or `clarify.md`) |
 | Analyzed | The feature has been researched enough to support planning. | `spec.md` + `clarify.md` + `research.md` |
 | Tasked | The feature has a concrete execution plan and task list, but no implementation tasks are checked yet. | `spec.md` + `clarify.md` + `research.md` + `plan.md` + `data-model.md` + `tasks.md` |
 | In Progress | Implementation has started and some tasks are checked. | `tasks.md` exists and some tasks are checked |
@@ -25,7 +25,7 @@ Purpose: Track the status of all planned features, their implementation progress
 | 012 | Openapi And Pat | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
 | 013 | Cli Client | Fully Implemented | Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow | Large | Review, commit, and propagate the finished feature |
 | 014 | Shared Mailbox Notifications | Fully Implemented | - | Large | Review, commit, and propagate the finished feature |
-| 015 | Teams Messaging Skeleton | Analyzed | - | Task planning | Run `/speckit.plan` and `/speckit.tasks` |
+| 015 | Teams Messaging Skeleton | Partially Implemented | - | Large | Continue implementation and complete the remaining tasks |
 
 ## Implementation Roadmap
 
@@ -39,8 +39,8 @@ Purpose: Track the status of all planned features, their implementation progress
 
 ### Begin Immediately
 
-- No tasked or in-progress numbered features are waiting for implementation work
+- 015 Teams Messaging Skeleton: Continue implementation and complete the remaining tasks
 
 ### Blocked / Prep Needed
 
-- 015 Teams Messaging Skeleton: Run `/speckit.plan` and `/speckit.tasks`
+- No planned features are blocked on clarify/analyze/planning work

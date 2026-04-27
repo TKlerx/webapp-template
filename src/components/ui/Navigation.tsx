@@ -17,6 +17,7 @@ export function Navigation({ user }: { user: SessionUser }) {
     links.push({ href: "/users", label: t("users") });
     links.push({ href: "/audit-trail", label: t("auditTrail") });
     links.push({ href: "/admin/notifications", label: t("notifications") });
+    links.push({ href: "/admin/integrations/teams", label: t("teamsIntegrations") });
     links.push({ href: "/admin/tokens", label: t("adminTokens") });
   }
 

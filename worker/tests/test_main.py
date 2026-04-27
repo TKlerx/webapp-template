@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from starter_worker.config import WorkerConfig, load_config
 from starter_worker.db import JobStore
-from starter_worker.main import process_inbound_mail_poll, process_job
+from starter_worker.main import process_inbound_mail_poll, process_job, process_teams_intake_poll
 
 
 class WorkerTests(unittest.TestCase):
@@ -53,6 +53,29 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result["notificationId"], "notification-1")
         self.assertEqual(result["status"], "sent")
         self.assertIn("processedAt", result)
+
+    def test_process_job_teams_delivery_sends_message(self) -> None:
+        with patch("starter_worker.main.send_teams_channel_message", return_value={"id": "graph-1"}) as send_teams:
+            result = process_job(
+                type(
+                    "Job",
+                    (),
+                    {
+                        "job_type": "teams_message_delivery",
+                        "payload": {
+                            "teamsOutboundMessageId": "outbound-1",
+                            "teamId": "team-1",
+                            "channelId": "channel-1",
+                            "content": "<p>hello</p>",
+                        },
+                    },
+                )()
+            )
+
+        send_teams.assert_called_once()
+        self.assertEqual(result["teamsOutboundMessageId"], "outbound-1")
+        self.assertEqual(result["graphMessageId"], "graph-1")
+        self.assertEqual(result["status"], "sent")
 
     def test_process_inbound_mail_poll_stores_bounces_and_entity_links(self) -> None:
         with patch(
@@ -187,6 +210,49 @@ class WorkerTests(unittest.TestCase):
         self.assertIsNone(row["lockedAt"])
         self.assertIsNone(row["workerId"])
 
+    def test_process_teams_intake_poll_stores_messages_and_updates_delta(self) -> None:
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.execute(
+                """
+                INSERT INTO TeamsIntakeSubscription (
+                    id, teamId, channelId, active, deltaToken, createdByUserId, createdAt, updatedAt
+                ) VALUES (
+                    'sub-1', 'team-1', 'channel-1', 1, NULL, 'admin-1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                )
+                """
+            )
+            connection.commit()
+
+        with patch(
+            "starter_worker.main.list_teams_channel_messages",
+            return_value={
+                "value": [
+                    {
+                        "id": "teams-msg-1",
+                        "createdDateTime": "2026-04-27T10:00:00Z",
+                        "body": {"contentType": "html", "content": "<p>hi</p>"},
+                        "from": {"user": {"id": "u-1", "displayName": "User One"}},
+                    }
+                ],
+                "@odata.deltaLink": "/delta-token-1",
+            },
+        ):
+            store = self._make_store()
+            result = process_teams_intake_poll(store)
+
+        self.assertEqual(result["created"], 1)
+        with closing(sqlite3.connect(self.db_path)) as connection:
+            connection.row_factory = sqlite3.Row
+            row = connection.execute(
+                "SELECT providerMessageId FROM TeamsInboundMessage WHERE providerMessageId = ?",
+                ("teams-msg-1",),
+            ).fetchone()
+            self.assertIsNotNone(row)
+            sub = connection.execute(
+                "SELECT deltaToken FROM TeamsIntakeSubscription WHERE id = 'sub-1'",
+            ).fetchone()
+            self.assertEqual(sub["deltaToken"], "/delta-token-1")
+
     def test_load_config_reads_repo_env_file(self) -> None:
         env_path = Path(self.temp_dir.name) / ".env"
         env_path.write_text(
@@ -195,7 +261,8 @@ class WorkerTests(unittest.TestCase):
             'WORKER_ID="worker-from-env"\n'
             'WORKER_MAX_ATTEMPTS="5"\n'
             'WORKER_RETRY_BACKOFF_SECONDS="20"\n'
-            'WORKER_STALE_LOCK_SECONDS="600"\n',
+            'WORKER_STALE_LOCK_SECONDS="600"\n'
+            'TEAMS_POLL_INTERVAL_SECONDS="45"\n',
             encoding="utf-8",
         )
 
@@ -208,6 +275,7 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(config.max_attempts, 5)
         self.assertEqual(config.retry_backoff_seconds, 20)
         self.assertEqual(config.stale_lock_seconds, 600)
+        self.assertEqual(config.teams_poll_interval_seconds, 45)
 
     def _make_store(
         self,
@@ -224,6 +292,7 @@ class WorkerTests(unittest.TestCase):
                 max_attempts=max_attempts,
                 retry_backoff_seconds=retry_backoff_seconds,
                 stale_lock_seconds=stale_lock_seconds,
+                teams_poll_interval_seconds=60,
             )
         )
 
@@ -282,6 +351,65 @@ class WorkerTests(unittest.TestCase):
                     correlatedNotificationId TEXT,
                     linkedEntityType TEXT,
                     linkedEntityId TEXT,
+                    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE TeamsOutboundMessage (
+                    id TEXT PRIMARY KEY,
+                    status TEXT NOT NULL DEFAULT 'QUEUED',
+                    graphMessageId TEXT,
+                    attemptCount INTEGER NOT NULL DEFAULT 0,
+                    lastError TEXT,
+                    sentAt TEXT,
+                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE TeamsIntegrationConfig (
+                    id TEXT PRIMARY KEY,
+                    sendEnabled INTEGER NOT NULL DEFAULT 0,
+                    intakeEnabled INTEGER NOT NULL DEFAULT 0,
+                    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE TeamsIntakeSubscription (
+                    id TEXT PRIMARY KEY,
+                    teamId TEXT NOT NULL,
+                    channelId TEXT NOT NULL,
+                    active INTEGER NOT NULL DEFAULT 1,
+                    deltaToken TEXT,
+                    lastPolledAt TEXT,
+                    createdByUserId TEXT NOT NULL,
+                    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE TeamsInboundMessage (
+                    id TEXT PRIMARY KEY,
+                    subscriptionId TEXT NOT NULL,
+                    providerMessageId TEXT NOT NULL UNIQUE,
+                    teamId TEXT NOT NULL,
+                    channelId TEXT NOT NULL,
+                    senderDisplayName TEXT,
+                    senderUserId TEXT,
+                    content TEXT,
+                    contentType TEXT,
+                    truncated INTEGER NOT NULL DEFAULT 0,
+                    processingStatus TEXT NOT NULL DEFAULT 'RECEIVED',
+                    processingNotes TEXT,
+                    messageCreatedAt TEXT NOT NULL,
                     createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 )

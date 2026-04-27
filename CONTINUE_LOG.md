@@ -1,5 +1,25 @@
 # Continue Log
 
+## 2026-04-27 23:15:00
+
+- Executed major implementation work for spec `015-teams-messaging-skeleton` on branch `015-teams-messaging-skeleton`.
+- Added Teams data model support in both Prisma schemas plus checked-in SQLite/PostgreSQL migrations at `20260427090000_add_teams_messaging_skeleton`.
+- Implemented Teams Graph client/types (`src/lib/teams`), admin/service/intake layers (`src/services/teams`), API routes under `/api/integrations/teams/*`, and a new admin page at `/admin/integrations/teams`.
+- Extended worker runtime with `graph_teams.py`, Teams DB operations in `worker/src/starter_worker/db.py`, and new job handling/scheduling in `worker/src/starter_worker/main.py`.
+- Added Teams i18n/navigation wiring and test coverage across unit/integration/worker suites; verified with `npm run typecheck`, `npm run lint`, focused Vitest runs, and `uv run python -m unittest tests/test_main.py -v`.
+- Updated `specs/015-teams-messaging-skeleton/tasks.md` to mark completed tasks; remaining unchecked task: `T038` (real quickstart runtime validation).
+
+## 2026-04-27 23:32:00
+
+- Added delegated OAuth consent support for Teams channel send-on-behalf behavior (to address delegated-only `ChannelMessage.Send` permission) via:
+  - `src/services/teams/consent.ts`
+  - `/api/integrations/teams/consent/start`
+  - `/api/integrations/teams/consent/callback`
+  - `/api/integrations/teams/consent/status`
+- Added `TeamsDelegatedGrant` persistence in both Prisma schemas and checked-in migrations (`20260427103000_add_teams_delegated_grants` for SQLite/Postgres).
+- Wired Teams outbound queue payloads to include fresh delegated access tokens when available, and updated worker Teams send path to prefer delegated bearer tokens.
+- Updated Teams admin UI with consent status + connect button and appended spec clarifications in `specs/015-teams-messaging-skeleton/spec.md` for the delegated permission decision.
+
 ## 2026-04-23 00:00:00
 
 - Created and switched to branch `015-teams-messaging-skeleton` for a new Microsoft Teams integration skeleton feature.
@@ -455,3 +475,20 @@ pm run prisma:generate still succeeds.
 - Extended the Python worker with `inbound_mail_poll` processing, shared-mailbox message list/get support, inbound deduplication, bounce correlation, and reference-based entity linking.
 - Added focused validation for the inbound slice with `uv run python -m unittest tests.test_main`, targeted Vitest coverage for inbound helpers/processing, and a green `./validate.ps1 all`.
 - Feature `014-shared-mailbox-notifications` is now fully complete and has been removed from `ACTIVE_SPECS.md`.
+## 2026-04-26 08:40:29
+
+- Branch snapshot refreshed for `015-teams-messaging-skeleton`.
+- Latest non-continuity commit: 7823007 feat(specs): add teams messaging skeleton spec.
+- Active specs: 015-teams-messaging-skeleton.
+- Next focus: no next task.
+- Added dev-only code quality tooling for TypeScript and the Python worker: `eslint-plugin-sonarjs`, dependency-cruiser, Ruff, Radon, Xenon, and complexipy.
+- Wired `npm run quality:ts` and `npm run quality:python`, integrated both into `npm run validate` and `validate.ps1`, and documented the commands in `README.md`.
+- Baseline thresholds are intentionally permissive/reporting-first: TypeScript complexity and the existing auth import cycle warn, while Python Xenon/complexipy thresholds reflect the current worker baseline.
+- Tightened `validate.ps1` quality output so passing ESLint/dependency-cruiser/Python quality checks print compact score summaries and only dump captured tool details on failure.
+- Added a backlog item to create a repo-specific `SKILL.md` that teaches agents how to use this application and its workflow/quality gates.
+## 2026-04-27 00:17:02
+
+- Branch snapshot refreshed for `015-teams-messaging-skeleton`.
+- Latest non-continuity commit: 7823007 feat(specs): add teams messaging skeleton spec.
+- Active specs: 015-teams-messaging-skeleton.
+- Next focus: no next task.

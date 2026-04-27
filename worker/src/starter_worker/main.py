@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from .config import load_config
 from .db import BackgroundJob, JobStore
 from .graph_mail import get_graph_mail_message, list_graph_mail_messages, send_graph_mail
+from .graph_teams import list_teams_channel_messages, send_teams_channel_message
 
 
 logging.basicConfig(
@@ -53,7 +54,79 @@ def process_job(job: BackgroundJob) -> dict[str, object]:
             "processedAt": datetime.now(timezone.utc).isoformat(),
         }
 
+    if job.job_type == "teams_message_delivery":
+        outbound_message_id = str(job.payload.get("teamsOutboundMessageId") or "").strip()
+        if not outbound_message_id:
+            raise ValueError("teams_message_delivery job payload is missing teamsOutboundMessageId")
+
+        response = send_teams_channel_message(job.payload)
+        return {
+            "teamsOutboundMessageId": outbound_message_id,
+            "graphMessageId": str(response.get("id") or "").strip() or None,
+            "status": "sent",
+            "processedAt": datetime.now(timezone.utc).isoformat(),
+        }
+
     raise ValueError(f"Unsupported job type: {job.job_type}")
+
+
+def process_teams_intake_poll(store: JobStore) -> dict[str, object]:
+    subscriptions = store.list_active_teams_subscriptions()
+    created = 0
+    duplicates = 0
+
+    for subscription in subscriptions:
+        payload = {
+            "teamId": subscription["teamId"],
+            "channelId": subscription["channelId"],
+            "deltaToken": subscription.get("deltaToken"),
+            "top": 50,
+        }
+        response = list_teams_channel_messages(payload)
+        value = response.get("value")
+        messages = value if isinstance(value, list) else []
+
+        for message in messages:
+            provider_message_id = str(message.get("id") or "").strip()
+            if not provider_message_id:
+                continue
+
+            if store.has_teams_inbound_message(provider_message_id):
+                duplicates += 1
+                continue
+
+            body = message.get("body") or {}
+            from_info = (message.get("from") or {}).get("user") or (message.get("from") or {}).get("application") or {}
+            content = str(body.get("content") or "")
+            content_type = str(body.get("contentType") or "html").lower()
+            truncated_content, truncated = _truncate_text(content, 64 * 1024)
+
+            store.create_teams_inbound_message(
+                {
+                    "id": provider_message_id,
+                    "subscriptionId": subscription["id"],
+                    "providerMessageId": provider_message_id,
+                    "teamId": subscription["teamId"],
+                    "channelId": subscription["channelId"],
+                    "senderDisplayName": str(from_info.get("displayName") or "").strip() or None,
+                    "senderUserId": str(from_info.get("id") or "").strip() or None,
+                    "content": truncated_content,
+                    "contentType": "text" if content_type == "text" else "html",
+                    "truncated": truncated,
+                    "messageCreatedAt": str(message.get("createdDateTime") or datetime.now(timezone.utc).isoformat()),
+                }
+            )
+            created += 1
+
+        next_delta = str(response.get("@odata.deltaLink") or response.get("@odata.nextLink") or "").strip() or None
+        store.update_teams_subscription_poll_state(subscription["id"], next_delta)
+
+    return {
+        "subscriptions": len(subscriptions),
+        "created": created,
+        "duplicates": duplicates,
+        "processedAt": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> dict[str, object]:
@@ -221,6 +294,21 @@ def _find_header(headers: object, name: str) -> str:
     return ""
 
 
+def _truncate_text(content: str, limit_bytes: int) -> tuple[str, bool]:
+    encoded = content.encode("utf-8")
+    if len(encoded) <= limit_bytes:
+        return content, False
+
+    marker = "..."
+    candidate = content
+    while candidate:
+        candidate = candidate[:-1]
+        if len((candidate + marker).encode("utf-8")) <= limit_bytes:
+            return candidate + marker, True
+
+    return marker, True
+
+
 def main() -> None:
     config = load_config()
     store = JobStore(config)
@@ -233,10 +321,19 @@ def main() -> None:
         config.stale_lock_seconds,
     )
 
+    next_teams_poll_at = 0.0
     while True:
         recovered_count = store.requeue_stale_jobs()
         if recovered_count:
             logger.warning("jobs.requeued_stale count=%s", recovered_count)
+
+        if _is_teams_enabled():
+            flags = store.get_teams_integration_flags()
+            if flags["intakeEnabled"] and time.time() >= next_teams_poll_at:
+                created_poll_job = store.create_teams_intake_poll_job_if_missing()
+                next_teams_poll_at = time.time() + max(config.teams_poll_interval_seconds, 1)
+                if created_poll_job:
+                    logger.info("teams.poll_scheduled")
 
         job = store.claim_next_job()
         if job is None:
@@ -248,14 +345,22 @@ def main() -> None:
             notification_id = str(job.payload.get("notificationId") or "").strip()
             if job.job_type == "notification_delivery" and notification_id:
                 store.mark_notification_processing(notification_id, job.attempt_count)
+            teams_outbound_id = str(job.payload.get("teamsOutboundMessageId") or "").strip()
+            if job.job_type == "teams_message_delivery" and teams_outbound_id:
+                store.mark_teams_outbound_processing(teams_outbound_id, job.attempt_count)
 
             if job.job_type == "inbound_mail_poll":
                 result = process_inbound_mail_poll(store, job.payload)
+            elif job.job_type == "teams_intake_poll":
+                result = process_teams_intake_poll(store)
             else:
                 result = process_job(job)
             store.complete_job(job.id, result)
             if job.job_type == "notification_delivery" and notification_id:
                 store.mark_notification_sent(notification_id, job.attempt_count)
+            if job.job_type == "teams_message_delivery" and teams_outbound_id:
+                graph_message_id = str(result.get("graphMessageId") or "").strip() or None
+                store.mark_teams_outbound_sent(teams_outbound_id, graph_message_id)
             logger.info("job.completed id=%s result=%s", job.id, json.dumps(result))
         except Exception as error:  # noqa: BLE001
             notification_id = str(job.payload.get("notificationId") or "").strip()
@@ -266,8 +371,21 @@ def main() -> None:
                     job.attempt_count,
                     will_retry=job.attempt_count < config.max_attempts,
                 )
+            teams_outbound_id = str(job.payload.get("teamsOutboundMessageId") or "").strip()
+            if job.job_type == "teams_message_delivery" and teams_outbound_id:
+                store.mark_teams_outbound_failed(
+                    teams_outbound_id,
+                    str(error),
+                    job.attempt_count,
+                    will_retry=job.attempt_count < config.max_attempts,
+                )
             store.fail_job(job.id, str(error))
             logger.exception("job.failed id=%s attempt=%s", job.id, job.attempt_count)
+
+
+def _is_teams_enabled() -> bool:
+    value = str(os.environ.get("TEAMS_ENABLED") or "false").strip().lower()
+    return value in {"1", "true", "yes"}
 
 
 if __name__ == "__main__":
