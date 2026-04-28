@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
-const basePath = process.env.BASE_PATH ?? "";
+const basePath = normalizeBasePath(process.env.BASE_PATH ?? "");
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -13,3 +13,13 @@ const nextConfig: NextConfig = {
 };
 
 export default withNextIntl(nextConfig);
+
+function normalizeBasePath(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return withLeadingSlash.replace(/\/+$/, "");
+}
