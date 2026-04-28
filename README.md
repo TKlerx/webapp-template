@@ -69,7 +69,20 @@ Guidelines:
 .\validate.ps1 full
 ```
 
-`all` includes dependency cooldown validation for npm and uv support.
+`all` includes TypeScript and Python quality checks plus dependency cooldown
+validation for npm and uv support.
+
+Quality checks can also be run independently:
+
+```powershell
+npm run quality:ts
+npm run quality:python
+```
+
+`quality:ts` runs ESLint complexity and SonarJS cognitive-complexity warnings,
+dependency-cruiser import-cycle analysis, and jscpd duplication checks.
+`quality:python` runs Ruff, Xenon/Radon complexity metrics, and complexipy
+cognitive-complexity reporting for the worker package.
 
 ## CLI
 
