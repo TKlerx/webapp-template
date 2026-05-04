@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { AuthMethod, Role, UserStatus } from "../../../generated/prisma/enums";
-import { appBasePath } from "../helpers/auth";
+import { appBasePath, appOrigin } from "../helpers/auth";
 import { seedSsoUser } from "../helpers/db";
 
 test("mock Azure SSO can complete the CLI browser login flow", async ({ page }) => {
@@ -13,7 +13,7 @@ test("mock Azure SSO can complete the CLI browser login flow", async ({ page }) 
   });
 
   await page.goto(
-    `${appBasePath}/api/cli-auth/authorize?callback_url=${encodeURIComponent("http://localhost:3280/cli-callback")}&state=cli-sso-state`,
+    `${appBasePath}/api/cli-auth/authorize?callback_url=${encodeURIComponent(`${appOrigin}/cli-callback`)}&state=cli-sso-state`,
   );
 
   await expect(page).toHaveURL(/\/login\?/);

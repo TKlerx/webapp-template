@@ -4,8 +4,8 @@
 
 ## Current Snapshot
 
-- Updated: 2026-04-20 17:47:39
-- Branch: `014-shared-mailbox-notifications`
+- Updated: 2026-05-04 11:02:16
+- Branch: `main`
 
 ## Recent Non-Continuity Commits
 
@@ -17,27 +17,17 @@
 
 ## Git Status
 
+- M `.github/workflows/cli-release.yml`
+- M `.github/workflows/validate.yml`
 - M `CONTINUE.md`
 - M `CONTINUE_LOG.md`
-- M `docs/mail.md`
-- M `next-env.d.ts`
-- M `prisma/schema.prisma`
-- M `prisma/schema.postgres.prisma`
-- M `specs/014-shared-mailbox-notifications/tasks.md`
+- M `package-lock.json`
+- M `package.json`
 - M `specs/OVERVIEW.md`
-- M `src/components/ui/Navigation.tsx`
-- M `src/i18n/messages/*.json`
-- M `src/services/notifications/service.ts`
-- M `tests/e2e/helpers/db.ts`
-- M `tests/e2e/helpers/db-worker.ts`
-- ?? `prisma/migrations*/20260420090000_add_notification_type_configuration/`
-- ?? `src/app/(dashboard)/admin/notifications/`
-- ?? `src/app/api/notifications/`
-- ?? `src/components/notifications/`
-- ?? `src/services/notifications/admin.ts`
-- ?? `tests/e2e/notifications/`
-- ?? `tests/integration/notification-admin-api.test.ts`
-- ?? `.codex/config.toml` (local, keep uncommitted)
+- M `tests/e2e/auth/cli-sso-flow.spec.ts`
+- M `validate.ps1`
+- ?? `.gitattributes`
+- ?? `validate.sh`
 
 ## Active Specs
 
@@ -45,9 +35,9 @@
 
 ## Next Recommended Actions
 
-1. Review, commit, and propagate the completed `014-shared-mailbox-notifications` feature branch.
-2. Re-check the pending `next` / `next-intl` security upgrade plan against the current cooldown policy before the next dependency update batch.
-3. Decide whether the next follow-up should expand inbound mail handling beyond marker-based routing into a concrete application workflow.
+1. Review and commit the GitHub Actions / validation backport.
+2. Let GitHub Actions run the updated Ubuntu full-validation workflow on the branch/PR.
+3. Re-check the pending `next` / `next-intl` security upgrade plan against the current cooldown policy before the next dependency update batch.
 
 ## Manual Notes
 
@@ -110,4 +100,10 @@
 - Updated the notification pipeline in [src/services/notifications/service.ts](/c:/dev/webapp-template/src/services/notifications/service.ts) so outbound mail carries durable `[notification:...]` references, enabling reliable inbound bounce correlation without provider-specific webhook support.
 - Added shared-mailbox polling and inbound classification to the Python worker in [worker/src/starter_worker/main.py](/c:/dev/webapp-template/worker/src/starter_worker/main.py), [worker/src/starter_worker/db.py](/c:/dev/webapp-template/worker/src/starter_worker/db.py), and [worker/src/starter_worker/graph_mail.py](/c:/dev/webapp-template/worker/src/starter_worker/graph_mail.py), plus coverage in [worker/tests/test_main.py](/c:/dev/webapp-template/worker/tests/test_main.py), [tests/integration/notification-inbound.test.ts](/c:/dev/webapp-template/tests/integration/notification-inbound.test.ts), and [tests/unit/notifications/inbound-processing.test.ts](/c:/dev/webapp-template/tests/unit/notifications/inbound-processing.test.ts).
 - Feature `014-shared-mailbox-notifications` is now complete, and [ACTIVE_SPECS.md](/c:/dev/webapp-template/ACTIVE_SPECS.md) has been cleared accordingly.
+- Backported GitHub Actions fixes from `../resource-planning-codex`: the main validation workflow now runs on Ubuntu with Node 24, Python/Semgrep setup, Prisma client generation, Playwright browser installation, and full validation via `bash ./validate.sh full`.
+- Added [validate.sh](/c:/dev/webapp-template/validate.sh) as a Git Bash-friendly wrapper around [validate.ps1](/c:/dev/webapp-template/validate.ps1), plus [.gitattributes](/c:/dev/webapp-template/.gitattributes) to keep shell scripts LF-normalized.
+- Refreshed the npm lock for `next` / `eslint-config-next` 16.2.4 and added `@swc/helpers@0.5.21` as a dev dependency so `npm ci` no longer fails on the SWC helper lockfile mismatch.
+- Hardened [cli-release.yml](/c:/dev/webapp-template/.github/workflows/cli-release.yml) with manual dispatch, release permissions, full checkout history, and a pre-release `go test ./...` step.
+- Verification completed with `npm ci`, `npm run prisma:generate`, Git Bash `./validate.sh quick`, `npm run lint`, Git Bash `./validate.sh all`, targeted `playwright test tests/e2e/auth/cli-sso-flow.spec.ts`, and Git Bash `./validate.sh full`.
+- Fixed the full-validation blockers found during CI rehearsal: `tests/e2e/auth/cli-sso-flow.spec.ts` now uses the active E2E origin for the CLI callback instead of hardcoding port 3280, and `validate.ps1` treats current `next`/`postcss` production audit findings as allowlisted advisory items in the `full` phase.
 

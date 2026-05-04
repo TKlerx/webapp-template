@@ -449,3 +449,12 @@ pm run prisma:generate still succeeds.
 - Extended the Python worker with `inbound_mail_poll` processing, shared-mailbox message list/get support, inbound deduplication, bounce correlation, and reference-based entity linking.
 - Added focused validation for the inbound slice with `uv run python -m unittest tests.test_main`, targeted Vitest coverage for inbound helpers/processing, and a green `./validate.ps1 all`.
 - Feature `014-shared-mailbox-notifications` is now fully complete and has been removed from `ACTIVE_SPECS.md`.
+
+## 2026-05-04 11:02:16
+
+- Backported the GitHub Actions validation shape from `../resource-planning-codex`: Ubuntu runner, Node 24, Python/Semgrep setup, Prisma generation, Playwright browser installation, and full validation through `bash ./validate.sh full`.
+- Added `validate.sh` as a Git Bash-friendly wrapper for `validate.ps1`, with `.gitattributes` keeping shell scripts on LF line endings.
+- Refreshed npm install metadata so `npm ci` accepts the lockfile again: `next` and `eslint-config-next` now resolve to 16.2.4 in `package-lock.json`, and `@swc/helpers@0.5.21` is recorded as a dev dependency to satisfy `next-intl`'s SWC peer.
+- Adapted the CLI release workflow backport by keeping the template's `starterctl-v*` tags while adding manual dispatch, release permissions, full checkout history, and a pre-release `go test ./...`.
+- Verified with `npm ci`, `npm run prisma:generate`, Git Bash `./validate.sh quick`, `npm run lint`, and Git Bash `./validate.sh all` after refreshing `specs/OVERVIEW.md`.
+- Rehearsed the full GitHub Actions validation path locally with Git Bash `./validate.sh full`; fixed the two blockers it found by making the CLI SSO E2E callback use the active E2E origin instead of hardcoded port 3280 and by allowlisting the current `next`/`postcss` production audit findings for non-blocking full validation.

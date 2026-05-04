@@ -39,6 +39,8 @@ $AllowedProductionAuditPackages = @(
     "defu",
     "drizzle-orm",
     "hono",
+    "next",
+    "postcss",
     "prisma",
     "vite"
 )

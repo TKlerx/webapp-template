@@ -8,43 +8,36 @@ on:
 
 jobs:
   validate:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    env:
+      BASE_PATH: /app-starter
+      E2E_BASE_PATH: /app-starter
+      AUTH_BASE_URL: http://localhost:3290/app-starter
+      BETTERAUTH_SECRET: ci-betterauth-secret-for-playwright-tests-only
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run standard validation
-        shell: pwsh
-        run: ./validate.ps1 all
+      - name: Generate Prisma client
+        run: npm run prisma:generate
 
-      - name: Detect E2E specs
-        id: detect_e2e
-        shell: pwsh
-        run: |
-          $hasE2E = $false
-          if (Test-Path e2e) {
-            $hasE2E = [bool](Get-ChildItem e2e -Recurse -Include *.spec.ts,*.spec.tsx -File -ErrorAction SilentlyContinue | Select-Object -First 1)
-          }
-          if (-not $hasE2E -and (Test-Path tests/e2e)) {
-            $hasE2E = [bool](Get-ChildItem tests/e2e -Recurse -Include *.spec.ts,*.spec.tsx -File -ErrorAction SilentlyContinue | Select-Object -First 1)
-          }
-          "has_e2e=$($hasE2E.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+      - name: Install Semgrep
+        run: python -m pip install semgrep
 
       - name: Install Playwright browsers
-        if: steps.detect_e2e.outputs.has_e2e == 'true'
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps
 
-      - name: Run Playwright E2E
-        if: steps.detect_e2e.outputs.has_e2e == 'true'
-        shell: pwsh
-        run: ./validate.ps1 e2e
+      - name: Run full validation
+        run: bash ./validate.sh full
