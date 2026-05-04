@@ -458,3 +458,8 @@ pm run prisma:generate still succeeds.
 - Adapted the CLI release workflow backport by keeping the template's `starterctl-v*` tags while adding manual dispatch, release permissions, full checkout history, and a pre-release `go test ./...`.
 - Verified with `npm ci`, `npm run prisma:generate`, Git Bash `./validate.sh quick`, `npm run lint`, and Git Bash `./validate.sh all` after refreshing `specs/OVERVIEW.md`.
 - Rehearsed the full GitHub Actions validation path locally with Git Bash `./validate.sh full`; fixed the two blockers it found by making the CLI SSO E2E callback use the active E2E origin instead of hardcoded port 3280 and by allowlisting the current `next`/`postcss` production audit findings for non-blocking full validation.
+
+## 2026-05-04 13:50:17
+
+- Fixed CI-only validation blockers from the pushed GitHub Actions run: ESLint now ignores checked-in `.claude/**` skill files, and the Validate workflow installs `uv` before invoking the dependency cooldown check.
+- Re-verified with `npm run lint`, local `uv --exclude-newer` support, and Git Bash `./validate.sh full`, which passed typecheck, lint, duplication, Semgrep, Vitest, advisory production audit, and 15 Playwright E2E tests.

@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-05-04 11:02:16
+- Updated: 2026-05-04 13:50:17
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
@@ -17,17 +17,10 @@
 
 ## Git Status
 
-- M `.github/workflows/cli-release.yml`
 - M `.github/workflows/validate.yml`
 - M `CONTINUE.md`
 - M `CONTINUE_LOG.md`
-- M `package-lock.json`
-- M `package.json`
-- M `specs/OVERVIEW.md`
-- M `tests/e2e/auth/cli-sso-flow.spec.ts`
-- M `validate.ps1`
-- ?? `.gitattributes`
-- ?? `validate.sh`
+- M `eslint.config.mjs`
 
 ## Active Specs
 
@@ -106,4 +99,6 @@
 - Hardened [cli-release.yml](/c:/dev/webapp-template/.github/workflows/cli-release.yml) with manual dispatch, release permissions, full checkout history, and a pre-release `go test ./...` step.
 - Verification completed with `npm ci`, `npm run prisma:generate`, Git Bash `./validate.sh quick`, `npm run lint`, Git Bash `./validate.sh all`, targeted `playwright test tests/e2e/auth/cli-sso-flow.spec.ts`, and Git Bash `./validate.sh full`.
 - Fixed the full-validation blockers found during CI rehearsal: `tests/e2e/auth/cli-sso-flow.spec.ts` now uses the active E2E origin for the CLI callback instead of hardcoding port 3280, and `validate.ps1` treats current `next`/`postcss` production audit findings as allowlisted advisory items in the `full` phase.
+- Fixed CI-only validation blockers from GitHub Actions: [eslint.config.mjs](/c:/dev/webapp-template/eslint.config.mjs) now ignores checked-in `.claude/**` skill files, and [.github/workflows/validate.yml](/c:/dev/webapp-template/.github/workflows/validate.yml) installs `uv` before running `validate.sh`.
+- Re-verified the follow-up with `npm run lint`, confirmed local `uv` supports `--exclude-newer`, and reran Git Bash `./validate.sh full` successfully.
 

@@ -12,6 +12,7 @@ const config = [
       "playwright-report/**",
       "generated/**",
       ".agents/**",
+      ".claude/**",
       "**/*.min.js",
     ],
   },
