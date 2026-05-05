@@ -2,15 +2,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { __resetRateLimitStore, checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 describe("rate limit utility", () => {
+  const originalTrustProxyHeaders = process.env.TRUST_PROXY_HEADERS;
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-01T10:00:00Z"));
     __resetRateLimitStore();
+    delete process.env.TRUST_PROXY_HEADERS;
   });
 
   afterEach(() => {
     __resetRateLimitStore();
     vi.useRealTimers();
+    if (originalTrustProxyHeaders === undefined) {
+      delete process.env.TRUST_PROXY_HEADERS;
+    } else {
+      process.env.TRUST_PROXY_HEADERS = originalTrustProxyHeaders;
+    }
   });
 
   it("allows five attempts and blocks the sixth", () => {
@@ -51,7 +59,20 @@ describe("rate limit utility", () => {
     });
   });
 
-  it("extracts the client IP from request headers", () => {
+  it("ignores proxy headers by default", () => {
+    const forwardedRequest = new Request("http://localhost/test", {
+      headers: {
+        "x-forwarded-for": "203.0.113.10, 10.0.0.5",
+        "x-real-ip": "198.51.100.3",
+      },
+    });
+
+    expect(getClientIp(forwardedRequest)).toBe("unknown");
+  });
+
+  it("extracts the client IP from trusted proxy headers when enabled", () => {
+    process.env.TRUST_PROXY_HEADERS = "1";
+
     const forwardedRequest = new Request("http://localhost/test", {
       headers: {
         "x-forwarded-for": "203.0.113.10, 10.0.0.5",
