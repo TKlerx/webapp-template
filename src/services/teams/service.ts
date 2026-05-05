@@ -124,12 +124,14 @@ function buildTeamsContent(eventType: NotificationEventType, payload: Record<str
 }
 
 function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+  const htmlEntityMap: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
+  return value.replace(/[&<>"']/g, (char) => htmlEntityMap[char] ?? char);
 }
 
 function truncateUtf8(value: string, maxBytes: number) {

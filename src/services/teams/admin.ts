@@ -49,24 +49,20 @@ export async function createDeliveryTarget(input: {
   teamName?: string | null;
   channelName?: string | null;
 }) {
-  try {
-    return await prisma.teamsDeliveryTarget.create({
-      data: {
-        name: input.name.trim(),
-        teamId: input.teamId.trim(),
-        channelId: input.channelId.trim(),
-        teamName: input.teamName?.trim() || null,
-        channelName: input.channelName?.trim() || null,
-        createdByUserId: input.actorId,
-      },
-    });
-  } catch (error) {
-    if (String(error).includes("Unique constraint failed")) {
-      return { error: jsonError("Target already exists for this team/channel", 409) };
-    }
-
-    throw error;
-  }
+  return createWithUniqueConstraintGuard(
+    () =>
+      prisma.teamsDeliveryTarget.create({
+        data: {
+          name: input.name.trim(),
+          teamId: input.teamId.trim(),
+          channelId: input.channelId.trim(),
+          teamName: input.teamName?.trim() || null,
+          channelName: input.channelName?.trim() || null,
+          createdByUserId: input.actorId,
+        },
+      }),
+    "Target already exists for this team/channel",
+  );
 }
 
 export async function updateDeliveryTarget(
@@ -144,23 +140,19 @@ export async function createIntakeSubscription(input: {
   teamName?: string | null;
   channelName?: string | null;
 }) {
-  try {
-    return await prisma.teamsIntakeSubscription.create({
-      data: {
-        teamId: input.teamId.trim(),
-        channelId: input.channelId.trim(),
-        teamName: input.teamName?.trim() || null,
-        channelName: input.channelName?.trim() || null,
-        createdByUserId: input.actorId,
-      },
-    });
-  } catch (error) {
-    if (String(error).includes("Unique constraint failed")) {
-      return { error: jsonError("Subscription already exists for this team/channel", 409) };
-    }
-
-    throw error;
-  }
+  return createWithUniqueConstraintGuard(
+    () =>
+      prisma.teamsIntakeSubscription.create({
+        data: {
+          teamId: input.teamId.trim(),
+          channelId: input.channelId.trim(),
+          teamName: input.teamName?.trim() || null,
+          channelName: input.channelName?.trim() || null,
+          createdByUserId: input.actorId,
+        },
+      }),
+    "Subscription already exists for this team/channel",
+  );
 }
 
 export async function updateIntakeSubscription(subscriptionId: string, input: { active?: boolean }) {
@@ -246,4 +238,18 @@ export async function getIntegrationStatus() {
     },
     recentActivity,
   };
+}
+
+async function createWithUniqueConstraintGuard<T>(
+  operation: () => Promise<T>,
+  conflictMessage: string,
+) {
+  try {
+    return await operation();
+  } catch (error) {
+    if (String(error).includes("Unique constraint failed")) {
+      return { error: jsonError(conflictMessage, 409) };
+    }
+    throw error;
+  }
 }

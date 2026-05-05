@@ -333,18 +333,14 @@ export function TeamsIntegrationPanel({
 
       <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
         <h2 className="text-lg font-semibold">{t("targets.title")}</h2>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <input
-            className="min-w-[18rem] flex-1 rounded border px-2 py-1"
-            placeholder={t("linkParser.placeholder")}
-            value={targetLink}
-            onChange={(e) => setTargetLink(e.target.value)}
-          />
-          <button className="rounded border px-3 py-1" onClick={applyLinkToTarget}>
-            {t("linkParser.apply")}
-          </button>
-        </div>
-        <p className="mt-1 text-xs opacity-65">{t("linkParser.label")}</p>
+        <LinkParserControls
+          label={t("linkParser.label")}
+          placeholder={t("linkParser.placeholder")}
+          buttonLabel={t("linkParser.apply")}
+          value={targetLink}
+          onChange={setTargetLink}
+          onApply={applyLinkToTarget}
+        />
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
           <input className="rounded border px-2 py-1" placeholder={t("targets.name")} value={newTarget.name} onChange={(e)=>setNewTarget((v)=>({ ...v, name: e.target.value }))} />
           <input className="rounded border px-2 py-1" placeholder={t("targets.teamId")} value={newTarget.teamId} onChange={(e)=>setNewTarget((v)=>({ ...v, teamId: e.target.value }))} />
@@ -360,11 +356,14 @@ export function TeamsIntegrationPanel({
                 <p className="font-medium">{target.name}</p>
                 <p className="text-xs opacity-70">{target.teamId} / {target.channelId}</p>
               </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={target.active} onChange={(event) => void toggleTarget(target.id, event.target.checked)} />
-                {target.active ? t("common.active") : t("common.inactive")}
-              </label>
-              <button className="rounded border px-3 py-1" onClick={() => void removeTarget(target.id)}>{t("common.delete")}</button>
+              <ActiveDeleteControls
+                active={target.active}
+                activeLabel={t("common.active")}
+                inactiveLabel={t("common.inactive")}
+                deleteLabel={t("common.delete")}
+                onToggle={(next) => void toggleTarget(target.id, next)}
+                onDelete={() => void removeTarget(target.id)}
+              />
             </div>
           ))}
         </div>
@@ -372,18 +371,14 @@ export function TeamsIntegrationPanel({
 
       <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
         <h2 className="text-lg font-semibold">{t("subscriptions.title")}</h2>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <input
-            className="min-w-[18rem] flex-1 rounded border px-2 py-1"
-            placeholder={t("linkParser.placeholder")}
-            value={subscriptionLink}
-            onChange={(e) => setSubscriptionLink(e.target.value)}
-          />
-          <button className="rounded border px-3 py-1" onClick={applyLinkToSubscription}>
-            {t("linkParser.apply")}
-          </button>
-        </div>
-        <p className="mt-1 text-xs opacity-65">{t("linkParser.label")}</p>
+        <LinkParserControls
+          label={t("linkParser.label")}
+          placeholder={t("linkParser.placeholder")}
+          buttonLabel={t("linkParser.apply")}
+          value={subscriptionLink}
+          onChange={setSubscriptionLink}
+          onApply={applyLinkToSubscription}
+        />
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <input className="rounded border px-2 py-1" placeholder={t("subscriptions.teamId")} value={newSubscription.teamId} onChange={(e)=>setNewSubscription((v)=>({ ...v, teamId: e.target.value }))} />
           <input className="rounded border px-2 py-1" placeholder={t("subscriptions.channelId")} value={newSubscription.channelId} onChange={(e)=>setNewSubscription((v)=>({ ...v, channelId: e.target.value }))} />
@@ -398,11 +393,14 @@ export function TeamsIntegrationPanel({
                 <p className="font-medium">{subscription.teamName ?? subscription.teamId} / {subscription.channelName ?? subscription.channelId}</p>
                 <p className="text-xs opacity-70">{t("subscriptions.lastPolled")}: {subscription.lastPolledAt ? formatDate(subscription.lastPolledAt) : "-"}</p>
               </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={subscription.active} onChange={(event) => void toggleSubscription(subscription.id, event.target.checked)} />
-                {subscription.active ? t("common.active") : t("common.inactive")}
-              </label>
-              <button className="rounded border px-3 py-1" onClick={() => void removeSubscription(subscription.id)}>{t("common.delete")}</button>
+              <ActiveDeleteControls
+                active={subscription.active}
+                activeLabel={t("common.active")}
+                inactiveLabel={t("common.inactive")}
+                deleteLabel={t("common.delete")}
+                onToggle={(next) => void toggleSubscription(subscription.id, next)}
+                onDelete={() => void removeSubscription(subscription.id)}
+              />
             </div>
           ))}
         </div>
@@ -482,5 +480,66 @@ function parseTeamsChannelLink(link: string) {
     channelId,
     channelName,
   };
+}
+
+function LinkParserControls({
+  label,
+  placeholder,
+  buttonLabel,
+  value,
+  onChange,
+  onApply,
+}: {
+  label: string;
+  placeholder: string;
+  buttonLabel: string;
+  value: string;
+  onChange: (value: string) => void;
+  onApply: () => void;
+}) {
+  return (
+    <>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <input
+          className="min-w-[18rem] flex-1 rounded border px-2 py-1"
+          placeholder={placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        <button className="rounded border px-3 py-1" onClick={onApply}>
+          {buttonLabel}
+        </button>
+      </div>
+      <p className="mt-1 text-xs opacity-65">{label}</p>
+    </>
+  );
+}
+
+function ActiveDeleteControls({
+  active,
+  activeLabel,
+  inactiveLabel,
+  deleteLabel,
+  onToggle,
+  onDelete,
+}: {
+  active: boolean;
+  activeLabel: string;
+  inactiveLabel: string;
+  deleteLabel: string;
+  onToggle: (next: boolean) => void;
+  onDelete: () => void;
+}) {
+  return (
+    <>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={active} onChange={(event) => onToggle(event.target.checked)} />
+        {active ? activeLabel : inactiveLabel}
+      </label>
+      <button className="rounded border px-3 py-1" onClick={onDelete}>
+        {deleteLabel}
+      </button>
+    </>
+  );
 }
 
