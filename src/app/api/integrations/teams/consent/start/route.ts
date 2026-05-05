@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireApiUserWithRoles } from "@/lib/route-auth";
 import {
   createTeamsConsentState,
+  getTeamsConsentAppRedirectPath,
   getTeamsAuthorizeUrl,
   getTeamsConsentCookiePath,
   TEAMS_CONSENT_STATE_COOKIE,
@@ -19,12 +20,13 @@ export async function GET(request: Request) {
   const redirectTo = url.searchParams.get("redirectTo");
   const safeRedirect =
     redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
-      ? redirectTo
+      ? getTeamsConsentAppRedirectPath(redirectTo)
       : "/admin/integrations/teams";
+  const finalRedirect = getTeamsConsentAppRedirectPath(safeRedirect);
 
   const state = createTeamsConsentState();
   const cookieStore = await cookies();
-  cookieStore.set(TEAMS_CONSENT_STATE_COOKIE, `${state}:${safeRedirect}`, {
+  cookieStore.set(TEAMS_CONSENT_STATE_COOKIE, `${state}:${finalRedirect}`, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

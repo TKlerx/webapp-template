@@ -100,9 +100,34 @@ export async function deleteDeliveryTarget(targetId: string) {
     return { error: jsonError("Target has pending outbound messages", 409) };
   }
 
-  await prisma.teamsDeliveryTarget.delete({
-    where: { id: targetId },
+  const historicalMessages = await prisma.teamsOutboundMessage.count({
+    where: { targetId },
   });
+
+  if (historicalMessages > 0) {
+    return {
+      error: jsonError(
+        "Target has outbound message history and cannot be deleted. Set it inactive instead.",
+        409,
+      ),
+    };
+  }
+
+  try {
+    await prisma.teamsDeliveryTarget.delete({
+      where: { id: targetId },
+    });
+  } catch (error) {
+    if (String(error).includes("P2003") || String(error).includes("Foreign key constraint")) {
+      return {
+        error: jsonError(
+          "Target has outbound message history and cannot be deleted. Set it inactive instead.",
+          409,
+        ),
+      };
+    }
+    throw error;
+  }
   return { deleted: true };
 }
 

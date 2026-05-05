@@ -1,4 +1,8 @@
-import { hashPassword, validatePasswordComplexity } from "@/lib/auth";
+import {
+  getPasswordComplexityErrorMessage,
+  hashPassword,
+  validatePasswordComplexity,
+} from "@/lib/auth";
 import { safeLogAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
@@ -74,7 +78,7 @@ export async function createLocalUser(
   }
 
   if (!validatePasswordComplexity(body.temporaryPassword)) {
-    return { error: jsonError("Password does not meet complexity requirements", 400) };
+    return { error: jsonError(getPasswordComplexityErrorMessage(), 400) };
   }
 
   const email = body.email.toLowerCase();

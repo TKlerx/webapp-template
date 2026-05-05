@@ -1,8 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
 
-const { requireApiUser, hashPassword, validatePasswordComplexity, verifyPassword } = vi.hoisted(() => ({
+const {
+  requireApiUser,
+  getPasswordComplexityErrorMessage,
+  hashPassword,
+  validatePasswordComplexity,
+  verifyPassword,
+} = vi.hoisted(() => ({
   requireApiUser: vi.fn(),
+  getPasswordComplexityErrorMessage: vi.fn(() => "Password must contain test requirements."),
   hashPassword: vi.fn(),
   validatePasswordComplexity: vi.fn(),
   verifyPassword: vi.fn(),
@@ -17,6 +24,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
+  getPasswordComplexityErrorMessage,
   hashPassword,
   validatePasswordComplexity,
   verifyPassword,
@@ -126,6 +134,34 @@ describe("change password route", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
       error: "Password change is only available for local accounts",
+    });
+  });
+
+  it("returns explicit complexity requirements for weak passwords", async () => {
+    requireApiUser.mockResolvedValue({
+      user: { id: "user-1", email: "member@example.com" },
+    });
+    validatePasswordComplexity.mockReturnValue(false);
+
+    const response = await POST(
+      new Request("http://localhost/api/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          currentPassword: "TempPass123",
+          newPassword: "weak",
+        }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(getPasswordComplexityErrorMessage).toHaveBeenCalled();
+    expect(prismaMock.account.findUnique).not.toHaveBeenCalled();
+    if (!response) {
+      throw new Error("Expected response");
+    }
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "Password must contain test requirements.",
     });
   });
 });

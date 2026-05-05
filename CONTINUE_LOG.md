@@ -492,3 +492,11 @@ pm run prisma:generate still succeeds.
 - Latest non-continuity commit: 7823007 feat(specs): add teams messaging skeleton spec.
 - Active specs: 015-teams-messaging-skeleton.
 - Next focus: no next task.
+
+## 2026-05-05 12:45:00
+
+- Completed spec 015 quickstart validation (T038) against a live Teams tenant: outbound and inbound flows confirmed.
+- Closed spec 015 tracking artifacts: tasks updated, ACTIVE_SPECS set to none, CONTINUE refreshed.
+- Added post-validation hardening: Teams consent base-path redirects, channel-link parser UI, archived/restricted channel warning, and 409-safe target deletion with tests.
+- Improved password complexity UX with explicit requirement messaging and route-level tests.
+

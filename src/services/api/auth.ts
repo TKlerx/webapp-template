@@ -1,4 +1,9 @@
-import { hashPassword, validatePasswordComplexity, verifyPassword } from "@/lib/auth";
+import {
+  getPasswordComplexityErrorMessage,
+  hashPassword,
+  validatePasswordComplexity,
+  verifyPassword,
+} from "@/lib/auth";
 import { safeLogAudit } from "@/lib/audit";
 import { auth } from "@/lib/better-auth";
 import { applySetCookieHeaders } from "@/lib/better-auth-http";
@@ -22,7 +27,7 @@ export async function changePasswordForUser(
   }
 
   if (!validatePasswordComplexity(body.newPassword)) {
-    return jsonError("Password does not meet complexity requirements", 400);
+    return jsonError(getPasswordComplexityErrorMessage(), 400);
   }
 
   const credentialAccount = await prisma.account.findUnique({

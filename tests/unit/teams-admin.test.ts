@@ -7,6 +7,7 @@ vi.mock("@/lib/db", () => ({
 
 import {
   createDeliveryTarget,
+  deleteDeliveryTarget,
   getIntegrationStatus,
   getOrCreateTeamsConfig,
   updateTeamsConfig,
@@ -91,5 +92,24 @@ describe("teams admin service", () => {
     expect(status.sendEnabled).toBe(true);
     expect(status.intakeEnabled).toBe(true);
     expect(status.health.recentIntakeFailures).toBe(1);
+  });
+
+  it("blocks target deletion when pending outbound messages exist", async () => {
+    prismaMock.teamsOutboundMessage.count
+      .mockResolvedValueOnce(1 as never);
+
+    const result = await deleteDeliveryTarget("target-1");
+    expect("error" in result).toBe(true);
+    expect(prismaMock.teamsDeliveryTarget.delete).not.toHaveBeenCalled();
+  });
+
+  it("blocks target deletion when outbound history exists", async () => {
+    prismaMock.teamsOutboundMessage.count
+      .mockResolvedValueOnce(0 as never)
+      .mockResolvedValueOnce(3 as never);
+
+    const result = await deleteDeliveryTarget("target-1");
+    expect("error" in result).toBe(true);
+    expect(prismaMock.teamsDeliveryTarget.delete).not.toHaveBeenCalled();
   });
 });

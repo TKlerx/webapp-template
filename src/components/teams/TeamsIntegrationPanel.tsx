@@ -65,6 +65,8 @@ export function TeamsIntegrationPanel({
   const [subscriptions, setSubscriptions] = useState(initialSubscriptions);
   const [consentStatus, setConsentStatus] = useState(initialConsentStatus);
   const [saving, setSaving] = useState(false);
+  const [targetLink, setTargetLink] = useState("");
+  const [subscriptionLink, setSubscriptionLink] = useState("");
   const [newTarget, setNewTarget] = useState({
     name: "",
     teamId: "",
@@ -94,6 +96,49 @@ export function TeamsIntegrationPanel({
     ],
     [config.health, t],
   );
+  const sendWarnings = useMemo(() => {
+    return config.recentActivity
+      .filter((item) => item.type === "send" && item.status === "FAILED" && typeof item.error === "string")
+      .map((item) => ({
+        targetName: String(item.targetName ?? "-"),
+        timestamp: String(item.timestamp ?? ""),
+        error: String(item.error),
+      }))
+      .filter((item) => isArchivedChannelSendError(item.error));
+  }, [config.recentActivity]);
+
+  function applyLinkToTarget() {
+    const parsed = parseTeamsChannelLink(targetLink);
+    if (!parsed) {
+      pushToast(t("linkParser.invalid"));
+      return;
+    }
+
+    setNewTarget((current) => ({
+      ...current,
+      teamId: parsed.teamId,
+      channelId: parsed.channelId,
+      channelName: current.channelName || parsed.channelName,
+      name: current.name || parsed.channelName || current.name,
+    }));
+    pushToast(t("linkParser.applied"));
+  }
+
+  function applyLinkToSubscription() {
+    const parsed = parseTeamsChannelLink(subscriptionLink);
+    if (!parsed) {
+      pushToast(t("linkParser.invalid"));
+      return;
+    }
+
+    setNewSubscription((current) => ({
+      ...current,
+      teamId: parsed.teamId,
+      channelId: parsed.channelId,
+      channelName: current.channelName || parsed.channelName,
+    }));
+    pushToast(t("linkParser.applied"));
+  }
 
   async function refresh() {
     const [configResponse, targetsResponse, subscriptionsResponse, consentResponse] = await Promise.all([
@@ -288,6 +333,18 @@ export function TeamsIntegrationPanel({
 
       <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
         <h2 className="text-lg font-semibold">{t("targets.title")}</h2>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            className="min-w-[18rem] flex-1 rounded border px-2 py-1"
+            placeholder={t("linkParser.placeholder")}
+            value={targetLink}
+            onChange={(e) => setTargetLink(e.target.value)}
+          />
+          <button className="rounded border px-3 py-1" onClick={applyLinkToTarget}>
+            {t("linkParser.apply")}
+          </button>
+        </div>
+        <p className="mt-1 text-xs opacity-65">{t("linkParser.label")}</p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
           <input className="rounded border px-2 py-1" placeholder={t("targets.name")} value={newTarget.name} onChange={(e)=>setNewTarget((v)=>({ ...v, name: e.target.value }))} />
           <input className="rounded border px-2 py-1" placeholder={t("targets.teamId")} value={newTarget.teamId} onChange={(e)=>setNewTarget((v)=>({ ...v, teamId: e.target.value }))} />
@@ -315,6 +372,18 @@ export function TeamsIntegrationPanel({
 
       <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
         <h2 className="text-lg font-semibold">{t("subscriptions.title")}</h2>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            className="min-w-[18rem] flex-1 rounded border px-2 py-1"
+            placeholder={t("linkParser.placeholder")}
+            value={subscriptionLink}
+            onChange={(e) => setSubscriptionLink(e.target.value)}
+          />
+          <button className="rounded border px-3 py-1" onClick={applyLinkToSubscription}>
+            {t("linkParser.apply")}
+          </button>
+        </div>
+        <p className="mt-1 text-xs opacity-65">{t("linkParser.label")}</p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <input className="rounded border px-2 py-1" placeholder={t("subscriptions.teamId")} value={newSubscription.teamId} onChange={(e)=>setNewSubscription((v)=>({ ...v, teamId: e.target.value }))} />
           <input className="rounded border px-2 py-1" placeholder={t("subscriptions.channelId")} value={newSubscription.channelId} onChange={(e)=>setNewSubscription((v)=>({ ...v, channelId: e.target.value }))} />
@@ -349,6 +418,18 @@ export function TeamsIntegrationPanel({
             </article>
           ))}
         </div>
+        {sendWarnings.length > 0 ? (
+          <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
+            <p className="font-medium">{t("messages.archivedChannelWarning")}</p>
+            <div className="mt-2 space-y-1 text-sm">
+              {sendWarnings.slice(0, 3).map((warning) => (
+                <p key={`${warning.targetName}-${warning.timestamp}`}>
+                  {warning.targetName} - {warning.timestamp ? formatDate(warning.timestamp) : "-"}
+                </p>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
     </div>
   );
@@ -360,3 +441,46 @@ function formatDate(value: string | Date) {
     timeStyle: "short",
   }).format(value instanceof Date ? value : new Date(value));
 }
+
+function isArchivedChannelSendError(error: string) {
+  const normalized = error.toLowerCase();
+  return (
+    normalized.includes("archivemodifier") ||
+    normalized.includes("aclcheckfailed-capability newpost") ||
+    normalized.includes("insufficientprivileges")
+  );
+}
+
+function parseTeamsChannelLink(link: string) {
+  const value = link.trim();
+  if (!value) {
+    return null;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return null;
+  }
+
+  const teamId = url.searchParams.get("groupId")?.trim() ?? "";
+  const parts = url.pathname.split("/").filter(Boolean);
+  const channelIndex = parts.findIndex((part) => part.toLowerCase() === "channel");
+  const rawChannelId = channelIndex >= 0 ? parts[channelIndex + 1] ?? "" : "";
+  const rawChannelName = channelIndex >= 0 ? parts[channelIndex + 2] ?? "" : "";
+
+  const channelId = decodeURIComponent(rawChannelId).trim();
+  const channelName = decodeURIComponent(rawChannelName).trim();
+
+  if (!teamId || !channelId) {
+    return null;
+  }
+
+  return {
+    teamId,
+    channelId,
+    channelName,
+  };
+}
+

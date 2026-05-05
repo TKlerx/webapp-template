@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { prisma } from "@/lib/db";
-import { getAuthBaseUrl, getScopedCookiePath } from "@/lib/azure-auth";
+import { getAuthBaseUrl, getConfiguredBasePath, getScopedCookiePath } from "@/lib/azure-auth";
 
 export const TEAMS_CONSENT_STATE_COOKIE = "starter_app_teams_consent_state";
 const TEAMS_DELEGATED_SCOPE = "offline_access ChannelMessage.Send";
@@ -22,6 +22,28 @@ export function getTeamsConsentRedirectUri(request: Request) {
 
 export function getTeamsConsentCookiePath() {
   return getScopedCookiePath();
+}
+
+export function getTeamsConsentAppRedirectPath(path: string) {
+  const raw = (path || "").trim();
+  const normalized = raw.startsWith("/") ? raw : `/${raw}`;
+
+  const configuredBasePath = getConfiguredBasePath().trim();
+  const basePath = configuredBasePath
+    ? configuredBasePath.startsWith("/")
+      ? configuredBasePath.replace(/\/+$/, "")
+      : `/${configuredBasePath.replace(/\/+$/, "")}`
+    : "";
+
+  if (!basePath) {
+    return normalized;
+  }
+
+  if (normalized === basePath || normalized.startsWith(`${basePath}/`)) {
+    return normalized;
+  }
+
+  return `${basePath}${normalized}`;
 }
 
 export function getTeamsAuthorizeUrl(request: Request, state: string) {

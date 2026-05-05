@@ -125,7 +125,7 @@
 - [X] T035 [P] Handle edge case: insufficient tenant permissions for one capability — verify send and intake degrade independently, surface permission errors in status
 - [X] T036 [P] Add Teams worker tests for graph_teams.py in worker/tests/test_main.py — mock Graph API for send and list, verify retry behavior
 - [X] T037 Update .env.example with all Teams-related env vars and comments
-- [ ] T038 Run quickstart.md validation — walk through setup steps, verify end-to-end flow, time setup to verify SC-004 (under 10 minutes)
+- [X] T038 Run quickstart.md validation — walk through setup steps, verify end-to-end flow, time setup to verify SC-004 (under 10 minutes)
 - [X] T039 Update CONTINUE.md, CONTINUE_LOG.md, and ACTIVE_SPECS.md with Teams integration completion status per constitution Principle VI
 - [X] T040 [P] Add FR-011 negative constraint test in tests/unit/teams-client.test.ts — assert TeamsClient exposes no reply, update, or delete methods; assert worker handlers never call Graph write endpoints beyond sendChannelMessage
 - [X] T041 [P] Add FR-012 regression test in tests/unit/teams-service.test.ts — trigger notification event with Teams disabled, verify email notification still queued unchanged
@@ -215,3 +215,4 @@ T019: GET/PUT config in src/app/api/integrations/teams/route.ts
 - Stop at any checkpoint to validate story independently
 - Constitution Principle II: All stories have test tasks
 - Constitution Principle IX: All UI text via next-intl keys
+

@@ -308,7 +308,8 @@
       "subscriptionCreated": "Subscription created",
       "subscriptionCreateFailed": "Could not create subscription",
       "subscriptionUpdateFailed": "Could not update subscription",
-      "subscriptionDeleteFailed": "Could not delete subscription"
+      "subscriptionDeleteFailed": "Could not delete subscription",
+      "archivedChannelWarning": "Recent Teams send failures indicate a channel is archived or posting-restricted. Use an active channel for delivery."
     },
     "consent": {
       "title": "Delegated send consent",
@@ -317,6 +318,13 @@
       "connectButton": "Connect Teams consent",
       "expiresAt": "Token expires: {value}",
       "noExpiry": "No token expiry information available."
+    },
+    "linkParser": {
+      "label": "Paste Teams channel link (optional)",
+      "placeholder": "https://teams.microsoft.com/l/channel/...",
+      "apply": "Parse link",
+      "invalid": "Could not parse Teams channel link. Please check the URL format.",
+      "applied": "Channel link parsed."
     }
   }
 }

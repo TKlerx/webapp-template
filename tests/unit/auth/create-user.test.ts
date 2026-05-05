@@ -2,8 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
 import { AuthMethod, Role, ThemePreference, UserStatus } from "../../../generated/prisma/enums";
 
-const { requireApiUserWithRoles, hashPassword, validatePasswordComplexity } = vi.hoisted(() => ({
+const {
+  requireApiUserWithRoles,
+  getPasswordComplexityErrorMessage,
+  hashPassword,
+  validatePasswordComplexity,
+} = vi.hoisted(() => ({
   requireApiUserWithRoles: vi.fn(),
+  getPasswordComplexityErrorMessage: vi.fn(() => "Password must contain test requirements."),
   hashPassword: vi.fn(),
   validatePasswordComplexity: vi.fn(),
 }));
@@ -17,6 +23,7 @@ vi.mock("@/lib/route-auth", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
+  getPasswordComplexityErrorMessage,
   hashPassword,
   validatePasswordComplexity,
 }));
@@ -114,6 +121,36 @@ describe("create user route", () => {
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toEqual({
       error: "A user with this email already exists",
+    });
+  });
+
+  it("returns explicit complexity requirements for weak temporary passwords", async () => {
+    requireApiUserWithRoles.mockResolvedValue({
+      user: { id: "admin_1", role: Role.PLATFORM_ADMIN },
+    });
+    validatePasswordComplexity.mockReturnValue(false);
+
+    const response = await POST(
+      new Request("http://localhost/api/users", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "reviewer@example.com",
+          name: "Review Person",
+          role: Role.SCOPE_USER,
+          temporaryPassword: "weak",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    expect(getPasswordComplexityErrorMessage).toHaveBeenCalled();
+    expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    if (!response) {
+      throw new Error("Expected response");
+    }
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "Password must contain test requirements.",
     });
   });
 });
