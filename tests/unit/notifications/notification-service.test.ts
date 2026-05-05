@@ -6,6 +6,14 @@ vi.mock("@/lib/db", () => ({
   prisma: prismaMock,
 }));
 
+const { safeQueueTeamsMessages } = vi.hoisted(() => ({
+  safeQueueTeamsMessages: vi.fn(),
+}));
+
+vi.mock("@/services/teams/service", () => ({
+  safeQueueTeamsMessages,
+}));
+
 import {
   queueRoleChangedNotifications,
   queueUserCreatedNotifications,
@@ -71,6 +79,11 @@ describe("notification service", () => {
             /"notificationId":"notification-1".*\[notification:notification-1\]/,
           ),
         }),
+      }),
+    );
+    expect(safeQueueTeamsMessages).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: "USER_CREATED",
       }),
     );
   });

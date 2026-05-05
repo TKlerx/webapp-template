@@ -13,6 +13,8 @@ const ALLOWED_BACKGROUND_JOB_TYPES = new Set([
   "noop",
   "notification_delivery",
   "inbound_mail_poll",
+  "teams_message_delivery",
+  "teams_intake_poll",
 ]);
 const MAX_BACKGROUND_JOB_PAYLOAD_LENGTH = 10 * 1024;
 

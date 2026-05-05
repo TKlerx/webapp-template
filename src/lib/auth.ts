@@ -19,6 +19,9 @@ export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
+export const PASSWORD_COMPLEXITY_REQUIREMENTS =
+  "at least 8 characters, including at least 1 uppercase letter, 1 lowercase letter, and 1 number";
+
 export function validatePasswordComplexity(password: string) {
   return (
     password.length >= 8 &&
@@ -26,6 +29,10 @@ export function validatePasswordComplexity(password: string) {
     /[A-Z]/.test(password) &&
     /[0-9]/.test(password)
   );
+}
+
+export function getPasswordComplexityErrorMessage() {
+  return `Password must contain ${PASSWORD_COMPLEXITY_REQUIREMENTS}.`;
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
