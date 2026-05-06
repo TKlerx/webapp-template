@@ -15,8 +15,8 @@
 
 ## Git Status
 
-- Working tree has an i18n locale-switcher fix in progress.
-- Unrelated `.deepsec/` remains untracked; the initial handoff also showed `next-env.d.ts`, which is clean now.
+- Working tree has generated spec overview refresh in progress after the i18n fix.
+- Unrelated `.deepsec/` remains untracked.
 
 ## Active Specs
 
@@ -24,7 +24,7 @@
 
 ## Next Recommended Actions
 
-1. Review and commit the i18n locale-switcher fix.
+1. Commit and push the generated spec overview refresh.
 2. Start the next prioritized spec.
 
 ## Manual Notes

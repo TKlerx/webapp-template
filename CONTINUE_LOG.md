@@ -507,4 +507,5 @@ pm run prisma:generate still succeeds.
 - Updated the root layout to set `<html lang>` from the active locale instead of hardcoding English.
 - Added Playwright regression coverage in `tests/e2e/locale-switcher.spec.ts`.
 - Verified with `npm run typecheck`, `npm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
+- Regenerated `specs/OVERVIEW.md` after CI reported `spec-overview` drift.
 
