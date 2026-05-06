@@ -501,5 +501,10 @@ pm run prisma:generate still succeeds.
 - Added post-validation hardening: Teams consent base-path redirects, channel-link parser UI, archived/restricted channel warning, and 409-safe target deletion with tests.
 - Improved password complexity UX with explicit requirement messaging and route-level tests.
 
+## 2026-05-06 10:39:20
 
+- Fixed the dashboard locale switcher so selecting a language writes the locale cookie and performs a full reload, ensuring the root i18n provider is rebuilt with the selected messages.
+- Updated the root layout to set `<html lang>` from the active locale instead of hardcoding English.
+- Added Playwright regression coverage in `tests/e2e/locale-switcher.spec.ts`.
+- Verified with `npm run typecheck`, `npm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
 

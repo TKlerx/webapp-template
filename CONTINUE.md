@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-05-05 12:55:00
+- Updated: 2026-05-06 10:39:20
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
@@ -15,7 +15,8 @@
 
 ## Git Status
 
-- Merge in progress: integrating `015-teams-messaging-skeleton` into `main`.
+- Working tree has an i18n locale-switcher fix in progress.
+- Unrelated `.deepsec/` remains untracked; the initial handoff also showed `next-env.d.ts`, which is clean now.
 
 ## Active Specs
 
@@ -23,7 +24,7 @@
 
 ## Next Recommended Actions
 
-1. Complete merge and push `main`.
+1. Review and commit the i18n locale-switcher fix.
 2. Start the next prioritized spec.
 
 ## Manual Notes
@@ -35,3 +36,4 @@
   - archived/restricted channel warning in Teams health panel
   - safe 409 handling when deleting targets with outbound history
 - Improved password complexity UX with explicit requirement error messaging and test coverage.
+- Fixed locale switching by reloading after the locale cookie is saved and setting the root document language from the active locale.

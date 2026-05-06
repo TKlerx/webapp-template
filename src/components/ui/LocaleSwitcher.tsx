@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import {
   Select,
@@ -21,17 +20,19 @@ const localeLabels: Record<Locale, string> = {
 };
 
 export function LocaleSwitcher({ currentLocale }: { currentLocale: string }) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function handleChange(newLocale: string) {
     startTransition(async () => {
-      await fetch(withBasePath("/api/locale"), {
+      const response = await fetch(withBasePath("/api/locale"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ locale: newLocale }),
       });
-      router.refresh();
+
+      if (response.ok) {
+        window.location.reload();
+      }
     });
   }
 

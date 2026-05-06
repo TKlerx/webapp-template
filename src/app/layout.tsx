@@ -13,33 +13,37 @@ export const metadata: Metadata = {
   description: "Reusable internal business app starter",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const sessionPromise = getSessionUser();
   const configuredBasePath = process.env.BASE_PATH ?? "";
+  const locale = await getLocale();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body data-base-path={configuredBasePath}>
-        <SessionLayout sessionPromise={sessionPromise}>{children}</SessionLayout>
+        <SessionLayout locale={locale} sessionPromise={sessionPromise}>
+          {children}
+        </SessionLayout>
       </body>
     </html>
   );
 }
 
 async function SessionLayout({
+  locale,
   sessionPromise,
   children,
 }: {
+  locale: Awaited<ReturnType<typeof getLocale>>;
   sessionPromise: ReturnType<typeof getSessionUser>;
   children: React.ReactNode;
 }) {
   const user = await sessionPromise;
   const initialTheme = user?.themePreference ?? "LIGHT";
-  const locale = await getLocale();
   const messages = await getMessages();
 
   return (
