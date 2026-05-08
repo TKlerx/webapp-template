@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-05-06 10:39:20
+- Updated: 2026-05-08 13:59:45
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
@@ -15,7 +15,7 @@
 
 ## Git Status
 
-- Working tree has generated spec overview refresh in progress after the i18n fix.
+- Working tree has i18n duplicate-cookie and locale-label encoding fixes in progress.
 - Unrelated `.deepsec/` remains untracked.
 
 ## Active Specs
@@ -24,7 +24,7 @@
 
 ## Next Recommended Actions
 
-1. Commit and push the generated spec overview refresh.
+1. Review, commit, and push the i18n duplicate-cookie and locale-label encoding fixes.
 2. Start the next prioritized spec.
 
 ## Manual Notes
@@ -37,3 +37,5 @@
   - safe 409 handling when deleting targets with outbound history
 - Improved password complexity UX with explicit requirement error messaging and test coverage.
 - Fixed locale switching by reloading after the locale cookie is saved and setting the root document language from the active locale.
+- Fixed a base-path duplicate cookie edge case where stale root-path locale cookies could override the new `/webapp-template` locale cookie.
+- Fixed mojibake in locale switcher labels for Spanish, French, and Portuguese.

@@ -509,3 +509,11 @@ pm run prisma:generate still succeeds.
 - Verified with `npm run typecheck`, `npm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
 - Regenerated `specs/OVERVIEW.md` after CI reported `spec-overview` drift.
 
+## 2026-05-08 13:55:53
+
+- Diagnosed remaining i18n switching failures as duplicate `starter_app_locale` cookies across `/` and `/webapp-template`; Next can read the stale root-path cookie after the base-path cookie.
+- Updated `/api/locale` to emit synchronized `Set-Cookie` headers for both paths so existing browsers heal on the next language selection.
+- Extended `tests/e2e/locale-switcher.spec.ts` with a stale root-path locale cookie regression.
+- Verified with `npm run typecheck`, `npm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
+- Fixed locale switcher label mojibake: `Español`, `Français`, and `Português`.
+

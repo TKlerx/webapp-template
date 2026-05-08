@@ -2,7 +2,8 @@ import "server-only";
 import { cookies } from "next/headers";
 import { defaultLocale, locales, type Locale } from "./config";
 
-const LOCALE_COOKIE = "starter_app_locale";
+export const LOCALE_COOKIE = "starter_app_locale";
+const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export async function getUserLocale(): Promise<Locale> {
   const cookieStore = await cookies();
@@ -15,12 +16,13 @@ export async function getUserLocale(): Promise<Locale> {
   return defaultLocale;
 }
 
-export async function setUserLocale(locale: Locale) {
-  const cookieStore = await cookies();
-  cookieStore.set(LOCALE_COOKIE, locale, {
-    path: process.env.NEXT_PUBLIC_BASE_PATH || "/",
-    httpOnly: false,
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 365,
-  });
+export function getUserLocaleCookieHeaders(locale: Locale) {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "/";
+  const expires = new Date(Date.now() + LOCALE_COOKIE_MAX_AGE * 1000).toUTCString();
+  const paths = basePath === "/" ? ["/"] : ["/", basePath];
+
+  return paths.map(
+    (path) =>
+      `${LOCALE_COOKIE}=${locale}; Path=${path}; Expires=${expires}; Max-Age=${LOCALE_COOKIE_MAX_AGE}; SameSite=Lax`,
+  );
 }

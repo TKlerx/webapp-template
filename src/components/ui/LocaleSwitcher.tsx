@@ -14,9 +14,9 @@ import { withBasePath } from "@/lib/base-path";
 const localeLabels: Record<Locale, string> = {
   en: "English",
   de: "Deutsch",
-  es: "EspaÃ±ol",
-  fr: "FranÃ§ais",
-  pt: "PortuguÃªs",
+  es: "Español",
+  fr: "Français",
+  pt: "Português",
 };
 
 export function LocaleSwitcher({ currentLocale }: { currentLocale: string }) {

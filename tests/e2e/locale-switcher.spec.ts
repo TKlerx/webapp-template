@@ -4,6 +4,15 @@ import { expectOnDashboard, loginWithPassword } from "./helpers/auth";
 import { seedLocalUser } from "./helpers/db";
 
 test("locale switcher reloads the app with the selected language", async ({ page }) => {
+  await page.context().addCookies([
+    {
+      name: "starter_app_locale",
+      value: "en",
+      domain: "localhost",
+      path: "/",
+    },
+  ]);
+
   await seedLocalUser({
     email: "e2e-locale-user@example.com",
     name: "E2E Locale User",
