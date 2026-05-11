@@ -17,32 +17,32 @@ func newCompletionCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(&cobra.Command{
-		Use:   "bash",
-		Short: "Generate bash completions",
+		Use:     "bash",
+		Short:   "Generate bash completions",
 		Example: "starterctl completion bash > ~/.bash_completion.d/starterctl",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return rootCmd.GenBashCompletionV2(stdout, true)
 		},
 	})
 	cmd.AddCommand(&cobra.Command{
-		Use:   "zsh",
-		Short: "Generate zsh completions",
+		Use:     "zsh",
+		Short:   "Generate zsh completions",
 		Example: "starterctl completion zsh > ~/.zsh/completion/_starterctl",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return rootCmd.GenZshCompletion(stdout)
 		},
 	})
 	cmd.AddCommand(&cobra.Command{
-		Use:   "powershell",
-		Short: "Generate PowerShell completions",
+		Use:     "powershell",
+		Short:   "Generate PowerShell completions",
 		Example: "starterctl completion powershell > $PROFILE.CurrentUserAllHosts",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return rootCmd.GenPowerShellCompletionWithDesc(stdout)
 		},
 	})
 	cmd.AddCommand(&cobra.Command{
-		Use:   "fish",
-		Short: "Generate fish completions",
+		Use:     "fish",
+		Short:   "Generate fish completions",
 		Example: "starterctl completion fish > ~/.config/fish/completions/starterctl.fish",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return rootCmd.GenFishCompletion(stdout, true)

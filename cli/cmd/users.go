@@ -25,10 +25,10 @@ type userRecord struct {
 
 func newUsersCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "users",
-		Short:   "Manage users",
+		Use:       "users",
+		Short:     "Manage users",
 		ValidArgs: []string{"list", "approve", "deactivate", "reactivate", "role"},
-		Example: "starterctl users list --status ACTIVE\n" + "starterctl users approve user_123",
+		Example:   "starterctl users list --status ACTIVE\n" + "starterctl users approve user_123",
 	}
 
 	cmd.AddCommand(newUsersListCommand())

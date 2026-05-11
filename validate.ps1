@@ -6,13 +6,13 @@
 .DESCRIPTION
     Usage: ./validate.ps1 [phase]
     Phases:
-      all      - typecheck + TS/Python quality + semgrep + test (default, pre-commit)
+      all      - typecheck + TS/Python/CLI quality + semgrep + test (default, pre-commit)
       full     - all quality checks + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
       continuity - check whether CONTINUE.md / CONTINUE_LOG.md need a refresh
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
-      quality  - TS/Python quality + semgrep
+      quality  - TS/Python/CLI quality + semgrep
       commit   - validate all + blocking shipped-deps audit + continuity, then git add + commit + push
 #>
 
@@ -957,6 +957,22 @@ if ($Phase -in "all", "full", "quality", "commit") {
     } catch {
         Write-Fail "python quality failed"
         $failures += "python-quality"
+    }
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "CLI quality (gofmt, go vet, staticcheck, go test, go build)"
+    try {
+        $result = Invoke-NativeCommandCaptured "npm run quality:cli"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "cli quality failed"
+        }
+
+        Write-Pass "cli quality passed"
+    } catch {
+        Write-Fail "cli quality failed"
+        $failures += "cli-quality"
     }
 }
 

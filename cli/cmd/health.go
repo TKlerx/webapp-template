@@ -10,9 +10,9 @@ import (
 )
 
 type healthPayload struct {
-	Status string `json:"status"`
+	Status  string `json:"status"`
 	Version string `json:"version"`
-	Checks struct {
+	Checks  struct {
 		Database struct {
 			Status string `json:"status"`
 		} `json:"database"`

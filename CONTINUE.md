@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-05-11 15:25:16
+- Updated: 2026-05-11 15:41:03
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
@@ -15,7 +15,7 @@
 
 ## Git Status
 
-- Quality tooling branch integration is complete and validated locally.
+- CLI quality gate integration is complete and validated locally.
 - Unrelated `.deepsec/` remains untracked.
 
 ## Active Specs
@@ -24,7 +24,7 @@
 
 ## Next Recommended Actions
 
-1. Push the validated quality tooling integration.
+1. Push the validated CLI quality gate integration.
 2. Start the next prioritized spec.
 
 ## Manual Notes
@@ -40,3 +40,4 @@
 - Fixed a base-path duplicate cookie edge case where stale root-path locale cookies could override the new `/webapp-template` locale cookie.
 - Fixed mojibake in locale switcher labels for Spanish, French, and Portuguese.
 - Integrated the quality tooling branch: TypeScript complexity/dependency analysis, Python Ruff/Xenon/Radon/complexipy checks, and normalized Next base path configuration.
+- Added CLI quality checks for Go formatting, vet, Staticcheck, tests, and build.

@@ -19,10 +19,10 @@ type backgroundJob struct {
 
 func newJobsCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "jobs",
-		Short:   "Manage background jobs",
+		Use:       "jobs",
+		Short:     "Manage background jobs",
 		ValidArgs: []string{"list", "create"},
-		Example: "starterctl jobs list\n" + "starterctl jobs create --type echo --payload '{\"message\":\"hi\"}'",
+		Example:   "starterctl jobs list\n" + "starterctl jobs create --type echo --payload '{\"message\":\"hi\"}'",
 	}
 
 	cmd.AddCommand(newJobsListCommand())

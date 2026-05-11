@@ -170,10 +170,14 @@ goreleaser release --snapshot --clean
 From `cli/`:
 
 ```powershell
+gofmt -l .
 go test ./...
 go vet ./...
+go run honnef.co/go/tools/cmd/staticcheck ./...
 go build ./...
 ```
+
+From the repository root, `npm run quality:cli` runs the full CLI quality gate.
 
 ## Troubleshooting
 

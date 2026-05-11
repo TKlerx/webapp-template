@@ -69,7 +69,7 @@ Guidelines:
 .\validate.ps1 full
 ```
 
-`all` includes TypeScript and Python quality checks plus dependency cooldown
+`all` includes TypeScript, Python, and CLI quality checks plus dependency cooldown
 validation for npm and uv support.
 
 Quality checks can also be run independently:
@@ -77,12 +77,15 @@ Quality checks can also be run independently:
 ```powershell
 npm run quality:ts
 npm run quality:python
+npm run quality:cli
 ```
 
 `quality:ts` runs ESLint complexity and SonarJS cognitive-complexity warnings,
 dependency-cruiser import-cycle analysis, and jscpd duplication checks.
 `quality:python` runs Ruff, Xenon/Radon complexity metrics, and complexipy
 cognitive-complexity reporting for the worker package.
+`quality:cli` runs Go formatting checks, `go vet`, Staticcheck, `go test`, and
+`go build` for the CLI package.
 
 ## CLI
 

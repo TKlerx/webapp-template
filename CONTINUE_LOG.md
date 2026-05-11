@@ -526,3 +526,11 @@ pm run prisma:generate still succeeds.
 - Regenerated `specs/OVERVIEW.md` after the overview script gained inline-clarification detection.
 - Verified with `npm run typecheck`, `npm run quality:ts`, `npm run quality:python`, `npm run specs:overview:check`, `npm run validate`, and `npm run build`.
 
+## 2026-05-11 15:41:03
+
+- Added a root `quality:cli` gate for the Go CLI using a Node runner that checks `gofmt`, `go vet`, Staticcheck, `go test`, and `go build`.
+- Pinned Staticcheck in the CLI Go module via `cli/tools.go` and updated `cli/go.mod` / `cli/go.sum`.
+- Added Go LF line-ending rules to `.gitattributes` so `gofmt` checks remain stable on Windows.
+- Wired `quality:cli` into `npm run validate` and `validate.ps1`, and documented it in `README.md` and `cli/README.md`.
+- Verified with `npm run quality:cli`, `npm run semgrep`, `npm run validate`, `npm run specs:overview:check`, and `.\validate.ps1 quality`.
+

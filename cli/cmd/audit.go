@@ -40,10 +40,10 @@ type auditFilterFlags struct {
 
 func newAuditCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "audit",
-		Short:   "Query audit trail entries",
+		Use:       "audit",
+		Short:     "Query audit trail entries",
 		ValidArgs: []string{"list", "export"},
-		Example: "starterctl audit list --action USER_CREATED",
+		Example:   "starterctl audit list --action USER_CREATED",
 	}
 
 	cmd.AddCommand(newAuditListCommand())
