@@ -556,3 +556,14 @@ pm run prisma:generate still succeeds.
 ## 2026-05-11 16:12:00
 
 - Finalized the threshold blocker work after continuity refresh: threshold gates are blocking by default and bypassable with `QUALITY_THRESHOLDS_BYPASS=1`.
+
+## 2026-05-11 16:25:00
+
+- Fixed production dependency audit drift by updating `next-intl` from 4.9.1 to 4.11.0, which also updates `icu-minify` and `use-intl` past the vulnerable `<=4.9.1` range while respecting the repo's 7-day npm cooldown.
+- Verified with `.\validate.ps1 full`; production audit now reports only the existing allowlisted `next`/`postcss` advisories and E2E passed.
+## 2026-05-11 16:26:35
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: b76a2c7 chore(quality): enforce bypassable thresholds.
+- Active specs: none.
+- Next focus: no next task.
