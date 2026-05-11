@@ -6,13 +6,13 @@
 .DESCRIPTION
     Usage: ./validate.ps1 [phase]
     Phases:
-      all      - typecheck + lint + duplication + semgrep + test (default, pre-commit)
+      all      - typecheck + TS/Python quality + semgrep + test (default, pre-commit)
       full     - all quality checks + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
       continuity - check whether CONTINUE.md / CONTINUE_LOG.md need a refresh
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
-      quality  - lint + duplication + semgrep
+      quality  - TS/Python quality + semgrep
       commit   - validate all + blocking shipped-deps audit + continuity, then git add + commit + push
 #>
 
@@ -801,12 +801,80 @@ if ($Phase -in "all", "full", "quick", "commit") {
 if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Lint (eslint)"
     try {
-        $exitCode = Invoke-NativeCommand "npm run lint"
-        if ($exitCode -ne 0) { throw "lint failed" }
-        Write-Pass "lint passed"
+        $result = Invoke-NativeCommandCaptured "npm run lint"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "lint failed"
+        }
+
+        $cleanOutput = @($result.Output | ForEach-Object { Remove-Ansi ([string]$_) })
+        $summaryLine = $cleanOutput |
+            Select-String -Pattern '(\d+)\s+problems?\s+\((\d+)\s+errors?,\s+(\d+)\s+warnings?\)' |
+            Select-Object -Last 1
+
+        if ($summaryLine -and $summaryLine.Matches.Count -gt 0) {
+            $errorsCount = $summaryLine.Matches[0].Groups[2].Value
+            $warningsCount = $summaryLine.Matches[0].Groups[3].Value
+            $parts = @("$errorsCount errors", "$warningsCount warnings")
+
+            $complexityMatches = @(
+                $cleanOutput |
+                    Select-String -Pattern 'has a complexity of (\d+)'
+            )
+            if ($complexityMatches.Count -gt 0) {
+                $complexityScores = @(
+                    $complexityMatches | ForEach-Object { [int]$_.Matches[0].Groups[1].Value }
+                )
+                $maxComplexity = ($complexityScores | Measure-Object -Maximum).Maximum
+                $parts += "max complexity $maxComplexity"
+            }
+
+            $cognitiveMatches = @(
+                $cleanOutput |
+                    Select-String -Pattern 'Cognitive Complexity from (\d+)'
+            )
+            if ($cognitiveMatches.Count -gt 0) {
+                $cognitiveScores = @(
+                    $cognitiveMatches | ForEach-Object { [int]$_.Matches[0].Groups[1].Value }
+                )
+                $maxCognitive = ($cognitiveScores | Measure-Object -Maximum).Maximum
+                $parts += "max cognitive $maxCognitive"
+            }
+
+            Write-Pass "lint passed ($($parts -join ', '))"
+        } else {
+            Write-Pass "lint passed (0 warnings)"
+        }
     } catch {
         Write-Fail "lint failed"
         $failures += "lint"
+    }
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "Architecture (dependency-cruiser)"
+    try {
+        $result = Invoke-NativeCommandCaptured "npm run architecture"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "architecture check failed"
+        }
+
+        $cleanOutput = @($result.Output | ForEach-Object { Remove-Ansi ([string]$_) })
+        $summaryLine = $cleanOutput |
+            Select-String -Pattern 'dependency violations \((\d+) errors?, (\d+) warnings?\)' |
+            Select-Object -Last 1
+
+        if ($summaryLine -and $summaryLine.Matches.Count -gt 0) {
+            $errorsCount = $summaryLine.Matches[0].Groups[1].Value
+            $warningsCount = $summaryLine.Matches[0].Groups[2].Value
+            Write-Pass "architecture check passed ($errorsCount errors, $warningsCount warnings)"
+        } else {
+            Write-Pass "architecture check passed"
+        }
+    } catch {
+        Write-Fail "architecture check failed"
+        $failures += "architecture"
     }
 }
 
@@ -842,6 +910,53 @@ if ($Phase -in "all", "full", "quality", "commit") {
     } catch {
         Write-Fail "duplication check failed"
         $failures += "duplication"
+    }
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "Python quality (ruff, xenon, radon, complexipy)"
+    try {
+        $result = Invoke-NativeCommandCaptured "npm run quality:python"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "python quality failed"
+        }
+
+        $cleanOutput = @($result.Output | ForEach-Object { Remove-Ansi ([string]$_) })
+        $averageLine = $cleanOutput |
+            Select-String -Pattern 'Average complexity:\s+([A-F])\s+\(([\d.]+)\)' |
+            Select-Object -Last 1
+        $cognitiveLine = $cleanOutput |
+            Select-String -Pattern '\.py\s+\S+\s+(\d+)$' |
+            Select-Object -First 1
+        $miLines = @(
+            $cleanOutput |
+                Select-String -Pattern '\.py\s+-\s+([A-F])\s+\(([\d.]+)\)'
+        )
+
+        $parts = @()
+        if ($averageLine -and $averageLine.Matches.Count -gt 0) {
+            $parts += "radon avg $($averageLine.Matches[0].Groups[1].Value) ($($averageLine.Matches[0].Groups[2].Value))"
+        }
+        if ($cognitiveLine -and $cognitiveLine.Matches.Count -gt 0) {
+            $parts += "max cognitive $($cognitiveLine.Matches[0].Groups[1].Value)"
+        }
+        if ($miLines.Count -gt 0) {
+            $miScores = @(
+                $miLines | ForEach-Object { [double]$_.Matches[0].Groups[2].Value }
+            )
+            $minMi = ($miScores | Measure-Object -Minimum).Minimum
+            $parts += "min MI $minMi"
+        }
+
+        if ($parts.Count -gt 0) {
+            Write-Pass "python quality passed ($($parts -join ', '))"
+        } else {
+            Write-Pass "python quality passed"
+        }
+    } catch {
+        Write-Fail "python quality failed"
+        $failures += "python-quality"
     }
 }
 

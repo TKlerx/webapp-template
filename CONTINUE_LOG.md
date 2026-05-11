@@ -517,3 +517,12 @@ pm run prisma:generate still succeeds.
 - Verified with `npm run typecheck`, `npm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
 - Fixed locale switcher label mojibake: `Español`, `Français`, and `Português`.
 
+## 2026-05-11 15:25:16
+
+- Integrated `codex/quality-tooling-basepath` on `codex/integrate-quality-tooling`, resolving `package.json` / `package-lock.json` conflicts while preserving current `main` dependencies such as `@swc/helpers`.
+- Added TypeScript quality gates (`quality:ts`, dependency-cruiser, SonarJS complexity warnings) and Python worker quality gates (Ruff, Xenon, Radon, complexipy) into validation.
+- Preserved the Next base-path normalization fix from the quality branch.
+- Adjusted the Python complexity baseline to current worker reality (`complexipy --max-complexity-allowed 50`) and left complexity findings as visible baseline output rather than immediate blockers.
+- Regenerated `specs/OVERVIEW.md` after the overview script gained inline-clarification detection.
+- Verified with `npm run typecheck`, `npm run quality:ts`, `npm run quality:python`, `npm run specs:overview:check`, `npm run validate`, and `npm run build`.
+

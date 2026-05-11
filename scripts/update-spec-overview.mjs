@@ -67,7 +67,11 @@ function extractDependency(specContent, planContent) {
   return "-";
 }
 
-function inferStatus(files, taskCounts) {
+function hasClarifications(specContent) {
+  return /^## Clarifications$/m.test(specContent);
+}
+
+function inferStatus(files, taskCounts, specContent) {
   if (files.tasks && taskCounts.total > 0) {
     if (taskCounts.checked === 0) {
       return "Tasked";
@@ -89,7 +93,7 @@ function inferStatus(files, taskCounts) {
     return "Analyzed";
   }
 
-  if (files.clarify) {
+  if (files.clarify || hasClarifications(specContent)) {
     return "Clarified";
   }
 
@@ -149,7 +153,7 @@ function summarizeFeature(dir) {
   const planContent = readIfExists(path.join(dir.fullPath, "plan.md"));
   const tasksContent = readIfExists(path.join(dir.fullPath, "tasks.md"));
   const taskCounts = countTasks(tasksContent);
-  const status = inferStatus(files, taskCounts);
+  const status = inferStatus(files, taskCounts, specContent);
 
   return {
     number: dir.name.slice(0, 3),
@@ -205,7 +209,7 @@ function buildOverview(features) {
     "| Status | Meaning | Expected Artifacts |",
     "| --- | --- | --- |",
     "| Planned | The feature intent is captured, but no clarification work has been recorded yet. | `spec.md` only |",
-    "| Clarified | The open scope and decision questions have been resolved. | `spec.md` + `clarify.md` |",
+    "| Clarified | The open scope and decision questions have been resolved. | `spec.md` with `## Clarifications` section (or `clarify.md`) |",
     "| Analyzed | The feature has been researched enough to support planning. | `spec.md` + `clarify.md` + `research.md` |",
     "| Tasked | The feature has a concrete execution plan and task list, but no implementation tasks are checked yet. | `spec.md` + `clarify.md` + `research.md` + `plan.md` + `data-model.md` + `tasks.md` |",
     "| In Progress | Implementation has started and some tasks are checked. | `tasks.md` exists and some tasks are checked |",

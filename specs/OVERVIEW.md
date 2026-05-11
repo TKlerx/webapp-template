@@ -1,6 +1,6 @@
 # Business App Starter Specs Overview
 
-Last Updated: 2026-05-06
+Last Updated: 2026-05-11
 
 Purpose: Track the status of all planned features, their implementation progress, and next steps.
 
@@ -9,7 +9,7 @@ Purpose: Track the status of all planned features, their implementation progress
 | Status | Meaning | Expected Artifacts |
 | --- | --- | --- |
 | Planned | The feature intent is captured, but no clarification work has been recorded yet. | `spec.md` only |
-| Clarified | The open scope and decision questions have been resolved. | `spec.md` + `clarify.md` |
+| Clarified | The open scope and decision questions have been resolved. | `spec.md` with `## Clarifications` section (or `clarify.md`) |
 | Analyzed | The feature has been researched enough to support planning. | `spec.md` + `clarify.md` + `research.md` |
 | Tasked | The feature has a concrete execution plan and task list, but no implementation tasks are checked yet. | `spec.md` + `clarify.md` + `research.md` + `plan.md` + `data-model.md` + `tasks.md` |
 | In Progress | Implementation has started and some tasks are checked. | `tasks.md` exists and some tasks are checked |

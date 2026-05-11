@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-05-08 13:59:45
+- Updated: 2026-05-11 15:25:16
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
@@ -15,7 +15,7 @@
 
 ## Git Status
 
-- Working tree has i18n duplicate-cookie and locale-label encoding fixes in progress.
+- Quality tooling branch integration is complete and validated locally.
 - Unrelated `.deepsec/` remains untracked.
 
 ## Active Specs
@@ -24,7 +24,7 @@
 
 ## Next Recommended Actions
 
-1. Review, commit, and push the i18n duplicate-cookie and locale-label encoding fixes.
+1. Push the validated quality tooling integration.
 2. Start the next prioritized spec.
 
 ## Manual Notes
@@ -39,3 +39,4 @@
 - Fixed locale switching by reloading after the locale cookie is saved and setting the root document language from the active locale.
 - Fixed a base-path duplicate cookie edge case where stale root-path locale cookies could override the new `/webapp-template` locale cookie.
 - Fixed mojibake in locale switcher labels for Spanish, French, and Portuguese.
+- Integrated the quality tooling branch: TypeScript complexity/dependency analysis, Python Ruff/Xenon/Radon/complexipy checks, and normalized Next base path configuration.

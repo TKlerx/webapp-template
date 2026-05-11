@@ -1,4 +1,4 @@
-# Business App Starter Development Guidelines
+﻿# Business App Starter Development Guidelines
 
 ## Workflow First Step
 

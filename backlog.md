@@ -1,5 +1,9 @@
 # Backlog
 
+## Agent Guidance
+
+- Create a `SKILL.md` that teaches agents how to use this application: project workflow, validation commands, common development paths, and the repo-specific quality gates.
+
 ## Auditability
 
 - Add value-level audit metadata for write actions so audit entries can show the field changed and the new value that was set, without requiring a textual diff view.
