@@ -3,6 +3,7 @@ module github.com/TKlerx/webapp-template/cli
 go 1.25.0
 
 require (
+	github.com/fzipp/gocyclo v0.6.0
 	github.com/jedib0t/go-pretty/v6 v6.6.7
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/spf13/cobra v1.8.1

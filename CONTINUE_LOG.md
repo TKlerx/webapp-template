@@ -533,4 +533,26 @@ pm run prisma:generate still succeeds.
 - Added Go LF line-ending rules to `.gitattributes` so `gofmt` checks remain stable on Windows.
 - Wired `quality:cli` into `npm run validate` and `validate.ps1`, and documented it in `README.md` and `cli/README.md`.
 - Verified with `npm run quality:cli`, `npm run semgrep`, `npm run validate`, `npm run specs:overview:check`, and `.\validate.ps1 quality`.
+## 2026-05-11 16:08:39
 
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 39b3f2a chore(quality): add cli checks.
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-05-11 16:10:00
+
+- Converted TypeScript, Python worker, CLI, and duplication quality thresholds into blockers set to the current repository baseline.
+- Added `QUALITY_THRESHOLDS_BYPASS=1` to make numeric thresholds advisory during intentional transitions while keeping formatting, lint correctness, tests, and security checks blocking.
+- Added pinned CLI Go cyclomatic complexity checking with `gocyclo`.
+- Verified the normal path with `npm run validate` and the CLI bypass path with `QUALITY_THRESHOLDS_BYPASS=1 npm run quality:cli`.
+## 2026-05-11 16:09:00
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 39b3f2a chore(quality): add cli checks.
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-05-11 16:12:00
+
+- Finalized the threshold blocker work after continuity refresh: threshold gates are blocking by default and bypassable with `QUALITY_THRESHOLDS_BYPASS=1`.

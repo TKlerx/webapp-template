@@ -1,43 +1,40 @@
 # Continue
 
-<!-- continuity:fingerprint=d96ab348c8dcaecfc315c1b99a0bfac6d20c45d763afadbcf7892bf8adeffcb4 -->
+<!-- continuity:fingerprint=4279a869b1bfed28b4467fa643c96d7751a6ff3f25abff3ec0c65a2c2631f07d -->
 
 ## Current Snapshot
 
-- Updated: 2026-05-11 15:41:03
+- Updated: 2026-05-11 16:09:00
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
 
-- 70d00d9 feat(teams): finalize 015 validation and UX hardening
-- e3246b3 feat(teams): add messaging skeleton and delegated consent flow
-- 7823007 feat(specs): add teams messaging skeleton spec
+- 39b3f2a chore(quality): add cli checks
+- f61b197 chore(quality): integrate tooling gates
+- 57d7b0e fix(i18n): sync locale cookies
+- ff2e8b7 chore(specs): refresh overview
+- f1775b9 fix(i18n): reload after locale switch
 
 ## Git Status
 
-- CLI quality gate integration is complete and validated locally.
-- Unrelated `.deepsec/` remains untracked.
+- M CONTINUE.md
+-  M README.md
+-  M cli/README.md
+-  M cli/go.mod
+-  M cli/go.sum
+-  M cli/tools.go
+-  M eslint.config.mjs
+-  M package.json
+-  M scripts/check-cli-quality.mjs
+-  M validate.ps1
+- ?? .deepsec/
+- ?? scripts/check-duplication.mjs
+- ?? scripts/check-python-quality.mjs
 
 ## Active Specs
 
-- None.
+- No active spec folders detected.
 
 ## Next Recommended Actions
 
-1. Push the validated CLI quality gate integration.
-2. Start the next prioritized spec.
-
-## Manual Notes
-
-- Spec `015-teams-messaging-skeleton` is complete, including real-tenant quickstart validation (T038): outbound send and inbound intake confirmed.
-- Added post-validation hardening:
-  - Teams consent redirect handling respects base path
-  - Teams channel-link parser helper in target/subscription UI
-  - archived/restricted channel warning in Teams health panel
-  - safe 409 handling when deleting targets with outbound history
-- Improved password complexity UX with explicit requirement error messaging and test coverage.
-- Fixed locale switching by reloading after the locale cookie is saved and setting the root document language from the active locale.
-- Fixed a base-path duplicate cookie edge case where stale root-path locale cookies could override the new `/webapp-template` locale cookie.
-- Fixed mojibake in locale switcher labels for Spanish, French, and Portuguese.
-- Integrated the quality tooling branch: TypeScript complexity/dependency analysis, Python Ruff/Xenon/Radon/complexipy checks, and normalized Next base path configuration.
-- Added CLI quality checks for Go formatting, vet, Staticcheck, tests, and build.
+1. No unchecked tasks detected in the active specs.

@@ -80,12 +80,27 @@ npm run quality:python
 npm run quality:cli
 ```
 
-`quality:ts` runs ESLint complexity and SonarJS cognitive-complexity warnings,
-dependency-cruiser import-cycle analysis, and jscpd duplication checks.
-`quality:python` runs Ruff, Xenon/Radon complexity metrics, and complexipy
-cognitive-complexity reporting for the worker package.
-`quality:cli` runs Go formatting checks, `go vet`, Staticcheck, `go test`, and
-`go build` for the CLI package.
+`quality:ts` runs blocking ESLint complexity, SonarJS cognitive-complexity, and
+jscpd duplication thresholds plus dependency-cruiser import-cycle analysis.
+`quality:python` runs Ruff plus blocking Xenon and complexipy complexity
+thresholds with Radon reporting for the worker package.
+`quality:cli` runs Go formatting checks, `go vet`, Staticcheck, a blocking
+gocyclo complexity threshold, `go test`, and `go build` for the CLI package.
+
+Complexity thresholds are set to the current repo baseline and block
+regressions by default:
+
+- TypeScript cyclomatic complexity: 56
+- TypeScript cognitive complexity: 24
+- Python Xenon: max absolute F, max module C, max average B
+- Python Radon cyclomatic complexity: 44
+- Python complexipy cognitive complexity: 46
+- CLI Go cyclomatic complexity: 15
+- jscpd duplication: 3.1%
+
+To bypass only the numeric threshold blockers during an intentional transition,
+set `QUALITY_THRESHOLDS_BYPASS=1`. Formatting, lint correctness, tests, security
+scans, and other non-threshold checks still run normally.
 
 ## CLI
 

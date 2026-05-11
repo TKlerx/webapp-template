@@ -4,6 +4,8 @@ import { spawnSync } from "node:child_process";
 
 const repoRoot = process.cwd();
 const cliDir = path.join(repoRoot, "cli");
+const bypassThresholds = process.env.QUALITY_THRESHOLDS_BYPASS === "1";
+const maxCyclomaticComplexity = 15;
 
 function listGoFiles(dir) {
   const entries = readdirSync(dir);
@@ -72,6 +74,12 @@ const goFiles = listGoFiles(cliDir);
 const gofmt = runGofmt(["-l", ...goFiles], { cwd: repoRoot, capture: true });
 const unformatted = (gofmt.stdout ?? "").trim();
 
+if (bypassThresholds) {
+  console.warn(
+    "QUALITY_THRESHOLDS_BYPASS=1: CLI complexity threshold is running in advisory mode.",
+  );
+}
+
 if (unformatted) {
   console.error("Go files need formatting:");
   console.error(unformatted);
@@ -80,5 +88,12 @@ if (unformatted) {
 
 runGo(["vet", "./..."]);
 runGo(["run", "honnef.co/go/tools/cmd/staticcheck", "./..."]);
+runGo([
+  "run",
+  "github.com/fzipp/gocyclo/cmd/gocyclo",
+  "-over",
+  String(bypassThresholds ? 999 : maxCyclomaticComplexity),
+  ".",
+]);
 runGo(["test", "./..."]);
 runGo(["build", "./..."]);

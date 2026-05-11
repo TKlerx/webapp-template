@@ -14,6 +14,10 @@
       e2e      - Playwright E2E tests only
       quality  - TS/Python/CLI quality + semgrep
       commit   - validate all + blocking shipped-deps audit + continuity, then git add + commit + push
+
+    Set QUALITY_THRESHOLDS_BYPASS=1 to make configured quality thresholds
+    advisory while keeping formatting, lint correctness, tests, and security
+    checks blocking.
 #>
 
 param(
@@ -961,7 +965,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
 }
 
 if ($Phase -in "all", "full", "quality", "commit") {
-    Write-Step "CLI quality (gofmt, go vet, staticcheck, go test, go build)"
+    Write-Step "CLI quality (gofmt, go vet, staticcheck, gocyclo, go test, go build)"
     try {
         $result = Invoke-NativeCommandCaptured "npm run quality:cli"
         if ($result.ExitCode -ne 0) {

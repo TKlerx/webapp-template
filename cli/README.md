@@ -174,10 +174,14 @@ gofmt -l .
 go test ./...
 go vet ./...
 go run honnef.co/go/tools/cmd/staticcheck ./...
+go run github.com/fzipp/gocyclo/cmd/gocyclo -over 15 .
 go build ./...
 ```
 
-From the repository root, `npm run quality:cli` runs the full CLI quality gate.
+From the repository root, `npm run quality:cli` runs the full CLI quality gate,
+including the Go cyclomatic-complexity threshold. Set
+`QUALITY_THRESHOLDS_BYPASS=1` to make that threshold advisory while keeping the
+other CLI checks blocking.
 
 ## Troubleshooting
 
