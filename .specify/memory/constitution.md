@@ -180,6 +180,7 @@ other guidance, this constitution takes precedence.
 **Amendments**: Any change to this constitution MUST be documented
 with a version bump, rationale, and date. Amendments follow
 semantic versioning:
+
 - MAJOR: Principle removal or incompatible redefinition.
 - MINOR: New principle or materially expanded guidance.
 - PATCH: Clarifications, wording, or non-semantic refinements.

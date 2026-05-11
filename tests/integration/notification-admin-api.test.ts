@@ -37,7 +37,11 @@ describe("notification admin API", () => {
       return input;
     });
     requireApiUserWithRoles.mockResolvedValue({
-      user: { id: "admin-1", role: Role.PLATFORM_ADMIN, status: UserStatus.ACTIVE },
+      user: {
+        id: "admin-1",
+        role: Role.PLATFORM_ADMIN,
+        status: UserStatus.ACTIVE,
+      },
     });
   });
 
@@ -67,7 +71,9 @@ describe("notification admin API", () => {
     ] as never);
 
     const response = await getNotifications(
-      new Request("http://localhost/api/notifications?eventType=ROLE_CHANGED&status=SENT"),
+      new Request(
+        "http://localhost/api/notifications?eventType=ROLE_CHANGED&status=SENT",
+      ),
     );
 
     if (!response) {

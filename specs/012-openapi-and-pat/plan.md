@@ -23,20 +23,20 @@ Add Personal Access Token (PAT) authentication for programmatic API access, a br
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Simplicity First | PASS | Standard CRUD + auth middleware pattern, no unnecessary abstractions |
-| II. Test Coverage | PASS | Test tasks required for every user story |
-| III. Duplication Control | PASS | Token auth middleware is a single shared function in route-context |
-| IV. Incremental Delivery | PASS | P1 (PAT CRUD + auth) → P2 (OpenAPI docs, CLI login) → P3 (X-API-Key, admin) |
-| V. Spec Sequencing | PASS | 010 and 011 fully implemented; 012 is next |
-| VI. Continuity | PASS | CONTINUE.md will be updated |
-| VII. Azure OpenAI | N/A | No AI features in this spec |
-| VIII. Web Standards | PASS | Base path compliance, toast notifications, i18n |
-| IX. Internationalization | PASS | All PAT management UI uses translation keys |
-| X. Responsive Design | PASS | Token management UI must work on mobile |
+| Principle                | Status | Notes                                                                       |
+| ------------------------ | ------ | --------------------------------------------------------------------------- |
+| I. Simplicity First      | PASS   | Standard CRUD + auth middleware pattern, no unnecessary abstractions        |
+| II. Test Coverage        | PASS   | Test tasks required for every user story                                    |
+| III. Duplication Control | PASS   | Token auth middleware is a single shared function in route-context          |
+| IV. Incremental Delivery | PASS   | P1 (PAT CRUD + auth) → P2 (OpenAPI docs, CLI login) → P3 (X-API-Key, admin) |
+| V. Spec Sequencing       | PASS   | 010 and 011 fully implemented; 012 is next                                  |
+| VI. Continuity           | PASS   | CONTINUE.md will be updated                                                 |
+| VII. Azure OpenAI        | N/A    | No AI features in this spec                                                 |
+| VIII. Web Standards      | PASS   | Base path compliance, toast notifications, i18n                             |
+| IX. Internationalization | PASS   | All PAT management UI uses translation keys                                 |
+| X. Responsive Design     | PASS   | Token management UI must work on mobile                                     |
 
 ## Project Structure
 

@@ -1,8 +1,18 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { AuthMethod, Role, ThemePreference, UserStatus } from "../../generated/prisma/enums";
-import { getConfiguredBasePath, getScopedCookiePath, hasRealAzureAdConfig, trimTrailingSlash } from "@/lib/azure-auth";
+import {
+  AuthMethod,
+  Role,
+  ThemePreference,
+  UserStatus,
+} from "../../generated/prisma/enums";
+import {
+  getConfiguredBasePath,
+  getScopedCookiePath,
+  hasRealAzureAdConfig,
+  trimTrailingSlash,
+} from "@/lib/azure-auth";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
@@ -21,7 +31,9 @@ export function getConfiguredAuthBaseUrl() {
 }
 
 export function getBetterAuthCookieNames() {
-  const securePrefix = getConfiguredAuthBaseUrl().startsWith("https://") ? "__Secure-" : "";
+  const securePrefix = getConfiguredAuthBaseUrl().startsWith("https://")
+    ? "__Secure-"
+    : "";
   return [
     `${securePrefix}${BETTER_AUTH_COOKIE_PREFIX}.session_token`,
     `${securePrefix}${BETTER_AUTH_COOKIE_PREFIX}.session_data`,
@@ -32,8 +44,12 @@ export function getBetterAuthCookieNames() {
 
 function getAuthSecret() {
   const fallbackSecret = "dev-secret-change-me-in-production";
-  const secret = process.env.BETTERAUTH_SECRET ?? process.env.BETTER_AUTH_SECRET;
-  if (process.env.NODE_ENV === "production" && (!secret || secret === fallbackSecret)) {
+  const secret =
+    process.env.BETTERAUTH_SECRET ?? process.env.BETTER_AUTH_SECRET;
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!secret || secret === fallbackSecret)
+  ) {
     throw new Error(
       "FATAL: BetterAuth is using the development secret in production. Set BETTERAUTH_SECRET or BETTER_AUTH_SECRET.",
     );

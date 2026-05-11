@@ -39,13 +39,21 @@ type NotificationCopy = {
     affectedUserSubject: string;
     adminSubject: (userName: string) => string;
     affectedUserBody: (userName: string, roleLabel: string) => string;
-    adminBody: (userName: string, previousRole: string, nextRole: string) => string;
+    adminBody: (
+      userName: string,
+      previousRole: string,
+      nextRole: string,
+    ) => string;
   };
   statusChanged: {
     affectedUserSubject: string;
     adminSubject: (userName: string) => string;
     affectedUserBody: (userName: string, statusLabel: string) => string;
-    adminBody: (userName: string, previousStatus: string, nextStatus: string) => string;
+    adminBody: (
+      userName: string,
+      previousStatus: string,
+      nextStatus: string,
+    ) => string;
   };
 };
 
@@ -254,7 +262,10 @@ function renderUserCreatedTemplate(
   const roleLabel = copy.roleLabels[input.role ?? Role.SCOPE_USER];
 
   if (input.audience === "affected_user") {
-    const bodyText = copy.userCreated.affectedUserBody(input.userName, roleLabel);
+    const bodyText = copy.userCreated.affectedUserBody(
+      input.userName,
+      roleLabel,
+    );
     return {
       subject: copy.userCreated.affectedUserSubject,
       bodyText,
@@ -262,7 +273,11 @@ function renderUserCreatedTemplate(
     };
   }
 
-  const bodyText = copy.userCreated.adminBody(input.userName, input.userEmail, roleLabel);
+  const bodyText = copy.userCreated.adminBody(
+    input.userName,
+    input.userEmail,
+    roleLabel,
+  );
   return {
     subject: copy.userCreated.adminSubject(input.userName),
     bodyText,
@@ -274,11 +289,15 @@ function renderRoleChangedTemplate(
   copy: NotificationCopy,
   input: NotificationTemplateInput,
 ): NotificationTemplate {
-  const nextRole = copy.roleLabels[input.nextRole ?? input.role ?? Role.SCOPE_USER];
+  const nextRole =
+    copy.roleLabels[input.nextRole ?? input.role ?? Role.SCOPE_USER];
   const previousRole = copy.roleLabels[input.previousRole ?? Role.SCOPE_USER];
 
   if (input.audience === "affected_user") {
-    const bodyText = copy.roleChanged.affectedUserBody(input.userName, nextRole);
+    const bodyText = copy.roleChanged.affectedUserBody(
+      input.userName,
+      nextRole,
+    );
     return {
       subject: copy.roleChanged.affectedUserSubject,
       bodyText,
@@ -286,7 +305,11 @@ function renderRoleChangedTemplate(
     };
   }
 
-  const bodyText = copy.roleChanged.adminBody(input.userName, previousRole, nextRole);
+  const bodyText = copy.roleChanged.adminBody(
+    input.userName,
+    previousRole,
+    nextRole,
+  );
   return {
     subject: copy.roleChanged.adminSubject(input.userName),
     bodyText,
@@ -299,10 +322,14 @@ function renderStatusChangedTemplate(
   input: NotificationTemplateInput,
 ): NotificationTemplate {
   const nextStatus = copy.statusLabels[input.nextStatus ?? UserStatus.ACTIVE];
-  const previousStatus = copy.statusLabels[input.previousStatus ?? UserStatus.ACTIVE];
+  const previousStatus =
+    copy.statusLabels[input.previousStatus ?? UserStatus.ACTIVE];
 
   if (input.audience === "affected_user") {
-    const bodyText = copy.statusChanged.affectedUserBody(input.userName, nextStatus);
+    const bodyText = copy.statusChanged.affectedUserBody(
+      input.userName,
+      nextStatus,
+    );
     return {
       subject: copy.statusChanged.affectedUserSubject,
       bodyText,
@@ -310,7 +337,11 @@ function renderStatusChangedTemplate(
     };
   }
 
-  const bodyText = copy.statusChanged.adminBody(input.userName, previousStatus, nextStatus);
+  const bodyText = copy.statusChanged.adminBody(
+    input.userName,
+    previousStatus,
+    nextStatus,
+  );
   return {
     subject: copy.statusChanged.adminSubject(input.userName),
     bodyText,

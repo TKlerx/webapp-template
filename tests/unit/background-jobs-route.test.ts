@@ -32,7 +32,7 @@ describe("background jobs route", () => {
       id: "job-1",
       jobType: "echo",
       status: "PENDING",
-      payload: "{\"message\":\"hello\"}",
+      payload: '{"message":"hello"}',
       result: null,
       error: null,
       attemptCount: 0,
@@ -46,16 +46,18 @@ describe("background jobs route", () => {
       updatedAt: new Date("2026-03-31T00:00:00Z"),
     } as never);
 
-    const response = await POST(new Request("http://localhost/api/background-jobs", {
-      method: "POST",
-      body: JSON.stringify({
-        jobType: "echo",
-        payload: { message: "hello" },
+    const response = await POST(
+      new Request("http://localhost/api/background-jobs", {
+        method: "POST",
+        body: JSON.stringify({
+          jobType: "echo",
+          payload: { message: "hello" },
+        }),
+        headers: {
+          "content-type": "application/json",
+        },
       }),
-      headers: {
-        "content-type": "application/json",
-      },
-    }));
+    );
 
     if (!response) {
       throw new Error("Expected response");
@@ -77,16 +79,18 @@ describe("background jobs route", () => {
       user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
     });
 
-    const response = await POST(new Request("http://localhost/api/background-jobs", {
-      method: "POST",
-      body: JSON.stringify({
-        jobType: "report",
-        payload: { message: "hello" },
+    const response = await POST(
+      new Request("http://localhost/api/background-jobs", {
+        method: "POST",
+        body: JSON.stringify({
+          jobType: "report",
+          payload: { message: "hello" },
+        }),
+        headers: {
+          "content-type": "application/json",
+        },
       }),
-      headers: {
-        "content-type": "application/json",
-      },
-    }));
+    );
 
     if (!response) {
       throw new Error("Expected response");
@@ -103,16 +107,18 @@ describe("background jobs route", () => {
       user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
     });
 
-    const response = await POST(new Request("http://localhost/api/background-jobs", {
-      method: "POST",
-      body: JSON.stringify({
-        jobType: "echo",
-        payload: { data: "x".repeat(11 * 1024) },
+    const response = await POST(
+      new Request("http://localhost/api/background-jobs", {
+        method: "POST",
+        body: JSON.stringify({
+          jobType: "echo",
+          payload: { data: "x".repeat(11 * 1024) },
+        }),
+        headers: {
+          "content-type": "application/json",
+        },
       }),
-      headers: {
-        "content-type": "application/json",
-      },
-    }));
+    );
 
     if (!response) {
       throw new Error("Expected response");
@@ -135,7 +141,7 @@ describe("background jobs route", () => {
         jobType: "noop",
         status: "COMPLETED",
         payload: "{}",
-        result: "{\"message\":\"done\"}",
+        result: '{"message":"done"}',
         error: null,
         attemptCount: 1,
         availableAt: new Date("2026-03-31T00:00:00Z"),
@@ -149,7 +155,9 @@ describe("background jobs route", () => {
       },
     ] as never);
 
-    const response = await GET(new Request("http://localhost/api/background-jobs"));
+    const response = await GET(
+      new Request("http://localhost/api/background-jobs"),
+    );
 
     if (!response) {
       throw new Error("Expected response");

@@ -6,10 +6,15 @@ describe("teams client", () => {
     const fetchImpl = vi
       .fn()
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ access_token: "token", expires_in: 3600 }), { status: 200 }),
+        new Response(
+          JSON.stringify({ access_token: "token", expires_in: 3600 }),
+          { status: 200 },
+        ),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ id: "graph-message-1" }), { status: 201 }),
+        new Response(JSON.stringify({ id: "graph-message-1" }), {
+          status: 201,
+        }),
       );
 
     const client = createGraphTeamsClient({
@@ -33,7 +38,10 @@ describe("teams client", () => {
     const fetchImpl = vi
       .fn()
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ access_token: "token", expires_in: 3600 }), { status: 200 }),
+        new Response(
+          JSON.stringify({ access_token: "token", expires_in: 3600 }),
+          { status: 200 },
+        ),
       )
       .mockResolvedValueOnce(new Response("forbidden", { status: 403 }));
 

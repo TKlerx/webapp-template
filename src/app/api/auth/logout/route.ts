@@ -5,4 +5,3 @@ export async function POST(request: Request) {
   const sessionUser = await getSessionUser();
   return signOutUser(request, sessionUser);
 }
-

@@ -35,7 +35,8 @@ const remoteHeadRef =
     .split(/\r?\n/)
     .map((line) => line.trim())
     .find((line) => line.startsWith("ref:")) ?? "";
-const remoteDefaultBranch = remoteHeadRef.match(/refs\/heads\/([^\s]+)/)?.[1] ?? "";
+const remoteDefaultBranch =
+  remoteHeadRef.match(/refs\/heads\/([^\s]+)/)?.[1] ?? "";
 const existingOrigin = JSON.parse(readFileSync(originFilePath, "utf8"));
 const defaultBranch =
   remoteDefaultBranch || existingOrigin.templateDefaultBranch || "main";
@@ -96,7 +97,10 @@ if (checkOnly) {
   const currentOriginContent = readFileSync(originFilePath, "utf8");
   const currentVersionFile = readFileSync(versionFilePath, "utf8");
 
-  if (currentOriginContent !== nextOriginContent || currentVersionFile !== versionFile) {
+  if (
+    currentOriginContent !== nextOriginContent ||
+    currentVersionFile !== versionFile
+  ) {
     process.exitCode = 1;
   }
 } else {

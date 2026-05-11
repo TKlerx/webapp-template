@@ -19,7 +19,9 @@ describe("teams admin service", () => {
   });
 
   it("creates singleton config when missing", async () => {
-    prismaMock.teamsIntegrationConfig.findFirst.mockResolvedValue(null as never);
+    prismaMock.teamsIntegrationConfig.findFirst.mockResolvedValue(
+      null as never,
+    );
     prismaMock.teamsIntegrationConfig.create.mockResolvedValue({
       id: "default",
       sendEnabled: false,
@@ -95,8 +97,7 @@ describe("teams admin service", () => {
   });
 
   it("blocks target deletion when pending outbound messages exist", async () => {
-    prismaMock.teamsOutboundMessage.count
-      .mockResolvedValueOnce(1 as never);
+    prismaMock.teamsOutboundMessage.count.mockResolvedValueOnce(1 as never);
 
     const result = await deleteDeliveryTarget("target-1");
     expect("error" in result).toBe(true);

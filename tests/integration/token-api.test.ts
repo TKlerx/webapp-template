@@ -25,7 +25,10 @@ vi.mock("@/lib/audit", () => ({
   safeLogAudit,
 }));
 
-import { GET as getBackgroundJobs, POST as postBackgroundJobs } from "@/app/api/background-jobs/route";
+import {
+  GET as getBackgroundJobs,
+  POST as postBackgroundJobs,
+} from "@/app/api/background-jobs/route";
 import { GET as getAuthMe } from "@/app/api/auth/me/route";
 import { GET as getAdminTokens } from "@/app/api/admin/tokens/route";
 import { DELETE as deleteAdminToken } from "@/app/api/admin/tokens/[id]/route";
@@ -106,7 +109,9 @@ describe("token API integration", () => {
       role: Role.SCOPE_USER,
       status: UserStatus.ACTIVE,
     });
-    prismaMock.personalAccessToken.findFirst.mockResolvedValueOnce({ id: "existing" } as never);
+    prismaMock.personalAccessToken.findFirst.mockResolvedValueOnce({
+      id: "existing",
+    } as never);
 
     const duplicateResponse = await postTokens(
       new Request("http://localhost/api/tokens", {
@@ -171,8 +176,12 @@ describe("token API integration", () => {
       },
     ] as never);
 
-    const filteredResponse = await getTokens(new Request("http://localhost/api/tokens"));
-    const allResponse = await getTokens(new Request("http://localhost/api/tokens?showAll=true"));
+    const filteredResponse = await getTokens(
+      new Request("http://localhost/api/tokens"),
+    );
+    const allResponse = await getTokens(
+      new Request("http://localhost/api/tokens?showAll=true"),
+    );
 
     await expect(filteredResponse.json()).resolves.toMatchObject({
       tokens: [{ id: "token-1" }],
@@ -205,7 +214,7 @@ describe("token API integration", () => {
         jobType: "noop",
         status: "COMPLETED",
         payload: "{}",
-        result: "{\"ok\":true}",
+        result: '{"ok":true}',
         error: null,
         attemptCount: 1,
         availableAt: new Date("2026-04-10T12:00:00.000Z"),
@@ -389,9 +398,12 @@ describe("token API integration", () => {
         renewalCount: 1,
       } as never);
 
-    const revokeResponse = await revokeToken(new Request("http://localhost/api/tokens/token-1/revoke"), {
-      params: Promise.resolve({ id: "token-1" }),
-    });
+    const revokeResponse = await revokeToken(
+      new Request("http://localhost/api/tokens/token-1/revoke"),
+      {
+        params: Promise.resolve({ id: "token-1" }),
+      },
+    );
     if (!revokeResponse) {
       throw new Error("Expected revoke response");
     }
@@ -424,11 +436,16 @@ describe("token API integration", () => {
     }
     expect(missingRevokeResponse.status).toBe(404);
 
-    prismaMock.personalAccessToken.delete.mockResolvedValueOnce({ id: "token-1" } as never);
+    prismaMock.personalAccessToken.delete.mockResolvedValueOnce({
+      id: "token-1",
+    } as never);
 
-    const deleteResponse = await deleteToken(new Request("http://localhost/api/tokens/token-1"), {
-      params: Promise.resolve({ id: "token-1" }),
-    });
+    const deleteResponse = await deleteToken(
+      new Request("http://localhost/api/tokens/token-1"),
+      {
+        params: Promise.resolve({ id: "token-1" }),
+      },
+    );
     if (!deleteResponse) {
       throw new Error("Expected delete response");
     }
@@ -473,10 +490,14 @@ describe("token API integration", () => {
       status: TokenStatus.REVOKED,
       revokedAt: new Date("2026-04-10T12:00:00.000Z"),
     } as never);
-    prismaMock.personalAccessToken.delete.mockResolvedValueOnce({ id: "token-1" } as never);
+    prismaMock.personalAccessToken.delete.mockResolvedValueOnce({
+      id: "token-1",
+    } as never);
 
     const listResponse = await getAdminTokens(
-      new Request("http://localhost/api/admin/tokens?showAll=true&userId=user-2"),
+      new Request(
+        "http://localhost/api/admin/tokens?showAll=true&userId=user-2",
+      ),
     );
     expect(listResponse.status).toBe(200);
     await expect(listResponse.json()).resolves.toMatchObject({

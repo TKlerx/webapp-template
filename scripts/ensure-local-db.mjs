@@ -10,7 +10,10 @@ if (!databaseUrl.startsWith("file:")) {
   process.exit(0);
 }
 
-const databasePath = path.resolve(process.cwd(), databaseUrl.slice("file:".length));
+const databasePath = path.resolve(
+  process.cwd(),
+  databaseUrl.slice("file:".length),
+);
 const db = new Database(databasePath);
 let databaseIsEmpty = true;
 
@@ -64,7 +67,10 @@ function markExistingMigrationsAsApplied() {
     .sort();
 
   for (const migration of migrations) {
-    runStep(`Mark local migration ${migration} as applied`, `npx prisma migrate resolve --applied ${migration}`);
+    runStep(
+      `Mark local migration ${migration} as applied`,
+      `npx prisma migrate resolve --applied ${migration}`,
+    );
   }
 }
 
@@ -73,5 +79,7 @@ function getShellCommand() {
 }
 
 function getShellArgs(commandLine) {
-  return process.platform === "win32" ? ["/c", commandLine] : ["-lc", commandLine];
+  return process.platform === "win32"
+    ? ["/c", commandLine]
+    : ["-lc", commandLine];
 }

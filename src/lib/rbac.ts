@@ -4,7 +4,10 @@ import { prisma } from "@/lib/db";
 
 export const SCOPED_ROLES = [Role.SCOPE_ADMIN, Role.SCOPE_USER] as const;
 
-export function checkRole(user: Pick<User, "role"> | null, allowedRoles: Role[]): boolean {
+export function checkRole(
+  user: Pick<User, "role"> | null,
+  allowedRoles: Role[],
+): boolean {
   return !!user && allowedRoles.includes(user.role);
 }
 

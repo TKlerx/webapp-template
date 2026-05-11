@@ -21,7 +21,9 @@ import {
 
 describe("notification service", () => {
   beforeEach(() => {
-    prismaMock.$transaction.mockImplementation(async (callback) => callback(prismaMock));
+    prismaMock.$transaction.mockImplementation(async (callback) =>
+      callback(prismaMock),
+    );
   });
 
   afterEach(() => {
@@ -40,7 +42,9 @@ describe("notification service", () => {
         createdAt: new Date("2026-04-19T10:00:00Z"),
       },
     ] as never);
-    prismaMock.notificationEvent.create.mockResolvedValue({ id: "event-1" } as never);
+    prismaMock.notificationEvent.create.mockResolvedValue({
+      id: "event-1",
+    } as never);
     prismaMock.notification.create
       .mockResolvedValueOnce({ id: "notification-1" } as never)
       .mockResolvedValueOnce({ id: "notification-2" } as never);
@@ -100,8 +104,12 @@ describe("notification service", () => {
         createdAt: new Date("2026-04-19T10:00:00Z"),
       },
     ] as never);
-    prismaMock.notificationEvent.create.mockResolvedValue({ id: "event-2" } as never);
-    prismaMock.notification.create.mockResolvedValue({ id: "notification-3" } as never);
+    prismaMock.notificationEvent.create.mockResolvedValue({
+      id: "event-2",
+    } as never);
+    prismaMock.notification.create.mockResolvedValue({
+      id: "notification-3",
+    } as never);
     prismaMock.notification.update.mockResolvedValue({} as never);
     prismaMock.backgroundJob.create.mockResolvedValue({ id: "job-3" } as never);
 

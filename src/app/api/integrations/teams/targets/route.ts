@@ -1,5 +1,8 @@
 import { requireApiUserWithRoles } from "@/lib/route-auth";
-import { createDeliveryTarget, listDeliveryTargets } from "@/services/teams/admin";
+import {
+  createDeliveryTarget,
+  listDeliveryTargets,
+} from "@/services/teams/admin";
 import { Role } from "../../../../../../generated/prisma/enums";
 
 export async function GET(request: Request) {

@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { AuthMethod, Role, ThemePreference, UserStatus } from "../../../../../../generated/prisma/enums";
+import {
+  AuthMethod,
+  Role,
+  ThemePreference,
+  UserStatus,
+} from "../../../../../../generated/prisma/enums";
 import { auth } from "@/lib/better-auth";
 import { applySetCookieHeaders } from "@/lib/better-auth-http";
 import { getAbsoluteAppUrl } from "@/lib/better-auth-route";
@@ -32,11 +37,14 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const mockEmail = url.searchParams.get("email");
   const mockName = url.searchParams.get("name");
-  const requestedRedirect = getSafeRedirectTarget(url.searchParams.get("redirectTo"));
+  const requestedRedirect = getSafeRedirectTarget(
+    url.searchParams.get("redirectTo"),
+  );
 
   if (
     process.env.E2E_MOCK_SSO === "1" &&
-    (process.env.NODE_ENV !== "production" || process.env.E2E_TESTING === "1") &&
+    (process.env.NODE_ENV !== "production" ||
+      process.env.E2E_TESTING === "1") &&
     mockEmail
   ) {
     const email = mockEmail.toLowerCase();
@@ -49,7 +57,7 @@ export async function GET(request: Request) {
     const authMethod =
       existingUser?.authMethod === AuthMethod.LOCAL
         ? AuthMethod.BOTH
-        : existingUser?.authMethod ?? AuthMethod.SSO;
+        : (existingUser?.authMethod ?? AuthMethod.SSO);
 
     const user = await prisma.user.upsert({
       where: { email },
@@ -94,7 +102,7 @@ export async function GET(request: Request) {
     const redirectTarget =
       user.status === UserStatus.PENDING_APPROVAL
         ? "/pending"
-        : requestedRedirect ?? "/dashboard";
+        : (requestedRedirect ?? "/dashboard");
 
     const authResponse = await auth.api.signInEmail({
       body: {
@@ -109,7 +117,10 @@ export async function GET(request: Request) {
       return redirectTo(request, "/login?error=sso-mock-failed");
     }
 
-    return applySetCookieHeaders(redirectTo(request, redirectTarget), authResponse);
+    return applySetCookieHeaders(
+      redirectTo(request, redirectTarget),
+      authResponse,
+    );
   }
 
   if (!hasRealAzureAdConfig()) {

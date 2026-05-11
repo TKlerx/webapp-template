@@ -1,9 +1,15 @@
 import type { User } from "../../../generated/prisma/client";
 import type { SessionUser } from "@/lib/auth";
-import type { AuditAction, Role, UserStatus } from "../../../generated/prisma/enums";
+import type {
+  AuditAction,
+  Role,
+  UserStatus,
+} from "../../../generated/prisma/enums";
 
 export type RouteErrorResult = { error: Response };
-export type RouteUserResult<TUser = SessionUser> = RouteErrorResult | { user: TUser; request?: Request };
+export type RouteUserResult<TUser = SessionUser> =
+  | RouteErrorResult
+  | { user: TUser; request?: Request };
 
 export type RouteParamsWithId = Promise<{ id: string }>;
 
@@ -18,7 +24,9 @@ export type AuthorizeRouteOptions = {
   roles?: Role[];
   scopeRestricted?: boolean;
   scopeId?: string | null;
-  resolveScopeId?: ((request: Request) => Promise<string | null> | string | null) | null;
+  resolveScopeId?:
+    | ((request: Request) => Promise<string | null> | string | null)
+    | null;
 };
 
 export type ManagedUserStatusUpdateOptions = {

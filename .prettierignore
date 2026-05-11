@@ -1,8 +1,11 @@
 node_modules/
 .next/
+.agents/
+.deepsec/
 coverage/
 dist/
 build/
+worker/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml

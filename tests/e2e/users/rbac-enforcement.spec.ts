@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { Role } from "../../../generated/prisma/enums";
-import { loginWithPassword, appBasePath, expectOnDashboard } from "../helpers/auth";
+import {
+  loginWithPassword,
+  appBasePath,
+  expectOnDashboard,
+} from "../helpers/auth";
 import { seedLocalUser } from "../helpers/db";
 
 test("marketer cannot access user management", async ({ page }) => {
@@ -16,5 +20,7 @@ test("marketer cannot access user management", async ({ page }) => {
   await expectOnDashboard(page);
   await page.goto(`${appBasePath}/users`);
 
-  await expect(page.getByText("You are not authorized to access this page.")).toBeVisible();
+  await expect(
+    page.getByText("You are not authorized to access this page."),
+  ).toBeVisible();
 });

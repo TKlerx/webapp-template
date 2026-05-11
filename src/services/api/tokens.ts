@@ -1,7 +1,11 @@
 import crypto from "node:crypto";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
-import { TokenStatus, TokenType, UserStatus } from "../../../generated/prisma/enums";
+import {
+  TokenStatus,
+  TokenType,
+  UserStatus,
+} from "../../../generated/prisma/enums";
 
 const DEFAULT_PAT_PREFIX = "starter_pat";
 const DEFAULT_PAT_EXPIRY_DAYS = 90;
@@ -22,12 +26,21 @@ export function getTokenPrefix() {
 
 export function getDefaultTokenExpiryDays(type: TokenType) {
   return type === TokenType.CLI_LOGIN
-    ? readPositiveInteger(process.env.CLI_TOKEN_DEFAULT_EXPIRY_DAYS, DEFAULT_CLI_EXPIRY_DAYS)
-    : readPositiveInteger(process.env.PAT_DEFAULT_EXPIRY_DAYS, DEFAULT_PAT_EXPIRY_DAYS);
+    ? readPositiveInteger(
+        process.env.CLI_TOKEN_DEFAULT_EXPIRY_DAYS,
+        DEFAULT_CLI_EXPIRY_DAYS,
+      )
+    : readPositiveInteger(
+        process.env.PAT_DEFAULT_EXPIRY_DAYS,
+        DEFAULT_PAT_EXPIRY_DAYS,
+      );
 }
 
 export function getMaxActiveTokensPerUser() {
-  return readPositiveInteger(process.env.PAT_MAX_ACTIVE_PER_USER, DEFAULT_PAT_LIMIT);
+  return readPositiveInteger(
+    process.env.PAT_MAX_ACTIVE_PER_USER,
+    DEFAULT_PAT_LIMIT,
+  );
 }
 
 export function generateToken(prefix = getTokenPrefix()) {
@@ -41,7 +54,8 @@ export function hashToken(tokenValue: string) {
 
 export function getTokenDisplayPrefix(tokenValue: string) {
   const separatorIndex = tokenValue.lastIndexOf("_");
-  const suffix = separatorIndex >= 0 ? tokenValue.slice(separatorIndex + 1) : tokenValue;
+  const suffix =
+    separatorIndex >= 0 ? tokenValue.slice(separatorIndex + 1) : tokenValue;
   return suffix.slice(0, TOKEN_SEGMENT_LENGTH);
 }
 
@@ -171,7 +185,10 @@ export async function validateToken(tokenValue: string) {
     return null;
   }
 
-  if (tokenRecord.status !== TokenStatus.ACTIVE || tokenRecord.expiresAt < new Date()) {
+  if (
+    tokenRecord.status !== TokenStatus.ACTIVE ||
+    tokenRecord.expiresAt < new Date()
+  ) {
     return null;
   }
 
@@ -195,10 +212,15 @@ export async function listTokens(userId: string, showAll: boolean) {
     },
   });
 
-  return tokens.filter((token) => showAll || isTokenRecentlyVisible(token)).map(toTokenSummary);
+  return tokens
+    .filter((token) => showAll || isTokenRecentlyVisible(token))
+    .map(toTokenSummary);
 }
 
-export async function listAllTokens(options: { showAll: boolean; userId?: string | null }) {
+export async function listAllTokens(options: {
+  showAll: boolean;
+  userId?: string | null;
+}) {
   const tokens = await prisma.personalAccessToken.findMany({
     where: options.userId
       ? {

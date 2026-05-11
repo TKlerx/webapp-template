@@ -70,7 +70,10 @@ export function NotificationAdminPanel({
     setNotifications(initialNotifications);
   }, [initialNotifications]);
 
-  async function refreshNotifications(nextEventType = eventTypeFilter, nextStatus = statusFilter) {
+  async function refreshNotifications(
+    nextEventType = eventTypeFilter,
+    nextStatus = statusFilter,
+  ) {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -82,10 +85,13 @@ export function NotificationAdminPanel({
       }
 
       const suffix = params.toString();
-      const response = await fetch(withBasePath(`/api/notifications${suffix ? `?${suffix}` : ""}`));
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; notifications?: NotificationLogRow[] }
-        | null;
+      const response = await fetch(
+        withBasePath(`/api/notifications${suffix ? `?${suffix}` : ""}`),
+      );
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        notifications?: NotificationLogRow[];
+      } | null;
 
       if (!response.ok || !payload?.notifications) {
         pushToast(payload?.error ?? t("loadFailed"));
@@ -102,7 +108,9 @@ export function NotificationAdminPanel({
     setBusyEventType(config.eventType);
     try {
       const response = await fetch(
-        withBasePath(`/api/notifications/settings/${encodeURIComponent(config.eventType)}`),
+        withBasePath(
+          `/api/notifications/settings/${encodeURIComponent(config.eventType)}`,
+        ),
         {
           method: "PATCH",
           headers: {
@@ -112,9 +120,10 @@ export function NotificationAdminPanel({
         },
       );
 
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; config?: NotificationConfig }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        config?: NotificationConfig;
+      } | null;
 
       if (!response.ok || !payload?.config) {
         pushToast(payload?.error ?? t("saveFailed"));
@@ -122,7 +131,9 @@ export function NotificationAdminPanel({
       }
 
       setConfigs((current) =>
-        current.map((item) => (item.eventType === payload.config!.eventType ? payload.config! : item)),
+        current.map((item) =>
+          item.eventType === payload.config!.eventType ? payload.config! : item,
+        ),
       );
       pushToast(enabled ? t("enabledSaved") : t("disabledSaved"));
     } finally {
@@ -131,9 +142,13 @@ export function NotificationAdminPanel({
   }
 
   const summary = {
-    queued: notifications.filter((item) => item.status === "QUEUED" || item.status === "RETRYING").length,
+    queued: notifications.filter(
+      (item) => item.status === "QUEUED" || item.status === "RETRYING",
+    ).length,
     sent: notifications.filter((item) => item.status === "SENT").length,
-    failed: notifications.filter((item) => item.status === "FAILED" || item.status === "BOUNCED").length,
+    failed: notifications.filter(
+      (item) => item.status === "FAILED" || item.status === "BOUNCED",
+    ).length,
   };
 
   return (
@@ -142,7 +157,9 @@ export function NotificationAdminPanel({
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="text-xl font-semibold">{t("settingsTitle")}</h2>
-            <p className="mt-1 text-sm opacity-70">{t("settingsDescription")}</p>
+            <p className="mt-1 text-sm opacity-70">
+              {t("settingsDescription")}
+            </p>
           </div>
         </div>
 
@@ -154,7 +171,9 @@ export function NotificationAdminPanel({
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-semibold">{t(`eventTypes.${config.eventType}`)}</h3>
+                  <h3 className="font-semibold">
+                    {t(`eventTypes.${config.eventType}`)}
+                  </h3>
                   <p className="mt-1 text-xs opacity-60">{config.eventType}</p>
                 </div>
                 <label className="flex items-center gap-2 text-sm">
@@ -162,7 +181,9 @@ export function NotificationAdminPanel({
                     checked={config.enabled}
                     className="size-4 rounded"
                     disabled={busyEventType === config.eventType}
-                    onChange={(event) => void toggleConfig(config, event.target.checked)}
+                    onChange={(event) =>
+                      void toggleConfig(config, event.target.checked)
+                    }
                     type="checkbox"
                   />
                   {config.enabled ? t("enabled") : t("disabled")}
@@ -215,11 +236,13 @@ export function NotificationAdminPanel({
               </SelectTrigger>
               <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
                 <SelectItem value={ALL_FILTER}>{t("allStatuses")}</SelectItem>
-                {["QUEUED", "RETRYING", "SENT", "FAILED", "BOUNCED"].map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {t(`statuses.${status}`)}
-                  </SelectItem>
-                ))}
+                {["QUEUED", "RETRYING", "SENT", "FAILED", "BOUNCED"].map(
+                  (status) => (
+                    <SelectItem key={status} value={status}>
+                      {t(`statuses.${status}`)}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -253,8 +276,12 @@ export function NotificationAdminPanel({
                   <TableRow key={notification.id}>
                     <TableCell>{formatDate(notification.createdAt)}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{t(`eventTypes.${notification.eventType}`)}</div>
-                      <div className="text-xs opacity-60">{notification.eventType}</div>
+                      <div className="font-medium">
+                        {t(`eventTypes.${notification.eventType}`)}
+                      </div>
+                      <div className="text-xs opacity-60">
+                        {notification.eventType}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div>{notification.recipientEmail}</div>
@@ -267,15 +294,21 @@ export function NotificationAdminPanel({
                         {t(`statuses.${notification.status}`)}
                       </span>
                     </TableCell>
-                    <TableCell className="max-w-[20rem] truncate">{notification.subject}</TableCell>
+                    <TableCell className="max-w-[20rem] truncate">
+                      {notification.subject}
+                    </TableCell>
                     <TableCell>
                       <div className="text-xs opacity-70">
                         {notification.sentAt
-                          ? t("sentAtValue", { value: formatDate(notification.sentAt) })
+                          ? t("sentAtValue", {
+                              value: formatDate(notification.sentAt),
+                            })
                           : t("notSentYet")}
                       </div>
                       <div className="mt-1 text-xs opacity-70">
-                        {t("retryCountValue", { count: notification.retryCount })}
+                        {t("retryCountValue", {
+                          count: notification.retryCount,
+                        })}
                       </div>
                       {notification.lastError ? (
                         <div className="mt-1 max-w-[18rem] text-xs text-rose-700 dark:text-rose-300">

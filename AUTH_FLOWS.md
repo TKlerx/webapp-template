@@ -12,22 +12,22 @@ Self-service signup is disabled. Users are either created by admins or provision
 
 ## Key Files
 
-| File | Purpose |
-| --- | --- |
-| `src/lib/better-auth.ts` | Better Auth configuration |
-| `src/lib/auth.ts` | Session lookup and password helper functions |
-| `src/lib/azure-auth.ts` | Azure AD configuration helpers |
-| `src/lib/rbac.ts` | Role-based access control helpers |
-| `src/lib/route-auth.ts` | API route authorization helpers |
-| `src/app/api/auth/login/route.ts` | Email/password login endpoint |
-| `src/app/api/auth/logout/route.ts` | Logout endpoint |
-| `src/app/api/auth/change-password/route.ts` | Password change endpoint |
-| `src/app/api/auth/session/route.ts` | Session info endpoint |
-| `src/app/api/auth/sso/azure/route.ts` | Azure SSO initiation and test-only mock path |
-| `src/app/api/auth/sso/azure/callback/route.ts` | Azure SSO callback handler |
-| `src/app/(dashboard)/layout.tsx` | Dashboard layout with auth enforcement |
-| `prisma/schema.prisma` | SQLite schema for local development |
-| `prisma/schema.postgres.prisma` | PostgreSQL schema for Docker / production-style deployment |
+| File                                           | Purpose                                                    |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| `src/lib/better-auth.ts`                       | Better Auth configuration                                  |
+| `src/lib/auth.ts`                              | Session lookup and password helper functions               |
+| `src/lib/azure-auth.ts`                        | Azure AD configuration helpers                             |
+| `src/lib/rbac.ts`                              | Role-based access control helpers                          |
+| `src/lib/route-auth.ts`                        | API route authorization helpers                            |
+| `src/app/api/auth/login/route.ts`              | Email/password login endpoint                              |
+| `src/app/api/auth/logout/route.ts`             | Logout endpoint                                            |
+| `src/app/api/auth/change-password/route.ts`    | Password change endpoint                                   |
+| `src/app/api/auth/session/route.ts`            | Session info endpoint                                      |
+| `src/app/api/auth/sso/azure/route.ts`          | Azure SSO initiation and test-only mock path               |
+| `src/app/api/auth/sso/azure/callback/route.ts` | Azure SSO callback handler                                 |
+| `src/app/(dashboard)/layout.tsx`               | Dashboard layout with auth enforcement                     |
+| `prisma/schema.prisma`                         | SQLite schema for local development                        |
+| `prisma/schema.postgres.prisma`                | PostgreSQL schema for Docker / production-style deployment |
 
 ## 1. Email/Password Login
 
@@ -198,22 +198,22 @@ Seeded user defaults:
 
 ## 10. API Endpoint Summary
 
-| Method | Path | Auth | Purpose |
-| --- | --- | --- | --- |
-| POST | `/api/auth/login` | Public | Email/password login |
-| POST | `/api/auth/logout` | Authenticated | Sign out |
-| POST | `/api/auth/change-password` | Authenticated | Change password |
-| GET | `/api/auth/session` | Authenticated | Get session user info |
-| GET/POST | `/api/auth/sso/azure` | Public | Initiate Azure SSO |
-| GET/POST | `/api/auth/sso/azure/callback` | Public | Azure callback shim |
-| GET/POST | `/api/auth/callback/[provider]` | Public | Better Auth OAuth callback |
-| GET | `/api/users` | PLATFORM_ADMIN | List users |
-| POST | `/api/users` | PLATFORM_ADMIN | Create user |
-| PATCH | `/api/users/[id]/approve` | PLATFORM_ADMIN | Approve pending user |
-| PATCH | `/api/users/[id]/deactivate` | PLATFORM_ADMIN | Deactivate user |
-| PATCH | `/api/users/[id]/reactivate` | PLATFORM_ADMIN | Reactivate inactive user |
-| PATCH | `/api/users/[id]/role` | PLATFORM_ADMIN | Change user role |
-| PATCH | `/api/users/[id]/theme` | Authenticated | Update user theme preference |
+| Method   | Path                            | Auth           | Purpose                      |
+| -------- | ------------------------------- | -------------- | ---------------------------- |
+| POST     | `/api/auth/login`               | Public         | Email/password login         |
+| POST     | `/api/auth/logout`              | Authenticated  | Sign out                     |
+| POST     | `/api/auth/change-password`     | Authenticated  | Change password              |
+| GET      | `/api/auth/session`             | Authenticated  | Get session user info        |
+| GET/POST | `/api/auth/sso/azure`           | Public         | Initiate Azure SSO           |
+| GET/POST | `/api/auth/sso/azure/callback`  | Public         | Azure callback shim          |
+| GET/POST | `/api/auth/callback/[provider]` | Public         | Better Auth OAuth callback   |
+| GET      | `/api/users`                    | PLATFORM_ADMIN | List users                   |
+| POST     | `/api/users`                    | PLATFORM_ADMIN | Create user                  |
+| PATCH    | `/api/users/[id]/approve`       | PLATFORM_ADMIN | Approve pending user         |
+| PATCH    | `/api/users/[id]/deactivate`    | PLATFORM_ADMIN | Deactivate user              |
+| PATCH    | `/api/users/[id]/reactivate`    | PLATFORM_ADMIN | Reactivate inactive user     |
+| PATCH    | `/api/users/[id]/role`          | PLATFORM_ADMIN | Change user role             |
+| PATCH    | `/api/users/[id]/theme`         | Authenticated  | Update user theme preference |
 
 ## Environment Variables
 

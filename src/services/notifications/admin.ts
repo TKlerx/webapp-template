@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
-import { NotificationEventType, NotificationStatus } from "../../../generated/prisma/enums";
+import {
+  NotificationEventType,
+  NotificationStatus,
+} from "../../../generated/prisma/enums";
 
 const SUPPORTED_NOTIFICATION_EVENT_TYPES = [
   NotificationEventType.USER_CREATED,
@@ -24,7 +27,9 @@ type NotificationTypeConfigurationRecord = {
 type NotificationTypeConfigurationDelegate = {
   upsert(args: {
     where: { eventType: NotificationEventType };
-    update: Partial<Pick<NotificationTypeConfigurationRecord, "enabled" | "updatedByUserId">>;
+    update: Partial<
+      Pick<NotificationTypeConfigurationRecord, "enabled" | "updatedByUserId">
+    >;
     create: {
       eventType: NotificationEventType;
       enabled: boolean;
@@ -56,7 +61,11 @@ export function parseNotificationEventType(value: string | null) {
     return { eventType: null };
   }
 
-  if (!Object.values(NotificationEventType).includes(value as NotificationEventType)) {
+  if (
+    !Object.values(NotificationEventType).includes(
+      value as NotificationEventType,
+    )
+  ) {
     return { error: jsonError("Invalid notification event type", 400) };
   }
 
@@ -68,7 +77,9 @@ export function parseNotificationStatus(value: string | null) {
     return { status: null };
   }
 
-  if (!Object.values(NotificationStatus).includes(value as NotificationStatus)) {
+  if (
+    !Object.values(NotificationStatus).includes(value as NotificationStatus)
+  ) {
     return { error: jsonError("Invalid notification status", 400) };
   }
 
@@ -79,13 +90,13 @@ export async function ensureNotificationTypeConfigurations() {
   const delegate = notificationTypeConfigurations();
   for (const eventType of SUPPORTED_NOTIFICATION_EVENT_TYPES) {
     await delegate.upsert({
-        where: { eventType },
-        update: {},
-        create: {
-          eventType,
-          enabled: true,
-        },
-      });
+      where: { eventType },
+      update: {},
+      create: {
+        eventType,
+        enabled: true,
+      },
+    });
   }
 }
 
@@ -101,7 +112,9 @@ export async function listNotificationTypeConfigurations() {
 
   return configs
     .filter((config: NotificationTypeConfigurationRecord) =>
-      SUPPORTED_NOTIFICATION_EVENT_TYPES.includes(config.eventType as (typeof SUPPORTED_NOTIFICATION_EVENT_TYPES)[number]),
+      SUPPORTED_NOTIFICATION_EVENT_TYPES.includes(
+        config.eventType as (typeof SUPPORTED_NOTIFICATION_EVENT_TYPES)[number],
+      ),
     )
     .map((config: NotificationTypeConfigurationRecord) => ({
       eventType: config.eventType,
@@ -112,7 +125,9 @@ export async function listNotificationTypeConfigurations() {
     }));
 }
 
-export async function getNotificationTypeConfiguration(eventType: NotificationEventType) {
+export async function getNotificationTypeConfiguration(
+  eventType: NotificationEventType,
+) {
   const config = await notificationTypeConfigurations().findUnique({
     where: { eventType },
   });
@@ -125,8 +140,14 @@ export async function updateNotificationTypeConfiguration(
   actorId: string,
   enabled: boolean,
 ) {
-  if (!SUPPORTED_NOTIFICATION_EVENT_TYPES.includes(eventType as (typeof SUPPORTED_NOTIFICATION_EVENT_TYPES)[number])) {
-    return { error: jsonError("Notification event type is not configurable", 400) };
+  if (
+    !SUPPORTED_NOTIFICATION_EVENT_TYPES.includes(
+      eventType as (typeof SUPPORTED_NOTIFICATION_EVENT_TYPES)[number],
+    )
+  ) {
+    return {
+      error: jsonError("Notification event type is not configurable", 400),
+    };
   }
 
   const config = await notificationTypeConfigurations().upsert({
@@ -153,7 +174,9 @@ export async function updateNotificationTypeConfiguration(
   };
 }
 
-export async function listNotificationLog(filters: NotificationLogFilters = {}) {
+export async function listNotificationLog(
+  filters: NotificationLogFilters = {},
+) {
   const notifications = await prisma.notification.findMany({
     where: {
       status: filters.status ?? undefined,

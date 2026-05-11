@@ -12,7 +12,9 @@ function getTokenValueFromRequest(request: Request) {
   return apiKey || null;
 }
 
-export async function resolveTokenUser(request: Request): Promise<SessionUser | null> {
+export async function resolveTokenUser(
+  request: Request,
+): Promise<SessionUser | null> {
   const tokenValue = getTokenValueFromRequest(request);
   if (!tokenValue) {
     return null;

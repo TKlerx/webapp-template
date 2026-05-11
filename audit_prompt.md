@@ -1,8 +1,9 @@
 I got this repo from my colleagues, but they are not SWE engineers. I installed a lot of skills. Make use of them.
 I also installed caveman and rtk. Use them!
 I want you to check this repo regarding:
-* web design best practices (you have a skill for that)
-* security best practices (you have a skill for that and also the AUTH_REVIEW_CHECKLIST.md from another repo)
+
+- web design best practices (you have a skill for that)
+- security best practices (you have a skill for that and also the AUTH_REVIEW_CHECKLIST.md from another repo)
 
 Furthermore, I want you to look at this repo: https://github.com/TKlerx/webapp-template/
 There is a lot in terms of SWE best practices:
@@ -21,11 +22,12 @@ Eventually, we want to bring this code into production with CI/CD (with azure de
 Now do your thing and check all of that. Also, I want to later document needed changes using github speckit.
 
 Also do the following:
-* Check for UI best practices
-* Check for python best practices
-* Do security review/audit
-* migrate from next-auth to better-auth
-* get rid of requirements.txt and use uv with proper pyproject.toml
+
+- Check for UI best practices
+- Check for python best practices
+- Do security review/audit
+- migrate from next-auth to better-auth
+- get rid of requirements.txt and use uv with proper pyproject.toml
 
 If there is more stuff to consider, please let me know.
 

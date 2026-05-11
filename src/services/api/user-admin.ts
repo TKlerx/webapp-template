@@ -6,7 +6,10 @@ import {
 import { safeLogAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
-import { requireRouteUser, requireRouteUserWithRoles } from "@/services/api/route-context";
+import {
+  requireRouteUser,
+  requireRouteUserWithRoles,
+} from "@/services/api/route-context";
 import {
   safeQueueRoleChangedNotifications,
   safeQueueUserCreatedNotifications,
@@ -70,7 +73,12 @@ export async function createLocalUser(
   },
 ) {
   if (!body.email || !body.name || !body.role || !body.temporaryPassword) {
-    return { error: jsonError("Email, name, role, and temporary password are required", 400) };
+    return {
+      error: jsonError(
+        "Email, name, role, and temporary password are required",
+        400,
+      ),
+    };
   }
 
   if (!Object.values(Role).includes(body.role)) {
@@ -190,7 +198,10 @@ export async function ensureAdminUserCanChange(
   const effectiveRole = nextState.role ?? user.role;
   const effectiveStatus = nextState.status ?? user.status;
 
-  if (effectiveRole === Role.PLATFORM_ADMIN && effectiveStatus !== UserStatus.INACTIVE) {
+  if (
+    effectiveRole === Role.PLATFORM_ADMIN &&
+    effectiveStatus !== UserStatus.INACTIVE
+  ) {
     return null;
   }
 
@@ -220,8 +231,14 @@ export async function updateManagedUserStatus(
 
   const { user, actor } = managed;
 
-  if (options?.requireCurrentStatus && user.status !== options.requireCurrentStatus) {
-    return jsonError(options.blockedMessage ?? "User is in an invalid status", 400);
+  if (
+    options?.requireCurrentStatus &&
+    user.status !== options.requireCurrentStatus
+  ) {
+    return jsonError(
+      options.blockedMessage ?? "User is in an invalid status",
+      400,
+    );
   }
 
   if (options?.lastAdminMessage) {

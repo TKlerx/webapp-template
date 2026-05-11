@@ -1,5 +1,8 @@
 import { requireApiUserWithRoles } from "@/lib/route-auth";
-import { getIntegrationStatus, updateTeamsConfig } from "@/services/teams/admin";
+import {
+  getIntegrationStatus,
+  updateTeamsConfig,
+} from "@/services/teams/admin";
 import { Role } from "../../../../../generated/prisma/enums";
 
 export async function GET(request: Request) {
@@ -23,17 +26,20 @@ export async function PUT(request: Request) {
     intakeEnabled?: boolean;
   };
 
-  if (
-    body.sendEnabled !== undefined &&
-    typeof body.sendEnabled !== "boolean"
-  ) {
-    return Response.json({ error: "sendEnabled must be a boolean" }, { status: 400 });
+  if (body.sendEnabled !== undefined && typeof body.sendEnabled !== "boolean") {
+    return Response.json(
+      { error: "sendEnabled must be a boolean" },
+      { status: 400 },
+    );
   }
   if (
     body.intakeEnabled !== undefined &&
     typeof body.intakeEnabled !== "boolean"
   ) {
-    return Response.json({ error: "intakeEnabled must be a boolean" }, { status: 400 });
+    return Response.json(
+      { error: "intakeEnabled must be a boolean" },
+      { status: 400 },
+    );
   }
 
   await updateTeamsConfig({

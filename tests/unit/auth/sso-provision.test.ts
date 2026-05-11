@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
-import { AuthMethod, Role, ThemePreference, UserStatus } from "../../../generated/prisma/enums";
+import {
+  AuthMethod,
+  Role,
+  ThemePreference,
+  UserStatus,
+} from "../../../generated/prisma/enums";
 
 vi.mock("@/lib/db", () => ({
   prisma: prismaMock,

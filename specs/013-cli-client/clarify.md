@@ -14,4 +14,3 @@
 - Language: Go 1.22+ for single-binary cross-platform support
 - CLI framework: cobra (standard Go CLI framework)
 - Output: go-pretty for tables, stdlib for JSON/CSV, non-interactive auto-switches tableâ†’JSON
-

@@ -24,9 +24,9 @@
 
 **Purpose**: Create the shared service surface that the route refactor will use.
 
-- [X] T001 Create the shared API service entrypoint in `src/services/api/index.ts`
-- [X] T002 [P] Create shared route-service types in `src/services/api/types.ts`
-- [X] T003 [P] Create service-level unit test scaffolding in `tests/unit/services/api/route-context.test.ts` and `tests/unit/services/api/audit-filters.test.ts`
+- [x] T001 Create the shared API service entrypoint in `src/services/api/index.ts`
+- [x] T002 [P] Create shared route-service types in `src/services/api/types.ts`
+- [x] T003 [P] Create service-level unit test scaffolding in `tests/unit/services/api/route-context.test.ts` and `tests/unit/services/api/audit-filters.test.ts`
 
 ---
 
@@ -36,12 +36,12 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [X] T004 Implement authenticated and role-aware route context helpers in `src/services/api/route-context.ts`
-- [X] T005 Implement managed-user loading and status-mutation helpers in `src/services/api/user-admin.ts`
-- [X] T006 [P] Implement shared audit filter parsing utilities in `src/services/api/audit-filters.ts`
-- [X] T007 [P] Implement background-job mapping and serialization helpers in `src/services/api/background-jobs.ts`
-- [X] T008 Update compatibility wrappers in `src/lib/route-auth.ts` and `src/lib/user-management.ts`
-- [X] T009 Update shared audit export helpers to consume the shared filter model in `src/lib/audit-export.ts`
+- [x] T004 Implement authenticated and role-aware route context helpers in `src/services/api/route-context.ts`
+- [x] T005 Implement managed-user loading and status-mutation helpers in `src/services/api/user-admin.ts`
+- [x] T006 [P] Implement shared audit filter parsing utilities in `src/services/api/audit-filters.ts`
+- [x] T007 [P] Implement background-job mapping and serialization helpers in `src/services/api/background-jobs.ts`
+- [x] T008 Update compatibility wrappers in `src/lib/route-auth.ts` and `src/lib/user-management.ts`
+- [x] T009 Update shared audit export helpers to consume the shared filter model in `src/lib/audit-export.ts`
 
 **Checkpoint**: Foundation ready. The current starter can now refactor existing route families without changing API contracts.
 
@@ -57,19 +57,19 @@
 
 > **NOTE: Write these tests first, ensure they fail before implementation.**
 
-- [X] T010 [P] [US1] Add shared route-context unit coverage in `tests/unit/services/api/route-context.test.ts`
-- [X] T011 [P] [US1] Add shared user-admin helper regression coverage in `tests/unit/auth/create-user.test.ts` and `tests/unit/auth/last-admin.test.ts`
-- [X] T012 [P] [US1] Add route-regression coverage for list and export flows in `tests/unit/users-status-filter.test.ts`, `tests/unit/audit-trail.test.ts`, and `tests/unit/background-jobs-route.test.ts`
+- [x] T010 [P] [US1] Add shared route-context unit coverage in `tests/unit/services/api/route-context.test.ts`
+- [x] T011 [P] [US1] Add shared user-admin helper regression coverage in `tests/unit/auth/create-user.test.ts` and `tests/unit/auth/last-admin.test.ts`
+- [x] T012 [P] [US1] Add route-regression coverage for list and export flows in `tests/unit/users-status-filter.test.ts`, `tests/unit/audit-trail.test.ts`, and `tests/unit/background-jobs-route.test.ts`
 
 ### Implementation for User Story 1
 
-- [X] T013 [US1] Refactor authenticated user list and create handlers in `src/app/api/users/route.ts`
-- [X] T014 [US1] Refactor the self-service theme handler in `src/app/api/users/[id]/theme/route.ts`
-- [X] T015 [US1] Refactor approve, deactivate, and reactivate handlers in `src/app/api/users/[id]/approve/route.ts`, `src/app/api/users/[id]/deactivate/route.ts`, and `src/app/api/users/[id]/reactivate/route.ts`
-- [X] T016 [US1] Refactor the role mutation handler in `src/app/api/users/[id]/role/route.ts`
-- [X] T017 [US1] Refactor audit list and export handlers in `src/app/api/audit/route.ts` and `src/app/api/audit/export/route.ts`
-- [X] T018 [US1] Refactor background job list and create handlers in `src/app/api/background-jobs/route.ts`
-- [X] T019 [US1] Refactor authenticated auth handlers in `src/app/api/auth/change-password/route.ts`, `src/app/api/auth/logout/route.ts`, and `src/app/api/auth/session/route.ts`
+- [x] T013 [US1] Refactor authenticated user list and create handlers in `src/app/api/users/route.ts`
+- [x] T014 [US1] Refactor the self-service theme handler in `src/app/api/users/[id]/theme/route.ts`
+- [x] T015 [US1] Refactor approve, deactivate, and reactivate handlers in `src/app/api/users/[id]/approve/route.ts`, `src/app/api/users/[id]/deactivate/route.ts`, and `src/app/api/users/[id]/reactivate/route.ts`
+- [x] T016 [US1] Refactor the role mutation handler in `src/app/api/users/[id]/role/route.ts`
+- [x] T017 [US1] Refactor audit list and export handlers in `src/app/api/audit/route.ts` and `src/app/api/audit/export/route.ts`
+- [x] T018 [US1] Refactor background job list and create handlers in `src/app/api/background-jobs/route.ts`
+- [x] T019 [US1] Refactor authenticated auth handlers in `src/app/api/auth/change-password/route.ts`, `src/app/api/auth/logout/route.ts`, and `src/app/api/auth/session/route.ts`
 
 **Checkpoint**: User Story 1 is complete when the current starter's authenticated route families share reusable helpers and all covered route tests pass unchanged.
 
@@ -79,9 +79,9 @@
 
 **Purpose**: Final validation, documentation, and handoff updates that apply across the implemented work.
 
-- [X] T020 [P] Update route duplication policy and deferred-scope notes in `specs/011-route-refactor/contracts/api-invariants.md` and `specs/011-route-refactor/contracts/service-boundaries.md`
-- [X] T021 Run refactor regression checks with `validate.ps1`, `tests/unit/services/api/route-context.test.ts`, and `tests/unit/audit-trail.test.ts`
-- [X] T022 [Governance] Update project continuity and spec tracking in `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` to satisfy constitution handoff requirements
+- [x] T020 [P] Update route duplication policy and deferred-scope notes in `specs/011-route-refactor/contracts/api-invariants.md` and `specs/011-route-refactor/contracts/service-boundaries.md`
+- [x] T021 Run refactor regression checks with `validate.ps1`, `tests/unit/services/api/route-context.test.ts`, and `tests/unit/audit-trail.test.ts`
+- [x] T022 [Governance] Update project continuity and spec tracking in `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` to satisfy constitution handoff requirements
 
 ---
 

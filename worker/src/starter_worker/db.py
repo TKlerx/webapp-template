@@ -26,9 +26,13 @@ class JobStore:
     def __init__(self, config: WorkerConfig) -> None:
         self._config = config
         self._is_sqlite = config.database_url.startswith("file:")
-        self._sqlite_path = None
+        self._sqlite_path: Path | None = None
         if self._is_sqlite:
             self._sqlite_path = Path(config.database_url.removeprefix("file:")).resolve()
+
+    def _sqlite_conn(self) -> sqlite3.Connection:
+        assert self._sqlite_path is not None
+        return sqlite3.connect(self._sqlite_path)
 
     def claim_next_job(self) -> BackgroundJob | None:
         if self._is_sqlite:
@@ -45,7 +49,7 @@ class JobStore:
     def complete_job(self, job_id: str, result: dict[str, Any]) -> None:
         payload = json.dumps(result)
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE BackgroundJob
@@ -89,7 +93,7 @@ class JobStore:
     def mark_notification_processing(self, notification_id: str, attempt_count: int) -> None:
         retry_count = max(attempt_count - 1, 0)
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE Notification
@@ -120,7 +124,7 @@ class JobStore:
     def mark_notification_sent(self, notification_id: str, attempt_count: int) -> None:
         retry_count = max(attempt_count - 1, 0)
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE Notification
@@ -163,7 +167,7 @@ class JobStore:
         retry_count = max(attempt_count - 1, 0)
         status = "RETRYING" if will_retry else "FAILED"
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE Notification
@@ -195,7 +199,7 @@ class JobStore:
 
     def has_inbound_email(self, provider_message_id: str) -> bool:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 row = connection.execute(
                     'SELECT 1 FROM InboundEmail WHERE providerMessageId = ? LIMIT 1',
                     (provider_message_id,),
@@ -215,7 +219,7 @@ class JobStore:
     def create_inbound_email(self, payload: dict[str, Any]) -> str:
         reference_ids = json.dumps(payload.get("referenceIds") or [])
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 cursor = connection.execute(
                     """
                     INSERT INTO InboundEmail (
@@ -247,8 +251,8 @@ class JobStore:
                 return str(payload["id"] if cursor.rowcount else payload["id"])
 
         with psycopg.connect(self._config.database_url) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
+            with connection.cursor() as pg_cursor:
+                pg_cursor.execute(
                     """
                     INSERT INTO "InboundEmail" (
                         id, "providerMessageId", mailbox, "internetMessageId", "conversationId",
@@ -289,7 +293,7 @@ class JobStore:
         linked_entity_id: str | None = None,
     ) -> None:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE InboundEmail
@@ -339,7 +343,7 @@ class JobStore:
 
     def mark_notification_bounced(self, notification_id: str, error: str) -> None:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE Notification
@@ -369,7 +373,7 @@ class JobStore:
 
     def mark_teams_outbound_processing(self, outbound_message_id: str, attempt_count: int) -> None:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE TeamsOutboundMessage
@@ -399,7 +403,7 @@ class JobStore:
 
     def mark_teams_outbound_sent(self, outbound_message_id: str, graph_message_id: str | None) -> None:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE TeamsOutboundMessage
@@ -441,7 +445,7 @@ class JobStore:
     ) -> None:
         status = "RETRYING" if will_retry else "FAILED"
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE TeamsOutboundMessage
@@ -473,7 +477,7 @@ class JobStore:
 
     def has_teams_inbound_message(self, provider_message_id: str) -> bool:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 row = connection.execute(
                     "SELECT 1 FROM TeamsInboundMessage WHERE providerMessageId = ? LIMIT 1",
                     (provider_message_id,),
@@ -492,7 +496,7 @@ class JobStore:
 
     def create_teams_inbound_message(self, payload: dict[str, Any]) -> str:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     INSERT INTO TeamsInboundMessage (
@@ -551,7 +555,7 @@ class JobStore:
         delta_token: str | None,
     ) -> None:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.execute(
                     """
                     UPDATE TeamsIntakeSubscription
@@ -581,7 +585,7 @@ class JobStore:
 
     def list_active_teams_subscriptions(self) -> list[dict[str, Any]]:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.row_factory = sqlite3.Row
                 rows = connection.execute(
                     """
@@ -609,7 +613,7 @@ class JobStore:
 
     def create_teams_intake_poll_job_if_missing(self) -> bool:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 existing = connection.execute(
                     """
                     SELECT 1 FROM BackgroundJob
@@ -675,7 +679,7 @@ class JobStore:
 
     def get_teams_integration_flags(self) -> dict[str, bool]:
         if self._is_sqlite:
-            with closing(sqlite3.connect(self._sqlite_path)) as connection:
+            with closing(self._sqlite_conn()) as connection:
                 connection.row_factory = sqlite3.Row
                 row = connection.execute(
                     """
@@ -712,7 +716,7 @@ class JobStore:
             }
 
     def _claim_sqlite_job(self) -> BackgroundJob | None:
-        with closing(sqlite3.connect(self._sqlite_path)) as connection:
+        with closing(self._sqlite_conn()) as connection:
             connection.row_factory = sqlite3.Row
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
@@ -793,7 +797,7 @@ class JobStore:
         )
 
     def _requeue_stale_sqlite_jobs(self) -> int:
-        with closing(sqlite3.connect(self._sqlite_path)) as connection:
+        with closing(self._sqlite_conn()) as connection:
             cursor = connection.execute(
                 """
                 UPDATE BackgroundJob
@@ -841,7 +845,7 @@ class JobStore:
             return row_count
 
     def _fail_sqlite_job(self, job_id: str, error: str) -> None:
-        with closing(sqlite3.connect(self._sqlite_path)) as connection:
+        with closing(self._sqlite_conn()) as connection:
             connection.row_factory = sqlite3.Row
             row = connection.execute(
                 "SELECT attemptCount FROM BackgroundJob WHERE id = ?",

@@ -3,7 +3,9 @@ import { AuthMethod, Role, UserStatus } from "../../../generated/prisma/enums";
 import { appBasePath, appOrigin } from "../helpers/auth";
 import { seedSsoUser } from "../helpers/db";
 
-test("mock Azure SSO can complete the CLI browser login flow", async ({ page }) => {
+test("mock Azure SSO can complete the CLI browser login flow", async ({
+  page,
+}) => {
   await seedSsoUser({
     email: "e2e-cli-sso@example.com",
     name: "E2E CLI SSO",
@@ -26,5 +28,7 @@ test("mock Azure SSO can complete the CLI browser login flow", async ({ page }) 
     { waitUntil: "networkidle" },
   );
 
-  await expect(page).toHaveURL(/\/cli-callback\?code=.*state=cli-sso-state/, { timeout: 30000 });
+  await expect(page).toHaveURL(/\/cli-callback\?code=.*state=cli-sso-state/, {
+    timeout: 30000,
+  });
 });

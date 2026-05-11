@@ -4,7 +4,11 @@ import {
   NotificationStatus,
   Role,
 } from "../../../generated/prisma/enums";
-import { appBasePath, expectOnDashboard, loginWithPassword } from "../helpers/auth";
+import {
+  appBasePath,
+  expectOnDashboard,
+  loginWithPassword,
+} from "../helpers/auth";
 import {
   seedLocalUser,
   seedNotificationFixture,
@@ -60,21 +64,42 @@ test("platform admin can manage notification settings and filter the notificatio
     lastError: "Mailbox busy",
   });
 
-  await loginWithPassword(page, "e2e-notifications-admin@example.com", "AdminPass123");
+  await loginWithPassword(
+    page,
+    "e2e-notifications-admin@example.com",
+    "AdminPass123",
+  );
   await expectOnDashboard(page);
 
   await page.goto(`${appBasePath}/admin/notifications`);
 
-  await expect(page.getByRole("heading", { name: "Notifications" })).toBeVisible();
-  await expect(page.getByText("Manage notification event switches and inspect recent outbound delivery attempts.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Notifications" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Manage notification event switches and inspect recent outbound delivery attempts.",
+    ),
+  ).toBeVisible();
   await expect(page.getByText("Role changed for your account")).toBeVisible();
-  await expect(page.getByText("User status update pending retry")).toBeVisible();
+  await expect(
+    page.getByText("User status update pending retry"),
+  ).toBeVisible();
   await expect(page.getByText("Mailbox busy")).toBeVisible();
-  await expect(page.locator("article").filter({ hasText: "Queued" }).first()).toContainText("1");
-  await expect(page.locator("article").filter({ hasText: "Sent" }).first()).toContainText("1");
-  await expect(page.locator("article").filter({ hasText: "Failed" }).first()).toContainText("0");
+  await expect(
+    page.locator("article").filter({ hasText: "Queued" }).first(),
+  ).toContainText("1");
+  await expect(
+    page.locator("article").filter({ hasText: "Sent" }).first(),
+  ).toContainText("1");
+  await expect(
+    page.locator("article").filter({ hasText: "Failed" }).first(),
+  ).toContainText("0");
 
-  const roleChangedCard = page.locator("article").filter({ hasText: "Role changed" }).first();
+  const roleChangedCard = page
+    .locator("article")
+    .filter({ hasText: "Role changed" })
+    .first();
   const roleChangedToggle = roleChangedCard.getByRole("checkbox");
   await expect(roleChangedToggle).toBeChecked();
 
@@ -98,7 +123,9 @@ test("platform admin can manage notification settings and filter the notificatio
   await notificationLogSection.getByRole("combobox").nth(0).click();
   await page.getByRole("option", { name: "Role changed" }).click();
   await expect(page.getByText("Role changed for your account")).toBeVisible();
-  await expect(page.getByText("User status update pending retry")).toHaveCount(0);
+  await expect(page.getByText("User status update pending retry")).toHaveCount(
+    0,
+  );
 
   await notificationLogSection.getByRole("combobox").nth(1).click();
   await page.getByRole("option", { name: "Sent" }).click();
@@ -109,6 +136,8 @@ test("platform admin can manage notification settings and filter the notificatio
   await page.getByRole("option", { name: "All events" }).click();
   await notificationLogSection.getByRole("combobox").nth(1).click();
   await page.getByRole("option", { name: "Retrying" }).click();
-  await expect(page.getByText("User status update pending retry")).toBeVisible();
+  await expect(
+    page.getByText("User status update pending retry"),
+  ).toBeVisible();
   await expect(page.getByText("Role changed for your account")).toHaveCount(0);
 });

@@ -61,28 +61,37 @@ type TeamsClientOptions = {
 export function hasRealGraphTeamsConfig() {
   return Boolean(
     process.env.AZURE_AD_CLIENT_ID &&
-      process.env.AZURE_AD_CLIENT_SECRET &&
-      process.env.AZURE_AD_TENANT_ID &&
-      process.env.AZURE_AD_CLIENT_ID !== "replace-me" &&
-      process.env.AZURE_AD_CLIENT_SECRET !== "replace-me" &&
-      process.env.AZURE_AD_TENANT_ID !== "replace-me",
+    process.env.AZURE_AD_CLIENT_SECRET &&
+    process.env.AZURE_AD_TENANT_ID &&
+    process.env.AZURE_AD_CLIENT_ID !== "replace-me" &&
+    process.env.AZURE_AD_CLIENT_SECRET !== "replace-me" &&
+    process.env.AZURE_AD_TENANT_ID !== "replace-me",
   );
 }
 
-export function createGraphTeamsClient(options: TeamsClientOptions = {}): TeamsClient {
+export function createGraphTeamsClient(
+  options: TeamsClientOptions = {},
+): TeamsClient {
   const clientId = options.clientId ?? process.env.AZURE_AD_CLIENT_ID ?? "";
-  const clientSecret = options.clientSecret ?? process.env.AZURE_AD_CLIENT_SECRET ?? "";
+  const clientSecret =
+    options.clientSecret ?? process.env.AZURE_AD_CLIENT_SECRET ?? "";
   const tenantId = options.tenantId ?? process.env.AZURE_AD_TENANT_ID ?? "";
   const fetchImpl = options.fetchImpl ?? fetch;
 
   if (!clientId || clientId === "replace-me") {
-    throw new Error("AZURE_AD_CLIENT_ID is not configured for Graph Teams access.");
+    throw new Error(
+      "AZURE_AD_CLIENT_ID is not configured for Graph Teams access.",
+    );
   }
   if (!clientSecret || clientSecret === "replace-me") {
-    throw new Error("AZURE_AD_CLIENT_SECRET is not configured for Graph Teams access.");
+    throw new Error(
+      "AZURE_AD_CLIENT_SECRET is not configured for Graph Teams access.",
+    );
   }
   if (!tenantId || tenantId === "replace-me") {
-    throw new Error("AZURE_AD_TENANT_ID is not configured for Graph Teams access.");
+    throw new Error(
+      "AZURE_AD_TENANT_ID is not configured for Graph Teams access.",
+    );
   }
 
   let tokenCache: TokenCache | null = null;
@@ -109,7 +118,9 @@ export function createGraphTeamsClient(options: TeamsClientOptions = {}): TeamsC
 
     if (!response.ok) {
       const details = await response.text();
-      throw new Error(`Graph token request failed: ${response.status} ${details}`);
+      throw new Error(
+        `Graph token request failed: ${response.status} ${details}`,
+      );
     }
 
     const payload = (await response.json()) as GraphTokenResponse;
@@ -140,7 +151,9 @@ export function createGraphTeamsClient(options: TeamsClientOptions = {}): TeamsC
 
     if (!response.ok) {
       const details = await response.text();
-      throw new Error(`Graph Teams request failed: ${response.status} ${details}`);
+      throw new Error(
+        `Graph Teams request failed: ${response.status} ${details}`,
+      );
     }
 
     if (response.status === 202 || response.status === 204) {
@@ -186,7 +199,9 @@ export function createGraphTeamsClient(options: TeamsClientOptions = {}): TeamsC
 
       return mapMessages(payload.value ?? [], input.teamId, input.channelId);
     },
-    async getChannelMessagesDelta(input: TeamsMessageDeltaInput): Promise<TeamsMessageDeltaResult> {
+    async getChannelMessagesDelta(
+      input: TeamsMessageDeltaInput,
+    ): Promise<TeamsMessageDeltaResult> {
       const top = Math.min(Math.max(input.top ?? 25, 1), MAX_TOP);
       const path = input.deltaToken?.trim()
         ? decodeDeltaPath(input.deltaToken.trim())
@@ -195,28 +210,42 @@ export function createGraphTeamsClient(options: TeamsClientOptions = {}): TeamsC
       const payload = await graphRequest<GraphMessageListResponse>(path);
 
       return {
-        messages: mapMessages(payload.value ?? [], input.teamId, input.channelId),
-        deltaToken: payload["@odata.deltaLink"] ?? payload["@odata.nextLink"] ?? null,
+        messages: mapMessages(
+          payload.value ?? [],
+          input.teamId,
+          input.channelId,
+        ),
+        deltaToken:
+          payload["@odata.deltaLink"] ?? payload["@odata.nextLink"] ?? null,
       };
     },
   };
 }
 
-function mapMessages(messages: GraphChatMessage[], teamId: string, channelId: string): TeamsChannelMessage[] {
+function mapMessages(
+  messages: GraphChatMessage[],
+  teamId: string,
+  channelId: string,
+): TeamsChannelMessage[] {
   return messages
-    .filter((message): message is GraphChatMessage & { id: string } => typeof message.id === "string")
+    .filter(
+      (message): message is GraphChatMessage & { id: string } =>
+        typeof message.id === "string",
+    )
     .map((message) => ({
       id: message.id!,
       teamId,
       channelId,
       content: message.body?.content ?? "",
-      contentType: message.body?.contentType?.toLowerCase() === "text" ? "text" : "html",
+      contentType:
+        message.body?.contentType?.toLowerCase() === "text" ? "text" : "html",
       createdAt: message.createdDateTime ?? null,
       senderDisplayName:
         message.from?.user?.displayName ??
         message.from?.application?.displayName ??
         null,
-      senderUserId: message.from?.user?.id ?? message.from?.application?.id ?? null,
+      senderUserId:
+        message.from?.user?.id ?? message.from?.application?.id ?? null,
     }));
 }
 

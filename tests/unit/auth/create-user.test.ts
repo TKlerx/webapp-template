@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
-import { AuthMethod, Role, ThemePreference, UserStatus } from "../../../generated/prisma/enums";
+import {
+  AuthMethod,
+  Role,
+  ThemePreference,
+  UserStatus,
+} from "../../../generated/prisma/enums";
 
 const {
   requireApiUserWithRoles,
@@ -9,7 +14,9 @@ const {
   validatePasswordComplexity,
 } = vi.hoisted(() => ({
   requireApiUserWithRoles: vi.fn(),
-  getPasswordComplexityErrorMessage: vi.fn(() => "Password must contain test requirements."),
+  getPasswordComplexityErrorMessage: vi.fn(
+    () => "Password must contain test requirements.",
+  ),
   hashPassword: vi.fn(),
   validatePasswordComplexity: vi.fn(),
 }));
@@ -100,7 +107,9 @@ describe("create user route", () => {
       user: { id: "admin_1", role: Role.PLATFORM_ADMIN },
     });
     validatePasswordComplexity.mockReturnValue(true);
-    prismaMock.user.findUnique.mockResolvedValue({ id: "existing_user" } as never);
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: "existing_user",
+    } as never);
 
     const response = await POST(
       new Request("http://localhost/api/users", {

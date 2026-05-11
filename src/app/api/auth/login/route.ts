@@ -5,7 +5,11 @@ import { prisma } from "@/lib/db";
 import { applySetCookieHeaders } from "@/lib/better-auth-http";
 import { jsonError } from "@/lib/http";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
-import { AuditAction, AuthMethod, UserStatus } from "../../../../../generated/prisma/enums";
+import {
+  AuditAction,
+  AuthMethod,
+  UserStatus,
+} from "../../../../../generated/prisma/enums";
 
 function getSafeRedirectTarget(redirectTo?: string) {
   if (!redirectTo?.startsWith("/") || redirectTo.startsWith("//")) {
@@ -18,8 +22,14 @@ function getSafeRedirectTarget(redirectTo?: string) {
 export async function POST(request: Request) {
   const rateLimit = checkRateLimit(getClientIp(request), "login");
   if (!rateLimit.allowed) {
-    const response = jsonError("Too many login attempts. Please try again later.", 429);
-    response.headers.set("Retry-After", Math.ceil(rateLimit.retryAfterMs / 1000).toString());
+    const response = jsonError(
+      "Too many login attempts. Please try again later.",
+      429,
+    );
+    response.headers.set(
+      "Retry-After",
+      Math.ceil(rateLimit.retryAfterMs / 1000).toString(),
+    );
     return response;
   }
 
@@ -35,10 +45,18 @@ export async function POST(request: Request) {
 
   const email = body.email.toLowerCase();
 
-  const accountLimit = checkRateLimit(email, "login-account", { maxAttempts: 10 });
+  const accountLimit = checkRateLimit(email, "login-account", {
+    maxAttempts: 10,
+  });
   if (!accountLimit.allowed) {
-    const response = jsonError("Too many login attempts for this account. Please try again later.", 429);
-    response.headers.set("Retry-After", Math.ceil(accountLimit.retryAfterMs / 1000).toString());
+    const response = jsonError(
+      "Too many login attempts for this account. Please try again later.",
+      429,
+    );
+    response.headers.set(
+      "Retry-After",
+      Math.ceil(accountLimit.retryAfterMs / 1000).toString(),
+    );
     return response;
   }
 
@@ -60,7 +78,10 @@ export async function POST(request: Request) {
         reason: "inactive_account",
       },
     });
-    return jsonError("Your account has been deactivated. Contact an administrator.", 403);
+    return jsonError(
+      "Your account has been deactivated. Contact an administrator.",
+      403,
+    );
   }
 
   const authResponse = await auth.api.signInEmail({
@@ -114,8 +135,9 @@ export async function POST(request: Request) {
       mustChangePassword: user.mustChangePassword,
     },
     mustChangePassword: user.mustChangePassword,
-    redirectTo:
-      user.mustChangePassword ? "/change-password" : getSafeRedirectTarget(body.redirectTo) ?? "/dashboard",
+    redirectTo: user.mustChangePassword
+      ? "/change-password"
+      : (getSafeRedirectTarget(body.redirectTo) ?? "/dashboard"),
   });
 
   return applySetCookieHeaders(response, authResponse);

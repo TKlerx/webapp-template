@@ -11,7 +11,9 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const limitParam = Number(url.searchParams.get("limit") ?? 20);
   const type = (url.searchParams.get("type") ?? "all").toLowerCase();
-  const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 100) : 20;
+  const limit = Number.isFinite(limitParam)
+    ? Math.min(Math.max(limitParam, 1), 100)
+    : 20;
 
   const status = await getIntegrationStatus();
   const activity = status.recentActivity

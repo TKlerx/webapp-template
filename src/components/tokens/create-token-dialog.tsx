@@ -22,7 +22,10 @@ import {
   SelectValue,
 } from "@/components/shadcn/select";
 import { useToast } from "@/components/ui/Toast";
-import { TokenValueDisplay, type TokenValuePayload } from "@/components/tokens/token-value-display";
+import {
+  TokenValueDisplay,
+  type TokenValuePayload,
+} from "@/components/tokens/token-value-display";
 
 const EXPIRY_OPTIONS = [7, 30, 60, 90, 180, 365];
 
@@ -34,7 +37,9 @@ export function CreateTokenDialog() {
   const [name, setName] = useState("");
   const [expiresInDays, setExpiresInDays] = useState("90");
   const [submitting, setSubmitting] = useState(false);
-  const [createdToken, setCreatedToken] = useState<TokenValuePayload | null>(null);
+  const [createdToken, setCreatedToken] = useState<TokenValuePayload | null>(
+    null,
+  );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,9 +57,10 @@ export function CreateTokenDialog() {
         }),
       });
 
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; token?: { name: string; tokenValue: string } }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        token?: { name: string; tokenValue: string };
+      } | null;
 
       if (!response.ok || !payload?.token) {
         pushToast(payload?.error ?? t("createFailed"));
@@ -83,7 +89,9 @@ export function CreateTokenDialog() {
             className="rounded-[2rem] border border-black/10 bg-[var(--panel)] p-6 text-left shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 dark:border-white/10"
             type="button"
           >
-            <p className="text-xs uppercase tracking-[0.28em] opacity-45">{t("eyebrow")}</p>
+            <p className="text-xs uppercase tracking-[0.28em] opacity-45">
+              {t("eyebrow")}
+            </p>
             <h2 className="mt-3 text-2xl font-semibold">{t("title")}</h2>
             <p className="mt-2 text-sm opacity-70">{t("description")}</p>
             <span className="mt-5 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)]">
@@ -132,7 +140,11 @@ export function CreateTokenDialog() {
               </Select>
             </div>
             <div className="flex justify-end gap-2">
-              <Button onClick={() => setOpen(false)} type="button" variant="secondary">
+              <Button
+                onClick={() => setOpen(false)}
+                type="button"
+                variant="secondary"
+              >
                 {t("cancel")}
               </Button>
               <Button disabled={submitting} type="submit">

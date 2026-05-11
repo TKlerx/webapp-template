@@ -19,6 +19,7 @@ Add `PersonalAccessToken` and `CliAuthCode` models to both `schema.prisma` and `
 ### 2. Token Service
 
 Create `src/services/api/tokens.ts` with functions:
+
 - `createToken(userId, name, expiresInDays, type)` — generates prefixed token, hashes, stores, returns plaintext once
 - `validateToken(tokenValue)` — looks up by hash, checks status/expiry/user status, returns user
 - `revokeToken(tokenId, userId)` — sets status to REVOKED

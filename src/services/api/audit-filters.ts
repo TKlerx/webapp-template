@@ -4,8 +4,15 @@ import type { AuditFilters } from "@/services/api/types";
 
 type AuditFilterParseError = { error: Response };
 type ParsedAuditFilters = { filters: AuditFilters };
-type ParsedAuditListRequest = { page: number; limit: number; filters: AuditFilters };
-type ParsedAuditExportRequest = { format: string | null; filters: AuditFilters };
+type ParsedAuditListRequest = {
+  page: number;
+  limit: number;
+  filters: AuditFilters;
+};
+type ParsedAuditExportRequest = {
+  format: string | null;
+  filters: AuditFilters;
+};
 
 export function buildAuditFilters(filters: AuditFilters = {}) {
   return {
@@ -13,7 +20,7 @@ export function buildAuditFilters(filters: AuditFilters = {}) {
     ...(filters.entityType ? { entityType: filters.entityType } : {}),
     ...(filters.scopeId ? { scopeId: filters.scopeId } : {}),
     ...(filters.actorId ? { actorId: filters.actorId } : {}),
-    ...((filters.dateFrom || filters.dateTo)
+    ...(filters.dateFrom || filters.dateTo
       ? {
           createdAt: {
             ...(filters.dateFrom ? { gte: filters.dateFrom } : {}),
@@ -24,7 +31,9 @@ export function buildAuditFilters(filters: AuditFilters = {}) {
   };
 }
 
-function parseAction(value: string | null): AuditFilterParseError | { action: AuditAction | null } {
+function parseAction(
+  value: string | null,
+): AuditFilterParseError | { action: AuditAction | null } {
   if (!value) {
     return { action: null as AuditAction | null };
   }
@@ -36,7 +45,9 @@ function parseAction(value: string | null): AuditFilterParseError | { action: Au
   return { action: value as AuditAction };
 }
 
-function parseSharedFilters(searchParams: URLSearchParams): AuditFilterParseError | ParsedAuditFilters {
+function parseSharedFilters(
+  searchParams: URLSearchParams,
+): AuditFilterParseError | ParsedAuditFilters {
   const parsedAction = parseAction(searchParams.get("action"));
   if ("error" in parsedAction) {
     return parsedAction;
@@ -48,8 +59,12 @@ function parseSharedFilters(searchParams: URLSearchParams): AuditFilterParseErro
       entityType: searchParams.get("entityType"),
       scopeId: searchParams.get("scopeId"),
       actorId: searchParams.get("actorId"),
-      dateFrom: searchParams.get("dateFrom") ? new Date(searchParams.get("dateFrom")!) : null,
-      dateTo: searchParams.get("dateTo") ? new Date(searchParams.get("dateTo")!) : null,
+      dateFrom: searchParams.get("dateFrom")
+        ? new Date(searchParams.get("dateFrom")!)
+        : null,
+      dateTo: searchParams.get("dateTo")
+        ? new Date(searchParams.get("dateTo")!)
+        : null,
     } satisfies AuditFilters,
   };
 }

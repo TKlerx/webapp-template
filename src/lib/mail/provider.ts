@@ -1,4 +1,7 @@
-import { createGraphMailClient, hasRealGraphMailConfig } from "@/lib/mail/graph";
+import {
+  createGraphMailClient,
+  hasRealGraphMailConfig,
+} from "@/lib/mail/graph";
 import type { MailClient, MailProviderName } from "@/lib/mail/types";
 
 type MailClientFactoryOptions = {
@@ -6,7 +9,9 @@ type MailClientFactoryOptions = {
 };
 
 export function getConfiguredMailProvider(): MailProviderName {
-  const configured = (process.env.MAIL_PROVIDER ?? "graph").trim().toLowerCase();
+  const configured = (process.env.MAIL_PROVIDER ?? "graph")
+    .trim()
+    .toLowerCase();
   if (configured === "graph") {
     return "graph";
   }
@@ -24,14 +29,17 @@ export function hasUsableMailConfig() {
   }
 }
 
-export function createMailClient(options: MailClientFactoryOptions = {}): MailClient {
+export function createMailClient(
+  options: MailClientFactoryOptions = {},
+): MailClient {
   const provider = options.provider ?? getConfiguredMailProvider();
 
   switch (provider) {
     case "graph":
       return createGraphMailClient();
     default:
-      throw new Error(`Unsupported mail provider "${provider satisfies never}".`);
+      throw new Error(
+        `Unsupported mail provider "${provider satisfies never}".`,
+      );
   }
 }
-

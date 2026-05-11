@@ -1,9 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { Role } from "../../generated/prisma/enums";
-import { appBasePath, expectOnDashboard, loginWithPassword } from "./helpers/auth";
+import {
+  appBasePath,
+  expectOnDashboard,
+  loginWithPassword,
+} from "./helpers/auth";
 import { seedLocalUser } from "./helpers/db";
 
-test("user can create, revoke, renew, and delete personal access tokens", async ({ page, context }) => {
+test("user can create, revoke, renew, and delete personal access tokens", async ({
+  page,
+  context,
+}) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
   await seedLocalUser({
@@ -36,12 +43,16 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
   await expect(tokenDialog).toContainText("This token will not be shown again");
   const tokenValue = await tokenDialog.locator("div.font-mono").innerText();
   await tokenDialog.getByRole("button", { name: "Copy token" }).click();
-  await expect.poll(async () => page.evaluate(() => navigator.clipboard.readText())).toBe(tokenValue);
+  await expect
+    .poll(async () => page.evaluate(() => navigator.clipboard.readText()))
+    .toBe(tokenValue);
   await tokenDialog.getByRole("button", { name: "Done" }).click();
 
   const tokenRow = page.locator("tr", { hasText: "Automation Token" });
   await expect(tokenRow).toBeVisible();
-  await expect(tokenRow).toContainText("abcdef", { timeout: 1000 }).catch(() => {});
+  await expect(tokenRow)
+    .toContainText("abcdef", { timeout: 1000 })
+    .catch(() => {});
 
   page.once("dialog", (dialog) => dialog.accept());
   await Promise.all([
@@ -81,7 +92,9 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
     ),
     renewableRow.getByRole("button", { name: "Renew" }).click(),
   ]);
-  await expect(page.getByRole("dialog")).toContainText("This token will not be shown again");
+  await expect(page.getByRole("dialog")).toContainText(
+    "This token will not be shown again",
+  );
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
 
   page.once("dialog", (dialog) => dialog.accept());
@@ -108,14 +121,20 @@ test("token pages stay usable on mobile and in dark mode", async ({ page }) => {
     mustChangePassword: false,
   });
 
-  await loginWithPassword(page, "e2e-tokens-mobile@example.com", "TokenPass123");
+  await loginWithPassword(
+    page,
+    "e2e-tokens-mobile@example.com",
+    "TokenPass123",
+  );
   await expectOnDashboard(page);
 
   await page.getByRole("button", { name: "Dark mode" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
   await page.goto(`${appBasePath}/settings/tokens`);
-  await expect(page.getByRole("button", { name: "Create token" }).first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Create token" }).first(),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Create token" }).first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("button", { name: "Cancel" }).click();
@@ -123,5 +142,7 @@ test("token pages stay usable on mobile and in dark mode", async ({ page }) => {
 
   await page.goto(`${appBasePath}/admin/tokens`);
   await expect(page).toHaveURL(new RegExp(`${appBasePath}/admin/tokens$`));
-  await expect(page.getByRole("combobox", { name: "Filter by user" })).toBeVisible();
+  await expect(
+    page.getByRole("combobox", { name: "Filter by user" }),
+  ).toBeVisible();
 });

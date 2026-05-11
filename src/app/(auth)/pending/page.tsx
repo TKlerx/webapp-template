@@ -18,7 +18,11 @@ export default async function PendingPage() {
         <p className="mt-4 text-base text-amber-900/80 dark:text-amber-200/80">
           {t("description")}
         </p>
-        <form action={withBasePath("/api/auth/logout")} className="mt-8" method="post">
+        <form
+          action={withBasePath("/api/auth/logout")}
+          className="mt-8"
+          method="post"
+        >
           <Button type="submit" variant="secondary">
             {tCommon("signOut")}
           </Button>

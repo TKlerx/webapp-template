@@ -8,7 +8,14 @@ import { prisma } from "@/lib/db";
 
 export type SessionUser = Pick<
   User,
-  "id" | "email" | "name" | "role" | "status" | "themePreference" | "mustChangePassword" | "authMethod"
+  | "id"
+  | "email"
+  | "name"
+  | "role"
+  | "status"
+  | "themePreference"
+  | "mustChangePassword"
+  | "authMethod"
 >;
 
 export async function hashPassword(password: string) {

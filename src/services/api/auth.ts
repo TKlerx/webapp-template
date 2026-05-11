@@ -43,10 +43,16 @@ export async function changePasswordForUser(
   });
 
   if (!credentialAccount?.password) {
-    return jsonError("Password change is only available for local accounts", 400);
+    return jsonError(
+      "Password change is only available for local accounts",
+      400,
+    );
   }
 
-  const valid = await verifyPassword(body.currentPassword, credentialAccount.password);
+  const valid = await verifyPassword(
+    body.currentPassword,
+    credentialAccount.password,
+  );
 
   if (!valid) {
     return jsonError("Current password is incorrect", 401);
@@ -88,7 +94,10 @@ export async function changePasswordForUser(
   return NextResponse.json({ message: "Password changed successfully" });
 }
 
-export async function signOutUser(request: Request, sessionUser: Pick<SessionUser, "id"> | null) {
+export async function signOutUser(
+  request: Request,
+  sessionUser: Pick<SessionUser, "id"> | null,
+) {
   const authResponse = await auth.api.signOut({
     headers: new Headers(request.headers),
     asResponse: true,
@@ -104,6 +113,8 @@ export async function signOutUser(request: Request, sessionUser: Pick<SessionUse
   }
 
   const url = new URL(request.url);
-  const response = NextResponse.redirect(new URL(`${getConfiguredBasePath()}/login`, url));
+  const response = NextResponse.redirect(
+    new URL(`${getConfiguredBasePath()}/login`, url),
+  );
   return applySetCookieHeaders(response, authResponse);
 }

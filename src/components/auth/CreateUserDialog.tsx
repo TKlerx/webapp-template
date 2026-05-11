@@ -108,18 +108,24 @@ export function CreateUserDialog() {
             placeholder={t("emailPlaceholder")}
             type="email"
             value={form.email}
-            onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, email: event.target.value }))
+            }
             required
           />
           <Input
             placeholder={t("namePlaceholder")}
             value={form.name}
-            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, name: event.target.value }))
+            }
             required
           />
           <Select
             value={form.role}
-            onValueChange={(value) => setForm((current) => ({ ...current, role: value as Role }))}
+            onValueChange={(value) =>
+              setForm((current) => ({ ...current, role: value as Role }))
+            }
           >
             <SelectTrigger
               aria-label={t("role")}
@@ -140,12 +146,19 @@ export function CreateUserDialog() {
             type="password"
             value={form.temporaryPassword}
             onChange={(event) =>
-              setForm((current) => ({ ...current, temporaryPassword: event.target.value }))
+              setForm((current) => ({
+                ...current,
+                temporaryPassword: event.target.value,
+              }))
             }
             required
           />
           <DialogFooter className="mt-2">
-            <Button onClick={() => setOpen(false)} type="button" variant="secondary">
+            <Button
+              onClick={() => setOpen(false)}
+              type="button"
+              variant="secondary"
+            >
               {tCommon("cancel")}
             </Button>
             <Button type="submit">{t("createButton")}</Button>

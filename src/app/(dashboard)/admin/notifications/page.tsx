@@ -24,11 +24,20 @@ export default async function AdminNotificationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm uppercase tracking-[0.2em] opacity-45">{t("eyebrow")}</p>
-        <h1 className="mt-3 text-2xl font-semibold sm:text-4xl">{t("title")}</h1>
-        <p className="mt-2 max-w-2xl text-sm opacity-70 sm:text-base">{t("description")}</p>
+        <p className="text-sm uppercase tracking-[0.2em] opacity-45">
+          {t("eyebrow")}
+        </p>
+        <h1 className="mt-3 text-2xl font-semibold sm:text-4xl">
+          {t("title")}
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm opacity-70 sm:text-base">
+          {t("description")}
+        </p>
       </div>
-      <NotificationAdminPanel initialConfigs={configs} initialNotifications={notifications} />
+      <NotificationAdminPanel
+        initialConfigs={configs}
+        initialNotifications={notifications}
+      />
     </div>
   );
 }

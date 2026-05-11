@@ -18,10 +18,10 @@ The CLI is a client application â€” it does not have a database. All persis
 }
 ```
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| server_url | string | Yes | Full URL including base path if applicable |
-| token | string | Yes | PAT or CLI login token |
+| Field      | Type   | Required | Notes                                      |
+| ---------- | ------ | -------- | ------------------------------------------ |
+| server_url | string | Yes      | Full URL including base path if applicable |
+| token      | string | Yes      | PAT or CLI login token                     |
 
 ### Version Check Cache
 
@@ -34,10 +34,10 @@ The CLI is a client application â€” it does not have a database. All persis
 }
 ```
 
-| Field | Type | Notes |
-|-------|------|-------|
-| latest_version | string | Semver of latest GitHub Release |
-| checked_at | string | ISO 8601 timestamp, cache expires after 24h |
+| Field          | Type   | Notes                                       |
+| -------------- | ------ | ------------------------------------------- |
+| latest_version | string | Semver of latest GitHub Release             |
+| checked_at     | string | ISO 8601 timestamp, cache expires after 24h |
 
 ## API Response Types (Go structs)
 
@@ -116,20 +116,19 @@ stateDiagram-v2
 
 ## Environment Variables
 
-| Variable | Overrides | Description |
-|----------|-----------|-------------|
-| `STARTERCTL_SERVER_URL` | config.server_url | Server URL |
-| `STARTERCTL_TOKEN` | config.token | API token |
+| Variable                | Overrides         | Description |
+| ----------------------- | ----------------- | ----------- |
+| `STARTERCTL_SERVER_URL` | config.server_url | Server URL  |
+| `STARTERCTL_TOKEN`      | config.token      | API token   |
 
 Environment variables take precedence over the config file.
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error (API error, invalid input) |
-| 2 | Authentication error (no token, expired, unauthorized) |
-| 3 | Connection error (server unreachable) |
-| 4 | Permission error (role insufficient) |
-
+| Code | Meaning                                                |
+| ---- | ------------------------------------------------------ |
+| 0    | Success                                                |
+| 1    | General error (API error, invalid input)               |
+| 2    | Authentication error (no token, expired, unauthorized) |
+| 3    | Connection error (server unreachable)                  |
+| 4    | Permission error (role insufficient)                   |

@@ -5,7 +5,7 @@
 **Status**: Tasked  
 **Input**: User description: "Refactor API routes to reduce boilerplate and preserve behavior through shared route helpers and services"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Safer Route Changes (Priority: P1)
 
@@ -29,7 +29,7 @@ As a developer, I want common authentication, access, and document-loading logic
 - What happens if a helper changes a status code, error message, or response shape by accident? Existing route tests must catch this, and additional regression tests should be added where current coverage is thin.
 - How should duplication checks treat framework boilerplate such as Next.js route entrypoints? The refactor should reduce meaningful duplication, but duplication tooling may still need scoped exclusions for framework patterns.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -40,7 +40,7 @@ As a developer, I want common authentication, access, and document-loading logic
 - **FR-005**: Existing automated tests for affected routes MUST continue to pass after the refactor, and new regression tests MUST be added where helper extraction introduces risk not already covered.
 - **FR-006**: The duplication-check strategy MUST be documented for route files so the team has an explicit policy on what route-level duplication is expected versus what should be refactored.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Route Context**: A reusable object or helper result containing the authenticated user, campaign access result, path params, and optionally loaded document/version resources needed by a route.
 - **Managed User Context**: A reusable service result containing the acting admin, the target user, and the route-safe error outcome for status, role, or theme changes.
@@ -61,7 +61,7 @@ As a developer, I want common authentication, access, and document-loading logic
 - Shared document-version mutation services should be handled in a future spec once document/version route families exist in this starter or a downstream app.
 - Shared AI enqueue orchestration should be handled in a future spec once analysis/rewrite route families exist in this starter or a downstream app.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

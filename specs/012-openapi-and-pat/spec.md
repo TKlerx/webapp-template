@@ -17,7 +17,7 @@
 - Q: Who can access the API documentation page? â†’ A: Any authenticated user regardless of role (not public, not role-restricted).
 - Q: How is the CLI browser login flow protected against CSRF? â†’ A: CLI generates a random `state` parameter, includes it in the authorization request, and validates it on callback (standard OAuth2 pattern).
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Create and Use a Personal Access Token (Priority: P1)
 
@@ -140,7 +140,7 @@ A platform admin can view all tokens (active, revoked, expired) across all users
 - What happens when a user authenticates via Azure SSO during the CLI browser login flow? The flow works transparently: browser -> server login page -> Azure SSO -> Entra callback to server -> server redirects to CLI's localhost. The CLI never interacts with Entra directly.
 - What happens when a CLI login token (30-day default) expires? The CLI receives a 401 and prompts the user to run `cli login` again.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -178,7 +178,7 @@ A platform admin can view all tokens (active, revoked, expired) across all users
 - **PersonalAccessToken**: Represents a user-created token for programmatic API access. Key attributes: name, hashed token value, display prefix (first N characters of the prefixed token for identification), owning user, creation date, expiration date, last-used date, status (active/revoked/expired), revocation date (if revoked), renewal count. Token format: `<configurable_prefix>_<random>` (e.g., `starter_pat_a1b2c3...`).
 - **OpenAPI Specification**: A machine-readable document describing all API endpoints, their inputs, outputs, and authentication requirements.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -205,4 +205,3 @@ A platform admin can view all tokens (active, revoked, expired) across all users
 - The browser login flow only accepts localhost callback URLs (not arbitrary redirect URIs) for security.
 - The application's existing base path support is leveraged for all new endpoints. No additional reverse proxy configuration is needed beyond what the app already requires.
 - Azure SSO (Entra) works with the browser login flow without additional app registration changes. The Entra callback URL points at the server, not at the CLI's localhost.
-

@@ -42,7 +42,7 @@ export async function getAuditEntries(filters: AuditFilters = {}) {
 
 function csvEscape(value: unknown) {
   const text = String(value ?? "");
-  return `"${text.replaceAll("\"", "\"\"")}"`;
+  return `"${text.replaceAll('"', '""')}"`;
 }
 
 export async function exportToCSV(filters: AuditFilters = {}) {
@@ -76,7 +76,10 @@ export async function exportToCSV(filters: AuditFilters = {}) {
 }
 
 function escapePdfText(value: string) {
-  return value.replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
+  return value
+    .replaceAll("\\", "\\\\")
+    .replaceAll("(", "\\(")
+    .replaceAll(")", "\\)");
 }
 
 export async function exportToPDF(filters: AuditFilters = {}) {
@@ -94,7 +97,10 @@ export async function exportToPDF(filters: AuditFilters = {}) {
   ];
 
   const stream = lines
-    .map((line, index) => `BT /F1 10 Tf 40 ${780 - index * 14} Td (${escapePdfText(line)}) Tj ET`)
+    .map(
+      (line, index) =>
+        `BT /F1 10 Tf 40 ${780 - index * 14} Td (${escapePdfText(line)}) Tj ET`,
+    )
     .join("\n");
   const content = Buffer.from(stream, "utf8");
   const objects = [

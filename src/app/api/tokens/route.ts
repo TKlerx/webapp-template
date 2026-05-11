@@ -17,7 +17,10 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const tokens = await listTokens(auth.user.id, parseShowAll(url.searchParams.get("showAll")));
+  const tokens = await listTokens(
+    auth.user.id,
+    parseShowAll(url.searchParams.get("showAll")),
+  );
 
   return Response.json({ tokens });
 }
@@ -40,10 +43,18 @@ export async function POST(request: Request) {
 
   const expiresInDays = body.expiresInDays ?? 90;
   if (!ALLOWED_EXPIRY_DAYS.includes(expiresInDays)) {
-    return jsonError("Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365", 400);
+    return jsonError(
+      "Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365",
+      400,
+    );
   }
 
-  const result = await createToken(auth.user.id, name, expiresInDays, TokenType.PAT);
+  const result = await createToken(
+    auth.user.id,
+    name,
+    expiresInDays,
+    TokenType.PAT,
+  );
   if ("error" in result) {
     return result.error;
   }

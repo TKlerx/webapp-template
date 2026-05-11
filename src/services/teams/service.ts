@@ -43,7 +43,9 @@ export async function queueTeamsMessages(input: QueueTeamsInput) {
 
   const content = buildTeamsContent(input.eventType, input.payload);
   const prepared = truncateUtf8(content, MAX_TEAMS_CONTENT_BYTES);
-  const delegatedAccessToken = await getFreshTeamsDelegatedAccessToken(input.actorId);
+  const delegatedAccessToken = await getFreshTeamsDelegatedAccessToken(
+    input.actorId,
+  );
 
   await prisma.$transaction(async (tx) => {
     for (const target of targets) {
@@ -114,10 +116,15 @@ export async function deliverTeamsMessage(payload: {
   });
 }
 
-function buildTeamsContent(eventType: NotificationEventType, payload: Record<string, unknown>) {
+function buildTeamsContent(
+  eventType: NotificationEventType,
+  payload: Record<string, unknown>,
+) {
   const lines = [`<strong>${eventType}</strong>`];
   for (const [key, value] of Object.entries(payload)) {
-    lines.push(`<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(String(value ?? ""))}</div>`);
+    lines.push(
+      `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(String(value ?? ""))}</div>`,
+    );
   }
 
   return lines.join("");

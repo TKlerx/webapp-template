@@ -36,4 +36,3 @@ TypeScript 5.9 on Next.js 16 App Router (React 19): Follow standard conventions
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
-

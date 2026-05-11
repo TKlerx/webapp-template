@@ -32,11 +32,18 @@ test("admin creates a local user, user logs in and changes password", async ({
   const adminPage = await adminContext.newPage();
 
   try {
-    await loginWithPassword(adminPage, "e2e-admin-manage@example.com", "AdminPass123");
+    await loginWithPassword(
+      adminPage,
+      "e2e-admin-manage@example.com",
+      "AdminPass123",
+    );
     await expectOnDashboard(adminPage);
     await adminPage.goto(`${appBasePath}/users`);
 
-    await adminPage.getByRole("button", { name: "Create user" }).first().click();
+    await adminPage
+      .getByRole("button", { name: "Create user" })
+      .first()
+      .click();
     const createUserDialog = adminPage.getByRole("dialog");
     await expect(createUserDialog).toBeVisible();
 
@@ -66,9 +73,17 @@ test("admin creates a local user, user logs in and changes password", async ({
     const userPage = await userContext.newPage();
 
     try {
-      await loginWithPassword(userPage, createdUser.email, createdUser.temporaryPassword);
-      await expect(userPage).toHaveURL(new RegExp(`${appBasePath}/change-password$`));
-      await userPage.getByLabel("Current password").fill(createdUser.temporaryPassword);
+      await loginWithPassword(
+        userPage,
+        createdUser.email,
+        createdUser.temporaryPassword,
+      );
+      await expect(userPage).toHaveURL(
+        new RegExp(`${appBasePath}/change-password$`),
+      );
+      await userPage
+        .getByLabel("Current password")
+        .fill(createdUser.temporaryPassword);
       await userPage.getByLabel("New password").fill("FreshPass123");
       await Promise.all([
         userPage.getByRole("button", { name: "Save new password" }).click(),
@@ -79,7 +94,9 @@ test("admin creates a local user, user logs in and changes password", async ({
             response.status() === 200,
         ),
       ]);
-      await userPage.waitForURL(new RegExp(`${appBasePath}/dashboard$`), { timeout: 30000 });
+      await userPage.waitForURL(new RegExp(`${appBasePath}/dashboard$`), {
+        timeout: 30000,
+      });
       await expectOnDashboard(userPage);
     } finally {
       await userContext.close();

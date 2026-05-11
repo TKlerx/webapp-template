@@ -433,7 +433,7 @@ class WorkerTests(unittest.TestCase):
     def _fetch_job(self, job_id: str) -> sqlite3.Row:
         with closing(sqlite3.connect(self.db_path)) as connection:
             connection.row_factory = sqlite3.Row
-            row = connection.execute(
+            row: sqlite3.Row | None = connection.execute(
                 "SELECT * FROM BackgroundJob WHERE id = ?",
                 (job_id,),
             ).fetchone()
@@ -455,7 +455,7 @@ class WorkerTests(unittest.TestCase):
     def _fetch_notification(self, notification_id: str) -> sqlite3.Row:
         with closing(sqlite3.connect(self.db_path)) as connection:
             connection.row_factory = sqlite3.Row
-            row = connection.execute(
+            row: sqlite3.Row | None = connection.execute(
                 "SELECT * FROM Notification WHERE id = ?",
                 (notification_id,),
             ).fetchone()
@@ -466,7 +466,7 @@ class WorkerTests(unittest.TestCase):
     def _fetch_inbound_email(self, inbound_email_id: str) -> sqlite3.Row:
         with closing(sqlite3.connect(self.db_path)) as connection:
             connection.row_factory = sqlite3.Row
-            row = connection.execute(
+            row: sqlite3.Row | None = connection.execute(
                 "SELECT * FROM InboundEmail WHERE id = ?",
                 (inbound_email_id,),
             ).fetchone()

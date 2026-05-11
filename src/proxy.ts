@@ -5,8 +5,16 @@ import { auth, getBetterAuthCookieNames } from "@/lib/better-auth";
 import { createRequestId, logger } from "@/lib/logger";
 import { AuthMethod, UserStatus } from "../generated/prisma/enums";
 
-const configuredBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? process.env.BASE_PATH ?? "";
-const PUBLIC_PATHS = ["/login", "/pending", "/api/auth/login", "/api/auth/session", "/api/locale", "/"];
+const configuredBasePath =
+  process.env.NEXT_PUBLIC_BASE_PATH ?? process.env.BASE_PATH ?? "";
+const PUBLIC_PATHS = [
+  "/login",
+  "/pending",
+  "/api/auth/login",
+  "/api/auth/session",
+  "/api/locale",
+  "/",
+];
 const cookiePath = getScopedCookiePath();
 const proxyLogger = logger.child({ component: "proxy" });
 
@@ -48,7 +56,10 @@ function buildNextResponse(request: NextRequest) {
 
   response.headers.set("x-request-id", requestId);
 
-  if (!shouldSkipLogging(request.nextUrl.pathname) && process.env.ENABLE_REQUEST_LOGGING !== "false") {
+  if (
+    !shouldSkipLogging(request.nextUrl.pathname) &&
+    process.env.ENABLE_REQUEST_LOGGING !== "false"
+  ) {
     proxyLogger.info("http.request", {
       requestId,
       method: request.method,
@@ -79,7 +90,8 @@ function redirectForUserStatus(
     return deleteCookies(
       NextResponse.redirect(
         redirectTo(
-          user.authMethod === AuthMethod.SSO || user.authMethod === AuthMethod.BOTH
+          user.authMethod === AuthMethod.SSO ||
+            user.authMethod === AuthMethod.BOTH
             ? "/login?error=revoked"
             : "/login",
         ),
@@ -118,7 +130,9 @@ export async function proxy(request: NextRequest) {
     return buildNextResponse(request);
   }
 
-  const hasBetterAuthCookie = betterAuthCookieNames.some((name) => request.cookies.has(name));
+  const hasBetterAuthCookie = betterAuthCookieNames.some((name) =>
+    request.cookies.has(name),
+  );
 
   if (!hasBetterAuthCookie && !pathname.startsWith("/api")) {
     const loginUrl = redirectTo("/login");
@@ -131,10 +145,18 @@ export async function proxy(request: NextRequest) {
     });
 
     if (!session) {
-      return deleteCookies(NextResponse.redirect(redirectTo("/login")), betterAuthCookieNames);
+      return deleteCookies(
+        NextResponse.redirect(redirectTo("/login")),
+        betterAuthCookieNames,
+      );
     }
 
-    const restricted = redirectForUserStatus(request, pathname, session.user, betterAuthCookieNames);
+    const restricted = redirectForUserStatus(
+      request,
+      pathname,
+      session.user,
+      betterAuthCookieNames,
+    );
     if (restricted) {
       return restricted;
     }

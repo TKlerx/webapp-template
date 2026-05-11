@@ -1,5 +1,8 @@
 import { requireApiUserWithRoles } from "@/lib/route-auth";
-import { deleteIntakeSubscription, updateIntakeSubscription } from "@/services/teams/admin";
+import {
+  deleteIntakeSubscription,
+  updateIntakeSubscription,
+} from "@/services/teams/admin";
 import { Role } from "../../../../../../../generated/prisma/enums";
 
 export async function PUT(
@@ -14,7 +17,10 @@ export async function PUT(
   const { id } = await params;
   const body = (await request.json()) as { active?: boolean };
   if (typeof body.active !== "boolean") {
-    return Response.json({ error: "active must be a boolean" }, { status: 400 });
+    return Response.json(
+      { error: "active must be a boolean" },
+      { status: 400 },
+    );
   }
 
   const subscription = await updateIntakeSubscription(id, {

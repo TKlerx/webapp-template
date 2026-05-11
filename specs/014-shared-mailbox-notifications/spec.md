@@ -9,7 +9,7 @@
 >
 > Delivery is incremental. The first slice establishes a provider-neutral mail abstraction with Microsoft Graph-backed shared mailbox read/send support; later slices layer notification workflows, admin management, and inbound processing on top.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Automatic Event Notifications (Priority: P1)
 
@@ -68,7 +68,7 @@ The system can poll or receive emails sent to the shared mailbox and process the
 - What happens when a high volume of events occurs simultaneously (e.g., bulk role changes)? Notifications are queued and sent with rate limiting to avoid throttling by the mail provider.
 - What happens when the same event triggers multiple notification types? Each notification type is evaluated independently; duplicate emails to the same recipient for the same event are suppressed.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -94,7 +94,7 @@ The system can poll or receive emails sent to the shared mailbox and process the
 - **Notification Type Configuration**: A setting per event type controlling whether notifications are enabled and who the recipients are. Key attributes: event type, enabled flag, recipient rule.
 - **Inbound Email**: A record of an email received in the shared mailbox. Key attributes: sender, subject, body preview, received timestamp, processing status, linked entity reference (if matched).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

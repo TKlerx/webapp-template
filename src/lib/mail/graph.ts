@@ -71,26 +71,32 @@ type TokenCache = {
 export function hasRealGraphMailConfig() {
   return Boolean(
     process.env.GRAPH_CLIENT_ID &&
-      process.env.GRAPH_CLIENT_SECRET &&
-      process.env.GRAPH_TENANT_ID &&
-      process.env.GRAPH_CLIENT_ID !== "replace-me" &&
-      process.env.GRAPH_CLIENT_SECRET !== "replace-me" &&
-      process.env.GRAPH_TENANT_ID !== "replace-me",
+    process.env.GRAPH_CLIENT_SECRET &&
+    process.env.GRAPH_TENANT_ID &&
+    process.env.GRAPH_CLIENT_ID !== "replace-me" &&
+    process.env.GRAPH_CLIENT_SECRET !== "replace-me" &&
+    process.env.GRAPH_TENANT_ID !== "replace-me",
   );
 }
 
-export function createGraphMailClient(options?: Partial<GraphMailClientOptions>): MailClient {
+export function createGraphMailClient(
+  options?: Partial<GraphMailClientOptions>,
+): MailClient {
   const clientId = options?.clientId ?? process.env.GRAPH_CLIENT_ID ?? "";
-  const clientSecret = options?.clientSecret ?? process.env.GRAPH_CLIENT_SECRET ?? "";
+  const clientSecret =
+    options?.clientSecret ?? process.env.GRAPH_CLIENT_SECRET ?? "";
   const tenantId = options?.tenantId ?? process.env.GRAPH_TENANT_ID ?? "";
-  const defaultMailbox = options?.defaultMailbox ?? process.env.MAIL_DEFAULT_MAILBOX ?? "";
+  const defaultMailbox =
+    options?.defaultMailbox ?? process.env.MAIL_DEFAULT_MAILBOX ?? "";
   const fetchImpl = options?.fetchImpl ?? fetch;
 
   if (!clientId || clientId === "replace-me") {
     throw new Error("GRAPH_CLIENT_ID is not configured for Graph mail access.");
   }
   if (!clientSecret || clientSecret === "replace-me") {
-    throw new Error("GRAPH_CLIENT_SECRET is not configured for Graph mail access.");
+    throw new Error(
+      "GRAPH_CLIENT_SECRET is not configured for Graph mail access.",
+    );
   }
   if (!tenantId || tenantId === "replace-me") {
     throw new Error("GRAPH_TENANT_ID is not configured for Graph mail access.");
@@ -120,7 +126,9 @@ export function createGraphMailClient(options?: Partial<GraphMailClientOptions>)
 
     if (!response.ok) {
       const details = await response.text();
-      throw new Error(`Graph token request failed: ${response.status} ${details}`);
+      throw new Error(
+        `Graph token request failed: ${response.status} ${details}`,
+      );
     }
 
     const payload = (await response.json()) as GraphTokenResponse;
@@ -151,7 +159,9 @@ export function createGraphMailClient(options?: Partial<GraphMailClientOptions>)
 
     if (!response.ok) {
       const details = await response.text();
-      throw new Error(`Graph mail request failed: ${response.status} ${details}`);
+      throw new Error(
+        `Graph mail request failed: ${response.status} ${details}`,
+      );
     }
 
     if (response.status === 202 || response.status === 204) {
@@ -164,7 +174,9 @@ export function createGraphMailClient(options?: Partial<GraphMailClientOptions>)
   function resolveMailbox(explicitMailbox?: string) {
     const mailbox = explicitMailbox?.trim() || defaultMailbox.trim();
     if (!mailbox) {
-      throw new Error("A mailbox address is required. Set MAIL_DEFAULT_MAILBOX or pass mailbox explicitly.");
+      throw new Error(
+        "A mailbox address is required. Set MAIL_DEFAULT_MAILBOX or pass mailbox explicitly.",
+      );
     }
     return mailbox;
   }
@@ -218,20 +230,23 @@ export function createGraphMailClient(options?: Partial<GraphMailClientOptions>)
         throw new Error("At least one to-recipient is required.");
       }
 
-      await graphRequest<void>(`/users/${encodeURIComponent(mailbox)}/sendMail`, {
-        method: "POST",
-        body: JSON.stringify({
-          message: {
-            subject,
-            body: mapMailBodyToGraph(input.body),
-            toRecipients: mapRecipientsToGraph(input.toRecipients),
-            ccRecipients: mapRecipientsToGraph(input.ccRecipients ?? []),
-            bccRecipients: mapRecipientsToGraph(input.bccRecipients ?? []),
-            replyTo: mapRecipientsToGraph(input.replyTo ?? []),
-          },
-          saveToSentItems: input.saveToSentItems ?? true,
-        }),
-      });
+      await graphRequest<void>(
+        `/users/${encodeURIComponent(mailbox)}/sendMail`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            message: {
+              subject,
+              body: mapMailBodyToGraph(input.body),
+              toRecipients: mapRecipientsToGraph(input.toRecipients),
+              ccRecipients: mapRecipientsToGraph(input.ccRecipients ?? []),
+              bccRecipients: mapRecipientsToGraph(input.bccRecipients ?? []),
+              replyTo: mapRecipientsToGraph(input.replyTo ?? []),
+            },
+            saveToSentItems: input.saveToSentItems ?? true,
+          }),
+        },
+      );
     },
   };
 }

@@ -18,10 +18,10 @@
 
 **Purpose**: Initialize Go project, install dependencies, create project scaffold
 
-- [X] T001 Create `cli/` directory and initialize Go module with `go mod init` in `cli/go.mod`
-- [X] T002 Add cobra, go-pretty, browser, term, and testify dependencies to `cli/go.mod` by running `go get github.com/spf13/cobra github.com/jedib0t/go-pretty/v6 github.com/pkg/browser golang.org/x/term github.com/stretchr/testify`
-- [X] T003 Create directory structure: `cli/cmd/`, `cli/internal/config/`, `cli/internal/client/`, `cli/internal/auth/`, `cli/internal/output/`, `cli/internal/update/`
-- [X] T004 Create `cli/main.go` entry point that calls `cmd.Execute()`
+- [x] T001 Create `cli/` directory and initialize Go module with `go mod init` in `cli/go.mod`
+- [x] T002 Add cobra, go-pretty, browser, term, and testify dependencies to `cli/go.mod` by running `go get github.com/spf13/cobra github.com/jedib0t/go-pretty/v6 github.com/pkg/browser golang.org/x/term github.com/stretchr/testify`
+- [x] T003 Create directory structure: `cli/cmd/`, `cli/internal/config/`, `cli/internal/client/`, `cli/internal/auth/`, `cli/internal/output/`, `cli/internal/update/`
+- [x] T004 Create `cli/main.go` entry point that calls `cmd.Execute()`
 
 ---
 
@@ -31,16 +31,16 @@
 
 **âš ï¸ CRITICAL**: No user story work can begin until this phase is complete
 
-- [X] T005 Create root cobra command in `cli/cmd/root.go` â€” define `starterctl` root command with global persistent flags: `--format` (`-f`, string, default `table`), `--verbose` (`-v`, bool), `--help` (`-h`). Set up pre-run hook for version check. Set version string from build-time ldflags.
-- [X] T006 Implement config manager in `cli/internal/config/config.go` â€” read/write JSON config at `~/.config/starterctl/config.json` (Linux/macOS) or `%APPDATA%\starterctl\config.json` (Windows). Fields: `server_url`, `token`. Support `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN` environment variable overrides (env vars take precedence). Set file permissions to 0600 on creation. Functions: `Load() (*Config, error)`, `Save(config *Config) error`, `ConfigDir() string`, `Clear() error`.
-- [X] T007 Implement HTTP client in `cli/internal/client/client.go` â€” create `Client` struct initialized from config. Set `Authorization: Bearer <token>` header on all requests. Prepend server URL (including base path) to all API paths. Handle HTTP errors (401â†’exit code 2, 403â†’exit code 4, connection errorâ†’exit code 3, otherâ†’exit code 1). Support `--verbose` flag to log request method/URL/status and response body to stderr. Functions: `NewClient(config *Config) *Client`, `Get(path string) (*Response, error)`, `Post(path string, body interface{}) (*Response, error)`, `Delete(path string) (*Response, error)`.
-- [X] T008 [P] Implement output formatters in `cli/internal/output/format.go` â€” format selection from `--format` flag. Auto-detect non-interactive (piped) output via `golang.org/x/term` and switch from table to JSON automatically. All diagnostic output to stderr, data output to stdout.
-- [X] T009 [P] Implement table formatter in `cli/internal/output/table.go` â€” use go-pretty to render aligned, colored tables. Disable colors when non-interactive. Function: `RenderTable(headers []string, rows [][]string)`.
-- [X] T010 [P] Implement JSON formatter in `cli/internal/output/json.go` â€” pretty-print JSON to stdout with `encoding/json`. Function: `RenderJSON(data interface{})`.
-- [X] T011 [P] Implement CSV formatter in `cli/internal/output/csv.go` â€” write CSV to stdout with `encoding/csv`. Function: `RenderCSV(headers []string, rows [][]string)`.
-- [X] T011a Create unit tests in `cli/tests/config_test.go` â€” test Load/Save/Clear, env var overrides (STARTERCTL_SERVER_URL, STARTERCTL_TOKEN take precedence), config dir detection per platform, file permissions 0600.
-- [X] T011b Create unit tests in `cli/tests/client_test.go` â€” test Bearer header injection, base path prepending, HTTP errorâ†’exit code mapping (401â†’2, 403â†’4, connectionâ†’3), verbose logging to stderr.
-- [X] T011c Create unit tests in `cli/tests/output_test.go` â€” test table/JSON/CSV formatters produce correct output, non-interactive detection switches tableâ†’JSON.
+- [x] T005 Create root cobra command in `cli/cmd/root.go` â€” define `starterctl` root command with global persistent flags: `--format` (`-f`, string, default `table`), `--verbose` (`-v`, bool), `--help` (`-h`). Set up pre-run hook for version check. Set version string from build-time ldflags.
+- [x] T006 Implement config manager in `cli/internal/config/config.go` â€” read/write JSON config at `~/.config/starterctl/config.json` (Linux/macOS) or `%APPDATA%\starterctl\config.json` (Windows). Fields: `server_url`, `token`. Support `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN` environment variable overrides (env vars take precedence). Set file permissions to 0600 on creation. Functions: `Load() (*Config, error)`, `Save(config *Config) error`, `ConfigDir() string`, `Clear() error`.
+- [x] T007 Implement HTTP client in `cli/internal/client/client.go` â€” create `Client` struct initialized from config. Set `Authorization: Bearer <token>` header on all requests. Prepend server URL (including base path) to all API paths. Handle HTTP errors (401â†’exit code 2, 403â†’exit code 4, connection errorâ†’exit code 3, otherâ†’exit code 1). Support `--verbose` flag to log request method/URL/status and response body to stderr. Functions: `NewClient(config *Config) *Client`, `Get(path string) (*Response, error)`, `Post(path string, body interface{}) (*Response, error)`, `Delete(path string) (*Response, error)`.
+- [x] T008 [P] Implement output formatters in `cli/internal/output/format.go` â€” format selection from `--format` flag. Auto-detect non-interactive (piped) output via `golang.org/x/term` and switch from table to JSON automatically. All diagnostic output to stderr, data output to stdout.
+- [x] T009 [P] Implement table formatter in `cli/internal/output/table.go` â€” use go-pretty to render aligned, colored tables. Disable colors when non-interactive. Function: `RenderTable(headers []string, rows [][]string)`.
+- [x] T010 [P] Implement JSON formatter in `cli/internal/output/json.go` â€” pretty-print JSON to stdout with `encoding/json`. Function: `RenderJSON(data interface{})`.
+- [x] T011 [P] Implement CSV formatter in `cli/internal/output/csv.go` â€” write CSV to stdout with `encoding/csv`. Function: `RenderCSV(headers []string, rows [][]string)`.
+- [x] T011a Create unit tests in `cli/tests/config_test.go` â€” test Load/Save/Clear, env var overrides (STARTERCTL_SERVER_URL, STARTERCTL_TOKEN take precedence), config dir detection per platform, file permissions 0600.
+- [x] T011b Create unit tests in `cli/tests/client_test.go` â€” test Bearer header injection, base path prepending, HTTP errorâ†’exit code mapping (401â†’2, 403â†’4, connectionâ†’3), verbose logging to stderr.
+- [x] T011c Create unit tests in `cli/tests/output_test.go` â€” test table/JSON/CSV formatters produce correct output, non-interactive detection switches tableâ†’JSON.
 
 **Checkpoint**: Project compiles, `starterctl --help` works, config reads/writes, HTTP client sends authenticated requests, output formatters work
 
@@ -56,16 +56,16 @@
 
 ### Implementation for User Story 1
 
-- [X] T012 [US1] Implement browser login flow in `cli/internal/auth/browser.go` â€” start temporary HTTP server on random available localhost port, construct authorize URL (`/api/cli-auth/authorize?callback_url=http://localhost:PORT/callback&state=RANDOM`), open browser with `github.com/pkg/browser`, wait for callback (max 120s timeout), extract code and state from callback query params, validate state matches, exchange code for token via `POST /api/cli-auth/token`, return token and user info. Handle: browser can't open (print URL to stderr), timeout (suggest PAT auth), cancel (clean shutdown).
-- [X] T013 [US1] Create `starterctl login` command in `cli/cmd/login.go` â€” `--server` flag (required on first use, saved to config). Call browser login flow. On success: save server_url and token to config, print user name and role. On failure: print error with suggestion.
-- [X] T014 [US1] Create `starterctl logout` command in `cli/cmd/logout.go` â€” remove token from config, confirm action. Exit 0.
-- [X] T015 [US1] Create `starterctl configure` command in `cli/cmd/configure.go` â€” `--server` (required) and `--token` (required) flags. Save to config. Validate by calling `/api/health`. Print user name and role on success.
-- [X] T016 [US1] Create `starterctl users list` command in `cli/cmd/users.go` â€” `--status` flag (optional, filter by ACTIVE/PENDING_APPROVAL/INACTIVE). Call `GET /api/users?status=<status>`. Render table with columns: ID, Name, Email, Role, Status. Support all output formats.
-- [X] T017 [US1] Create `starterctl users approve` subcommand in `cli/cmd/users.go` â€” positional arg `<user-id>`. Call `POST /api/users/<id>/approve`. Print confirmation message.
-- [X] T018 [US1] Create `starterctl users deactivate` and `starterctl users reactivate` subcommands in `cli/cmd/users.go` â€” positional arg `<user-id>`. Call `POST /api/users/<id>/deactivate` or `POST /api/users/<id>/reactivate`. Print confirmation.
-- [X] T019 [US1] Create `starterctl users role` subcommand in `cli/cmd/users_role.go` â€” positional arg `<user-id>`, `--role` flag (required). Call `PUT /api/users/<id>/role` with role body. Print confirmation.
-- [X] T019a [US1] Create tests in `cli/tests/login_test.go` â€” test browser login flow: localhost server starts, state parameter generated/validated, code exchange, token saved to config. Test timeout (120s), headless fallback (print URL), invalid state rejection.
-- [X] T019b [US1] Create tests in `cli/tests/users_test.go` â€” test users list (table output, --status filter, JSON output), approve (success, 404), deactivate/reactivate, role change. Mock HTTP responses.
+- [x] T012 [US1] Implement browser login flow in `cli/internal/auth/browser.go` â€” start temporary HTTP server on random available localhost port, construct authorize URL (`/api/cli-auth/authorize?callback_url=http://localhost:PORT/callback&state=RANDOM`), open browser with `github.com/pkg/browser`, wait for callback (max 120s timeout), extract code and state from callback query params, validate state matches, exchange code for token via `POST /api/cli-auth/token`, return token and user info. Handle: browser can't open (print URL to stderr), timeout (suggest PAT auth), cancel (clean shutdown).
+- [x] T013 [US1] Create `starterctl login` command in `cli/cmd/login.go` â€” `--server` flag (required on first use, saved to config). Call browser login flow. On success: save server_url and token to config, print user name and role. On failure: print error with suggestion.
+- [x] T014 [US1] Create `starterctl logout` command in `cli/cmd/logout.go` â€” remove token from config, confirm action. Exit 0.
+- [x] T015 [US1] Create `starterctl configure` command in `cli/cmd/configure.go` â€” `--server` (required) and `--token` (required) flags. Save to config. Validate by calling `/api/health`. Print user name and role on success.
+- [x] T016 [US1] Create `starterctl users list` command in `cli/cmd/users.go` â€” `--status` flag (optional, filter by ACTIVE/PENDING_APPROVAL/INACTIVE). Call `GET /api/users?status=<status>`. Render table with columns: ID, Name, Email, Role, Status. Support all output formats.
+- [x] T017 [US1] Create `starterctl users approve` subcommand in `cli/cmd/users.go` â€” positional arg `<user-id>`. Call `POST /api/users/<id>/approve`. Print confirmation message.
+- [x] T018 [US1] Create `starterctl users deactivate` and `starterctl users reactivate` subcommands in `cli/cmd/users.go` â€” positional arg `<user-id>`. Call `POST /api/users/<id>/deactivate` or `POST /api/users/<id>/reactivate`. Print confirmation.
+- [x] T019 [US1] Create `starterctl users role` subcommand in `cli/cmd/users_role.go` â€” positional arg `<user-id>`, `--role` flag (required). Call `PUT /api/users/<id>/role` with role body. Print confirmation.
+- [x] T019a [US1] Create tests in `cli/tests/login_test.go` â€” test browser login flow: localhost server starts, state parameter generated/validated, code exchange, token saved to config. Test timeout (120s), headless fallback (print URL), invalid state rejection.
+- [x] T019b [US1] Create tests in `cli/tests/users_test.go` â€” test users list (table output, --status filter, JSON output), approve (success, 404), deactivate/reactivate, role change. Mock HTTP responses.
 
 **Checkpoint**: `starterctl login` opens browser, authenticates, stores token. `starterctl configure` sets PAT. `starterctl users list/approve/deactivate/reactivate/role` all work.
 
@@ -89,9 +89,9 @@
 
 ### Implementation for User Story 3
 
-- [X] T020 [US3] Add static shell completion registration to all commands in `cli/cmd/users.go`, `cli/cmd/users_role.go`, `cli/cmd/audit.go`, `cli/cmd/jobs.go` â€” register `ValidArgs` for subcommands and `RegisterFlagCompletionFunc` for flag values (e.g., `--status` â†’ ACTIVE/PENDING_APPROVAL/INACTIVE, `--role` â†’ PLATFORM_ADMIN/SCOPE_ADMIN/SCOPE_USER, `--format` â†’ table/json/csv)
-- [X] T021 [US3] Add dynamic completion for user IDs in `cli/cmd/users.go` â€” set `ValidArgsFunction` on approve/deactivate/reactivate/role subcommands to query `GET /api/users` and return matching user IDs. Filter by appropriate status (e.g., approve shows only PENDING_APPROVAL users).
-- [X] T022 [US3] Add dynamic completion for `--role` flag in `cli/cmd/users_role.go` â€” return PLATFORM_ADMIN, SCOPE_ADMIN, SCOPE_USER
+- [x] T020 [US3] Add static shell completion registration to all commands in `cli/cmd/users.go`, `cli/cmd/users_role.go`, `cli/cmd/audit.go`, `cli/cmd/jobs.go` â€” register `ValidArgs` for subcommands and `RegisterFlagCompletionFunc` for flag values (e.g., `--status` â†’ ACTIVE/PENDING_APPROVAL/INACTIVE, `--role` â†’ PLATFORM_ADMIN/SCOPE_ADMIN/SCOPE_USER, `--format` â†’ table/json/csv)
+- [x] T021 [US3] Add dynamic completion for user IDs in `cli/cmd/users.go` â€” set `ValidArgsFunction` on approve/deactivate/reactivate/role subcommands to query `GET /api/users` and return matching user IDs. Filter by appropriate status (e.g., approve shows only PENDING_APPROVAL users).
+- [x] T022 [US3] Add dynamic completion for `--role` flag in `cli/cmd/users_role.go` â€” return PLATFORM_ADMIN, SCOPE_ADMIN, SCOPE_USER
 
 **Checkpoint**: Tab completion works for all commands, subcommands, flags, and dynamically fetches user IDs from server
 
@@ -105,10 +105,10 @@
 
 ### Implementation for User Story 4
 
-- [X] T023 [US4] Create `starterctl audit list` command in `cli/cmd/audit.go` â€” flags: `--action`, `--from` (ISO 8601 date), `--to` (ISO 8601 date), `--actor` (user ID). Call `GET /api/audit` with query params. Render table with columns: ID, Action, Entity, Actor, Date. Support all output formats.
-- [X] T024 [US4] Create `starterctl audit export` subcommand in `cli/cmd/audit.go` â€” flags: `--from`, `--to`, `--format` (override global, default JSON when piped). Call `GET /api/audit` with query params (same endpoint as `audit list`). Output to stdout for piping. Difference from `audit list`: defaults to JSON format when piped, omits interactive table chrome.
-- [X] T025 [P] [US4] Add dynamic completion for `--action` flag in `cli/cmd/audit.go` â€” return available AuditAction values. Add dynamic completion for `--actor` flag to return user IDs.
-- [X] T025a [US4] Create tests in `cli/tests/audit_test.go` â€” test audit list (with --action, --from, --to, --actor filters), audit export (JSON and CSV output to stdout). Mock HTTP responses.
+- [x] T023 [US4] Create `starterctl audit list` command in `cli/cmd/audit.go` â€” flags: `--action`, `--from` (ISO 8601 date), `--to` (ISO 8601 date), `--actor` (user ID). Call `GET /api/audit` with query params. Render table with columns: ID, Action, Entity, Actor, Date. Support all output formats.
+- [x] T024 [US4] Create `starterctl audit export` subcommand in `cli/cmd/audit.go` â€” flags: `--from`, `--to`, `--format` (override global, default JSON when piped). Call `GET /api/audit` with query params (same endpoint as `audit list`). Output to stdout for piping. Difference from `audit list`: defaults to JSON format when piped, omits interactive table chrome.
+- [x] T025 [P] [US4] Add dynamic completion for `--action` flag in `cli/cmd/audit.go` â€” return available AuditAction values. Add dynamic completion for `--actor` flag to return user IDs.
+- [x] T025a [US4] Create tests in `cli/tests/audit_test.go` â€” test audit list (with --action, --from, --to, --actor filters), audit export (JSON and CSV output to stdout). Mock HTTP responses.
 
 **Checkpoint**: `starterctl audit list` shows entries with filters, `starterctl audit export --format csv > file.csv` produces valid CSV
 
@@ -122,9 +122,9 @@
 
 ### Implementation for User Story 5
 
-- [X] T026 [US5] Create `starterctl jobs list` command in `cli/cmd/jobs.go` â€” call `GET /api/background-jobs`. Render table with columns: ID, Type, Status, Created. Support all output formats.
-- [X] T027 [US5] Create `starterctl jobs create` subcommand in `cli/cmd/jobs.go` â€” flags: `--type` (required), `--payload` (required, JSON string). Call `POST /api/background-jobs` with body. Print job ID and status on success.
-- [X] T027a [US5] Add tests to `cli/tests/jobs_test.go` â€” test jobs list (table output), jobs create (--type, --payload). Mock HTTP responses.
+- [x] T026 [US5] Create `starterctl jobs list` command in `cli/cmd/jobs.go` â€” call `GET /api/background-jobs`. Render table with columns: ID, Type, Status, Created. Support all output formats.
+- [x] T027 [US5] Create `starterctl jobs create` subcommand in `cli/cmd/jobs.go` â€” flags: `--type` (required), `--payload` (required, JSON string). Call `POST /api/background-jobs` with body. Print job ID and status on success.
+- [x] T027a [US5] Add tests to `cli/tests/jobs_test.go` â€” test jobs list (table output), jobs create (--type, --payload). Mock HTTP responses.
 
 **Checkpoint**: `starterctl jobs list` shows jobs, `starterctl jobs create` creates new jobs
 
@@ -138,8 +138,8 @@
 
 ### Implementation for User Story 6
 
-- [X] T028 [US6] Create `starterctl completion` command in `cli/cmd/completion.go` â€” subcommands: `bash`, `zsh`, `powershell`, `fish` that output the respective completion script to stdout using cobra's built-in `GenBashCompletionV2`, `GenZshCompletion`, `GenPowerShellCompletionWithDesc`, `GenFishCompletion`.
-- [X] T029 [US6] Create `starterctl completion install` subcommand in `cli/cmd/completion.go` â€” auto-detect current shell, install completion script to appropriate location (bash: `~/.bash_completion.d/starterctl`, zsh: `~/.zsh/completion/_starterctl`, PowerShell: profile directory, fish: `~/.config/fish/completions/starterctl.fish`). Print manual instructions if auto-install not possible.
+- [x] T028 [US6] Create `starterctl completion` command in `cli/cmd/completion.go` â€” subcommands: `bash`, `zsh`, `powershell`, `fish` that output the respective completion script to stdout using cobra's built-in `GenBashCompletionV2`, `GenZshCompletion`, `GenPowerShellCompletionWithDesc`, `GenFishCompletion`.
+- [x] T029 [US6] Create `starterctl completion install` subcommand in `cli/cmd/completion.go` â€” auto-detect current shell, install completion script to appropriate location (bash: `~/.bash_completion.d/starterctl`, zsh: `~/.zsh/completion/_starterctl`, PowerShell: profile directory, fish: `~/.config/fish/completions/starterctl.fish`). Print manual instructions if auto-install not possible.
 
 **Checkpoint**: `starterctl completion bash|zsh|powershell|fish` outputs valid scripts, `starterctl completion install` installs for the current shell
 
@@ -153,8 +153,8 @@
 
 ### Implementation for User Story 7
 
-- [X] T030 [US7] Create `starterctl health` command in `cli/cmd/health.go` â€” call `GET /api/health`. Render status, database connectivity, server version. Exit code 0 (healthy), 3 (unreachable), 1 (unhealthy). Support all output formats.
-- [X] T031 [US7] Create `starterctl version` command in `cli/cmd/version.go` â€” display CLI version (from build-time ldflags), server URL (from config), server version (from health endpoint if configured). If not configured, show only CLI version.
+- [x] T030 [US7] Create `starterctl health` command in `cli/cmd/health.go` â€” call `GET /api/health`. Render status, database connectivity, server version. Exit code 0 (healthy), 3 (unreachable), 1 (unhealthy). Support all output formats.
+- [x] T031 [US7] Create `starterctl version` command in `cli/cmd/version.go` â€” display CLI version (from build-time ldflags), server URL (from config), server version (from health endpoint if configured). If not configured, show only CLI version.
 
 **Checkpoint**: `starterctl health` shows server status, `starterctl version` shows CLI and server versions
 
@@ -164,10 +164,10 @@
 
 **Purpose**: Update notifications and cross-platform release setup
 
-- [X] T032 Implement version check in `cli/internal/update/check.go` â€” on each command invocation, check GitHub Releases API (`GET /repos/{owner}/{repo}/releases/latest`) in a background goroutine. Cache result in `~/.config/starterctl/version-check.json` for 24 hours. Print one-line notification to stderr if newer version available. Never block command execution. Suppress in non-interactive mode.
-- [X] T033 Wire version check into root command pre-run hook in `cli/cmd/root.go` â€” call update check as goroutine, print notification in post-run if update available
-- [X] T034 Create GoReleaser config at `cli/.goreleaser.yaml` â€” build for 6 targets (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64, windows/arm64), set binary name to `starterctl`, inject version via ldflags, create tar.gz (Linux/macOS) and zip (Windows) archives, generate checksums
-- [X] T035 [P] Create GitHub Actions release workflow at `.github/workflows/cli-release.yml` â€” trigger on tag push (`cli-v*`), run GoReleaser to build and publish to GitHub Releases
+- [x] T032 Implement version check in `cli/internal/update/check.go` â€” on each command invocation, check GitHub Releases API (`GET /repos/{owner}/{repo}/releases/latest`) in a background goroutine. Cache result in `~/.config/starterctl/version-check.json` for 24 hours. Print one-line notification to stderr if newer version available. Never block command execution. Suppress in non-interactive mode.
+- [x] T033 Wire version check into root command pre-run hook in `cli/cmd/root.go` â€” call update check as goroutine, print notification in post-run if update available
+- [x] T034 Create GoReleaser config at `cli/.goreleaser.yaml` â€” build for 6 targets (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64, windows/arm64), set binary name to `starterctl`, inject version via ldflags, create tar.gz (Linux/macOS) and zip (Windows) archives, generate checksums
+- [x] T035 [P] Create GitHub Actions release workflow at `.github/workflows/cli-release.yml` â€” trigger on tag push (`cli-v*`), run GoReleaser to build and publish to GitHub Releases
 
 **Checkpoint**: `starterctl` prints update notification when newer version exists, GoReleaser builds all 6 platform binaries
 
@@ -177,13 +177,13 @@
 
 **Purpose**: Error handling, help text, final validation
 
-- [X] T036 Add `--help` usage examples to every command in `cli/cmd/*.go` â€” include realistic examples in cobra `Example` field (e.g., `starterctl users list --status ACTIVE --format json`)
-- [X] T037 Add `X-API-Key` header support in `cli/internal/client/client.go` â€” add `STARTERCTL_AUTH_HEADER` env var (values: `bearer` or `api-key`, default `bearer`) to select which header the client uses. No CLI flag needed â€” Bearer is the default and X-API-Key is for special integration scenarios only.
-- [X] T038 Verify all commands handle base path correctly â€” test with server URL like `https://example.com/app`, ensure API paths are `https://example.com/app/api/users` not `https://example.com/api/users`
-- [X] T039 Verify exit codes are correct for all error scenarios â€” auth error (2), connection error (3), permission error (4), general error (1), success (0)
-- [X] T040 Run `go vet ./...` and `go test ./...` in `cli/` and fix any issues
-- [X] T041 Update `CONTINUE.md` and `CONTINUE_LOG.md` with CLI feature completion status
-- [X] T041a Update `ACTIVE_SPECS.md` â€” add spec 013 entry at start of implementation; remove entry when all tasks are complete per constitution VI
+- [x] T036 Add `--help` usage examples to every command in `cli/cmd/*.go` â€” include realistic examples in cobra `Example` field (e.g., `starterctl users list --status ACTIVE --format json`)
+- [x] T037 Add `X-API-Key` header support in `cli/internal/client/client.go` â€” add `STARTERCTL_AUTH_HEADER` env var (values: `bearer` or `api-key`, default `bearer`) to select which header the client uses. No CLI flag needed â€” Bearer is the default and X-API-Key is for special integration scenarios only.
+- [x] T038 Verify all commands handle base path correctly â€” test with server URL like `https://example.com/app`, ensure API paths are `https://example.com/app/api/users` not `https://example.com/api/users`
+- [x] T039 Verify exit codes are correct for all error scenarios â€” auth error (2), connection error (3), permission error (4), general error (1), success (0)
+- [x] T040 Run `go vet ./...` and `go test ./...` in `cli/` and fix any issues
+- [x] T041 Update `CONTINUE.md` and `CONTINUE_LOG.md` with CLI feature completion status
+- [x] T041a Update `ACTIVE_SPECS.md` â€” add spec 013 entry at start of implementation; remove entry when all tasks are complete per constitution VI
 
 ---
 
@@ -275,4 +275,3 @@ T019 [P] users role
 - Environment variables `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN` override config file
 - Non-interactive detection auto-switches tableâ†’JSON for piped output
 - Update check is non-blocking (goroutine) with 24h cache
-

@@ -20,12 +20,12 @@
 
 **Purpose**: Prisma schema, shared types, TeamsClient abstraction, env config
 
-- [X] T001 Add TeamsMessageStatus and TeamsInboundStatus enums plus TeamsIntegrationConfig, TeamsDeliveryTarget, TeamsOutboundMessage, TeamsIntakeSubscription, and TeamsInboundMessage models to prisma/schema.prisma per data-model.md
-- [X] T002 Run `npm run prisma:migrate` to generate migration, then `npm run prisma:generate` to update Prisma client
-- [X] T003 [P] Create Teams types and TeamsClient interface in src/lib/teams/types.ts per data-model.md and contracts/api.md
-- [X] T004 [P] Add TEAMS_ENABLED and TEAMS_POLL_INTERVAL_SECONDS to .env.example with defaults (false, 60)
-- [X] T005 Add `teams_message_delivery` and `teams_intake_poll` to allowed job types in src/services/api/background-jobs.ts
-- [X] T006 Implement TeamsClient Graph API wrapper (sendChannelMessage, listChannelMessages, getChannelMessagesDelta) in src/lib/teams/client.ts — reuse token caching pattern from src/lib/mail/graph.ts
+- [x] T001 Add TeamsMessageStatus and TeamsInboundStatus enums plus TeamsIntegrationConfig, TeamsDeliveryTarget, TeamsOutboundMessage, TeamsIntakeSubscription, and TeamsInboundMessage models to prisma/schema.prisma per data-model.md
+- [x] T002 Run `npm run prisma:migrate` to generate migration, then `npm run prisma:generate` to update Prisma client
+- [x] T003 [P] Create Teams types and TeamsClient interface in src/lib/teams/types.ts per data-model.md and contracts/api.md
+- [x] T004 [P] Add TEAMS_ENABLED and TEAMS_POLL_INTERVAL_SECONDS to .env.example with defaults (false, 60)
+- [x] T005 Add `teams_message_delivery` and `teams_intake_poll` to allowed job types in src/services/api/background-jobs.ts
+- [x] T006 Implement TeamsClient Graph API wrapper (sendChannelMessage, listChannelMessages, getChannelMessagesDelta) in src/lib/teams/client.ts — reuse token caching pattern from src/lib/mail/graph.ts
 
 ---
 
@@ -35,10 +35,10 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [X] T007 Implement Teams admin service (getOrCreateConfig, updateConfig) in src/services/teams/admin.ts — singleton pattern for TeamsIntegrationConfig
-- [X] T008 [P] Add Teams translation keys for all 5 locales (en, de, es, fr, pt) in src/i18n/messages/{locale}.json — keys for integration settings, targets, subscriptions, status labels, error messages
-- [X] T009 [P] Create graph_teams.py in worker/src/starter_worker/graph_teams.py — send_teams_channel_message() and list_teams_channel_messages() functions following graph_mail.py pattern
-- [X] T010 Add Teams DB operations to worker/src/starter_worker/db.py — CRUD for TeamsOutboundMessage status updates, TeamsInboundMessage creation, TeamsIntakeSubscription delta token updates, has_teams_inbound_message() dedup check
+- [x] T007 Implement Teams admin service (getOrCreateConfig, updateConfig) in src/services/teams/admin.ts — singleton pattern for TeamsIntegrationConfig
+- [x] T008 [P] Add Teams translation keys for all 5 locales (en, de, es, fr, pt) in src/i18n/messages/{locale}.json — keys for integration settings, targets, subscriptions, status labels, error messages
+- [x] T009 [P] Create graph_teams.py in worker/src/starter_worker/graph_teams.py — send_teams_channel_message() and list_teams_channel_messages() functions following graph_mail.py pattern
+- [x] T010 Add Teams DB operations to worker/src/starter_worker/db.py — CRUD for TeamsOutboundMessage status updates, TeamsInboundMessage creation, TeamsIntakeSubscription delta token updates, has_teams_inbound_message() dedup check
 
 **Checkpoint**: Foundation ready — user story implementation can begin
 
@@ -52,21 +52,21 @@
 
 ### Tests for User Story 1
 
-- [X] T011 [P] [US1] Unit test for TeamsClient.sendChannelMessage in tests/unit/teams-client.test.ts — mock Graph API responses (success, 4xx, 5xx, timeout)
-- [X] T012 [P] [US1] Unit test for Teams outbound service (queueTeamsMessages, message truncation at 28KB) in tests/unit/teams-service.test.ts
-- [X] T013 [P] [US1] Unit test for delivery target CRUD and config management in tests/unit/teams-admin.test.ts
+- [x] T011 [P] [US1] Unit test for TeamsClient.sendChannelMessage in tests/unit/teams-client.test.ts — mock Graph API responses (success, 4xx, 5xx, timeout)
+- [x] T012 [P] [US1] Unit test for Teams outbound service (queueTeamsMessages, message truncation at 28KB) in tests/unit/teams-service.test.ts
+- [x] T013 [P] [US1] Unit test for delivery target CRUD and config management in tests/unit/teams-admin.test.ts
 
 ### Implementation for User Story 1
 
-- [X] T014 [US1] Implement Teams outbound service in src/services/teams/service.ts — queueTeamsMessages(eventType, eventId, payload) creates TeamsOutboundMessage + BackgroundJob per active target, checks sendEnabled flag, truncates content at 28KB
-- [X] T015 [US1] Add teams_message_delivery job handler to worker/src/starter_worker/main.py — call send_teams_channel_message(), update TeamsOutboundMessage status (SENDING→SENT or RETRYING→FAILED), follow notification_delivery pattern
-- [X] T016 [US1] Hook Teams outbound into existing notification event pipeline — call safeQueueTeamsMessages() from src/services/notifications/service.ts alongside email queueing, gated on TEAMS_ENABLED and sendEnabled
-- [X] T017 [P] [US1] Implement GET/POST /api/integrations/teams/targets in src/app/api/integrations/teams/targets/route.ts — list targets, create target with unique(teamId,channelId) constraint, PLATFORM_ADMIN required
-- [X] T018 [P] [US1] Implement PUT/DELETE /api/integrations/teams/targets/[id] in src/app/api/integrations/teams/targets/[id]/route.ts — update name/active, delete with pending message check (409)
-- [X] T019 [P] [US1] Implement GET/PUT /api/integrations/teams config endpoints in src/app/api/integrations/teams/route.ts — get config with health metrics, update sendEnabled/intakeEnabled toggles
-- [X] T020 [US1] Build Teams admin UI — delivery targets section in src/app/(dashboard)/admin/integrations/teams/page.tsx — send toggle, target list with add/edit/delete, toast feedback, responsive layout, all text via next-intl
+- [x] T014 [US1] Implement Teams outbound service in src/services/teams/service.ts — queueTeamsMessages(eventType, eventId, payload) creates TeamsOutboundMessage + BackgroundJob per active target, checks sendEnabled flag, truncates content at 28KB
+- [x] T015 [US1] Add teams_message_delivery job handler to worker/src/starter_worker/main.py — call send_teams_channel_message(), update TeamsOutboundMessage status (SENDING→SENT or RETRYING→FAILED), follow notification_delivery pattern
+- [x] T016 [US1] Hook Teams outbound into existing notification event pipeline — call safeQueueTeamsMessages() from src/services/notifications/service.ts alongside email queueing, gated on TEAMS_ENABLED and sendEnabled
+- [x] T017 [P] [US1] Implement GET/POST /api/integrations/teams/targets in src/app/api/integrations/teams/targets/route.ts — list targets, create target with unique(teamId,channelId) constraint, PLATFORM_ADMIN required
+- [x] T018 [P] [US1] Implement PUT/DELETE /api/integrations/teams/targets/[id] in src/app/api/integrations/teams/targets/[id]/route.ts — update name/active, delete with pending message check (409)
+- [x] T019 [P] [US1] Implement GET/PUT /api/integrations/teams config endpoints in src/app/api/integrations/teams/route.ts — get config with health metrics, update sendEnabled/intakeEnabled toggles
+- [x] T020 [US1] Build Teams admin UI — delivery targets section in src/app/(dashboard)/admin/integrations/teams/page.tsx — send toggle, target list with add/edit/delete, toast feedback, responsive layout, all text via next-intl
 
-- [X] T020a [US1] E2E test for US1 happy path in tests/e2e/teams-integration.spec.ts — admin configures target, triggers USER_CREATED event, verifies outbound message queued with delivery record visible in status view (mock Graph API at network level)
+- [x] T020a [US1] E2E test for US1 happy path in tests/e2e/teams-integration.spec.ts — admin configures target, triggers USER_CREATED event, verifies outbound message queued with delivery record visible in status view (mock Graph API at network level)
 
 **Checkpoint**: US1 complete — outbound Teams messaging functional end-to-end
 
@@ -80,17 +80,17 @@
 
 ### Tests for User Story 2
 
-- [X] T021 [P] [US2] Unit test for Teams intake service (processTeamsIntakePoll, dedup, delta token handling) in tests/unit/teams-service.test.ts (extend existing file)
-- [X] T022 [P] [US2] Unit test for worker teams_intake_poll handler in worker/tests/test_main.py (extend existing file)
+- [x] T021 [P] [US2] Unit test for Teams intake service (processTeamsIntakePoll, dedup, delta token handling) in tests/unit/teams-service.test.ts (extend existing file)
+- [x] T022 [P] [US2] Unit test for worker teams_intake_poll handler in worker/tests/test_main.py (extend existing file)
 
 ### Implementation for User Story 2
 
-- [X] T023 [US2] Implement Teams intake service in src/services/teams/intake.ts — processTeamsIntakePoll() fetches messages via delta query per active subscription, dedup via providerMessageId, stores TeamsInboundMessage, updates deltaToken and lastPolledAt
-- [X] T024 [US2] Add teams_intake_poll job handler to worker/src/starter_worker/main.py — iterate active subscriptions, call list_teams_channel_messages() with delta token, store new messages via db.py, update subscription delta token
-- [X] T025 [US2] Create periodic teams_intake_poll job scheduling in worker/src/starter_worker/main.py — worker main loop creates a teams_intake_poll BackgroundJob on TEAMS_POLL_INTERVAL_SECONDS interval if no pending poll job exists, gated on TEAMS_ENABLED and intakeEnabled, matching inbound_mail_poll self-scheduling pattern
-- [X] T026 [P] [US2] Implement GET/POST /api/integrations/teams/subscriptions in src/app/api/integrations/teams/subscriptions/route.ts — list subscriptions, create with unique(teamId,channelId), PLATFORM_ADMIN required
-- [X] T027 [P] [US2] Implement PUT/DELETE /api/integrations/teams/subscriptions/[id] in src/app/api/integrations/teams/subscriptions/[id]/route.ts — update active status, delete (retain inbound messages)
-- [X] T028 [US2] Extend Teams admin UI with intake subscriptions section in src/app/(dashboard)/admin/integrations/teams/page.tsx — intake toggle, subscription list with add/edit/delete, last polled timestamp display
+- [x] T023 [US2] Implement Teams intake service in src/services/teams/intake.ts — processTeamsIntakePoll() fetches messages via delta query per active subscription, dedup via providerMessageId, stores TeamsInboundMessage, updates deltaToken and lastPolledAt
+- [x] T024 [US2] Add teams_intake_poll job handler to worker/src/starter_worker/main.py — iterate active subscriptions, call list_teams_channel_messages() with delta token, store new messages via db.py, update subscription delta token
+- [x] T025 [US2] Create periodic teams_intake_poll job scheduling in worker/src/starter_worker/main.py — worker main loop creates a teams_intake_poll BackgroundJob on TEAMS_POLL_INTERVAL_SECONDS interval if no pending poll job exists, gated on TEAMS_ENABLED and intakeEnabled, matching inbound_mail_poll self-scheduling pattern
+- [x] T026 [P] [US2] Implement GET/POST /api/integrations/teams/subscriptions in src/app/api/integrations/teams/subscriptions/route.ts — list subscriptions, create with unique(teamId,channelId), PLATFORM_ADMIN required
+- [x] T027 [P] [US2] Implement PUT/DELETE /api/integrations/teams/subscriptions/[id] in src/app/api/integrations/teams/subscriptions/[id]/route.ts — update active status, delete (retain inbound messages)
+- [x] T028 [US2] Extend Teams admin UI with intake subscriptions section in src/app/(dashboard)/admin/integrations/teams/page.tsx — intake toggle, subscription list with add/edit/delete, last polled timestamp display
 
 **Checkpoint**: US2 complete — inbound Teams message intake functional, independently testable
 
@@ -104,13 +104,13 @@
 
 ### Tests for User Story 3
 
-- [X] T029 [P] [US3] Unit test for status endpoint (activity aggregation, health metrics computation) in tests/unit/teams-admin.test.ts (extend existing file)
+- [x] T029 [P] [US3] Unit test for status endpoint (activity aggregation, health metrics computation) in tests/unit/teams-admin.test.ts (extend existing file)
 
 ### Implementation for User Story 3
 
-- [X] T030 [US3] Implement status aggregation in src/services/teams/admin.ts — getIntegrationStatus() returns lastSuccessfulSend, lastSuccessfulIntake, recentSendFailures, recentIntakeFailures, recentActivity list
-- [X] T031 [US3] Implement GET /api/integrations/teams/status in src/app/api/integrations/teams/status/route.ts — recent activity log with limit and type filter per contracts/api.md
-- [X] T032 [US3] Extend Teams admin UI with status/health dashboard section in src/app/(dashboard)/admin/integrations/teams/page.tsx — health indicators, recent activity table, failure highlighting, emergency disable buttons
+- [x] T030 [US3] Implement status aggregation in src/services/teams/admin.ts — getIntegrationStatus() returns lastSuccessfulSend, lastSuccessfulIntake, recentSendFailures, recentIntakeFailures, recentActivity list
+- [x] T031 [US3] Implement GET /api/integrations/teams/status in src/app/api/integrations/teams/status/route.ts — recent activity log with limit and type filter per contracts/api.md
+- [x] T032 [US3] Extend Teams admin UI with status/health dashboard section in src/app/(dashboard)/admin/integrations/teams/page.tsx — health indicators, recent activity table, failure highlighting, emergency disable buttons
 
 **Checkpoint**: All user stories independently functional
 
@@ -120,16 +120,16 @@
 
 **Purpose**: Edge cases, validation, documentation
 
-- [X] T033 [P] Handle edge case: message content exceeds 28KB — verify truncation + flag in TeamsOutboundMessage, log warning in worker
-- [X] T034 [P] Handle edge case: Teams destination invalid/inaccessible — verify retry 3x then permanent fail, error surfaced in status view
-- [X] T035 [P] Handle edge case: insufficient tenant permissions for one capability — verify send and intake degrade independently, surface permission errors in status
-- [X] T036 [P] Add Teams worker tests for graph_teams.py in worker/tests/test_main.py — mock Graph API for send and list, verify retry behavior
-- [X] T037 Update .env.example with all Teams-related env vars and comments
-- [X] T038 Run quickstart.md validation — walk through setup steps, verify end-to-end flow, time setup to verify SC-004 (under 10 minutes)
-- [X] T039 Update CONTINUE.md, CONTINUE_LOG.md, and ACTIVE_SPECS.md with Teams integration completion status per constitution Principle VI
-- [X] T040 [P] Add FR-011 negative constraint test in tests/unit/teams-client.test.ts — assert TeamsClient exposes no reply, update, or delete methods; assert worker handlers never call Graph write endpoints beyond sendChannelMessage
-- [X] T041 [P] Add FR-012 regression test in tests/unit/teams-service.test.ts — trigger notification event with Teams disabled, verify email notification still queued unchanged
-- [X] T042 [P] Verify test coverage includes new src/lib/teams/, src/services/teams/, and worker/src/starter_worker/graph_teams.py — ensure coverage does not decrease per constitution Principle II
+- [x] T033 [P] Handle edge case: message content exceeds 28KB — verify truncation + flag in TeamsOutboundMessage, log warning in worker
+- [x] T034 [P] Handle edge case: Teams destination invalid/inaccessible — verify retry 3x then permanent fail, error surfaced in status view
+- [x] T035 [P] Handle edge case: insufficient tenant permissions for one capability — verify send and intake degrade independently, surface permission errors in status
+- [x] T036 [P] Add Teams worker tests for graph_teams.py in worker/tests/test_main.py — mock Graph API for send and list, verify retry behavior
+- [x] T037 Update .env.example with all Teams-related env vars and comments
+- [x] T038 Run quickstart.md validation — walk through setup steps, verify end-to-end flow, time setup to verify SC-004 (under 10 minutes)
+- [x] T039 Update CONTINUE.md, CONTINUE_LOG.md, and ACTIVE_SPECS.md with Teams integration completion status per constitution Principle VI
+- [x] T040 [P] Add FR-011 negative constraint test in tests/unit/teams-client.test.ts — assert TeamsClient exposes no reply, update, or delete methods; assert worker handlers never call Graph write endpoints beyond sendChannelMessage
+- [x] T041 [P] Add FR-012 regression test in tests/unit/teams-service.test.ts — trigger notification event with Teams disabled, verify email notification still queued unchanged
+- [x] T042 [P] Verify test coverage includes new src/lib/teams/, src/services/teams/, and worker/src/starter_worker/graph_teams.py — ensure coverage does not decrease per constitution Principle II
 
 ---
 
@@ -215,4 +215,3 @@ T019: GET/PUT config in src/app/api/integrations/teams/route.ts
 - Stop at any checkpoint to validate story independently
 - Constitution Principle II: All stories have test tasks
 - Constitution Principle IX: All UI text via next-intl keys
-

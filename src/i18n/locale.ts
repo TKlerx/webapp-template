@@ -18,7 +18,9 @@ export async function getUserLocale(): Promise<Locale> {
 
 export function getUserLocaleCookieHeaders(locale: Locale) {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "/";
-  const expires = new Date(Date.now() + LOCALE_COOKIE_MAX_AGE * 1000).toUTCString();
+  const expires = new Date(
+    Date.now() + LOCALE_COOKIE_MAX_AGE * 1000,
+  ).toUTCString();
   const paths = basePath === "/" ? ["/"] : ["/", basePath];
 
   return paths.map(

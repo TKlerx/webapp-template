@@ -29,7 +29,12 @@ const REDACTED_KEYS = new Set([
 
 function getConfiguredLevel(): LogLevel {
   const configured = process.env.LOG_LEVEL?.toLowerCase();
-  if (configured === "debug" || configured === "info" || configured === "warn" || configured === "error") {
+  if (
+    configured === "debug" ||
+    configured === "info" ||
+    configured === "warn" ||
+    configured === "error"
+  ) {
     return configured;
   }
 
@@ -58,13 +63,15 @@ function sanitizeValue(value: unknown, depth = 0): unknown {
   }
 
   if (typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>).map(([key, entryValue]) => {
-      if (REDACTED_KEYS.has(key)) {
-        return [key, "[REDACTED]"];
-      }
+    const entries = Object.entries(value as Record<string, unknown>).map(
+      ([key, entryValue]) => {
+        if (REDACTED_KEYS.has(key)) {
+          return [key, "[REDACTED]"];
+        }
 
-      return [key, sanitizeValue(entryValue, depth + 1)];
-    });
+        return [key, sanitizeValue(entryValue, depth + 1)];
+      },
+    );
 
     return Object.fromEntries(entries);
   }

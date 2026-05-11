@@ -23,7 +23,9 @@ export default async function DashboardLayout({
             <p className="text-xs uppercase tracking-[0.28em] opacity-45">
               {t("appName")}
             </p>
-            <p className="mt-2 truncate text-lg font-semibold sm:text-xl">{user.name}</p>
+            <p className="mt-2 truncate text-lg font-semibold sm:text-xl">
+              {user.name}
+            </p>
             <p className="text-sm opacity-65">{user.email}</p>
           </div>
 

@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { appBasePath, expectOnDashboard, loginWithPassword } from "../helpers/auth";
+import {
+  appBasePath,
+  expectOnDashboard,
+  loginWithPassword,
+} from "../helpers/auth";
 
 test("platform admin can view recent background jobs", async ({ page }) => {
   await loginWithPassword(page, "admin@example.com", "ChangeMe123!");
@@ -20,12 +24,14 @@ test("platform admin can view recent background jobs", async ({ page }) => {
   await expectOnDashboard(page);
 
   const createJob = async (jobType: string, payload: unknown) => {
-    const response = await page.context().request.post(`${appBasePath}/api/background-jobs`, {
-      data: {
-        jobType,
-        payload,
-      },
-    });
+    const response = await page
+      .context()
+      .request.post(`${appBasePath}/api/background-jobs`, {
+        data: {
+          jobType,
+          payload,
+        },
+      });
 
     expect(response.status()).toBe(201);
   };
@@ -35,8 +41,12 @@ test("platform admin can view recent background jobs", async ({ page }) => {
 
   await page.goto(`${appBasePath}/background-jobs`);
 
-  await expect(page.getByRole("heading", { name: "Background Jobs" })).toBeVisible();
-  await expect(page.getByText("Recent worker jobs across the application.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Background Jobs" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Recent worker jobs across the application."),
+  ).toBeVisible();
   await expect(page.getByText("Showing the latest 2 jobs")).toBeVisible();
   await expect(page.getByText("echo")).toBeVisible();
   await expect(page.getByText("noop")).toBeVisible();

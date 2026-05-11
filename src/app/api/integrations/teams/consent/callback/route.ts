@@ -28,20 +28,28 @@ export async function GET(request: Request) {
 
   const [expectedState, redirectToFromState] = cookieValue.split(":", 2);
   const safeRedirect =
-    redirectToFromState && redirectToFromState.startsWith("/") && !redirectToFromState.startsWith("//")
+    redirectToFromState &&
+    redirectToFromState.startsWith("/") &&
+    !redirectToFromState.startsWith("//")
       ? getTeamsConsentAppRedirectPath(redirectToFromState)
       : "/admin/integrations/teams";
   const finalRedirect = getTeamsConsentAppRedirectPath(safeRedirect);
 
   if (!code || !state || !expectedState || state !== expectedState) {
-    return NextResponse.redirect(new URL(`${finalRedirect}?teamsConsent=state-error`, request.url));
+    return NextResponse.redirect(
+      new URL(`${finalRedirect}?teamsConsent=state-error`, request.url),
+    );
   }
 
   try {
     const token = await exchangeTeamsConsentCode(request, code);
     await saveTeamsDelegatedGrant(auth.user.id, token);
-    return NextResponse.redirect(new URL(`${finalRedirect}?teamsConsent=connected`, request.url));
+    return NextResponse.redirect(
+      new URL(`${finalRedirect}?teamsConsent=connected`, request.url),
+    );
   } catch {
-    return NextResponse.redirect(new URL(`${finalRedirect}?teamsConsent=failed`, request.url));
+    return NextResponse.redirect(
+      new URL(`${finalRedirect}?teamsConsent=failed`, request.url),
+    );
   }
 }

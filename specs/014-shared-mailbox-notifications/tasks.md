@@ -25,11 +25,11 @@
 
 **Purpose**: Establish the reusable mail service surface and Graph-backed implementation.
 
-- [X] T001 Create the mail abstraction module under `src/lib/mail/`
-- [X] T002 [P] Define provider-neutral mail types and the `MailClient` contract in `src/lib/mail/types.ts`
-- [X] T003 [P] Implement provider resolution and configuration checks in `src/lib/mail/provider.ts`
-- [X] T004 [P] Implement the Microsoft Graph mail provider in `src/lib/mail/graph.ts`
-- [X] T005 Export the mail module surface from `src/lib/mail/index.ts`
+- [x] T001 Create the mail abstraction module under `src/lib/mail/`
+- [x] T002 [P] Define provider-neutral mail types and the `MailClient` contract in `src/lib/mail/types.ts`
+- [x] T003 [P] Implement provider resolution and configuration checks in `src/lib/mail/provider.ts`
+- [x] T004 [P] Implement the Microsoft Graph mail provider in `src/lib/mail/graph.ts`
+- [x] T005 Export the mail module surface from `src/lib/mail/index.ts`
 
 ---
 
@@ -37,10 +37,10 @@
 
 **Purpose**: Verify the abstraction works as a stable dependency for later notification features.
 
-- [X] T006 [P] Add provider-resolution coverage in `tests/unit/mail-provider.test.ts`
-- [X] T007 [P] Add Graph mail client coverage in `tests/unit/graph-mail.test.ts`
-- [X] T008 Update operator/developer docs in `.env.example`, `README.md`, and `docs/mail.md`
-- [X] T009 Run validation for the mail foundation with `npm exec -- tsc --noEmit`, `npm exec -- vitest run tests/unit/mail-provider.test.ts tests/unit/graph-mail.test.ts`, and `.\validate.ps1 all`
+- [x] T006 [P] Add provider-resolution coverage in `tests/unit/mail-provider.test.ts`
+- [x] T007 [P] Add Graph mail client coverage in `tests/unit/graph-mail.test.ts`
+- [x] T008 Update operator/developer docs in `.env.example`, `README.md`, and `docs/mail.md`
+- [x] T009 Run validation for the mail foundation with `npm exec -- tsc --noEmit`, `npm exec -- vitest run tests/unit/mail-provider.test.ts tests/unit/graph-mail.test.ts`, and `.\validate.ps1 all`
 
 **Checkpoint**: The repository has a documented, tested, provider-neutral Graph mail foundation that other features can consume.
 
@@ -54,17 +54,17 @@
 
 ### Tests for User Story 1
 
-- [X] T010 [P] [US1] Add notification service unit coverage in `tests/unit/notifications/`
-- [X] T011 [P] [US1] Add notification route/service integration coverage in `tests/integration/`
-- [X] T012 [P] [US1] Add end-to-end coverage for an event-triggered notification flow in `tests/e2e/`
+- [x] T010 [P] [US1] Add notification service unit coverage in `tests/unit/notifications/`
+- [x] T011 [P] [US1] Add notification route/service integration coverage in `tests/integration/`
+- [x] T012 [P] [US1] Add end-to-end coverage for an event-triggered notification flow in `tests/e2e/`
 
 ### Implementation for User Story 1
 
-- [X] T013 [US1] Add persistent notification event and notification models in `prisma/schema.prisma` and `prisma/schema.postgres.prisma`
-- [X] T014 [US1] Create notification delivery and retry services under `src/services/notifications/`
-- [X] T015 [US1] Integrate the currently available key events (user created, role changed, user status changed) with notification creation in the relevant `src/services/api/` modules; scope assignment integration remains pending until that mutation flow exists in the starter
-- [X] T016 [US1] Add localized email template rendering under `src/lib/mail/templates/`
-- [X] T017 [US1] Queue asynchronous delivery using the existing background-job/worker patterns
+- [x] T013 [US1] Add persistent notification event and notification models in `prisma/schema.prisma` and `prisma/schema.postgres.prisma`
+- [x] T014 [US1] Create notification delivery and retry services under `src/services/notifications/`
+- [x] T015 [US1] Integrate the currently available key events (user created, role changed, user status changed) with notification creation in the relevant `src/services/api/` modules; scope assignment integration remains pending until that mutation flow exists in the starter
+- [x] T016 [US1] Add localized email template rendering under `src/lib/mail/templates/`
+- [x] T017 [US1] Queue asynchronous delivery using the existing background-job/worker patterns
 
 **Checkpoint**: Core application events can generate and deliver localized notification emails via the shared mailbox without blocking the initiating action.
 
@@ -78,15 +78,15 @@
 
 ### Tests for User Story 2
 
-- [X] T018 [P] [US2] Add API/service tests for notification settings and log filtering in `tests/integration/`
-- [X] T019 [P] [US2] Add UI coverage for notification settings and log views in `tests/e2e/`
+- [x] T018 [P] [US2] Add API/service tests for notification settings and log filtering in `tests/integration/`
+- [x] T019 [P] [US2] Add UI coverage for notification settings and log views in `tests/e2e/`
 
 ### Implementation for User Story 2
 
-- [X] T020 [US2] Add notification type configuration persistence and services under `prisma/` and `src/services/notifications/`
-- [X] T021 [US2] Add admin notification log and settings routes under `src/app/api/notifications/`
-- [X] T022 [US2] Add notification settings and log UI under `src/app/(dashboard)/` and supporting components under `src/components/`
-- [X] T023 [US2] Add RBAC-aware navigation and i18n strings for notification management in `src/components/ui/Navigation.tsx` and `src/i18n/messages/*.json`
+- [x] T020 [US2] Add notification type configuration persistence and services under `prisma/` and `src/services/notifications/`
+- [x] T021 [US2] Add admin notification log and settings routes under `src/app/api/notifications/`
+- [x] T022 [US2] Add notification settings and log UI under `src/app/(dashboard)/` and supporting components under `src/components/`
+- [x] T023 [US2] Add RBAC-aware navigation and i18n strings for notification management in `src/components/ui/Navigation.tsx` and `src/i18n/messages/*.json`
 
 **Checkpoint**: PLATFORM_ADMIN users can manage notification behavior and inspect delivery history, with scoped visibility rules applied where required.
 
@@ -100,15 +100,15 @@
 
 ### Tests for User Story 3
 
-- [X] T024 [P] [US3] Add worker and inbound-processing tests under `worker/tests/` and `tests/integration/`
-- [X] T025 [P] [US3] Add regression coverage for bounce correlation and reference matching in `tests/unit/`
+- [x] T024 [P] [US3] Add worker and inbound-processing tests under `worker/tests/` and `tests/integration/`
+- [x] T025 [P] [US3] Add regression coverage for bounce correlation and reference matching in `tests/unit/`
 
 ### Implementation for User Story 3
 
-- [X] T026 [US3] Add inbound-email persistence models in `prisma/schema.prisma` and `prisma/schema.postgres.prisma`
-- [X] T027 [US3] Implement shared mailbox polling and deduplication in the worker under `worker/src/`
-- [X] T028 [US3] Add bounce/NDR correlation and notification status updates in `src/services/notifications/`
-- [X] T029 [US3] Add reference-matching hooks for downstream application linkage in `src/services/notifications/` or a dedicated inbound module
+- [x] T026 [US3] Add inbound-email persistence models in `prisma/schema.prisma` and `prisma/schema.postgres.prisma`
+- [x] T027 [US3] Implement shared mailbox polling and deduplication in the worker under `worker/src/`
+- [x] T028 [US3] Add bounce/NDR correlation and notification status updates in `src/services/notifications/`
+- [x] T029 [US3] Add reference-matching hooks for downstream application linkage in `src/services/notifications/` or a dedicated inbound module
 
 **Checkpoint**: Inbound mailbox messages are polled, stored, and processed without duplicating or losing messages.
 
@@ -118,9 +118,9 @@
 
 **Purpose**: Keep spec tracking, continuity, and repo docs aligned with feature progress.
 
-- [X] T030 [Governance] Add the missing implementation-spec package for feature 014 in `specs/014-shared-mailbox-notifications/`
-- [X] T031 [Governance] Update `ACTIVE_SPECS.md`, `CONTINUE.md`, and `CONTINUE_LOG.md` to reflect that the Graph mail foundation is complete but the broader feature remains open
-- [X] T032 [Governance] Remove feature 014 from `ACTIVE_SPECS.md` only when all remaining tasks are complete
+- [x] T030 [Governance] Add the missing implementation-spec package for feature 014 in `specs/014-shared-mailbox-notifications/`
+- [x] T031 [Governance] Update `ACTIVE_SPECS.md`, `CONTINUE.md`, and `CONTINUE_LOG.md` to reflect that the Graph mail foundation is complete but the broader feature remains open
+- [x] T032 [Governance] Remove feature 014 from `ACTIVE_SPECS.md` only when all remaining tasks are complete
 
 ---
 

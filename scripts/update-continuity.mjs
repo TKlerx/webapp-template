@@ -1,6 +1,12 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 
 const repoRoot = process.cwd();
@@ -63,8 +69,16 @@ function getRecentNonContinuityCommits(limit = 5) {
       continue;
     }
 
-    const filesOutput = safeRunGit(["show", "--pretty=format:", "--name-only", hash]);
-    const files = filesOutput.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+    const filesOutput = safeRunGit([
+      "show",
+      "--pretty=format:",
+      "--name-only",
+      hash,
+    ]);
+    const files = filesOutput
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean);
     const onlyContinuityChanges =
       files.length > 0 && files.every((file) => continuityFiles.has(file));
 
@@ -160,7 +174,9 @@ function buildContinueContent({
 }) {
   const recentCommitLines =
     recentCommits.length > 0
-      ? recentCommits.map((commit) => `- ${commit.hash.slice(0, 7)} ${commit.subject}`)
+      ? recentCommits.map(
+          (commit) => `- ${commit.hash.slice(0, 7)} ${commit.subject}`,
+        )
       : ["- No recent non-continuity commits found."];
 
   const activeSpecLines =
@@ -170,7 +186,10 @@ function buildContinueContent({
 
   const nextTaskLines =
     nextTasks.length > 0
-      ? nextTasks.map((task, index) => `${index + 1}. ${task.spec}: ${task.id} ${task.description}`)
+      ? nextTasks.map(
+          (task, index) =>
+            `${index + 1}. ${task.spec}: ${task.id} ${task.description}`,
+        )
       : ["1. No unchecked tasks detected in the active specs."];
 
   return [
@@ -207,15 +226,28 @@ function extractPreviousFingerprint(content) {
   return match?.[1] ?? "";
 }
 
-function buildNextLogContent({ existingLogContent, previousFingerprint, nextFingerprint, branch, timestamp, recentCommits, activeSpecs, nextTasks }) {
+function buildNextLogContent({
+  existingLogContent,
+  previousFingerprint,
+  nextFingerprint,
+  branch,
+  timestamp,
+  recentCommits,
+  activeSpecs,
+  nextTasks,
+}) {
   const existing = existingLogContent.trimEnd();
   if (previousFingerprint === nextFingerprint) {
     return existing ? `${existing}\n` : "";
   }
 
-  const summaryCommit = recentCommits[0] ? `${recentCommits[0].hash.slice(0, 7)} ${recentCommits[0].subject}` : "No recent non-continuity commits";
+  const summaryCommit = recentCommits[0]
+    ? `${recentCommits[0].hash.slice(0, 7)} ${recentCommits[0].subject}`
+    : "No recent non-continuity commits";
   const summarySpec = activeSpecs.length > 0 ? activeSpecs.join(", ") : "none";
-  const summaryNext = nextTasks[0] ? `${nextTasks[0].spec}: ${nextTasks[0].id}` : "no next task";
+  const summaryNext = nextTasks[0]
+    ? `${nextTasks[0].spec}: ${nextTasks[0].id}`
+    : "no next task";
 
   const entry = [
     "",
@@ -243,12 +275,17 @@ const materialState = JSON.stringify({
   statusSummary: statusLines,
 });
 const fingerprint = createHash("sha256").update(materialState).digest("hex");
-const previousContent = existsSync(continuePath) ? readFileSync(continuePath, "utf8") : "";
-const previousLogContent = existsSync(continueLogPath) ? readFileSync(continueLogPath, "utf8") : "";
+const previousContent = existsSync(continuePath)
+  ? readFileSync(continuePath, "utf8")
+  : "";
+const previousLogContent = existsSync(continueLogPath)
+  ? readFileSync(continueLogPath, "utf8")
+  : "";
 const previousFingerprint = extractPreviousFingerprint(previousContent);
-const timestamp = previousFingerprint === fingerprint && previousContent
-  ? previousContent.match(/^- Updated: (.+)$/m)?.[1] ?? formatNow()
-  : formatNow();
+const timestamp =
+  previousFingerprint === fingerprint && previousContent
+    ? (previousContent.match(/^- Updated: (.+)$/m)?.[1] ?? formatNow())
+    : formatNow();
 
 const nextContent = buildContinueContent({
   branch,

@@ -12,9 +12,9 @@ describe("azure auth SSO safety", () => {
       ),
     );
 
-    await expect(fetchAzureUserProfile("token", "header.payload.signature")).rejects.toThrow(
-      "Azure userinfo failed: 502 upstream failure",
-    );
+    await expect(
+      fetchAzureUserProfile("token", "header.payload.signature"),
+    ).rejects.toThrow("Azure userinfo failed: 502 upstream failure");
   });
 
   it("throws when the profile has no email", () => {

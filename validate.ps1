@@ -802,6 +802,26 @@ if ($Phase -in "all", "full", "quick", "commit") {
     }
 }
 
+if ($Phase -in "all", "full", "quick", "commit") {
+    Write-Step "Typecheck - Python (mypy)"
+    try {
+        Push-Location "worker"
+        try {
+            $mypyVersion = Invoke-NativeCommandCaptured "uv run mypy --version"
+            if ($mypyVersion.ExitCode -ne 0) {
+                Write-Warn "mypy not available (run: uv sync --all-groups in worker)"
+            } else {
+                $exitCode = Invoke-NativeCommand "uv run mypy --strict ."
+                if ($exitCode -ne 0) { throw "mypy failed" }
+                Write-Pass "Python mypy passed"
+            }
+        } finally { Pop-Location }
+    } catch {
+        Write-Fail "Python mypy failed"
+        $failures += "mypy"
+    }
+}
+
 if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Lint (eslint)"
     try {
@@ -852,6 +872,24 @@ if ($Phase -in "all", "full", "quality", "commit") {
     } catch {
         Write-Fail "lint failed"
         $failures += "lint"
+    }
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "Format check (prettier)"
+    & {
+        if (-not (Test-Path "node_modules/.bin/prettier")) {
+            Write-Warn "prettier not installed (add to devDependencies)"
+            return
+        }
+        $result = Invoke-NativeCommandCaptured "npx --no-install prettier --check ."
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            Write-Fail "Prettier format check failed"
+            $script:failures += "prettier"
+            return
+        }
+        Write-Pass "Prettier format check passed"
     }
 }
 
@@ -1028,6 +1066,38 @@ if ($Phase -in "all", "full", "quality", "commit") {
 }
 
 if ($Phase -in "all", "full", "test", "commit") {
+    Write-Step "Tests - Python (pytest)"
+    try {
+        Push-Location "worker"
+        try {
+            $pytestVersion = Invoke-NativeCommandCaptured "uv run pytest --version"
+            if ($pytestVersion.ExitCode -ne 0) {
+                Write-Warn "pytest not available (run: uv sync --all-groups in worker)"
+            } else {
+                $result = Invoke-NativeCommandCaptured "uv run pytest -x --tb=short -q"
+                if ($result.ExitCode -ne 0) {
+                    $result.Output | Out-Host
+                    throw "pytest failed"
+                }
+
+                $summaryLine = $result.Output |
+                    Select-String -Pattern '(\d+)\s+passed' |
+                    Select-Object -Last 1
+
+                if ($summaryLine -and $summaryLine.Matches.Count -gt 0) {
+                    Write-Pass "Python tests passed ($($summaryLine.Matches[0].Groups[1].Value) passed)"
+                } else {
+                    Write-Pass "Python tests passed"
+                }
+            }
+        } finally { Pop-Location }
+    } catch {
+        Write-Fail "Python tests failed"
+        $failures += "pytest"
+    }
+}
+
+if ($Phase -in "all", "full", "test", "commit") {
     Write-Step "Tests (vitest)"
     try {
         $result = Invoke-NativeCommandCaptured "npm test"
@@ -1075,6 +1145,32 @@ if ($Phase -in "continuity", "commit") {
 
 if ($Phase -in "full", "commit") {
     Test-ProductionDependencyAudit -Blocking:($Phase -eq "commit")
+}
+
+if ($Phase -in "full", "commit") {
+    Write-Step "Production dependency audit (uv audit)"
+    try {
+        if (-not (Test-Path "worker\pyproject.toml" -PathType Leaf)) {
+            Write-Warn "uv audit skipped (worker/pyproject.toml not found)"
+        } else {
+            Push-Location "worker"
+            try {
+                $result = Invoke-NativeCommandCaptured "uv audit --no-dev"
+                if ($result.ExitCode -ne 0) {
+                    $rawOutput = ($result.Output -join "`n").Trim()
+                    Write-Fail "uv production audit found vulnerabilities"
+                    if ($rawOutput) { Write-Host $rawOutput -ForegroundColor Yellow }
+                    $script:failures += "uv-audit"
+                } else {
+                    Write-Pass "uv production audit passed"
+                }
+            } finally { Pop-Location }
+        }
+    } catch {
+        Write-Fail "uv production audit failed"
+        Write-Host $_.Exception.Message -ForegroundColor Yellow
+        $script:failures += "uv-audit"
+    }
 }
 
 if ($Phase -in "full", "e2e") {

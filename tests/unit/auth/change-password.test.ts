@@ -16,7 +16,11 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
-import { hashPassword, validatePasswordComplexity, verifyPassword } from "@/lib/auth";
+import {
+  hashPassword,
+  validatePasswordComplexity,
+  verifyPassword,
+} from "@/lib/auth";
 
 describe("password helpers", () => {
   it("accepts passwords that meet complexity requirements", () => {
@@ -33,4 +37,3 @@ describe("password helpers", () => {
     await expect(verifyPassword("WrongPass123", hash)).resolves.toBe(false);
   }, 15_000);
 });
-

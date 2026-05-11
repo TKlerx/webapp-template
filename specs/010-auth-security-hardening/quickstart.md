@@ -21,10 +21,12 @@
 ## Files Changed
 
 ### New files
+
 - `src/lib/rate-limit.ts` — In-memory rate limiter utility
 - `tests/unit/rate-limit.test.ts` — Rate limiter unit tests
 
 ### Modified files
+
 - `src/app/api/auth/login/route.ts` — Rate limiting + audit
 - `src/app/api/auth/logout/route.ts` — Audit
 - `src/app/api/auth/change-password/route.ts` — Rate limiting + audit
@@ -59,5 +61,6 @@ npm run test:e2e
 ## Environment Variables
 
 No new environment variables. Existing `AUTH_BASE_URL` behavior is tightened:
+
 - **Set**: Forwarded proxy headers are trusted (existing behavior)
 - **Unset**: Only `request.url` origin is used (hardened behavior — forwarded headers ignored)

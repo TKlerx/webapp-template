@@ -30,7 +30,7 @@ describe("audit export", () => {
         action: AuditAction.USER_CREATED,
         entityType: "user",
         entityId: "user-1",
-        details: "{\"role\":\"SCOPE_USER\"}",
+        details: '{"role":"SCOPE_USER"}',
         createdAt: new Date("2026-03-21T00:00:00Z"),
         actor: {
           id: "user-1",
@@ -68,7 +68,9 @@ describe("audit export", () => {
     prismaMock.auditEntry.count.mockResolvedValue(0);
     prismaMock.auditEntry.findMany.mockResolvedValue([] as never);
 
-    const response = await GET(new Request("http://localhost/api/audit?page=2&limit=10"));
+    const response = await GET(
+      new Request("http://localhost/api/audit?page=2&limit=10"),
+    );
     if (!response) {
       throw new Error("Expected response");
     }

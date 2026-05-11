@@ -5,7 +5,10 @@ import { randomUUID } from "node:crypto";
 const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 
 function sanitizeExtension(originalName: string) {
-  const extension = path.extname(originalName).replace(/[^a-zA-Z0-9.]/g, "").toLowerCase();
+  const extension = path
+    .extname(originalName)
+    .replace(/[^a-zA-Z0-9.]/g, "")
+    .toLowerCase();
   return extension || ".bin";
 }
 

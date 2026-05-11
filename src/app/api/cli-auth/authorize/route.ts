@@ -9,7 +9,10 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state");
 
   if (!callbackUrl || !isValidCliCallbackUrl(callbackUrl)) {
-    return jsonError("callback_url must target http://localhost or http://127.0.0.1", 400);
+    return jsonError(
+      "callback_url must target http://localhost or http://127.0.0.1",
+      400,
+    );
   }
 
   if (!state?.trim()) {

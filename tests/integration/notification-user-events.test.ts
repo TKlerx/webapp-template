@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
-import { AuthMethod, Role, ThemePreference, UserStatus } from "../../generated/prisma/enums";
+import {
+  AuthMethod,
+  Role,
+  ThemePreference,
+  UserStatus,
+} from "../../generated/prisma/enums";
 
 const {
   requireApiUserWithRoles,
@@ -43,8 +48,12 @@ import { PATCH as rolePatch } from "@/app/api/users/[id]/role/route";
 
 describe("notification user event integration", () => {
   beforeEach(() => {
-    prismaMock.$transaction.mockImplementation(async (callback) => callback(prismaMock));
-    prismaMock.notificationEvent.create.mockResolvedValue({ id: "event-1" } as never);
+    prismaMock.$transaction.mockImplementation(async (callback) =>
+      callback(prismaMock),
+    );
+    prismaMock.notificationEvent.create.mockResolvedValue({
+      id: "event-1",
+    } as never);
     prismaMock.backgroundJob.create.mockResolvedValue({ id: "job-1" } as never);
     prismaMock.user.findMany.mockResolvedValue([
       {

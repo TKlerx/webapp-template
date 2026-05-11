@@ -9,8 +9,14 @@ import {
 
 describe("inbound notification helpers", () => {
   it("appends and extracts notification references", () => {
-    const bodyText = appendNotificationReferenceText("Hello there", "notification-123");
-    const bodyHtml = appendNotificationReferenceHtml("<p>Hello there</p>", "notification-123");
+    const bodyText = appendNotificationReferenceText(
+      "Hello there",
+      "notification-123",
+    );
+    const bodyHtml = appendNotificationReferenceHtml(
+      "<p>Hello there</p>",
+      "notification-123",
+    );
 
     expect(bodyText).toContain("[notification:notification-123]");
     expect(bodyHtml).toContain("[notification:notification-123]");

@@ -23,20 +23,20 @@ Build a cross-platform CLI client (`starterctl`) in Go that provides command-lin
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Simplicity First | PASS | Cobra is the standard Go CLI framework â€” no custom abstractions |
-| II. Test Coverage | PASS | Tests for every command, auth flow, and output formatter |
-| III. Duplication Control | PASS | Shared HTTP client, output formatter, and auth resolver |
-| IV. Incremental Delivery | PASS | P1 (auth + users) â†’ P2 (completions, audit, jobs) â†’ P3 (health, install) |
-| V. Spec Sequencing | PASS | 012 planned first; 013 requires 012's server-side API |
-| VI. Continuity | PASS | CONTINUE.md will be updated |
-| VII. Azure OpenAI | N/A | No AI features |
-| VIII. Web Standards | N/A | CLI, not web â€” but respects server's base path |
-| IX. Internationalization | N/A | CLI output is English-only (standard for developer tools) |
-| X. Responsive Design | N/A | CLI, not web |
+| Principle                | Status | Notes                                                                        |
+| ------------------------ | ------ | ---------------------------------------------------------------------------- |
+| I. Simplicity First      | PASS   | Cobra is the standard Go CLI framework â€” no custom abstractions            |
+| II. Test Coverage        | PASS   | Tests for every command, auth flow, and output formatter                     |
+| III. Duplication Control | PASS   | Shared HTTP client, output formatter, and auth resolver                      |
+| IV. Incremental Delivery | PASS   | P1 (auth + users) â†’ P2 (completions, audit, jobs) â†’ P3 (health, install) |
+| V. Spec Sequencing       | PASS   | 012 planned first; 013 requires 012's server-side API                        |
+| VI. Continuity           | PASS   | CONTINUE.md will be updated                                                  |
+| VII. Azure OpenAI        | N/A    | No AI features                                                               |
+| VIII. Web Standards      | N/A    | CLI, not web â€” but respects server's base path                             |
+| IX. Internationalization | N/A    | CLI output is English-only (standard for developer tools)                    |
+| X. Responsive Design     | N/A    | CLI, not web                                                                 |
 
 ## Project Structure
 
@@ -97,4 +97,3 @@ cli/
 ```
 
 **Structure Decision**: The CLI is a separate Go module in a `cli/` subdirectory of the main repo. This keeps it co-located with the web app for development convenience while being independently buildable. GoReleaser handles cross-compilation and GitHub Releases publishing.
-

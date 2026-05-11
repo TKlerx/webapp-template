@@ -61,4 +61,3 @@ export interface MailClient {
   getMessage(input: GetMailMessageInput): Promise<MailMessage>;
   sendMessage(input: SendMailInput): Promise<void>;
 }
-

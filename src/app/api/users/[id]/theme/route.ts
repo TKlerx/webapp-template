@@ -3,7 +3,10 @@ import { requireApiUser } from "@/lib/route-auth";
 import { updateOwnThemePreference } from "@/services/api/user-admin";
 import { ThemePreference } from "../../../../../../generated/prisma/enums";
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const auth = await requireApiUser();
   if ("error" in auth) return auth.error;
 
@@ -18,4 +21,3 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   return Response.json({ themePreference: result.themePreference });
 }
-

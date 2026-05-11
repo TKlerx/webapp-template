@@ -104,4 +104,3 @@ goreleaser release --snapshot --clean
 ./starterctl health
 ./starterctl version
 ```
-

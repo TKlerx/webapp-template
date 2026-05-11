@@ -1,4 +1,10 @@
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 
 const repoRoot = process.cwd();
@@ -166,9 +172,15 @@ function summarizeFeature(dir) {
 }
 
 function buildRoadmap(features) {
-  const complete = features.filter((feature) => feature.status === "Fully Implemented");
-  const immediate = features.filter((feature) => ["In Progress", "Partially Implemented", "Tasked"].includes(feature.status));
-  const blocked = features.filter((feature) => ["Planned", "Clarified", "Analyzed"].includes(feature.status));
+  const complete = features.filter(
+    (feature) => feature.status === "Fully Implemented",
+  );
+  const immediate = features.filter((feature) =>
+    ["In Progress", "Partially Implemented", "Tasked"].includes(feature.status),
+  );
+  const blocked = features.filter((feature) =>
+    ["Planned", "Clarified", "Analyzed"].includes(feature.status),
+  );
 
   return [
     "## Implementation Roadmap",
@@ -176,19 +188,30 @@ function buildRoadmap(features) {
     "### Complete",
     "",
     ...(complete.length > 0
-      ? complete.map((feature) => `- ${feature.number} ${feature.title}: fully implemented`)
+      ? complete.map(
+          (feature) =>
+            `- ${feature.number} ${feature.title}: fully implemented`,
+        )
       : ["- No numbered features are fully implemented yet"]),
     "",
     "### Begin Immediately",
     "",
     ...(immediate.length > 0
-      ? immediate.map((feature) => `- ${feature.number} ${feature.title}: ${feature.nextStep}`)
-      : ["- No tasked or in-progress numbered features are waiting for implementation work"]),
+      ? immediate.map(
+          (feature) =>
+            `- ${feature.number} ${feature.title}: ${feature.nextStep}`,
+        )
+      : [
+          "- No tasked or in-progress numbered features are waiting for implementation work",
+        ]),
     "",
     "### Blocked / Prep Needed",
     "",
     ...(blocked.length > 0
-      ? blocked.map((feature) => `- ${feature.number} ${feature.title}: ${feature.nextStep}`)
+      ? blocked.map(
+          (feature) =>
+            `- ${feature.number} ${feature.title}: ${feature.nextStep}`,
+        )
       : ["- No planned features are blocked on clarify/analyze/planning work"]),
     "",
   ].join("\n");
@@ -222,7 +245,7 @@ function buildOverview(features) {
     "| --- | --- | --- | --- | --- | --- |",
     ...features.map(
       (feature) =>
-        `| ${feature.number} | ${feature.title} | ${feature.status} | ${feature.dependsOn} | ${feature.effort} | ${feature.nextStep} |`
+        `| ${feature.number} | ${feature.title} | ${feature.status} | ${feature.dependsOn} | ${feature.effort} | ${feature.nextStep} |`,
     ),
     "",
     buildRoadmap(features),

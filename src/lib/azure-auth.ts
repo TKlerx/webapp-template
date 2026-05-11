@@ -34,11 +34,11 @@ export function getAzureRedirectUri(request: Request) {
 export function hasRealAzureAdConfig() {
   return Boolean(
     process.env.AZURE_AD_CLIENT_ID &&
-      process.env.AZURE_AD_CLIENT_SECRET &&
-      process.env.AZURE_AD_TENANT_ID &&
-      process.env.AZURE_AD_CLIENT_ID !== "replace-me" &&
-      process.env.AZURE_AD_CLIENT_SECRET !== "replace-me" &&
-      process.env.AZURE_AD_TENANT_ID !== "replace-me",
+    process.env.AZURE_AD_CLIENT_SECRET &&
+    process.env.AZURE_AD_TENANT_ID &&
+    process.env.AZURE_AD_CLIENT_ID !== "replace-me" &&
+    process.env.AZURE_AD_CLIENT_SECRET !== "replace-me" &&
+    process.env.AZURE_AD_TENANT_ID !== "replace-me",
   );
 }
 
@@ -73,10 +73,17 @@ type AzureTokenResponse = {
   id_token?: string;
 };
 
-export async function exchangeAzureCodeForTokens(request: Request, code: string) {
+export async function exchangeAzureCodeForTokens(
+  request: Request,
+  code: string,
+) {
   const tenantId = process.env.AZURE_AD_TENANT_ID;
 
-  if (!tenantId || !process.env.AZURE_AD_CLIENT_ID || !process.env.AZURE_AD_CLIENT_SECRET) {
+  if (
+    !tenantId ||
+    !process.env.AZURE_AD_CLIENT_ID ||
+    !process.env.AZURE_AD_CLIENT_SECRET
+  ) {
     throw new Error("Azure AD configuration is incomplete.");
   }
 
@@ -99,7 +106,9 @@ export async function exchangeAzureCodeForTokens(request: Request, code: string)
 
   if (!response.ok) {
     const details = await response.text();
-    throw new Error(`Azure token exchange failed: ${response.status} ${details}`);
+    throw new Error(
+      `Azure token exchange failed: ${response.status} ${details}`,
+    );
   }
 
   return (await response.json()) as AzureTokenResponse;
@@ -113,7 +122,10 @@ type AzureUserProfile = {
   sub?: string;
 };
 
-export async function fetchAzureUserProfile(accessToken: string, _idToken?: string) {
+export async function fetchAzureUserProfile(
+  accessToken: string,
+  _idToken?: string,
+) {
   const response = await fetch("https://graph.microsoft.com/oidc/userinfo", {
     headers: {
       Authorization: `Bearer ${accessToken}`,

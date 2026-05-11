@@ -45,4 +45,3 @@ describe("mail provider selection", () => {
     expect(createGraphMailClient().provider).toBe("graph");
   });
 });
-

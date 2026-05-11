@@ -7,7 +7,7 @@
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Send Operational Messages To Teams (Priority: P1)
 
@@ -63,7 +63,7 @@ A platform administrator can view Teams integration status, delivery outcomes, a
 - When tenant permissions are insufficient for one capability (send or read) but available for the other, each capability degrades independently. Permission errors are surfaced in the admin status view.
 - When message content exceeds the Teams 28KB limit, outbound messages are truncated with an ellipsis marker and the `truncated` flag is set in the delivery record. Inbound messages exceeding 64KB store a truncated preview.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -80,7 +80,7 @@ A platform administrator can view Teams integration status, delivery outcomes, a
 - **FR-011**: The system MUST not modify, delete, or reply to Teams messages as part of this skeleton scope.
 - **FR-012**: The system MUST preserve existing notification behavior when Teams integration is unconfigured or disabled.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Teams Integration Configuration**: Administrative settings that control whether Teams sending and Teams intake are globally enabled or disabled.
 - **Teams Delivery Target**: A named Teams destination approved for outbound messaging, including identifier, active status, and ownership metadata for auditing.
@@ -103,7 +103,7 @@ A platform administrator can view Teams integration status, delivery outcomes, a
 - Existing background processing and notification pipelines remain available for Teams delivery and intake scheduling.
 - Existing operational monitoring surfaces can display additional integration status signals.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

@@ -9,7 +9,9 @@ import { processInboundEmailRecord } from "@/services/notifications/inbound";
 
 describe("notification inbound processing", () => {
   beforeEach(() => {
-    prismaMock.$transaction.mockImplementation(async (callback) => callback(prismaMock));
+    prismaMock.$transaction.mockImplementation(async (callback) =>
+      callback(prismaMock),
+    );
   });
 
   afterEach(() => {
@@ -19,9 +21,11 @@ describe("notification inbound processing", () => {
   it("marks bounced notifications when an inbound bounce references a notification", async () => {
     const inbound = {
       id: "inbound-1",
-      subject: "Undeliverable: Your role has changed [notification:notification-1]",
+      subject:
+        "Undeliverable: Your role has changed [notification:notification-1]",
       bodyPreview: "Delivery failed",
-      bodyText: "Delivery failed for Notification reference: [notification:notification-1]",
+      bodyText:
+        "Delivery failed for Notification reference: [notification:notification-1]",
       bodyHtml: null,
       inReplyTo: null,
       referenceIds: "[]",

@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Role, ThemePreference, UserStatus } from "../../../generated/prisma/enums";
+import {
+  Role,
+  ThemePreference,
+  UserStatus,
+} from "../../../generated/prisma/enums";
 
 const { getSessionUser } = vi.hoisted(() => ({
   getSessionUser: vi.fn(),
@@ -22,7 +26,9 @@ describe("session endpoint", () => {
     const response = await GET();
 
     expect(response.status).toBe(401);
-    await expect(response.json()).resolves.toEqual({ error: "Not authenticated" });
+    await expect(response.json()).resolves.toEqual({
+      error: "Not authenticated",
+    });
   });
 
   it("returns the authenticated user payload", async () => {

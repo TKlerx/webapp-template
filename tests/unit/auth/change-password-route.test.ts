@@ -9,7 +9,9 @@ const {
   verifyPassword,
 } = vi.hoisted(() => ({
   requireApiUser: vi.fn(),
-  getPasswordComplexityErrorMessage: vi.fn(() => "Password must contain test requirements."),
+  getPasswordComplexityErrorMessage: vi.fn(
+    () => "Password must contain test requirements.",
+  ),
   hashPassword: vi.fn(),
   validatePasswordComplexity: vi.fn(),
   verifyPassword: vi.fn(),

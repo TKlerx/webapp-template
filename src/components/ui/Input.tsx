@@ -2,7 +2,10 @@ import type { InputHTMLAttributes } from "react";
 import { Input as ShadcnInput } from "@/components/shadcn/input";
 import { cn } from "@/lib/utils";
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({
+  className,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <ShadcnInput
       className={cn(

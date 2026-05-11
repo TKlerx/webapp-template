@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const { getAbsoluteAppUrl, createAuthCode, exchangeAuthCode, cleanupExpiredCodes } = vi.hoisted(() => ({
-  getAbsoluteAppUrl: vi.fn((path: string) => `http://localhost:3280/app-starter${path}`),
+const {
+  getAbsoluteAppUrl,
+  createAuthCode,
+  exchangeAuthCode,
+  cleanupExpiredCodes,
+} = vi.hoisted(() => ({
+  getAbsoluteAppUrl: vi.fn(
+    (path: string) => `http://localhost:3280/app-starter${path}`,
+  ),
   createAuthCode: vi.fn(),
   exchangeAuthCode: vi.fn(),
   cleanupExpiredCodes: vi.fn(),
@@ -12,7 +19,9 @@ vi.mock("@/lib/better-auth-route", () => ({
 }));
 
 vi.mock("@/services/api/cli-auth", async () => {
-  const actual = await vi.importActual<typeof import("@/services/api/cli-auth")>("@/services/api/cli-auth");
+  const actual = await vi.importActual<
+    typeof import("@/services/api/cli-auth")
+  >("@/services/api/cli-auth");
   return {
     ...actual,
     createAuthCode,
@@ -55,7 +64,9 @@ describe("cli auth routes", () => {
     expect(invalidCallbackResponse.status).toBe(400);
 
     const missingStateResponse = await authorizeCliAuth(
-      new Request("http://localhost/api/cli-auth/authorize?callback_url=http://localhost:4545/callback"),
+      new Request(
+        "http://localhost/api/cli-auth/authorize?callback_url=http://localhost:4545/callback",
+      ),
     );
     expect(missingStateResponse.status).toBe(400);
   });
@@ -73,13 +84,22 @@ describe("cli auth routes", () => {
         },
       })
       .mockResolvedValueOnce({
-        error: Response.json({ error: "Invalid or expired authorization code" }, { status: 400 }),
+        error: Response.json(
+          { error: "Invalid or expired authorization code" },
+          { status: 400 },
+        ),
       })
       .mockResolvedValueOnce({
-        error: Response.json({ error: "Invalid or expired authorization code" }, { status: 400 }),
+        error: Response.json(
+          { error: "Invalid or expired authorization code" },
+          { status: 400 },
+        ),
       })
       .mockResolvedValueOnce({
-        error: Response.json({ error: "Invalid or expired authorization code" }, { status: 400 }),
+        error: Response.json(
+          { error: "Invalid or expired authorization code" },
+          { status: 400 },
+        ),
       });
 
     const successResponse = await exchangeCliAuth(

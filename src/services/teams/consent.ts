@@ -1,6 +1,10 @@
 import crypto from "node:crypto";
 import { prisma } from "@/lib/db";
-import { getAuthBaseUrl, getConfiguredBasePath, getScopedCookiePath } from "@/lib/azure-auth";
+import {
+  getAuthBaseUrl,
+  getConfiguredBasePath,
+  getScopedCookiePath,
+} from "@/lib/azure-auth";
 
 export const TEAMS_CONSENT_STATE_COOKIE = "starter_app_teams_consent_state";
 const TEAMS_DELEGATED_SCOPE = "offline_access ChannelMessage.Send";
@@ -53,10 +57,15 @@ export function getTeamsAuthorizeUrl(request: Request, state: string) {
     throw new Error("Azure AD configuration is incomplete.");
   }
 
-  const authorizeUrl = new URL(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`);
+  const authorizeUrl = new URL(
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
+  );
   authorizeUrl.searchParams.set("client_id", clientId);
   authorizeUrl.searchParams.set("response_type", "code");
-  authorizeUrl.searchParams.set("redirect_uri", getTeamsConsentRedirectUri(request));
+  authorizeUrl.searchParams.set(
+    "redirect_uri",
+    getTeamsConsentRedirectUri(request),
+  );
   authorizeUrl.searchParams.set("response_mode", "query");
   authorizeUrl.searchParams.set("scope", TEAMS_DELEGATED_SCOPE);
   authorizeUrl.searchParams.set("state", state);
@@ -72,22 +81,27 @@ export async function exchangeTeamsConsentCode(request: Request, code: string) {
     throw new Error("Azure AD configuration is incomplete.");
   }
 
-  const response = await fetch(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: getTeamsConsentRedirectUri(request),
-      scope: TEAMS_DELEGATED_SCOPE,
-    }),
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: getTeamsConsentRedirectUri(request),
+        scope: TEAMS_DELEGATED_SCOPE,
+      }),
+      cache: "no-store",
+    },
+  );
   if (!response.ok) {
     const details = await response.text();
-    throw new Error(`Teams consent token exchange failed: ${response.status} ${details}`);
+    throw new Error(
+      `Teams consent token exchange failed: ${response.status} ${details}`,
+    );
   }
 
   return (await response.json()) as TeamsTokenResponse;
@@ -97,7 +111,9 @@ export async function saveTeamsDelegatedGrant(
   userId: string,
   token: TeamsTokenResponse,
 ) {
-  const expiresAt = token.expires_in ? new Date(Date.now() + token.expires_in * 1000) : null;
+  const expiresAt = token.expires_in
+    ? new Date(Date.now() + token.expires_in * 1000)
+    : null;
   return prisma.teamsDelegatedGrant.upsert({
     where: { userId },
     update: {
@@ -166,21 +182,26 @@ export async function getFreshTeamsDelegatedAccessToken(userId: string) {
     throw new Error("Azure AD configuration is incomplete.");
   }
 
-  const response = await fetch(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: "refresh_token",
-      refresh_token: grant.refreshToken,
-      scope: TEAMS_DELEGATED_SCOPE,
-    }),
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: "refresh_token",
+        refresh_token: grant.refreshToken,
+        scope: TEAMS_DELEGATED_SCOPE,
+      }),
+      cache: "no-store",
+    },
+  );
   if (!response.ok) {
     const details = await response.text();
-    throw new Error(`Teams refresh token exchange failed: ${response.status} ${details}`);
+    throw new Error(
+      `Teams refresh token exchange failed: ${response.status} ${details}`,
+    );
   }
 
   const token = (await response.json()) as TeamsTokenResponse;

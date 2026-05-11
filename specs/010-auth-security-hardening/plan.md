@@ -23,20 +23,20 @@ Harden existing authentication and user-management API routes against brute-forc
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Simplicity First | PASS | In-memory Map for rate limits; no new dependencies; reuse existing `logAudit` function |
-| II. Test Coverage | PASS | Each user story requires unit + integration tests; plan includes test tasks |
-| III. Duplication Control | PASS | Single rate limiter utility shared by login and change-password routes |
-| IV. Incremental Delivery | PASS | Three user stories (P1→P2→P3) implemented in priority order |
-| V. Spec Sequencing | PASS | No older unfinished specs in ACTIVE_SPECS.md |
-| VI. Continuity & Handoff | PASS | CONTINUE.md reviewed; will update after implementation |
-| VII. Azure OpenAI | N/A | No AI features in this hardening scope |
-| VIII. Web App Standards | PASS | No new routes or UI; existing base path respected |
-| IX. Internationalization | PASS | Rate limit error messages use existing `jsonError` pattern; i18n keys needed for any new user-facing text |
-| X. Responsive Design | N/A | No UI changes in scope |
+| Principle                | Status | Notes                                                                                                     |
+| ------------------------ | ------ | --------------------------------------------------------------------------------------------------------- |
+| I. Simplicity First      | PASS   | In-memory Map for rate limits; no new dependencies; reuse existing `logAudit` function                    |
+| II. Test Coverage        | PASS   | Each user story requires unit + integration tests; plan includes test tasks                               |
+| III. Duplication Control | PASS   | Single rate limiter utility shared by login and change-password routes                                    |
+| IV. Incremental Delivery | PASS   | Three user stories (P1→P2→P3) implemented in priority order                                               |
+| V. Spec Sequencing       | PASS   | No older unfinished specs in ACTIVE_SPECS.md                                                              |
+| VI. Continuity & Handoff | PASS   | CONTINUE.md reviewed; will update after implementation                                                    |
+| VII. Azure OpenAI        | N/A    | No AI features in this hardening scope                                                                    |
+| VIII. Web App Standards  | PASS   | No new routes or UI; existing base path respected                                                         |
+| IX. Internationalization | PASS   | Rate limit error messages use existing `jsonError` pattern; i18n keys needed for any new user-facing text |
+| X. Responsive Design     | N/A    | No UI changes in scope                                                                                    |
 
 **Gate result**: PASS — no violations, proceed to Phase 0.
 

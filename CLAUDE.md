@@ -7,6 +7,7 @@
 - If project state materially changes, update `CONTINUE.md` and append to `CONTINUE_LOG.md`.
 
 ## Tech Stack
+
 - TypeScript with Next.js 16 (App Router)
 - BetterAuth for authentication (email/password + Azure AD SSO)
 - Prisma 7 ORM with SQLite locally and PostgreSQL in Docker
@@ -41,6 +42,7 @@ tests/           # Unit and E2E tests
 - `npm run prisma:seed` - Seed database
 
 ## Key Features
+
 - Dark/light theme with per-user persistence
 - Role-based access control (ADMIN, MARKETER_LEAD, MARKETER, REVIEWER)
 - Custom base path support (reverse-proxy friendly)
@@ -49,6 +51,7 @@ tests/           # Unit and E2E tests
 - Responsive design (mobile-first with Tailwind breakpoints)
 
 ## Code Style
+
 - TypeScript strict mode
 - Next.js App Router conventions
 - All UI text uses next-intl translation keys (no hardcoded strings in components)

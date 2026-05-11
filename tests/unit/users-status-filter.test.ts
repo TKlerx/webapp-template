@@ -27,7 +27,9 @@ describe("users status filter", () => {
     });
     prismaMock.user.findMany.mockResolvedValue([] as never);
 
-    const response = await GET(new Request("http://localhost/api/users?status=ACTIVE"));
+    const response = await GET(
+      new Request("http://localhost/api/users?status=ACTIVE"),
+    );
 
     expect(prismaMock.user.findMany).toHaveBeenCalledWith({
       where: { status: UserStatus.ACTIVE },
@@ -44,7 +46,9 @@ describe("users status filter", () => {
       user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
     });
 
-    const response = await GET(new Request("http://localhost/api/users?status=BROKEN"));
+    const response = await GET(
+      new Request("http://localhost/api/users?status=BROKEN"),
+    );
 
     expect(prismaMock.user.findMany).not.toHaveBeenCalled();
     if (!response) {
@@ -52,7 +56,8 @@ describe("users status filter", () => {
     }
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
-      error: "Invalid status filter. Supported values: PENDING_APPROVAL, ACTIVE, INACTIVE",
+      error:
+        "Invalid status filter. Supported values: PENDING_APPROVAL, ACTIVE, INACTIVE",
     });
   });
 

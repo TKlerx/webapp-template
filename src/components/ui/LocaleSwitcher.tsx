@@ -37,7 +37,11 @@ export function LocaleSwitcher({ currentLocale }: { currentLocale: string }) {
   }
 
   return (
-    <Select disabled={isPending} value={currentLocale} onValueChange={handleChange}>
+    <Select
+      disabled={isPending}
+      value={currentLocale}
+      onValueChange={handleChange}
+    >
       <SelectTrigger
         aria-label="Locale"
         className="min-w-32 rounded-full border-black/10 bg-white px-4 py-2.5 font-medium shadow-sm dark:border-white/10 dark:bg-white/10"

@@ -22,7 +22,10 @@ export async function PATCH(
 
   const body = (await request.json()) as { enabled?: boolean };
   if (typeof body.enabled !== "boolean") {
-    return Response.json({ error: "enabled must be a boolean" }, { status: 400 });
+    return Response.json(
+      { error: "enabled must be a boolean" },
+      { status: 400 },
+    );
   }
 
   const result = await updateNotificationTypeConfiguration(

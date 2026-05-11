@@ -32,7 +32,10 @@ export function LoginForm() {
         body: JSON.stringify({ email, password, redirectTo }),
       });
 
-      const payload = (await response.json()) as { error?: string; redirectTo?: string };
+      const payload = (await response.json()) as {
+        error?: string;
+        redirectTo?: string;
+      };
 
       setLoading(false);
 

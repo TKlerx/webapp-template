@@ -25,10 +25,14 @@ export function getAppVersionLabel() {
 
   if (process.env.NODE_ENV !== "production") {
     const gitHash = configuredHash || getShortGitHash();
-    cachedVersionLabel = gitHash ? `${baseVersion}+${gitHash}-dev` : `${baseVersion}-dev`;
+    cachedVersionLabel = gitHash
+      ? `${baseVersion}+${gitHash}-dev`
+      : `${baseVersion}-dev`;
     return cachedVersionLabel;
   }
 
-  cachedVersionLabel = configuredHash ? `${baseVersion}+${configuredHash}` : baseVersion;
+  cachedVersionLabel = configuredHash
+    ? `${baseVersion}+${configuredHash}`
+    : baseVersion;
   return cachedVersionLabel;
 }

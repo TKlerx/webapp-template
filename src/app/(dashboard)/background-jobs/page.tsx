@@ -34,20 +34,42 @@ export default async function BackgroundJobsPage() {
 
   return (
     <div>
-      <p className="text-sm uppercase tracking-[0.2em] opacity-45">{t("eyebrow")}</p>
+      <p className="text-sm uppercase tracking-[0.2em] opacity-45">
+        {t("eyebrow")}
+      </p>
       <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold sm:text-4xl">{t("title")}</h1>
-          <p className="mt-2 max-w-2xl text-sm opacity-70 sm:text-base">{t("description")}</p>
+          <p className="mt-2 max-w-2xl text-sm opacity-70 sm:text-base">
+            {t("description")}
+          </p>
         </div>
-        <p className="text-sm opacity-55">{t("showingRecent", { count: jobs.length })}</p>
+        <p className="text-sm opacity-55">
+          {t("showingRecent", { count: jobs.length })}
+        </p>
       </div>
 
       <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard label={t("summary.pending")} value={summary.pending} tone="amber" />
-        <SummaryCard label={t("summary.inProgress")} value={summary.inProgress} tone="blue" />
-        <SummaryCard label={t("summary.completed")} value={summary.completed} tone="green" />
-        <SummaryCard label={t("summary.failed")} value={summary.failed} tone="red" />
+        <SummaryCard
+          label={t("summary.pending")}
+          value={summary.pending}
+          tone="amber"
+        />
+        <SummaryCard
+          label={t("summary.inProgress")}
+          value={summary.inProgress}
+          tone="blue"
+        />
+        <SummaryCard
+          label={t("summary.completed")}
+          value={summary.completed}
+          tone="green"
+        />
+        <SummaryCard
+          label={t("summary.failed")}
+          value={summary.failed}
+          tone="red"
+        />
       </section>
 
       <section className="mt-8 space-y-4">
@@ -75,26 +97,54 @@ export default async function BackgroundJobsPage() {
                       />
                     ) : null}
                   </div>
-                  <p className="mt-2 break-all font-mono text-xs opacity-55">{job.id}</p>
+                  <p className="mt-2 break-all font-mono text-xs opacity-55">
+                    {job.id}
+                  </p>
                 </div>
 
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm lg:min-w-[360px]">
-                  <MetaRow label={t("fields.createdAt")} value={formatDate(job.createdAt)} />
-                  <MetaRow label={t("fields.updatedAt")} value={formatDate(job.updatedAt)} />
-                  <MetaRow label={t("fields.attempts")} value={String(job.attemptCount)} />
-                  <MetaRow label={t("fields.worker")} value={job.workerId ?? t("notAssigned")} />
+                  <MetaRow
+                    label={t("fields.createdAt")}
+                    value={formatDate(job.createdAt)}
+                  />
+                  <MetaRow
+                    label={t("fields.updatedAt")}
+                    value={formatDate(job.updatedAt)}
+                  />
+                  <MetaRow
+                    label={t("fields.attempts")}
+                    value={String(job.attemptCount)}
+                  />
+                  <MetaRow
+                    label={t("fields.worker")}
+                    value={job.workerId ?? t("notAssigned")}
+                  />
                   <MetaRow
                     label={t("fields.createdBy")}
-                    value={job.createdBy?.name || job.createdBy?.email || t("system")}
+                    value={
+                      job.createdBy?.name || job.createdBy?.email || t("system")
+                    }
                   />
-                  <MetaRow label={t("fields.availableAt")} value={formatDate(job.availableAt)} />
+                  <MetaRow
+                    label={t("fields.availableAt")}
+                    value={formatDate(job.availableAt)}
+                  />
                 </dl>
               </div>
 
               <div className="mt-4 grid gap-4 xl:grid-cols-3">
-                <CodeBlock label={t("fields.payload")} value={formatJson(job.payload)} />
-                <CodeBlock label={t("fields.result")} value={formatJson(job.result)} />
-                <CodeBlock label={t("fields.error")} value={job.error ?? t("none")} />
+                <CodeBlock
+                  label={t("fields.payload")}
+                  value={formatJson(job.payload)}
+                />
+                <CodeBlock
+                  label={t("fields.result")}
+                  value={formatJson(job.result)}
+                />
+                <CodeBlock
+                  label={t("fields.error")}
+                  value={job.error ?? t("none")}
+                />
               </div>
             </article>
           ))
@@ -129,14 +179,19 @@ function SummaryCard({
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const tone = {
-    PENDING: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-    IN_PROGRESS: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
-    COMPLETED: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-    FAILED: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
-  }[status] ?? "bg-slate-500/15 text-slate-700 dark:text-slate-300";
+  const tone =
+    {
+      PENDING: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+      IN_PROGRESS: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+      COMPLETED: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+      FAILED: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+    }[status] ?? "bg-slate-500/15 text-slate-700 dark:text-slate-300";
 
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>{status}</span>;
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>
+      {status}
+    </span>
+  );
 }
 
 function RetryBadge({ label }: { label: string }) {

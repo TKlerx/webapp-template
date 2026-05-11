@@ -7,6 +7,7 @@ Create a reusable business-app starter from the current codebase while preservin
 Working branch: `starter-template-extraction`
 
 Current recommendation:
+
 - the branch is now suitable as the base for a fresh starter repository
 - copy or re-home this branch into a new repo instead of merging it back into the original product history
 

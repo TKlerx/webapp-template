@@ -21,7 +21,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/shadcn/table";
-import { TokenValueDisplay, type TokenValuePayload } from "@/components/tokens/token-value-display";
+import {
+  TokenValueDisplay,
+  type TokenValuePayload,
+} from "@/components/tokens/token-value-display";
 
 type TokenItem = {
   id: string;
@@ -77,14 +80,19 @@ export function TokenList({
   const [loading, setLoading] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [renewedToken, setRenewedToken] = useState<TokenValuePayload | null>(null);
+  const [renewedToken, setRenewedToken] = useState<TokenValuePayload | null>(
+    null,
+  );
   const [userIdFilter, setUserIdFilter] = useState<string>("all");
 
   useEffect(() => {
     setTokens(initialTokens);
   }, [initialTokens]);
 
-  async function refreshTokens(nextShowAll = showAll, nextUserId = userIdFilter) {
+  async function refreshTokens(
+    nextShowAll = showAll,
+    nextUserId = userIdFilter,
+  ) {
     setLoading(true);
 
     try {
@@ -98,9 +106,10 @@ export function TokenList({
 
       const url = adminMode ? "/api/admin/tokens" : "/api/tokens";
       const response = await fetch(withBasePath(`${url}?${params.toString()}`));
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; tokens?: TokenItem[] }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        tokens?: TokenItem[];
+      } | null;
 
       if (!response.ok || !payload?.tokens) {
         pushToast(payload?.error ?? sharedT("loadFailed"));
@@ -114,7 +123,10 @@ export function TokenList({
     }
   }
 
-  async function runAction(token: TokenItem, action: "revoke" | "renew" | "delete") {
+  async function runAction(
+    token: TokenItem,
+    action: "revoke" | "renew" | "delete",
+  ) {
     const confirmationKey = `${action}Confirm`;
     if (!window.confirm(sharedT(confirmationKey))) {
       return;
@@ -123,7 +135,9 @@ export function TokenList({
     setBusyId(`${token.id}:${action}`);
 
     try {
-      const baseUrl = adminMode ? `/api/admin/tokens/${token.id}` : `/api/tokens/${token.id}`;
+      const baseUrl = adminMode
+        ? `/api/admin/tokens/${token.id}`
+        : `/api/tokens/${token.id}`;
       const requestUrl =
         action === "revoke"
           ? `${baseUrl}/revoke`
@@ -139,10 +153,16 @@ export function TokenList({
                 "Content-Type": "application/json",
               }
             : undefined,
-        body: action === "renew" ? JSON.stringify({ expiresInDays: 90 }) : undefined,
+        body:
+          action === "renew"
+            ? JSON.stringify({ expiresInDays: 90 })
+            : undefined,
       });
 
-      const payload = response.status === 204 ? null : await response.json().catch(() => null);
+      const payload =
+        response.status === 204
+          ? null
+          : await response.json().catch(() => null);
       if (!response.ok) {
         pushToast(payload?.error ?? sharedT("updateFailed"));
         return;
@@ -243,16 +263,24 @@ export function TokenList({
                     <TableRow key={token.id}>
                       {adminMode ? (
                         <TableCell>
-                          <div className="font-medium">{token.user?.name ?? "—"}</div>
-                          <div className="text-xs opacity-65">{token.user?.email ?? "—"}</div>
+                          <div className="font-medium">
+                            {token.user?.name ?? "—"}
+                          </div>
+                          <div className="text-xs opacity-65">
+                            {token.user?.email ?? "—"}
+                          </div>
                         </TableCell>
                       ) : null}
-                      <TableCell className="font-medium">{token.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {token.name}
+                      </TableCell>
                       <TableCell>{token.tokenPrefix}</TableCell>
                       <TableCell>{token.type}</TableCell>
                       <TableCell>
                         <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold dark:bg-white/10">
-                          {token.isExpired ? sharedT("statusExpired") : sharedT(`status.${token.status}`)}
+                          {token.isExpired
+                            ? sharedT("statusExpired")
+                            : sharedT(`status.${token.status}`)}
                         </span>
                       </TableCell>
                       <TableCell>{formatDate(token.expiresAt)}</TableCell>
@@ -260,7 +288,9 @@ export function TokenList({
                       <TableCell>{formatDate(token.createdAt)}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
-                          {!adminMode && token.status === "ACTIVE" && !token.isExpired ? (
+                          {!adminMode &&
+                          token.status === "ACTIVE" &&
+                          !token.isExpired ? (
                             <Button
                               disabled={busyId === `${token.id}:renew`}
                               onClick={() => void runAction(token, "renew")}
@@ -304,7 +334,8 @@ export function TokenList({
                 >
                   {adminMode ? (
                     <p className="text-sm font-medium">
-                      {token.user?.name} <span className="opacity-65">({token.user?.email})</span>
+                      {token.user?.name}{" "}
+                      <span className="opacity-65">({token.user?.email})</span>
                     </p>
                   ) : null}
                   <div className="mt-2 flex items-center justify-between gap-3">
@@ -315,7 +346,9 @@ export function TokenList({
                       </p>
                     </div>
                     <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold dark:bg-white/10">
-                      {token.isExpired ? sharedT("statusExpired") : sharedT(`status.${token.status}`)}
+                      {token.isExpired
+                        ? sharedT("statusExpired")
+                        : sharedT(`status.${token.status}`)}
                     </span>
                   </div>
                   <dl className="mt-4 grid gap-2 text-sm">
@@ -328,22 +361,38 @@ export function TokenList({
                       <dd>{formatDate(token.expiresAt)}</dd>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <dt className="opacity-65">{sharedT("lastUsedColumn")}</dt>
+                      <dt className="opacity-65">
+                        {sharedT("lastUsedColumn")}
+                      </dt>
                       <dd>{formatDate(token.lastUsedAt)}</dd>
                     </div>
                   </dl>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {!adminMode && token.status === "ACTIVE" && !token.isExpired ? (
-                      <Button onClick={() => void runAction(token, "renew")} type="button" variant="secondary">
+                    {!adminMode &&
+                    token.status === "ACTIVE" &&
+                    !token.isExpired ? (
+                      <Button
+                        onClick={() => void runAction(token, "renew")}
+                        type="button"
+                        variant="secondary"
+                      >
                         {sharedT("renew")}
                       </Button>
                     ) : null}
                     {token.status === "ACTIVE" && !token.isExpired ? (
-                      <Button onClick={() => void runAction(token, "revoke")} type="button" variant="secondary">
+                      <Button
+                        onClick={() => void runAction(token, "revoke")}
+                        type="button"
+                        variant="secondary"
+                      >
                         {sharedT("revoke")}
                       </Button>
                     ) : null}
-                    <Button onClick={() => void runAction(token, "delete")} type="button" variant="secondary">
+                    <Button
+                      onClick={() => void runAction(token, "delete")}
+                      type="button"
+                      variant="secondary"
+                    >
                       {sharedT("delete")}
                     </Button>
                   </div>
@@ -353,7 +402,9 @@ export function TokenList({
           </>
         )}
 
-        {loading ? <p className="mt-4 text-sm opacity-65">{sharedT("loading")}</p> : null}
+        {loading ? (
+          <p className="mt-4 text-sm opacity-65">{sharedT("loading")}</p>
+        ) : null}
       </section>
 
       <TokenValueDisplay

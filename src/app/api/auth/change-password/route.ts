@@ -6,8 +6,14 @@ import { changePasswordForUser } from "@/services/api/auth";
 export async function POST(request: Request) {
   const rateLimit = checkRateLimit(getClientIp(request), "change-password");
   if (!rateLimit.allowed) {
-    const response = jsonError("Too many attempts. Please try again later.", 429);
-    response.headers.set("Retry-After", Math.ceil(rateLimit.retryAfterMs / 1000).toString());
+    const response = jsonError(
+      "Too many attempts. Please try again later.",
+      429,
+    );
+    response.headers.set(
+      "Retry-After",
+      Math.ceil(rateLimit.retryAfterMs / 1000).toString(),
+    );
     return response;
   }
 

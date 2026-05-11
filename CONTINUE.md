@@ -18,7 +18,7 @@
 ## Git Status
 
 - M package-lock.json
--  M package.json
+- M package.json
 - ?? .deepsec/
 
 ## Active Specs

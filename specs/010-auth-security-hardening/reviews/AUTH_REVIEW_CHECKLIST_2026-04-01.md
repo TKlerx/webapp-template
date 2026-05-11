@@ -25,7 +25,7 @@ This file is a dated review copy of `AUTH_REVIEW_CHECKLIST.md`. The original che
 - Production startup rejects a missing or fallback auth secret at [src/lib/better-auth.ts](C:/dev/webapp-template/src/lib/better-auth.ts#L33).
 - Password hashing uses bcrypt with cost 12 at [src/lib/auth.ts](C:/dev/webapp-template/src/lib/auth.ts#L13).
 - Password change revokes other active sessions at [src/app/api/auth/change-password/route.ts](C:/dev/webapp-template/src/app/api/auth/change-password/route.ts#L70).
-- Protected dashboard pages enforce server-side auth via `requireSession()` at [src/app/(dashboard)/layout.tsx](C:/dev/webapp-template/src/app/(dashboard)/layout.tsx#L12).
+- Protected dashboard pages enforce server-side auth via `requireSession()` at [src/app/(dashboard)/layout.tsx](<C:/dev/webapp-template/src/app/(dashboard)/layout.tsx#L12>).
 - `.env` files and SQLite databases are ignored in [.gitignore](C:/dev/webapp-template/.gitignore#L12) and [.gitignore](C:/dev/webapp-template/.gitignore#L16).
 
 ### Scope Note
@@ -253,4 +253,3 @@ Sections 1-10 focus on auth flow correctness. Sections 11-21 cover broader appli
 3. For failures, note the file and line, and whether it is a bug, a missing feature, or an accepted risk.
 4. Sections 1-10 cover auth flow correctness. Sections 11-24 cover broader application security.
 5. Some items overlap intentionally (e.g., CSRF state validation appears in both auth and CSRF sections) to ensure coverage regardless of which section the reviewer starts with.
-

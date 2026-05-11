@@ -116,7 +116,9 @@ describe("graph mail client", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      expect.stringContaining("/users/shared%40example.com/mailFolders/inbox/messages?"),
+      expect.stringContaining(
+        "/users/shared%40example.com/mailFolders/inbox/messages?",
+      ),
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: "Bearer graph-token",
@@ -209,7 +211,9 @@ describe("graph mail client", () => {
       fetchImpl: fetchMock as typeof fetch,
     });
 
-    await expect(client.listMessages()).rejects.toThrow("Graph mail request failed: 403 forbidden");
+    await expect(client.listMessages()).rejects.toThrow(
+      "Graph mail request failed: 403 forbidden",
+    );
   });
 
   it("requires either a default mailbox or an explicit mailbox per request", async () => {

@@ -1,9 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { Role } from "../../../generated/prisma/enums";
-import { appBasePath, expectOnDashboard, loginWithPassword } from "../helpers/auth";
+import {
+  appBasePath,
+  expectOnDashboard,
+  loginWithPassword,
+} from "../helpers/auth";
 import { seedLocalUser } from "../helpers/db";
 
-test("creating a user produces queued notification records in the admin log", async ({ page }) => {
+test("creating a user produces queued notification records in the admin log", async ({
+  page,
+}) => {
   const uniqueSuffix = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   const createdUser = {
     email: `e2e-notify-${uniqueSuffix}@example.com`,
@@ -31,7 +37,9 @@ test("creating a user produces queued notification records in the admin log", as
   await createUserDialog.getByPlaceholder("Name").fill(createdUser.name);
   await createUserDialog.getByRole("combobox", { name: "Role" }).click();
   await page.getByRole("option", { name: "Scoped User" }).click();
-  await createUserDialog.getByPlaceholder("Temporary password").fill(createdUser.temporaryPassword);
+  await createUserDialog
+    .getByPlaceholder("Temporary password")
+    .fill(createdUser.temporaryPassword);
 
   await Promise.all([
     page.waitForResponse(
@@ -44,10 +52,16 @@ test("creating a user produces queued notification records in the admin log", as
   ]);
 
   await page.goto(`${appBasePath}/admin/notifications`);
-  await expect(page.getByRole("heading", { name: "Notifications" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Notifications" }),
+  ).toBeVisible();
   await expect(page.getByText("Your account is ready")).toBeVisible();
-  await expect(page.getByText(`New user created: ${createdUser.name}`).first()).toBeVisible();
-  const createdUserRow = page.locator("tr", { hasText: createdUser.email }).first();
+  await expect(
+    page.getByText(`New user created: ${createdUser.name}`).first(),
+  ).toBeVisible();
+  const createdUserRow = page
+    .locator("tr", { hasText: createdUser.email })
+    .first();
   await expect(createdUserRow).toBeVisible();
   await expect(createdUserRow).toContainText("Queued");
 });

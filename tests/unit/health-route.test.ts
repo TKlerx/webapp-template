@@ -19,11 +19,17 @@ describe("health route", () => {
 
   it("returns ok when all checks pass", async () => {
     checkDatabaseHealth.mockResolvedValue({ status: "ok" });
-    getProcessHealth.mockReturnValue({ status: "ok", uptimeSeconds: 10, nodeEnv: "test" });
+    getProcessHealth.mockReturnValue({
+      status: "ok",
+      uptimeSeconds: 10,
+      nodeEnv: "test",
+    });
 
-    const response = await GET(new Request("http://localhost/api/health", {
-      headers: { "x-request-id": "req-123" },
-    }));
+    const response = await GET(
+      new Request("http://localhost/api/health", {
+        headers: { "x-request-id": "req-123" },
+      }),
+    );
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
@@ -37,8 +43,15 @@ describe("health route", () => {
   });
 
   it("returns degraded when the database check fails", async () => {
-    checkDatabaseHealth.mockResolvedValue({ status: "error", message: "db down" });
-    getProcessHealth.mockReturnValue({ status: "ok", uptimeSeconds: 10, nodeEnv: "test" });
+    checkDatabaseHealth.mockResolvedValue({
+      status: "error",
+      message: "db down",
+    });
+    getProcessHealth.mockReturnValue({
+      status: "ok",
+      uptimeSeconds: 10,
+      nodeEnv: "test",
+    });
 
     const response = await GET(new Request("http://localhost/api/health"));
 

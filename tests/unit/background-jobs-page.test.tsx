@@ -46,7 +46,10 @@ describe("background jobs dashboard page", () => {
   afterEach(() => {
     vi.clearAllMocks();
     getTranslations.mockResolvedValue(
-      (key: string, values?: { count?: number; attempt?: number; time?: string }) => {
+      (
+        key: string,
+        values?: { count?: number; attempt?: number; time?: string },
+      ) => {
         if (key === "showingRecent") {
           return `Showing the latest ${values?.count ?? 0} jobs`;
         }
@@ -81,7 +84,7 @@ describe("background jobs dashboard page", () => {
         id: "job-1",
         jobType: "echo",
         status: "PENDING",
-        payload: "{\"message\":\"hello\"}",
+        payload: '{"message":"hello"}',
         result: null,
         error: "boom",
         attemptCount: 2,
@@ -99,7 +102,7 @@ describe("background jobs dashboard page", () => {
         jobType: "noop",
         status: "COMPLETED",
         payload: "{}",
-        result: "{\"message\":\"done\"}",
+        result: '{"message":"done"}',
         error: null,
         attemptCount: 1,
         availableAt: new Date("2026-03-31T09:00:00Z"),

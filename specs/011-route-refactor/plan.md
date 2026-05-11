@@ -23,18 +23,18 @@ Refactor the current Next.js App Router API handlers so repeated authorization, 
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Simplicity First | PASS | Plan uses thin route handlers plus narrow service helpers; no generic middleware DSL or framework abstraction layer. |
-| II. Test Coverage | PASS | Implementation will keep existing route tests passing, add helper-focused unit coverage where extraction introduces risk, and run `validate.ps1 all` before merge. |
-| III. Duplication Control | PASS | Local jscpd on `src/app/api` currently reports 5.74% duplication, especially in user status and audit routes; these are the first refactor targets and the duplication policy is documented in `research.md` and `contracts/`. |
-| IV. Incremental Delivery | PASS | Increments are ordered by business value and risk: user-admin route helpers first, then audit/background-job helpers, then auth-route cleanup. |
+| Principle                         | Status                            | Notes                                                                                                                                                                                                                                                                                                  |
+| --------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| I. Simplicity First               | PASS                              | Plan uses thin route handlers plus narrow service helpers; no generic middleware DSL or framework abstraction layer.                                                                                                                                                                                   |
+| II. Test Coverage                 | PASS                              | Implementation will keep existing route tests passing, add helper-focused unit coverage where extraction introduces risk, and run `validate.ps1 all` before merge.                                                                                                                                     |
+| III. Duplication Control          | PASS                              | Local jscpd on `src/app/api` currently reports 5.74% duplication, especially in user status and audit routes; these are the first refactor targets and the duplication policy is documented in `research.md` and `contracts/`.                                                                         |
+| IV. Incremental Delivery          | PASS                              | Increments are ordered by business value and risk: user-admin route helpers first, then audit/background-job helpers, then auth-route cleanup.                                                                                                                                                         |
 | V. Spec Sequencing And Completion | PASS WITH USER-CONFIRMED OVERRIDE | `specs/OVERVIEW.md` marks `010-auth-security-hardening` as fully implemented, but the active branch and `CONTINUE.md` still reference `010`. The user explicitly requested planning for `011-route-refactor` on 2026-04-01, so this newer-spec planning proceeds with that confirmation recorded here. |
-| VI. Continuity And Handoff | PASS WITH FOLLOW-UP REQUIRED | `CONTINUE.md` lists `010` and `011` as active while `ACTIVE_SPECS.md` says none. Planning can proceed, but implementation should reconcile continuity tracking before coding/merge. |
-| VII. Azure OpenAI Integration | PASS | No provider changes are planned. The spec's AI orchestration examples are documented as future extension points only because no AI routes exist in this starter. |
-| VIII.-X. Web/App Standards | PASS | This is an internal API refactor; route behavior remains unchanged and existing base-path, i18n, and responsive UI constraints are unaffected. |
+| VI. Continuity And Handoff        | PASS WITH FOLLOW-UP REQUIRED      | `CONTINUE.md` lists `010` and `011` as active while `ACTIVE_SPECS.md` says none. Planning can proceed, but implementation should reconcile continuity tracking before coding/merge.                                                                                                                    |
+| VII. Azure OpenAI Integration     | PASS                              | No provider changes are planned. The spec's AI orchestration examples are documented as future extension points only because no AI routes exist in this starter.                                                                                                                                       |
+| VIII.-X. Web/App Standards        | PASS                              | This is an internal API refactor; route behavior remains unchanged and existing base-path, i18n, and responsive UI constraints are unaffected.                                                                                                                                                         |
 
 **Gate Result (Pre-Phase 0)**: PASS for planning. No unresolved clarifications remain. Continuity file reconciliation is a required follow-up before implementation is considered complete.
 
@@ -116,12 +116,12 @@ Planned design shape:
 
 ## Post-Design Constitution Check
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| Simplicity First | PASS | Design keeps services small and domain-specific; no speculative generic router framework is introduced. |
-| Test Coverage | PASS | Quickstart and contracts call for existing route regression tests plus new service tests where behavior is extracted. |
-| Duplication Control | PASS | Design addresses the measured jscpd hotspots and documents acceptable residual route duplication. |
-| Incremental Delivery | PASS | The plan still supports story-by-story implementation without broad cross-cutting rewrites. |
+| Principle                    | Status                       | Notes                                                                                                                                  |
+| ---------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Simplicity First             | PASS                         | Design keeps services small and domain-specific; no speculative generic router framework is introduced.                                |
+| Test Coverage                | PASS                         | Quickstart and contracts call for existing route regression tests plus new service tests where behavior is extracted.                  |
+| Duplication Control          | PASS                         | Design addresses the measured jscpd hotspots and documents acceptable residual route duplication.                                      |
+| Incremental Delivery         | PASS                         | The plan still supports story-by-story implementation without broad cross-cutting rewrites.                                            |
 | Spec Sequencing / Continuity | PASS WITH FOLLOW-UP REQUIRED | The explicit user request for `011` is recorded, but repo continuity files still need reconciliation before implementation is wrapped. |
 
 **Gate Result (Post-Phase 1)**: PASS for design completion. The only non-feature follow-up is continuity-file cleanup before or alongside implementation.
@@ -137,7 +137,6 @@ Planned design shape:
 
 ## Complexity Tracking
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
+| Violation                                                       | Why Needed                                                            | Simpler Alternative Rejected Because                                                                                            |
+| --------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Newer spec planned while repo continuity still references `010` | User explicitly requested `011-route-refactor` planning on 2026-04-01 | Waiting for continuity cleanup would block requested planning work even though `specs/OVERVIEW.md` already marks `010` complete |
-

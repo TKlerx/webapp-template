@@ -25,8 +25,10 @@ export default defineConfig({
       DATABASE_URL: process.env.DATABASE_URL ?? "file:./e2e.db",
       AUTH_BASE_URL: process.env.AUTH_BASE_URL ?? authBaseUrl,
       E2E_BASE_PATH: normalizedBasePath,
-      INITIAL_ADMIN_EMAIL: process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
-      INITIAL_ADMIN_PASSWORD: process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
+      INITIAL_ADMIN_EMAIL:
+        process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
+      INITIAL_ADMIN_PASSWORD:
+        process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
       BETTERAUTH_SECRET: "e2e-test-secret-not-for-production-use-only",
       E2E_TESTING: "1",
       E2E_MOCK_SSO: "1",
@@ -40,4 +42,3 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
   },
 });
-

@@ -3,10 +3,17 @@ import { jsonError } from "@/lib/http";
 import { resolveTokenUser } from "@/lib/token-auth";
 import { checkScopeAccess, checkRole } from "@/lib/rbac";
 import { Role, UserStatus } from "../../../generated/prisma/enums";
-import type { AuthorizeRouteOptions, RouteUserResult } from "@/services/api/types";
+import type {
+  AuthorizeRouteOptions,
+  RouteUserResult,
+} from "@/services/api/types";
 
-export async function requireRouteUser(request?: Request): Promise<RouteUserResult> {
-  const user = (await getSessionUser()) ?? (request ? await resolveTokenUser(request) : null);
+export async function requireRouteUser(
+  request?: Request,
+): Promise<RouteUserResult> {
+  const user =
+    (await getSessionUser()) ??
+    (request ? await resolveTokenUser(request) : null);
 
   if (!user) {
     return { error: jsonError("Not authenticated", 401) };
@@ -35,7 +42,10 @@ export async function requireRouteUserWithRoles(
   return auth;
 }
 
-async function resolveScopeId(request: Request, options: AuthorizeRouteOptions) {
+async function resolveScopeId(
+  request: Request,
+  options: AuthorizeRouteOptions,
+) {
   if (options.scopeId) {
     return options.scopeId;
   }

@@ -3,7 +3,8 @@ module.exports = {
     {
       name: "no-circular",
       severity: "warn",
-      comment: "Circular runtime dependencies make route and service changes harder to reason about.",
+      comment:
+        "Circular runtime dependencies make route and service changes harder to reason about.",
       from: {},
       to: {
         circular: true,

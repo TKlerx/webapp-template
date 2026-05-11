@@ -13,7 +13,9 @@ if (!process.env.DATABASE_URL) {
 if (process.env.DATABASE_URL.startsWith("file:")) {
   const databasePath = process.env.DATABASE_URL.replace("file:", "");
   if (!fs.existsSync(databasePath)) {
-    console.log(`Local database not found at ${databasePath}; treating as fresh bootstrap and skipping drift check.`);
+    console.log(
+      `Local database not found at ${databasePath}; treating as fresh bootstrap and skipping drift check.`,
+    );
     process.exit(0);
   }
 }
@@ -51,7 +53,9 @@ if (statusExitCode !== 0 && !hasPendingMigrations) {
 }
 
 if (hasPendingMigrations) {
-  console.log("Pending migrations detected; continuing so deploy can apply them.");
+  console.log(
+    "Pending migrations detected; continuing so deploy can apply them.",
+  );
 }
 
 console.log("Prisma pre-deploy verification passed.");

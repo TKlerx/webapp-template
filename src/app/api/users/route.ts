@@ -1,8 +1,10 @@
 import { requireApiUserWithRoles } from "@/lib/route-auth";
-import { createLocalUser, listUsers, parseUserStatusFilter } from "@/services/api/user-admin";
 import {
-  Role,
-} from "../../../../generated/prisma/enums";
+  createLocalUser,
+  listUsers,
+  parseUserStatusFilter,
+} from "@/services/api/user-admin";
+import { Role } from "../../../../generated/prisma/enums";
 
 export async function GET(request: Request) {
   const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
@@ -39,4 +41,3 @@ export async function POST(request: Request) {
 
   return Response.json({ user: result.user }, { status: 201 });
 }
-

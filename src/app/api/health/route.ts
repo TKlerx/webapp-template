@@ -9,13 +9,16 @@ export async function GET(request: Request) {
 
   const status = database.status === "ok" ? 200 : 503;
 
-  return NextResponse.json({
-    status: database.status === "ok" ? "ok" : "degraded",
-    timestamp: new Date().toISOString(),
-    requestId: request.headers.get("x-request-id"),
-    checks: {
-      database,
-      process: processHealth,
+  return NextResponse.json(
+    {
+      status: database.status === "ok" ? "ok" : "degraded",
+      timestamp: new Date().toISOString(),
+      requestId: request.headers.get("x-request-id"),
+      checks: {
+        database,
+        process: processHealth,
+      },
     },
-  }, { status });
+    { status },
+  );
 }

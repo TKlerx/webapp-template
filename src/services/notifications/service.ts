@@ -214,8 +214,14 @@ async function queueNotifications(input: QueueNotificationContext) {
         },
       });
 
-      const bodyText = appendNotificationReferenceText(rendered.bodyText, notification.id);
-      const bodyHtml = appendNotificationReferenceHtml(rendered.bodyHtml, notification.id);
+      const bodyText = appendNotificationReferenceText(
+        rendered.bodyText,
+        notification.id,
+      );
+      const bodyHtml = appendNotificationReferenceHtml(
+        rendered.bodyHtml,
+        notification.id,
+      );
 
       await tx.notification.update({
         where: { id: notification.id },

@@ -3,6 +3,7 @@
 Reviewed: 2026-04-21 (pass 2)
 
 Guidelines applied:
+
 - Vercel Web Interface Guidelines
 - Vercel React & Next.js Best Practices (69 rules across 8 categories)
 - Next.js Best Practices (App Router, RSC, async patterns, self-hosting, error handling, bundling)
@@ -15,20 +16,20 @@ Guidelines applied:
 
 ## Summary
 
-| Category | Findings |
-|----------|----------|
-| Accessibility | 6 |
-| Forms | 4 |
-| Next.js / RSC | 8 |
-| Performance | 4 |
-| Dark Mode & Theming | 2 |
-| Better Auth | 3 |
-| Web Interface Guidelines | 4 |
-| Docker | 16 |
-| Prisma | 9 |
-| Playwright E2E | 13 |
-| Frontend Design | 10 |
-| **Total** | **79** |
+| Category                 | Findings |
+| ------------------------ | -------- |
+| Accessibility            | 6        |
+| Forms                    | 4        |
+| Next.js / RSC            | 8        |
+| Performance              | 4        |
+| Dark Mode & Theming      | 2        |
+| Better Auth              | 3        |
+| Web Interface Guidelines | 4        |
+| Docker                   | 16       |
+| Prisma                   | 9        |
+| Playwright E2E           | 13       |
+| Frontend Design          | 10       |
+| **Total**                | **79**   |
 
 ---
 
@@ -246,7 +247,14 @@ Per Vercel React best practices (`server-serialization`): minimize data passed f
 // Recommended
 const users = await prisma.user.findMany({
   orderBy: { createdAt: "desc" },
-  select: { id: true, name: true, email: true, role: true, status: true, authMethod: true },
+  select: {
+    id: true,
+    name: true,
+    email: true,
+    role: true,
+    status: true,
+    authMethod: true,
+  },
 });
 ```
 
@@ -509,6 +517,7 @@ docker-compose.yml
 `CMD ["npm", "run", "start"]` makes npm PID 1. npm does not forward SIGTERM to the child Node process. On container stop, Docker waits 10s then sends SIGKILL — no graceful shutdown of connections or in-flight requests.
 
 Fix options:
+
 1. Use `output: 'standalone'` and `CMD ["node", "server.js"]` (fixes D1 too)
 2. Add `tini` as init: `RUN apt-get install -y tini` + `ENTRYPOINT ["tini", "--"]`
 3. Use `--init` flag in docker-compose
@@ -634,15 +643,15 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 
 Currently excludes core paths but misses several directories that inflate build context:
 
-| Missing | Size impact |
-|---------|------------|
-| `docs/` | Documentation |
-| `tests/` | Test suites |
-| `.claude/` | AI config |
-| `.agents/` | AI skills |
-| `.specify/` | Design system config |
-| `*.md` | Markdown files |
-| `docker-compose.yml` | Compose config |
+| Missing              | Size impact          |
+| -------------------- | -------------------- |
+| `docs/`              | Documentation        |
+| `tests/`             | Test suites          |
+| `.claude/`           | AI config            |
+| `.agents/`           | AI skills            |
+| `.specify/`          | Design system config |
+| `*.md`               | Markdown files       |
+| `docker-compose.yml` | Compose config       |
 
 ---
 
@@ -740,6 +749,7 @@ Double cast (`as unknown as`) bypasses all type safety. If the model is renamed,
 Two schema files are identical except for `datasource.provider` (`sqlite` vs `postgresql`). Any model, enum, or index change must be applied to both files manually. No CI check or script validates they stay in sync.
 
 Options:
+
 1. Script that generates one from the other (swap the datasource line)
 2. CI step that diffs the two files (ignoring the datasource block)
 3. Single schema with environment-driven provider selection (Prisma 7 may support this via config)
@@ -750,6 +760,7 @@ Options:
 **File:** `prisma/schema.prisma:188`
 
 `details` is `String` containing JSON. Works, but:
+
 - No database-level JSON validation
 - Cannot use Prisma's JSON filtering (`path`, `array_contains`, etc.) on PostgreSQL
 - Query code must parse manually
@@ -806,9 +817,12 @@ Every test logs in from scratch: `seedLocalUser()` → `loginWithPassword()` →
 {
   projects: [
     { name: "admin-setup", testMatch: /admin\.setup\.ts/ },
-    { name: "admin-tests", dependencies: ["admin-setup"],
-      use: { storageState: ".auth/admin.json" } },
-  ]
+    {
+      name: "admin-tests",
+      dependencies: ["admin-setup"],
+      use: { storageState: ".auth/admin.json" },
+    },
+  ];
 }
 ```
 
@@ -820,7 +834,9 @@ Not all tests can use this (e.g., `local-login.spec.ts` tests the login flow its
 **File:** `tests/e2e/token-management.spec.ts:44`
 
 ```ts
-await expect(tokenRow).toContainText("abcdef", { timeout: 1000 }).catch(() => {});
+await expect(tokenRow)
+  .toContainText("abcdef", { timeout: 1000 })
+  .catch(() => {});
 ```
 
 `.catch(() => {})` silently swallows a failed assertion. If this check matters, remove the catch. If it doesn't matter, remove the entire line. Silent failures mask real regressions.
@@ -954,7 +970,12 @@ These tests use fixed emails (`e2e-theme-user@example.com`, `e2e-marketer@exampl
 **File:** `src/app/globals.css:62`
 
 ```css
-font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+font-family:
+  system-ui,
+  -apple-system,
+  "Segoe UI",
+  Roboto,
+  sans-serif;
 ```
 
 Generic system font stack. Every app using system-ui looks identical on the same OS. Per frontend design guidelines: "Avoid generic fonts like Arial, Inter, Roboto, system fonts." Choose a distinctive body font and pair with a display font for headings. Even one custom font (via `next/font`) would differentiate the entire UI.
@@ -969,6 +990,7 @@ Suggestion: Pick a body font with character (e.g., DM Sans, General Sans, Satosh
 Accent color is Tailwind's `blue-600` — the most common default in SaaS apps. Light theme is white panel on gray background. Dark theme is slate-blue. Functional but completely generic. Per guidelines: "Dominant colors with sharp accents outperform timid, evenly-distributed palettes."
 
 Options:
+
 1. Shift hue to something less ubiquitous (teal, amber, emerald, rose)
 2. Add a secondary accent for visual interest
 3. Use a more distinctive background tone (warm gray, cool cream, subtle tint)
@@ -983,16 +1005,25 @@ No CSS transitions, no animations, no micro-interactions. Toast appears/disappea
 Per guidelines: "One well-orchestrated page load with staggered reveals creates more delight than scattered micro-interactions."
 
 Minimum viable motion:
+
 ```css
 /* Global transition for interactive elements */
-a, button, [role="button"] {
+a,
+button,
+[role="button"] {
   transition: all 0.15s ease;
 }
 
 /* Toast entrance */
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 ```
 
@@ -1030,6 +1061,7 @@ Toast items appear and disappear instantly (no fade, slide, or scale). Feels jar
 **File:** `src/app/(dashboard)/dashboard/page.tsx:20-37`
 
 Four identical `article` cards with same size, same border, same padding. No visual hierarchy — user's eye has no entry point. Consider:
+
 - Making one card larger/featured (e.g., role or status as a hero card)
 - Adding subtle accent color to one card
 - Using icons or illustrations to differentiate
@@ -1110,7 +1142,7 @@ Works functionally, but `opacity-35` on the entire container dims the text and l
 - **YAML anchors**: DRY image config with `x-app-image` and `x-migrate-image`
 - **Named volumes**: Persistent storage for postgres and uploads
 - **Migrate service**: Separate migration runner with `restart: "no"` — runs once then stops
-- **.dockerignore covers basics**: node_modules, .git, .next, .env*, coverage excluded
+- **.dockerignore covers basics**: node_modules, .git, .next, .env\*, coverage excluded
 
 ---
 

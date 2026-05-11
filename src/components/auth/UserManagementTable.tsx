@@ -3,8 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import type { AuthMethod, Role, UserStatus } from "../../../generated/prisma/enums";
-import { Role as RoleEnum, UserStatus as UserStatusEnum } from "../../../generated/prisma/enums";
+import type {
+  AuthMethod,
+  Role,
+  UserStatus,
+} from "../../../generated/prisma/enums";
+import {
+  Role as RoleEnum,
+  UserStatus as UserStatusEnum,
+} from "../../../generated/prisma/enums";
 import {
   Select,
   SelectContent,
@@ -47,7 +54,10 @@ export function UserManagementTable({
 
     try {
       const response = await fetch(withBasePath(url), options);
-      const payload = response.status === 204 ? null : await response.json().catch(() => null);
+      const payload =
+        response.status === 204
+          ? null
+          : await response.json().catch(() => null);
 
       if (!response.ok) {
         pushToast(payload?.error ?? t("couldNotUpdate"));
@@ -80,7 +90,10 @@ export function UserManagementTable({
             const isBusy = busyKey?.startsWith(entry.id);
 
             return (
-              <tr className="border-b border-black/5 align-top dark:border-white/5" key={entry.id}>
+              <tr
+                className="border-b border-black/5 align-top dark:border-white/5"
+                key={entry.id}
+              >
                 <td className="py-3">
                   <div className="font-medium">{entry.name}</div>
                 </td>

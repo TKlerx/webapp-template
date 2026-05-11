@@ -28,12 +28,15 @@ export async function register() {
 }
 
 function getNodeProcess() {
-  const candidate = (globalThis as typeof globalThis & {
-    process?: NodeJS.Process;
-    EdgeRuntime?: unknown;
-  }).process;
+  const candidate = (
+    globalThis as typeof globalThis & {
+      process?: NodeJS.Process;
+      EdgeRuntime?: unknown;
+    }
+  ).process;
   const isEdgeRuntime =
-    typeof (globalThis as typeof globalThis & { EdgeRuntime?: unknown }).EdgeRuntime !== "undefined";
+    typeof (globalThis as typeof globalThis & { EdgeRuntime?: unknown })
+      .EdgeRuntime !== "undefined";
 
   if (isEdgeRuntime || !candidate || typeof candidate.on !== "function") {
     return null;

@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { __resetRateLimitStore, checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import {
+  __resetRateLimitStore,
+  checkRateLimit,
+  getClientIp,
+} from "@/lib/rate-limit";
 
 describe("rate limit utility", () => {
   const originalTrustProxyHeaders = process.env.TRUST_PROXY_HEADERS;

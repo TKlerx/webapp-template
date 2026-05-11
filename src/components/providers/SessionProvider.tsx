@@ -13,10 +13,11 @@ export function SessionProvider({
   children: React.ReactNode;
 }) {
   const value = useMemo(() => user, [user]);
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  );
 }
 
 export function useSession() {
   return useContext(SessionContext);
 }
-

@@ -1,8 +1,14 @@
 import { safeLogAudit } from "@/lib/audit";
 import { updateManagedUserStatus } from "@/lib/user-management";
-import { AuditAction, UserStatus } from "../../../../../../generated/prisma/enums";
+import {
+  AuditAction,
+  UserStatus,
+} from "../../../../../../generated/prisma/enums";
 
-export async function PATCH(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  _: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   return updateManagedUserStatus(params, UserStatus.INACTIVE, {
     lastAdminMessage: "Cannot deactivate the last Admin user",
     afterUpdate: async ({ actorId, userId, previousStatus, nextStatus }) => {
@@ -19,4 +25,3 @@ export async function PATCH(_: Request, { params }: { params: Promise<{ id: stri
     },
   });
 }
-

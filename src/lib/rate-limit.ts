@@ -39,7 +39,11 @@ function ensureCleanupTimer() {
     cleanupExpiredEntries(Date.now());
   }, CLEANUP_INTERVAL_MS);
 
-  if (typeof cleanupTimer === "object" && cleanupTimer && "unref" in cleanupTimer) {
+  if (
+    typeof cleanupTimer === "object" &&
+    cleanupTimer &&
+    "unref" in cleanupTimer
+  ) {
     cleanupTimer.unref();
   }
 }
@@ -95,7 +99,10 @@ export function checkRateLimit(
   if (existing.count >= existing.maxAttempts) {
     return {
       allowed: false,
-      retryAfterMs: Math.max(0, existing.windowMs - (now - existing.windowStart)),
+      retryAfterMs: Math.max(
+        0,
+        existing.windowMs - (now - existing.windowStart),
+      ),
     };
   }
 

@@ -14,7 +14,9 @@ export function AuditExportButton({ queryString }: AuditExportButtonProps) {
         <Button type="button">Export CSV</Button>
       </a>
       <a href={withBasePath(`/api/audit/export?format=pdf&${queryString}`)}>
-        <Button type="button" variant="secondary">Export PDF</Button>
+        <Button type="button" variant="secondary">
+          Export PDF
+        </Button>
       </a>
     </div>
   );

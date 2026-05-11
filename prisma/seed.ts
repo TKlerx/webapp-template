@@ -4,16 +4,24 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import type { SqlDriverAdapterFactory } from "@prisma/client/runtime/client";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "../generated/prisma/client";
-import { AuthMethod, Role, ThemePreference, UserStatus } from "../generated/prisma/enums";
+import {
+  AuthMethod,
+  Role,
+  ThemePreference,
+  UserStatus,
+} from "../generated/prisma/enums";
 import { validatePasswordComplexity } from "../src/lib/auth";
 
 const require = createRequire(import.meta.url);
 
 function createAdapter(connectionString: string) {
   if (connectionString.startsWith("file:")) {
-    const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3") as {
-      PrismaBetterSqlite3: new (options: { url: string }) => SqlDriverAdapterFactory;
-    };
+    const { PrismaBetterSqlite3 } =
+      require("@prisma/adapter-better-sqlite3") as {
+        PrismaBetterSqlite3: new (options: {
+          url: string;
+        }) => SqlDriverAdapterFactory;
+      };
 
     return new PrismaBetterSqlite3({ url: connectionString });
   }
@@ -30,11 +38,15 @@ async function main() {
   const password = process.env.INITIAL_ADMIN_PASSWORD;
 
   if (!email || !password) {
-    throw new Error("INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set");
+    throw new Error(
+      "INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set",
+    );
   }
 
   if (!validatePasswordComplexity(password)) {
-    throw new Error("INITIAL_ADMIN_PASSWORD does not meet the required password complexity policy.");
+    throw new Error(
+      "INITIAL_ADMIN_PASSWORD does not meet the required password complexity policy.",
+    );
   }
 
   if (process.env.NODE_ENV === "production" && password === "ChangeMe123!") {
@@ -51,7 +63,9 @@ async function main() {
     });
 
     if (!admin) {
-      throw new Error("Expected at least one admin user in the starter database.");
+      throw new Error(
+        "Expected at least one admin user in the starter database.",
+      );
     }
 
     console.log("Skipping seed because users already exist.");
@@ -84,9 +98,11 @@ async function main() {
   console.log(`Seeded initial admin user ${email}.`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-}).finally(async () => {
-  await prisma.$disconnect();
-});
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

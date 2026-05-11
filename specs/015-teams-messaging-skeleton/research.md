@@ -10,11 +10,13 @@
 **Rationale**: Spec already mandates Graph API. Application permissions allow the worker to operate without user sessions. The existing `graph.ts` mail client demonstrates the token caching and HTTP call patterns — Teams endpoints follow the same Graph API conventions.
 
 **Key endpoints**:
+
 - Send to channel: `POST /teams/{team-id}/channels/{channel-id}/messages`
 - List channel messages: `GET /teams/{team-id}/channels/{channel-id}/messages` (with `$top` and delta query)
 - Required permissions: `ChannelMessage.Send`, `ChannelMessage.Read.All` (application)
 
 **Alternatives considered**:
+
 - Bot Framework: More complex, requires bot registration, webhook endpoint. Overkill for skeleton scope. TeamsClient abstraction keeps this as future migration path.
 - Power Automate / Webhooks: Incoming webhooks are simpler for send-only but don't support read. Deprecated path for new integrations.
 - Delegated permissions: Would require user sign-in flow for each operation. Not suitable for background worker.
@@ -26,6 +28,7 @@
 **Rationale**: Spec clarification confirms credential reuse. The existing env vars (`AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`, `AZURE_AD_TENANT_ID`) already hold the client credentials. The token endpoint is the same. Only the requested scopes change.
 
 **New env vars needed**:
+
 - `TEAMS_ENABLED` — feature flag (default: `false`)
 - `TEAMS_POLL_INTERVAL_SECONDS` — intake polling frequency (default: `60`)
 
@@ -38,6 +41,7 @@
 **Rationale**: Proven pattern from spec 014. Worker already handles `notification_delivery` jobs with retry logic (3 attempts, configurable backoff). Teams delivery needs identical semantics: queue → claim → send → record outcome.
 
 **Payload structure** (BackgroundJob.payload):
+
 ```json
 {
   "teamsOutboundMessageId": "cuid",

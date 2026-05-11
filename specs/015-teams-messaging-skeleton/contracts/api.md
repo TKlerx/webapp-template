@@ -7,6 +7,7 @@ All endpoints require `PLATFORM_ADMIN` role. Base path: `/api/integrations/teams
 Returns integration config + computed health metrics.
 
 **Response 200**:
+
 ```json
 {
   "sendEnabled": false,
@@ -26,6 +27,7 @@ Returns integration config + computed health metrics.
 Update integration toggles.
 
 **Request**:
+
 ```json
 {
   "sendEnabled": true,
@@ -40,6 +42,7 @@ Update integration toggles.
 List delivery targets.
 
 **Response 200**:
+
 ```json
 {
   "targets": [
@@ -62,6 +65,7 @@ List delivery targets.
 Create delivery target.
 
 **Request**:
+
 ```json
 {
   "name": "Engineering Alerts",
@@ -81,6 +85,7 @@ Create delivery target.
 Update target (name, active status).
 
 **Request**:
+
 ```json
 {
   "name": "Updated Name",
@@ -102,6 +107,7 @@ Delete target. Fails if target has pending outbound messages.
 List intake subscriptions.
 
 **Response 200**:
+
 ```json
 {
   "subscriptions": [
@@ -124,6 +130,7 @@ List intake subscriptions.
 Create intake subscription.
 
 **Request**:
+
 ```json
 {
   "teamId": "graph-team-id",
@@ -141,6 +148,7 @@ Create intake subscription.
 Update subscription (active status).
 
 **Request**:
+
 ```json
 {
   "active": false
@@ -162,6 +170,7 @@ Recent activity log for admin dashboard.
 **Query params**: `?limit=20&type=send|intake|all`
 
 **Response 200**:
+
 ```json
 {
   "recentActivity": [

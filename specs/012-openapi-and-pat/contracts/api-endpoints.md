@@ -10,6 +10,7 @@ Create a new personal access token.
 
 **Auth**: Session only (PATs cannot create PATs)
 **Request body**:
+
 ```json
 {
   "name": "my-script",
@@ -18,10 +19,12 @@ Create a new personal access token.
 ```
 
 **Validation**:
+
 - `name`: required, 1-100 chars, unique per user
 - `expiresInDays`: optional, must be one of [7, 30, 60, 90, 180, 365], default 90
 
 **Response 201**:
+
 ```json
 {
   "token": {
@@ -49,9 +52,11 @@ List the authenticated user's tokens.
 
 **Auth**: Session or PAT
 **Query params**:
+
 - `showAll`: boolean (default: false) â€” include tokens revoked/expired >90 days ago
 
 **Response 200**:
+
 ```json
 {
   "tokens": [
@@ -79,6 +84,7 @@ Revoke a token. Token remains in database with REVOKED status.
 
 **Auth**: Session only
 **Response 200**:
+
 ```json
 {
   "token": {
@@ -100,6 +106,7 @@ Generate a new token value for an active token, invalidating the old value.
 
 **Auth**: Session only
 **Request body**:
+
 ```json
 {
   "expiresInDays": 90
@@ -107,6 +114,7 @@ Generate a new token value for an active token, invalidating the old value.
 ```
 
 **Response 200**:
+
 ```json
 {
   "token": {
@@ -144,10 +152,12 @@ List all tokens across all users.
 
 **Auth**: Session or PAT, requires PLATFORM_ADMIN role
 **Query params**:
+
 - `showAll`: boolean (default: false)
 - `userId`: string (optional, filter by user)
 
 **Response 200**:
+
 ```json
 {
   "tokens": [
@@ -199,6 +209,7 @@ Initiate CLI browser login flow.
 
 **Auth**: None (public endpoint)
 **Query params**:
+
 - `callback_url`: required, must be `http://localhost:*` or `http://127.0.0.1:*`
 - `state`: required, random string for CSRF protection
 
@@ -216,6 +227,7 @@ Exchange authorization code for an API token.
 
 **Auth**: None (public endpoint, code is the proof)
 **Request body**:
+
 ```json
 {
   "code": "abc123...",
@@ -224,10 +236,12 @@ Exchange authorization code for an API token.
 ```
 
 **Validation**:
+
 - Code must exist, not be expired (60s), not be exchanged, and have a userId set
 - State must match the stored state
 
 **Response 200**:
+
 ```json
 {
   "token": "starter_pat_a1b2c3d4...",
@@ -260,6 +274,7 @@ Serve the OpenAPI 3.1 YAML specification.
 ## Authentication Headers
 
 All endpoints that accept PAT auth check headers in this order:
+
 1. Session cookie (existing BetterAuth session)
 2. `Authorization: Bearer <token>` header
 3. `X-API-Key: <token>` header
@@ -269,6 +284,7 @@ If multiple are present, the first match wins in the order above.
 ## Error Response Format
 
 All errors follow the existing pattern:
+
 ```json
 {
   "error": "Human-readable error message"
@@ -276,4 +292,3 @@ All errors follow the existing pattern:
 ```
 
 With appropriate HTTP status codes: 400 (bad request), 401 (not authenticated), 403 (not authorized), 404 (not found), 409 (conflict), 429 (limit reached).
-

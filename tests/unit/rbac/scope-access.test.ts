@@ -19,7 +19,10 @@ describe("scope RBAC helpers", () => {
       { scopeId: "scope-2" },
     ] as never);
 
-    await expect(getUserScopeIds("user-1")).resolves.toEqual(["scope-1", "scope-2"]);
+    await expect(getUserScopeIds("user-1")).resolves.toEqual([
+      "scope-1",
+      "scope-2",
+    ]);
   });
 
   it("allows platform admins to access any scope", async () => {
@@ -31,7 +34,9 @@ describe("scope RBAC helpers", () => {
   });
 
   it("allows scoped users to access assigned scopes only", async () => {
-    prismaMock.userScopeAssignment.findMany.mockResolvedValue([{ scopeId: "scope-1" }] as never);
+    prismaMock.userScopeAssignment.findMany.mockResolvedValue([
+      { scopeId: "scope-1" },
+    ] as never);
 
     await expect(
       checkScopeAccess({ id: "user-1", role: Role.SCOPE_USER }, "scope-1"),
@@ -39,7 +44,9 @@ describe("scope RBAC helpers", () => {
   });
 
   it("denies scoped users access to unassigned scopes", async () => {
-    prismaMock.userScopeAssignment.findMany.mockResolvedValue([{ scopeId: "scope-1" }] as never);
+    prismaMock.userScopeAssignment.findMany.mockResolvedValue([
+      { scopeId: "scope-1" },
+    ] as never);
 
     await expect(
       checkScopeAccess({ id: "user-1", role: Role.SCOPE_USER }, "scope-2"),

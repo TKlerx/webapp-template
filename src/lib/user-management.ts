@@ -1,5 +1,10 @@
 import type { User } from "../../generated/prisma/client";
-import { AuthMethod, Role, ThemePreference, UserStatus } from "../../generated/prisma/enums";
+import {
+  AuthMethod,
+  Role,
+  ThemePreference,
+  UserStatus,
+} from "../../generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import {
   ensureAdminUserCanChange as ensureAdminUserCanChangeInService,
@@ -14,7 +19,9 @@ export async function provisionSsoUser(input: { email: string; name: string }) {
 
   if (existing) {
     const authMethod =
-      existing.authMethod === AuthMethod.LOCAL ? AuthMethod.BOTH : existing.authMethod;
+      existing.authMethod === AuthMethod.LOCAL
+        ? AuthMethod.BOTH
+        : existing.authMethod;
 
     return prisma.user.update({
       where: { id: existing.id },
@@ -49,7 +56,9 @@ type ManagedUserResult =
       };
     };
 
-export async function requireManagedUser(params: RouteParams): Promise<ManagedUserResult> {
+export async function requireManagedUser(
+  params: RouteParams,
+): Promise<ManagedUserResult> {
   return requireManagedUserContext(params);
 }
 

@@ -26,21 +26,28 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
   const nextTheme: Theme = theme === "LIGHT" ? "DARK" : "LIGHT";
 
   const updateTheme = async (nextValue: Theme, currentUser: SessionUser) => {
-    const response = await fetch(withBasePath(`/api/users/${currentUser.id}/theme`), {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      withBasePath(`/api/users/${currentUser.id}/theme`),
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ themePreference: nextValue }),
       },
-      body: JSON.stringify({ themePreference: nextValue }),
-    });
+    );
 
     if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
       throw new Error(payload?.error ?? "Failed to update theme");
     }
 
     lastPersistedTheme.current = nextValue;
-    pushToast(tTheme("switchedTo", { theme: nextValue === "DARK" ? "dark" : "light" }));
+    pushToast(
+      tTheme("switchedTo", { theme: nextValue === "DARK" ? "dark" : "light" }),
+    );
   };
 
   return (
@@ -55,14 +62,20 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
             await updateTheme(nextTheme, user);
           } catch (error) {
             setTheme(lastPersistedTheme.current || previousTheme);
-            pushToast(error instanceof Error ? error.message : "Failed to update theme");
+            pushToast(
+              error instanceof Error ? error.message : "Failed to update theme",
+            );
           }
         });
       }}
       type="button"
       variant="secondary"
     >
-      {isPending ? t("saving") : nextTheme === "DARK" ? t("darkMode") : t("lightMode")}
+      {isPending
+        ? t("saving")
+        : nextTheme === "DARK"
+          ? t("darkMode")
+          : t("lightMode")}
     </Button>
   );
 }

@@ -55,4 +55,3 @@ npm run duplication
 - Shared services: `C:\dev\webapp-template\src\services\api\...`
 - Existing route entrypoints remain in `C:\dev\webapp-template\src\app\api\...`
 - Regression tests remain in `C:\dev\webapp-template\tests\unit\...`
-

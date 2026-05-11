@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db";
-import { InboundEmailStatus, NotificationStatus } from "../../../generated/prisma/enums";
+import {
+  InboundEmailStatus,
+  NotificationStatus,
+} from "../../../generated/prisma/enums";
 
 const NOTIFICATION_REFERENCE_PATTERN = /\[notification:([a-z0-9_-]+)\]/i;
 const ENTITY_REFERENCE_PATTERN = /\[ref:([a-z0-9_.-]+):([^\]\s]+)\]/i;
@@ -28,13 +31,19 @@ type InboundRecordLike = {
   senderEmail: string | null;
 };
 
-export function appendNotificationReferenceText(bodyText: string, notificationId: string) {
+export function appendNotificationReferenceText(
+  bodyText: string,
+  notificationId: string,
+) {
   const normalizedBody = bodyText.trim();
   const reference = `Notification reference: [notification:${notificationId}]`;
   return normalizedBody ? `${normalizedBody}\n\n${reference}` : reference;
 }
 
-export function appendNotificationReferenceHtml(bodyHtml: string | null | undefined, notificationId: string) {
+export function appendNotificationReferenceHtml(
+  bodyHtml: string | null | undefined,
+  notificationId: string,
+) {
   const reference = `Notification reference: [notification:${notificationId}]`;
   if (!bodyHtml?.trim()) {
     return "";
@@ -68,8 +77,13 @@ export function extractEntityReference(source: ReferenceSource) {
   return null;
 }
 
-export function detectBounceLikeMessage(source: Pick<ReferenceSource, "senderEmail" | "subject">) {
-  return BOUNCE_SENDER_PATTERN.test(source.senderEmail ?? "") || BOUNCE_SUBJECT_PATTERN.test(source.subject ?? "");
+export function detectBounceLikeMessage(
+  source: Pick<ReferenceSource, "senderEmail" | "subject">,
+) {
+  return (
+    BOUNCE_SENDER_PATTERN.test(source.senderEmail ?? "") ||
+    BOUNCE_SUBJECT_PATTERN.test(source.subject ?? "")
+  );
 }
 
 export async function processInboundEmailById(inboundEmailId: string) {
@@ -122,7 +136,8 @@ export async function processInboundEmailRecord(inbound: InboundRecordLike) {
         where: { id: inbound.id },
         data: {
           processingStatus: InboundEmailStatus.PROCESSED,
-          processingNotes: "Bounce correlated to notification delivery reference.",
+          processingNotes:
+            "Bounce correlated to notification delivery reference.",
           correlatedNotificationId: notificationId,
         },
       });
@@ -181,13 +196,17 @@ function collectReferenceCandidates(source: ReferenceSource) {
     source.bodyHtml,
     source.inReplyTo,
     ...(source.referenceIds ?? []),
-  ].flatMap((value) => (typeof value === "string" && value.trim() ? [value] : []));
+  ].flatMap((value) =>
+    typeof value === "string" && value.trim() ? [value] : [],
+  );
 }
 
 function safeParseReferenceIds(value: string) {
   try {
     const parsed = JSON.parse(value) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : [];
   } catch {
     return [];
   }

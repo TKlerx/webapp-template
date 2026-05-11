@@ -42,13 +42,23 @@ export function AuditTrailViewer() {
       <div className="flex flex-wrap items-end gap-3">
         <input
           className="rounded-2xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
-          onChange={(event) => setFilters((current) => ({ ...current, action: event.target.value }))}
+          onChange={(event) =>
+            setFilters((current) => ({
+              ...current,
+              action: event.target.value,
+            }))
+          }
           placeholder={t("action")}
           value={filters.action}
         />
         <input
           className="rounded-2xl border border-black/10 bg-transparent px-4 py-3 text-sm dark:border-white/10"
-          onChange={(event) => setFilters((current) => ({ ...current, entityType: event.target.value }))}
+          onChange={(event) =>
+            setFilters((current) => ({
+              ...current,
+              entityType: event.target.value,
+            }))
+          }
           placeholder={t("entity")}
           value={filters.entityType}
         />
@@ -69,14 +79,21 @@ export function AuditTrailViewer() {
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.id} className="border-b border-black/5 dark:border-white/5">
-                <td className="px-4 py-3">{new Date(row.createdAt).toLocaleString()}</td>
+              <tr
+                key={row.id}
+                className="border-b border-black/5 dark:border-white/5"
+              >
+                <td className="px-4 py-3">
+                  {new Date(row.createdAt).toLocaleString()}
+                </td>
                 <td className="px-4 py-3">
                   <div>{row.actor.name}</div>
                   <div className="opacity-65">{row.actor.email}</div>
                 </td>
                 <td className="px-4 py-3">{row.action}</td>
-                <td className="px-4 py-3">{row.entityType} {row.entityId}</td>
+                <td className="px-4 py-3">
+                  {row.entityType} {row.entityId}
+                </td>
                 <td className="px-4 py-3">{row.scope?.name ?? "-"}</td>
                 <td className="px-4 py-3">{row.details}</td>
               </tr>

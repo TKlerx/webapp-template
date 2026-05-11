@@ -10,10 +10,16 @@ export async function requireApiUser(request?: Request) {
   return requireRouteUser(request);
 }
 
-export async function requireApiUserWithRoles(roles: Role[], request?: Request) {
+export async function requireApiUserWithRoles(
+  roles: Role[],
+  request?: Request,
+) {
   return requireRouteUserWithRoles(roles, request);
 }
 
-export async function authorizeRoute(request: Request, options: AuthorizeRouteOptions = {}) {
+export async function authorizeRoute(
+  request: Request,
+  options: AuthorizeRouteOptions = {},
+) {
   return authorizeRouteContext(request, options);
 }

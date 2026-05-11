@@ -14,13 +14,23 @@ vi.mock("@/lib/route-auth", () => ({
   requireApiUserWithRoles,
 }));
 
-import { GET as getTeamsConfig, PUT as putTeamsConfig } from "@/app/api/integrations/teams/route";
-import { GET as getTargets, POST as postTarget } from "@/app/api/integrations/teams/targets/route";
+import {
+  GET as getTeamsConfig,
+  PUT as putTeamsConfig,
+} from "@/app/api/integrations/teams/route";
+import {
+  GET as getTargets,
+  POST as postTarget,
+} from "@/app/api/integrations/teams/targets/route";
 
 describe("teams integration API", () => {
   beforeEach(() => {
     requireApiUserWithRoles.mockResolvedValue({
-      user: { id: "admin-1", role: Role.PLATFORM_ADMIN, status: UserStatus.ACTIVE },
+      user: {
+        id: "admin-1",
+        role: Role.PLATFORM_ADMIN,
+        status: UserStatus.ACTIVE,
+      },
     });
   });
 
@@ -42,7 +52,9 @@ describe("teams integration API", () => {
     prismaMock.teamsOutboundMessage.findMany.mockResolvedValue([] as never);
     prismaMock.teamsInboundMessage.findMany.mockResolvedValue([] as never);
 
-    const response = await getTeamsConfig(new Request("http://localhost/api/integrations/teams"));
+    const response = await getTeamsConfig(
+      new Request("http://localhost/api/integrations/teams"),
+    );
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
@@ -84,9 +96,13 @@ describe("teams integration API", () => {
 
   it("lists and creates delivery targets", async () => {
     prismaMock.teamsDeliveryTarget.findMany.mockResolvedValue([] as never);
-    prismaMock.teamsDeliveryTarget.create.mockResolvedValue({ id: "target-1" } as never);
+    prismaMock.teamsDeliveryTarget.create.mockResolvedValue({
+      id: "target-1",
+    } as never);
 
-    const listResponse = await getTargets(new Request("http://localhost/api/integrations/teams/targets"));
+    const listResponse = await getTargets(
+      new Request("http://localhost/api/integrations/teams/targets"),
+    );
     expect(listResponse.status).toBe(200);
 
     const createResponse = await postTarget(

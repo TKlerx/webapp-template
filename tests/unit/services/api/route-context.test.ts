@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Role, UserStatus } from "../../../../generated/prisma/enums";
 
-const { getSessionUser, checkScopeAccess, resolveTokenUser } = vi.hoisted(() => ({
-  getSessionUser: vi.fn(),
-  checkScopeAccess: vi.fn(),
-  resolveTokenUser: vi.fn(),
-}));
+const { getSessionUser, checkScopeAccess, resolveTokenUser } = vi.hoisted(
+  () => ({
+    getSessionUser: vi.fn(),
+    checkScopeAccess: vi.fn(),
+    resolveTokenUser: vi.fn(),
+  }),
+);
 
 vi.mock("@/lib/auth", () => ({
   getSessionUser,
@@ -16,7 +18,8 @@ vi.mock("@/lib/token-auth", () => ({
 }));
 
 vi.mock("@/lib/rbac", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/rbac")>("@/lib/rbac");
+  const actual =
+    await vi.importActual<typeof import("@/lib/rbac")>("@/lib/rbac");
   return {
     ...actual,
     checkScopeAccess,
@@ -69,7 +72,9 @@ describe("route context service", () => {
       status: UserStatus.ACTIVE,
     });
 
-    const result = await requireRouteUser(new Request("http://localhost/api/users"));
+    const result = await requireRouteUser(
+      new Request("http://localhost/api/users"),
+    );
 
     expect(result).toMatchObject({
       user: {
@@ -121,10 +126,13 @@ describe("route context service", () => {
       status: UserStatus.ACTIVE,
     });
 
-    const result = await authorizeRouteContext(new Request("http://localhost/api/test"), {
-      roles: [Role.SCOPE_ADMIN],
-      scopeRestricted: true,
-    });
+    const result = await authorizeRouteContext(
+      new Request("http://localhost/api/test"),
+      {
+        roles: [Role.SCOPE_ADMIN],
+        scopeRestricted: true,
+      },
+    );
 
     expect("error" in result).toBe(true);
     if ("error" in result) {

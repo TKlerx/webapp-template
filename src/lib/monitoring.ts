@@ -9,7 +9,8 @@ export async function checkDatabaseHealth() {
   } catch (error) {
     return {
       status: "error" as const,
-      message: error instanceof Error ? error.message : "Unknown database error",
+      message:
+        error instanceof Error ? error.message : "Unknown database error",
     };
   }
 }

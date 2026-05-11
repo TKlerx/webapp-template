@@ -37,7 +37,13 @@ export type TeamsMessageDeltaResult = {
 };
 
 export interface TeamsClient {
-  sendChannelMessage(input: TeamsMessageInput): Promise<{ messageId: string | null }>;
-  listChannelMessages(input: TeamsMessageListInput): Promise<TeamsChannelMessage[]>;
-  getChannelMessagesDelta(input: TeamsMessageDeltaInput): Promise<TeamsMessageDeltaResult>;
+  sendChannelMessage(
+    input: TeamsMessageInput,
+  ): Promise<{ messageId: string | null }>;
+  listChannelMessages(
+    input: TeamsMessageListInput,
+  ): Promise<TeamsChannelMessage[]>;
+  getChannelMessagesDelta(
+    input: TeamsMessageDeltaInput,
+  ): Promise<TeamsMessageDeltaResult>;
 }

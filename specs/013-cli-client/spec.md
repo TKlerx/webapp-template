@@ -17,7 +17,7 @@
 - Q: How should CLI updates be handled? â†’ A: Non-blocking update check on launch. Prints a one-line notification if a newer version exists on GitHub Releases. No auto-update.
 - Q: What environment variable names for configuration? â†’ A: `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN`.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Browser Login and Run First Command (Priority: P1)
 
@@ -145,7 +145,7 @@ A user or monitoring script checks the application health status via the CLI. Th
 - What happens when the user closes the browser without completing login? The CLI times out after 120 seconds and displays a message suggesting retry or PAT auth.
 - What happens when the server URL includes a base path? The CLI preserves the full path (e.g., `https://example.com/app/api/users`) for all requests. The `cli login` flow also uses the base path for the authorization URL.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -177,7 +177,7 @@ A user or monitoring script checks the application health status via the CLI. Th
 - **Command**: A top-level resource group (e.g., `users`, `audit`, `jobs`, `health`) that maps to an API endpoint group.
 - **Subcommand**: An action within a command (e.g., `list`, `create`, `approve`, `export`) that maps to a specific API operation.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -203,4 +203,3 @@ A user or monitoring script checks the application health status via the CLI. Th
 ## Dependencies
 
 - **Depends on**: Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow
-

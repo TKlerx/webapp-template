@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-export function applySetCookieHeaders(response: NextResponse, source: Response) {
+export function applySetCookieHeaders(
+  response: NextResponse,
+  source: Response,
+) {
   const setCookieHeader =
     typeof source.headers.getSetCookie === "function"
       ? source.headers.getSetCookie()
@@ -15,4 +18,3 @@ export function applySetCookieHeaders(response: NextResponse, source: Response) 
 
   return response;
 }
-

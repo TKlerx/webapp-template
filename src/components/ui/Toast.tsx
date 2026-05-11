@@ -1,13 +1,21 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
 type ToastItem = {
   id: string;
   message: string;
 };
 
-const ToastContext = createContext<{ pushToast: (message: string) => void } | null>(null);
+const ToastContext = createContext<{
+  pushToast: (message: string) => void;
+} | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
@@ -48,4 +56,3 @@ export function useToast() {
 
   return context;
 }
-

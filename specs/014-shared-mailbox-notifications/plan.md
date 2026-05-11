@@ -23,20 +23,20 @@ Deliver shared-mailbox-backed email capabilities in incremental slices. Phase 1 
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Simplicity First | PASS | Start with a small provider-neutral interface and one Graph implementation |
-| II. Test Coverage | PASS | Phase 1 includes focused unit coverage for provider selection and Graph behavior |
-| III. Duplication Control | PASS | All mail access goes through `src/lib/mail` rather than ad hoc Graph calls |
-| IV. Incremental Delivery | PASS | Graph mailbox access first, notifications/admin UI/inbound processing later |
-| V. Spec Sequencing | PASS | Builds on the existing auth, worker, and route foundations already in the repo |
-| VI. Continuity | PASS | `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` will track the open work |
-| VII. Azure OpenAI | N/A | No AI features in scope |
-| VIII. Web Standards | PASS | Server-side only in Phase 1; later UI must follow existing app conventions |
-| IX. Internationalization | PASS | Notification content and future admin UI must use the existing i18n system |
-| X. Responsive Design | PASS | Future notification settings/log UI must work on desktop and mobile |
+| Principle                | Status | Notes                                                                            |
+| ------------------------ | ------ | -------------------------------------------------------------------------------- |
+| I. Simplicity First      | PASS   | Start with a small provider-neutral interface and one Graph implementation       |
+| II. Test Coverage        | PASS   | Phase 1 includes focused unit coverage for provider selection and Graph behavior |
+| III. Duplication Control | PASS   | All mail access goes through `src/lib/mail` rather than ad hoc Graph calls       |
+| IV. Incremental Delivery | PASS   | Graph mailbox access first, notifications/admin UI/inbound processing later      |
+| V. Spec Sequencing       | PASS   | Builds on the existing auth, worker, and route foundations already in the repo   |
+| VI. Continuity           | PASS   | `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` will track the open work |
+| VII. Azure OpenAI        | N/A    | No AI features in scope                                                          |
+| VIII. Web Standards      | PASS   | Server-side only in Phase 1; later UI must follow existing app conventions       |
+| IX. Internationalization | PASS   | Notification content and future admin UI must use the existing i18n system       |
+| X. Responsive Design     | PASS   | Future notification settings/log UI must work on desktop and mobile              |
 
 ## Project Structure
 

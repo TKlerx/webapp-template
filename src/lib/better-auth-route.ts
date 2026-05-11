@@ -1,4 +1,8 @@
-import { auth, BETTER_AUTH_API_BASE_PATH, getConfiguredAuthBaseUrl } from "@/lib/better-auth";
+import {
+  auth,
+  BETTER_AUTH_API_BASE_PATH,
+  getConfiguredAuthBaseUrl,
+} from "@/lib/better-auth";
 
 const STRIPPED_AUTH_BASE_PATH = "/api/auth";
 

@@ -29,7 +29,9 @@ export function SwaggerUi() {
       });
     };
 
-    const existingScript = document.getElementById("swagger-ui-script") as HTMLScriptElement | null;
+    const existingScript = document.getElementById(
+      "swagger-ui-script",
+    ) as HTMLScriptElement | null;
     if (existingScript) {
       if (window.SwaggerUIBundle) {
         mountSwagger();
@@ -51,5 +53,10 @@ export function SwaggerUi() {
     };
   }, []);
 
-  return <div className="min-h-[60vh] rounded-[2rem] bg-white p-4 text-black" id="swagger-ui" />;
+  return (
+    <div
+      className="min-h-[60vh] rounded-[2rem] bg-white p-4 text-black"
+      id="swagger-ui"
+    />
+  );
 }

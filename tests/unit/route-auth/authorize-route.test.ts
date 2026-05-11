@@ -11,7 +11,8 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 vi.mock("@/lib/rbac", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/rbac")>("@/lib/rbac");
+  const actual =
+    await vi.importActual<typeof import("@/lib/rbac")>("@/lib/rbac");
   return {
     ...actual,
     checkScopeAccess,
@@ -28,7 +29,9 @@ describe("authorizeRoute", () => {
   it("rejects requests without an authenticated user", async () => {
     getSessionUser.mockResolvedValue(null);
 
-    const result = await authorizeRoute(new Request("http://localhost/api/test"));
+    const result = await authorizeRoute(
+      new Request("http://localhost/api/test"),
+    );
 
     expect("error" in result).toBe(true);
     if ("error" in result) {
@@ -44,9 +47,12 @@ describe("authorizeRoute", () => {
       status: UserStatus.ACTIVE,
     });
 
-    const result = await authorizeRoute(new Request("http://localhost/api/test"), {
-      roles: [Role.PLATFORM_ADMIN],
-    });
+    const result = await authorizeRoute(
+      new Request("http://localhost/api/test"),
+      {
+        roles: [Role.PLATFORM_ADMIN],
+      },
+    );
 
     expect("error" in result).toBe(true);
     if ("error" in result) {
@@ -95,10 +101,13 @@ describe("authorizeRoute", () => {
       status: UserStatus.ACTIVE,
     });
 
-    const result = await authorizeRoute(new Request("http://localhost/api/test"), {
-      roles: [Role.SCOPE_ADMIN],
-      scopeRestricted: true,
-    });
+    const result = await authorizeRoute(
+      new Request("http://localhost/api/test"),
+      {
+        roles: [Role.SCOPE_ADMIN],
+        scopeRestricted: true,
+      },
+    );
 
     expect("error" in result).toBe(true);
     if ("error" in result) {

@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
-import { TeamsInboundStatus, TeamsMessageStatus } from "../../../generated/prisma/enums";
+import {
+  TeamsInboundStatus,
+  TeamsMessageStatus,
+} from "../../../generated/prisma/enums";
 
 const DEFAULT_CONFIG_ID = "default";
 
@@ -114,7 +117,10 @@ export async function deleteDeliveryTarget(targetId: string) {
       where: { id: targetId },
     });
   } catch (error) {
-    if (String(error).includes("P2003") || String(error).includes("Foreign key constraint")) {
+    if (
+      String(error).includes("P2003") ||
+      String(error).includes("Foreign key constraint")
+    ) {
       return {
         error: jsonError(
           "Target has outbound message history and cannot be deleted. Set it inactive instead.",
@@ -155,7 +161,10 @@ export async function createIntakeSubscription(input: {
   );
 }
 
-export async function updateIntakeSubscription(subscriptionId: string, input: { active?: boolean }) {
+export async function updateIntakeSubscription(
+  subscriptionId: string,
+  input: { active?: boolean },
+) {
   return prisma.teamsIntakeSubscription.update({
     where: { id: subscriptionId },
     data: typeof input.active === "boolean" ? { active: input.active } : {},
@@ -171,40 +180,47 @@ export async function deleteIntakeSubscription(subscriptionId: string) {
 }
 
 export async function getIntegrationStatus() {
-  const [config, lastSend, lastIntake, recentSendFailures, recentIntakeFailures, recentOutbound, recentInbound] =
-    await Promise.all([
-      getOrCreateTeamsConfig(),
-      prisma.teamsOutboundMessage.findFirst({
-        where: { status: TeamsMessageStatus.SENT },
-        orderBy: { updatedAt: "desc" },
-      }),
-      prisma.teamsInboundMessage.findFirst({
-        where: { processingStatus: { not: TeamsInboundStatus.IGNORED } },
-        orderBy: { updatedAt: "desc" },
-      }),
-      prisma.teamsOutboundMessage.count({
-        where: {
-          status: TeamsMessageStatus.FAILED,
-          updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        },
-      }),
-      prisma.teamsInboundMessage.count({
-        where: {
-          processingStatus: TeamsInboundStatus.IGNORED,
-          updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        },
-      }),
-      prisma.teamsOutboundMessage.findMany({
-        include: { target: true },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      }),
-      prisma.teamsInboundMessage.findMany({
-        include: { subscription: true },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      }),
-    ]);
+  const [
+    config,
+    lastSend,
+    lastIntake,
+    recentSendFailures,
+    recentIntakeFailures,
+    recentOutbound,
+    recentInbound,
+  ] = await Promise.all([
+    getOrCreateTeamsConfig(),
+    prisma.teamsOutboundMessage.findFirst({
+      where: { status: TeamsMessageStatus.SENT },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.teamsInboundMessage.findFirst({
+      where: { processingStatus: { not: TeamsInboundStatus.IGNORED } },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.teamsOutboundMessage.count({
+      where: {
+        status: TeamsMessageStatus.FAILED,
+        updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+    }),
+    prisma.teamsInboundMessage.count({
+      where: {
+        processingStatus: TeamsInboundStatus.IGNORED,
+        updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+    }),
+    prisma.teamsOutboundMessage.findMany({
+      include: { target: true },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.teamsInboundMessage.findMany({
+      include: { subscription: true },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+  ]);
 
   const recentActivity = [
     ...recentOutbound.map((item) => ({
@@ -220,7 +236,10 @@ export async function getIntegrationStatus() {
       subscriptionName: `${item.subscription.teamName ?? item.teamId} / ${item.subscription.channelName ?? item.channelId}`,
       messagesIngested: 1,
       timestamp: item.updatedAt,
-      error: item.processingStatus === TeamsInboundStatus.IGNORED ? item.processingNotes : null,
+      error:
+        item.processingStatus === TeamsInboundStatus.IGNORED
+          ? item.processingNotes
+          : null,
     })),
   ]
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())

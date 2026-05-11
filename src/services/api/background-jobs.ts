@@ -32,7 +32,10 @@ export function safeParseJobJson(value: string | null) {
 
 export async function listBackgroundJobsForUser(user: SessionUser) {
   const jobs = await prisma.backgroundJob.findMany({
-    where: user.role === Role.PLATFORM_ADMIN ? undefined : { createdByUserId: user.id },
+    where:
+      user.role === Role.PLATFORM_ADMIN
+        ? undefined
+        : { createdByUserId: user.id },
     orderBy: { createdAt: "desc" },
     take: 20,
   });
@@ -55,7 +58,10 @@ export async function listBackgroundJobsForUser(user: SessionUser) {
   }));
 }
 
-export async function createBackgroundJobForUser(userId: string, body: CreateBackgroundJobBody) {
+export async function createBackgroundJobForUser(
+  userId: string,
+  body: CreateBackgroundJobBody,
+) {
   const jobType = body.jobType?.trim();
   if (!jobType) {
     return { error: jsonError("jobType is required", 400) };

@@ -6,7 +6,8 @@ export default async function globalSetup() {
     ...process.env,
     DATABASE_URL: process.env.DATABASE_URL ?? "file:./e2e.db",
     INITIAL_ADMIN_EMAIL: process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
-    INITIAL_ADMIN_PASSWORD: process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
+    INITIAL_ADMIN_PASSWORD:
+      process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
   };
 
   const databasePath = env.DATABASE_URL.replace(/^file:/, "");

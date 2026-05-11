@@ -1,5 +1,8 @@
 import { requireApiUserWithRoles } from "@/lib/route-auth";
-import { deleteDeliveryTarget, updateDeliveryTarget } from "@/services/teams/admin";
+import {
+  deleteDeliveryTarget,
+  updateDeliveryTarget,
+} from "@/services/teams/admin";
 import { Role } from "../../../../../../../generated/prisma/enums";
 
 export async function PUT(
@@ -14,10 +17,16 @@ export async function PUT(
   const { id } = await params;
   const body = (await request.json()) as { name?: string; active?: boolean };
   if (body.name === undefined && body.active === undefined) {
-    return Response.json({ error: "At least one field is required" }, { status: 400 });
+    return Response.json(
+      { error: "At least one field is required" },
+      { status: 400 },
+    );
   }
   if (body.active !== undefined && typeof body.active !== "boolean") {
-    return Response.json({ error: "active must be a boolean" }, { status: 400 });
+    return Response.json(
+      { error: "active must be a boolean" },
+      { status: 400 },
+    );
   }
 
   const target = await updateDeliveryTarget(id, {

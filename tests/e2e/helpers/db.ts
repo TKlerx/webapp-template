@@ -19,7 +19,10 @@ type LocalUserSeed = {
   status?: UserStatus;
 };
 
-function runDbWorker<TInput, TResult>(operation: string, payload: TInput): TResult {
+function runDbWorker<TInput, TResult>(
+  operation: string,
+  payload: TInput,
+): TResult {
   const output = execFileSync(
     process.execPath,
     ["--import", "tsx", "tests/e2e/helpers/db-worker.ts", operation],
@@ -66,20 +69,26 @@ export function findUserByEmail(email: string) {
 }
 
 export function updateUserStatus(email: string, status: UserStatus) {
-  return runDbWorker<{ email: string; status: UserStatus }, null>("updateUserStatus", {
-    email,
-    status,
-  });
-}
-
-export function assignUserToScope(email: string, scope: { code: string; name: string }) {
-  return runDbWorker<{ email: string; scope: { code: string; name: string } }, string>(
-    "assignUserToScope",
+  return runDbWorker<{ email: string; status: UserStatus }, null>(
+    "updateUserStatus",
     {
       email,
-      scope,
+      status,
     },
   );
+}
+
+export function assignUserToScope(
+  email: string,
+  scope: { code: string; name: string },
+) {
+  return runDbWorker<
+    { email: string; scope: { code: string; name: string } },
+    string
+  >("assignUserToScope", {
+    email,
+    scope,
+  });
 }
 
 export function addAuditEntryFixture(input: {
@@ -111,7 +120,10 @@ export function seedNotificationTypeConfiguration(input: {
   enabled: boolean;
   updatedByEmail?: string;
 }) {
-  return runDbWorker<typeof input, string>("seedNotificationTypeConfiguration", input);
+  return runDbWorker<typeof input, string>(
+    "seedNotificationTypeConfiguration",
+    input,
+  );
 }
 
 export function seedNotificationFixture(input: {

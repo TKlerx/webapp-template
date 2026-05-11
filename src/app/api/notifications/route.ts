@@ -13,7 +13,9 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const parsedEventType = parseNotificationEventType(url.searchParams.get("eventType"));
+  const parsedEventType = parseNotificationEventType(
+    url.searchParams.get("eventType"),
+  );
   if ("error" in parsedEventType) {
     return parsedEventType.error;
   }

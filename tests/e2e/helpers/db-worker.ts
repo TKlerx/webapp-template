@@ -166,7 +166,10 @@ async function main() {
     }
 
     case "updateUserStatus": {
-      const { email, status } = await readJson<{ email: string; status: UserStatus }>();
+      const { email, status } = await readJson<{
+        email: string;
+        status: UserStatus;
+      }>();
       await prisma.user.update({
         where: { email: normalizeEmail(email) },
         data: { status },
@@ -177,7 +180,10 @@ async function main() {
     }
 
     case "assignUserToScope": {
-      const { email, scope } = await readJson<{ email: string; scope: { code: string; name: string } }>();
+      const { email, scope } = await readJson<{
+        email: string;
+        scope: { code: string; name: string };
+      }>();
       const user = await prisma.user.findUnique({
         where: { email: normalizeEmail(email) },
         select: { id: true },
@@ -234,7 +240,9 @@ async function main() {
       });
 
       if (!user) {
-        throw new Error(`User not found for audit fixture: ${input.actorEmail}`);
+        throw new Error(
+          `User not found for audit fixture: ${input.actorEmail}`,
+        );
       }
 
       const entry = await prisma.auditEntry.create({
@@ -267,7 +275,9 @@ async function main() {
         attemptCount?: number;
       }>();
 
-      const normalizedEmail = input.createdByEmail ? normalizeEmail(input.createdByEmail) : null;
+      const normalizedEmail = input.createdByEmail
+        ? normalizeEmail(input.createdByEmail)
+        : null;
       const user = normalizedEmail
         ? await prisma.user.findUnique({
             where: { email: normalizedEmail },
@@ -280,7 +290,8 @@ async function main() {
           jobType: input.jobType,
           status: input.status ?? "PENDING",
           payload: JSON.stringify(input.payload ?? {}),
-          result: input.result === undefined ? null : JSON.stringify(input.result),
+          result:
+            input.result === undefined ? null : JSON.stringify(input.result),
           error: input.error ?? null,
           createdByUserId: user?.id ?? null,
           workerId: input.workerId ?? null,
@@ -302,7 +313,9 @@ async function main() {
         updatedByEmail?: string;
       }>();
 
-      const normalizedEmail = input.updatedByEmail ? normalizeEmail(input.updatedByEmail) : null;
+      const normalizedEmail = input.updatedByEmail
+        ? normalizeEmail(input.updatedByEmail)
+        : null;
       const user = normalizedEmail
         ? await prisma.user.findUnique({
             where: { email: normalizedEmail },

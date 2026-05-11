@@ -25,8 +25,12 @@ import { processTeamsIntakePoll } from "@/services/teams/intake";
 describe("teams service", () => {
   beforeEach(() => {
     process.env.TEAMS_ENABLED = "true";
-    prismaMock.$transaction.mockImplementation(async (callback) => callback(prismaMock));
-    (getOrCreateTeamsConfig as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    prismaMock.$transaction.mockImplementation(async (callback) =>
+      callback(prismaMock),
+    );
+    (
+      getOrCreateTeamsConfig as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       id: "cfg-1",
       sendEnabled: true,
       intakeEnabled: false,
@@ -71,7 +75,9 @@ describe("teams service", () => {
     prismaMock.teamsDeliveryTarget.findMany.mockResolvedValue([
       { id: "target-1", teamId: "team-1", channelId: "channel-1" },
     ] as never);
-    prismaMock.teamsOutboundMessage.create.mockResolvedValue({ id: "outbound-1" } as never);
+    prismaMock.teamsOutboundMessage.create.mockResolvedValue({
+      id: "outbound-1",
+    } as never);
     prismaMock.backgroundJob.create.mockResolvedValue({ id: "job-1" } as never);
 
     await queueTeamsMessages({
@@ -103,7 +109,9 @@ describe("teams service", () => {
   });
 
   it("ingests delta messages and updates poll state", async () => {
-    (getOrCreateTeamsConfig as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (
+      getOrCreateTeamsConfig as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       id: "cfg-1",
       sendEnabled: true,
       intakeEnabled: true,
@@ -117,9 +125,15 @@ describe("teams service", () => {
       },
     ] as never);
     prismaMock.teamsInboundMessage.findUnique.mockResolvedValue(null as never);
-    prismaMock.teamsInboundMessage.create.mockResolvedValue({ id: "inbound-1" } as never);
-    prismaMock.teamsIntakeSubscription.update.mockResolvedValue({ id: "sub-1" } as never);
-    (createGraphTeamsClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    prismaMock.teamsInboundMessage.create.mockResolvedValue({
+      id: "inbound-1",
+    } as never);
+    prismaMock.teamsIntakeSubscription.update.mockResolvedValue({
+      id: "sub-1",
+    } as never);
+    (
+      createGraphTeamsClient as unknown as ReturnType<typeof vi.fn>
+    ).mockReturnValue({
       getChannelMessagesDelta: vi.fn().mockResolvedValue({
         messages: [
           {

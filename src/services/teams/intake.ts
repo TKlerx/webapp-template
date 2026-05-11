@@ -56,7 +56,9 @@ export async function processTeamsIntakePoll() {
           content: prepared.content,
           contentType: message.contentType,
           truncated: prepared.truncated,
-          messageCreatedAt: message.createdAt ? new Date(message.createdAt) : new Date(),
+          messageCreatedAt: message.createdAt
+            ? new Date(message.createdAt)
+            : new Date(),
         },
       });
       created += 1;

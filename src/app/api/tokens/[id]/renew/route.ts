@@ -15,10 +15,15 @@ export async function POST(
     return auth.error;
   }
 
-  const body = (await request.json().catch(() => ({}))) as { expiresInDays?: number };
+  const body = (await request.json().catch(() => ({}))) as {
+    expiresInDays?: number;
+  };
   const expiresInDays = body.expiresInDays ?? 90;
   if (!ALLOWED_EXPIRY_DAYS.includes(expiresInDays)) {
-    return jsonError("Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365", 400);
+    return jsonError(
+      "Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365",
+      400,
+    );
   }
 
   const { id } = await context.params;

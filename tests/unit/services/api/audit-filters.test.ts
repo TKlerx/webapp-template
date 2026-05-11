@@ -40,7 +40,9 @@ describe("audit filter service", () => {
 
   it("parses export filters without pagination", async () => {
     const result = parseAuditExportRequest(
-      new Request("http://localhost/api/audit/export?format=csv&actorId=user-1"),
+      new Request(
+        "http://localhost/api/audit/export?format=csv&actorId=user-1",
+      ),
     );
 
     expect("error" in result).toBe(false);

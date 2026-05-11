@@ -7,13 +7,13 @@
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 <!--
   IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
   Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
   you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
+
   Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
   Think of each story as a standalone slice of functionality that can be:
   - Developed independently
@@ -88,7 +88,7 @@ As a platform administrator or security reviewer, I want sensitive auth and user
 - Q: What happens when the primary action succeeds but audit persistence fails? → A: Log-and-continue (action succeeds, audit failure logged to application error log).
 - Q: How long is the rate limit cooldown before a blocked IP can retry? → A: 15 minutes (matches the window duration).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -114,14 +114,14 @@ As a platform administrator or security reviewer, I want sensitive auth and user
 - Audit visibility continues to be limited to platform-administrator review surfaces.
 - Seed/setup remains an operator-run flow rather than a public self-service experience.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Authentication Attempt Record**: A security record describing a successful, failed, or rate-limited sign-in or password-change attempt, keyed by IP address, including the outcome and 15-minute sliding window used for abuse protection. Stored in-memory (per-process); state resets on server restart.
 - **Trusted Auth Origin Policy**: A deployment-level rule describing which externally visible auth origin is allowed to generate callback and redirect URLs.
 - **Audit Entry**: A historical record of a sensitive auth or user-management action, including actor, action type, target entity, scope when relevant, and timestamp. Audit writes use a log-and-continue strategy: if persistence fails, the primary action still succeeds and the failure is logged to the application error log.
 - **User Status Filter**: A constrained input used by administrators to narrow user-list results to supported status values only.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

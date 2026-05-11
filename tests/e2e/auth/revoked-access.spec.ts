@@ -25,10 +25,15 @@ test("inactive SSO user is redirected to login with a revoked-access message on 
   await updateUserStatus(email, UserStatus.INACTIVE);
 
   await page.goto(`${appBasePath}/campaigns`, { waitUntil: "networkidle" });
-  await expect(page).toHaveURL(new RegExp(`${appBasePath}/login\\?error=revoked$`), {
-    timeout: 15000,
-  });
+  await expect(page).toHaveURL(
+    new RegExp(`${appBasePath}/login\\?error=revoked$`),
+    {
+      timeout: 15000,
+    },
+  );
   await expect(
-    page.getByText("Your SSO access has been revoked. Please contact an administrator."),
+    page.getByText(
+      "Your SSO access has been revoked. Please contact an administrator.",
+    ),
   ).toBeVisible();
 });
