@@ -7,11 +7,29 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import psycopg
 from psycopg.rows import dict_row
 
 from .config import WorkerConfig
+
+PRISMA_ONLY_QUERY_PARAMS = frozenset({"connection_limit"})
+
+
+def normalize_postgres_database_url(database_url: str) -> str:
+    if database_url.startswith("file:"):
+        return database_url
+
+    parsed = urlsplit(database_url)
+    query = urlencode(
+        [
+            (key, value)
+            for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+            if key not in PRISMA_ONLY_QUERY_PARAMS
+        ],
+    )
+    return urlunsplit(parsed._replace(query=query))
 
 
 @dataclass
@@ -27,6 +45,9 @@ class JobStore:
         self._config = config
         self._is_sqlite = config.database_url.startswith("file:")
         self._sqlite_path: Path | None = None
+        self._postgres_database_url = normalize_postgres_database_url(
+            config.database_url,
+        )
         if self._is_sqlite:
             self._sqlite_path = Path(config.database_url.removeprefix("file:")).resolve()
 
@@ -66,7 +87,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -107,7 +128,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -140,7 +161,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -182,7 +203,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -201,12 +222,12 @@ class JobStore:
         if self._is_sqlite:
             with closing(self._sqlite_conn()) as connection:
                 row = connection.execute(
-                    'SELECT 1 FROM InboundEmail WHERE providerMessageId = ? LIMIT 1',
+                    "SELECT 1 FROM InboundEmail WHERE providerMessageId = ? LIMIT 1",
                     (provider_message_id,),
                 ).fetchone()
                 return row is not None
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     'SELECT 1 FROM "InboundEmail" WHERE "providerMessageId" = %s LIMIT 1',
@@ -250,7 +271,7 @@ class JobStore:
                 connection.commit()
                 return str(payload["id"] if cursor.rowcount else payload["id"])
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as pg_cursor:
                 pg_cursor.execute(
                     """
@@ -317,7 +338,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -357,7 +378,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -387,7 +408,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -401,7 +422,9 @@ class JobStore:
                 )
             connection.commit()
 
-    def mark_teams_outbound_sent(self, outbound_message_id: str, graph_message_id: str | None) -> None:
+    def mark_teams_outbound_sent(
+        self, outbound_message_id: str, graph_message_id: str | None
+    ) -> None:
         if self._is_sqlite:
             with closing(self._sqlite_conn()) as connection:
                 connection.execute(
@@ -419,7 +442,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -460,7 +483,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -484,7 +507,7 @@ class JobStore:
                 ).fetchone()
                 return row is not None
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     'SELECT 1 FROM "TeamsInboundMessage" WHERE "providerMessageId" = %s LIMIT 1',
@@ -522,7 +545,7 @@ class JobStore:
                 connection.commit()
             return str(payload["id"])
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -569,7 +592,7 @@ class JobStore:
                 connection.commit()
             return
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -597,7 +620,7 @@ class JobStore:
                 ).fetchall()
                 return [dict(row) for row in rows]
 
-        with psycopg.connect(self._config.database_url, row_factory=dict_row) as connection:
+        with psycopg.connect(self._postgres_database_url, row_factory=dict_row) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -644,7 +667,7 @@ class JobStore:
                 connection.commit()
                 return True
 
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -696,7 +719,7 @@ class JobStore:
                     "intakeEnabled": bool(row["intakeEnabled"]),
                 }
 
-        with psycopg.connect(self._config.database_url, row_factory=dict_row) as connection:
+        with psycopg.connect(self._postgres_database_url, row_factory=dict_row) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -757,7 +780,7 @@ class JobStore:
             )
 
     def _claim_postgres_job(self) -> BackgroundJob | None:
-        with psycopg.connect(self._config.database_url, row_factory=dict_row) as connection:
+        with psycopg.connect(self._postgres_database_url, row_factory=dict_row) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -820,7 +843,7 @@ class JobStore:
             return int(cursor.rowcount or 0)
 
     def _requeue_stale_postgres_jobs(self) -> int:
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
@@ -868,7 +891,11 @@ class JobStore:
                         updatedAt = CURRENT_TIMESTAMP
                     WHERE id = ?
                     """,
-                    (error, _sqlite_timestamp_after_seconds(self._retry_delay_seconds(attempt_count)), job_id),
+                    (
+                        error,
+                        _sqlite_timestamp_after_seconds(self._retry_delay_seconds(attempt_count)),
+                        job_id,
+                    ),
                 )
             else:
                 connection.execute(
@@ -886,7 +913,7 @@ class JobStore:
             connection.commit()
 
     def _fail_postgres_job(self, job_id: str, error: str) -> None:
-        with psycopg.connect(self._config.database_url) as connection:
+        with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     'SELECT "attemptCount" FROM "BackgroundJob" WHERE id = %s',

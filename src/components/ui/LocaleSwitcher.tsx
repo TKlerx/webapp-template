@@ -44,11 +44,11 @@ export function LocaleSwitcher({ currentLocale }: { currentLocale: string }) {
     >
       <SelectTrigger
         aria-label="Locale"
-        className="min-w-32 rounded-full border-black/10 bg-white px-4 py-2.5 font-medium shadow-sm dark:border-white/10 dark:bg-white/10"
+        className="min-h-10 min-w-32 rounded-xl border-[var(--border)] bg-[var(--panel)] px-4 py-2.5 font-medium shadow-sm transition duration-200 active:translate-y-px"
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
+      <SelectContent className="rounded-xl border-[var(--border)]">
         {locales.map((locale) => (
           <SelectItem key={locale} value={locale}>
             {localeLabels[locale]}

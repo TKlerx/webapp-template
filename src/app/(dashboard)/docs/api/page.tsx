@@ -8,12 +8,16 @@ export default async function ApiDocsPage() {
 
   return (
     <section className="grid gap-6">
-      <div className="rounded-[2rem] border border-black/10 bg-[var(--panel)] p-6 dark:border-white/10">
-        <p className="text-xs uppercase tracking-[0.28em] opacity-45">
+      <div className="max-w-3xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
           OpenAPI
         </p>
-        <h1 className="mt-3 text-3xl font-semibold">{t("title")}</h1>
-        <p className="mt-2 max-w-2xl text-sm opacity-75">{t("description")}</p>
+        <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
+          {t("title")}
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted-foreground)] sm:text-base">
+          {t("description")}
+        </p>
       </div>
       <SwaggerUi />
     </section>

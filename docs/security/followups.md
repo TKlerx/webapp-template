@@ -25,7 +25,7 @@ Next steps:
 
 Risk:
 
-- `npm audit --omit=dev --omit=optional` currently reports production vulnerabilities in `next` and `next-intl`.
+- `pnpm audit --prod --no-optional` currently reports production vulnerabilities in `next` and `next-intl`.
 - The fixes exist, but the repo's `min-release-age=7` policy means they should not be installed immediately.
 
 Why it matters:
@@ -37,7 +37,7 @@ Next steps:
 
 - On 2026-04-17, upgrade `next` to `16.2.3` or newer and `next-intl` to `4.9.1` or newer.
 - Run `.\validate.ps1 all`.
-- Re-run `npm audit --omit=dev --omit=optional` and confirm production runtime audit is clean again.
+- Re-run `pnpm audit --prod --no-optional` and confirm production runtime audit is clean again.
 
 ## 3. Build/Deploy Tooling Supply Chain Surface
 

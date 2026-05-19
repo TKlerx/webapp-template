@@ -193,8 +193,8 @@ Sections 1-10 focus on auth flow correctness. Sections 11-21 cover broader appli
 
 ## 19. Dependency Security
 
-- [ ] No known critical/high CVEs in direct dependencies (`npm audit` or equivalent)
-- [ ] Lock file (`package-lock.json` or equivalent) is committed and used for deterministic installs
+- [ ] No known critical/high CVEs in direct dependencies (`pnpm audit` or equivalent)
+- [ ] Lock file (`pnpm-lock.yaml` or equivalent) is committed and used for deterministic installs
 - [ ] Dependencies are reasonably up to date (especially security-sensitive ones: auth libraries, crypto, ORM)
 - [ ] No unnecessary dependencies that increase attack surface
 - [ ] Dev dependencies are not bundled into the production build

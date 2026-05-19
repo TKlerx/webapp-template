@@ -10,9 +10,9 @@ There is a lot in terms of SWE best practices:
 pre commit / push hooks
 code deduplication checks
 e2e playwright tests
-package retention of 7 days for uv and npm
+package retention of 7 days for uv and pnpm
 semgrep
-npm audit
+pnpm audit
 and maybe even more.
 Check it out and pick what you find useful.
 

@@ -4,10 +4,10 @@
 
 ## Prerequisites
 
-- Node.js and npm installed
-- Project dependencies installed (`npm install`)
-- Database migrated (`npm run prisma:migrate`)
-- Dev server running (`npm run dev`)
+- Node.js and pnpm installed
+- Project dependencies installed (`pnpm install`)
+- Database migrated (`pnpm run prisma:migrate`)
+- Dev server running (`pnpm run dev`)
 - Seeded admin user available
 
 ## Development Sequence
@@ -59,9 +59,9 @@ Build token management page at `/settings/tokens` and admin page at `/admin/toke
 ## Validation Commands
 
 ```bash
-npm run typecheck     # Type check
-npm run lint          # Lint
-npm run test          # Unit tests
-npm run test:e2e      # E2E tests
-npm run validate      # All checks
+pnpm run typecheck     # Type check
+pnpm run lint          # Lint
+pnpm run test          # Unit tests
+pnpm run test:e2e      # E2E tests
+pnpm run validate      # All checks
 ```

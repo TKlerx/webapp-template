@@ -20,8 +20,8 @@
 - [x] T002 Add `CliAuthCode` model to `prisma/schema.prisma` per data-model.md
 - [x] T003 Add new `AuditAction` values (`PAT_CREATED`, `PAT_REVOKED`, `PAT_RENEWED`, `PAT_DELETED`, `CLI_LOGIN_COMPLETED`) to `prisma/schema.prisma`
 - [x] T004 Mirror all schema changes (T001-T003) to `prisma/schema.postgres.prisma`
-- [x] T005 Run SQLite migration (`npm run prisma:migrate`) and regenerate Prisma client (`npm run prisma:generate`)
-- [x] T006 Run PostgreSQL migration (`npm run prisma:migrate:postgres`)
+- [x] T005 Run SQLite migration (`pnpm run prisma:migrate`) and regenerate Prisma client (`pnpm run prisma:generate`)
+- [x] T006 Run PostgreSQL migration (`pnpm run prisma:migrate:postgres`)
 - [x] T007 Add `PAT_TOKEN_PREFIX`, `PAT_DEFAULT_EXPIRY_DAYS`, `CLI_TOKEN_DEFAULT_EXPIRY_DAYS`, `PAT_MAX_ACTIVE_PER_USER` to `.env.example` with defaults
 
 ---
@@ -168,7 +168,7 @@
 - [x] T046 Verify all token management pages are responsive on mobile viewports per constitution X — test token-list table, create dialog, admin page
 - [x] T047 Verify dark mode works for all new token management UI components
 - [x] T047a Create E2E test in `tests/e2e/token-management.spec.ts` — test full token lifecycle via UI: create token, copy value, verify token list shows it, revoke it, verify status badge, renew another, delete one.
-- [x] T048 Run `npm run validate` (typecheck + lint + duplication check + semgrep + unit tests) and fix any issues
+- [x] T048 Run `pnpm run validate` (typecheck + lint + duplication check + semgrep + unit tests) and fix any issues
 - [x] T049 Update `CONTINUE.md` and `CONTINUE_LOG.md` with feature completion status
 - [x] T049a Update `ACTIVE_SPECS.md` — add spec 012 entry at start of implementation; remove entry when all tasks are complete per constitution VI
 

@@ -27,14 +27,14 @@ export default async function AdminTeamsIntegrationsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm uppercase tracking-[0.2em] opacity-45">
+      <div className="max-w-3xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
           {t("eyebrow")}
         </p>
-        <h1 className="mt-3 text-2xl font-semibold sm:text-4xl">
+        <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
           {t("title")}
         </h1>
-        <p className="mt-2 max-w-2xl text-sm opacity-70 sm:text-base">
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted-foreground)] sm:text-base">
           {t("description")}
         </p>
       </div>

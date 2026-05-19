@@ -5,8 +5,8 @@
 ## Prerequisites
 
 - Node.js 20+
-- Project dependencies installed (`npm install`)
-- Database initialized (`npm run prisma:migrate && npm run prisma:seed`)
+- Project dependencies installed (`pnpm install`)
+- Database initialized (`pnpm run prisma:migrate && pnpm run prisma:seed`)
 - `.env` file configured (copy from `.env.example`)
 
 ## What This Feature Changes
@@ -46,13 +46,13 @@
 
 ```bash
 # Run all checks
-npm run validate
+pnpm run validate
 
 # Run unit tests (includes rate limiter tests)
-npm test
+pnpm test
 
 # Run E2E tests
-npm run test:e2e
+pnpm run test:e2e
 
 # Manual verification: attempt 6 rapid login failures
 # → 6th attempt should return 429 with Retry-After header

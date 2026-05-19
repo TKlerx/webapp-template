@@ -85,9 +85,11 @@ export function CreateUserDialog() {
         }
       }}
     >
-      <Card className="gap-4 rounded-2xl border-black/10 bg-[var(--panel)] py-0 shadow-none dark:border-white/10">
+      <Card className="gap-4 rounded-lg border-[var(--border)] bg-[var(--panel)] py-0 shadow-none">
         <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
-          <CardTitle className="text-xl">{t("createUser")}</CardTitle>
+          <CardTitle className="text-lg tracking-tight">
+            {t("createUser")}
+          </CardTitle>
           <CardDescription>{t("createButton")}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
@@ -97,7 +99,7 @@ export function CreateUserDialog() {
         </CardContent>
       </Card>
 
-      <DialogContent className="max-w-xl rounded-3xl border-black/10 bg-[var(--panel)] dark:border-white/10 dark:bg-[var(--panel)]">
+      <DialogContent className="max-w-xl rounded-lg border-[var(--border)] bg-[var(--panel)] dark:bg-[var(--panel)]">
         <DialogHeader>
           <DialogTitle>{t("createUser")}</DialogTitle>
           <DialogDescription>{t("createButton")}</DialogDescription>
@@ -129,7 +131,7 @@ export function CreateUserDialog() {
           >
             <SelectTrigger
               aria-label={t("role")}
-              className="w-full rounded-2xl border-black/10 bg-white px-4 py-3 shadow-none dark:border-white/10 dark:bg-[var(--panel)]"
+              className="w-full rounded-lg border-[var(--border)] bg-white px-4 py-3 shadow-none dark:bg-[var(--panel)]"
             >
               <SelectValue />
             </SelectTrigger>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { useToast } from "@/components/ui/Toast";
@@ -61,14 +61,6 @@ export function NotificationAdminPanel({
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER);
   const [loading, setLoading] = useState(false);
   const [busyEventType, setBusyEventType] = useState<string | null>(null);
-
-  useEffect(() => {
-    setConfigs(initialConfigs);
-  }, [initialConfigs]);
-
-  useEffect(() => {
-    setNotifications(initialNotifications);
-  }, [initialNotifications]);
 
   async function refreshNotifications(
     nextEventType = eventTypeFilter,
@@ -153,11 +145,11 @@ export function NotificationAdminPanel({
 
   return (
     <div className="space-y-8">
-      <section className="rounded-[2rem] border border-black/10 bg-[var(--panel)] p-4 sm:p-6 dark:border-white/10">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 sm:p-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="text-xl font-semibold">{t("settingsTitle")}</h2>
-            <p className="mt-1 text-sm opacity-70">
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
               {t("settingsDescription")}
             </p>
           </div>
@@ -167,14 +159,16 @@ export function NotificationAdminPanel({
           {configs.map((config) => (
             <article
               key={config.eventType}
-              className="rounded-2xl border border-black/10 p-4 dark:border-white/10"
+              className="rounded-lg border border-[var(--border)] p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="font-semibold">
                     {t(`eventTypes.${config.eventType}`)}
                   </h3>
-                  <p className="mt-1 text-xs opacity-60">{config.eventType}</p>
+                  <p className="mt-1 font-mono text-xs text-[var(--muted-foreground)]">
+                    {config.eventType}
+                  </p>
                 </div>
                 <label className="flex items-center gap-2 text-sm">
                   <input
@@ -189,7 +183,7 @@ export function NotificationAdminPanel({
                   {config.enabled ? t("enabled") : t("disabled")}
                 </label>
               </div>
-              <p className="mt-3 text-xs opacity-55">
+              <p className="mt-3 text-xs text-[var(--muted-foreground)]">
                 {t("updatedAt", { value: formatDate(config.updatedAt) })}
               </p>
             </article>
@@ -201,7 +195,9 @@ export function NotificationAdminPanel({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="text-xl font-semibold">{t("logTitle")}</h2>
-            <p className="mt-1 text-sm opacity-70">{t("logDescription")}</p>
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+              {t("logDescription")}
+            </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Select
@@ -211,10 +207,10 @@ export function NotificationAdminPanel({
               }}
               value={eventTypeFilter}
             >
-              <SelectTrigger className="w-[18rem] rounded-2xl border-black/10 bg-white px-3 py-2 shadow-none dark:border-white/10 dark:bg-[var(--panel)]">
+              <SelectTrigger className="w-[18rem] rounded-lg border-[var(--border)] bg-white px-3 py-2 shadow-none dark:bg-[var(--panel)]">
                 <SelectValue placeholder={t("eventFilter")} />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
+              <SelectContent className="rounded-lg border-[var(--border)]">
                 <SelectItem value={ALL_FILTER}>{t("allEvents")}</SelectItem>
                 {configs.map((config) => (
                   <SelectItem key={config.eventType} value={config.eventType}>
@@ -231,10 +227,10 @@ export function NotificationAdminPanel({
               }}
               value={statusFilter}
             >
-              <SelectTrigger className="w-[18rem] rounded-2xl border-black/10 bg-white px-3 py-2 shadow-none dark:border-white/10 dark:bg-[var(--panel)]">
+              <SelectTrigger className="w-[18rem] rounded-lg border-[var(--border)] bg-white px-3 py-2 shadow-none dark:bg-[var(--panel)]">
                 <SelectValue placeholder={t("statusFilter")} />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
+              <SelectContent className="rounded-lg border-[var(--border)]">
                 <SelectItem value={ALL_FILTER}>{t("allStatuses")}</SelectItem>
                 {["QUEUED", "RETRYING", "SENT", "FAILED", "BOUNCED"].map(
                   (status) => (
@@ -255,11 +251,11 @@ export function NotificationAdminPanel({
         </div>
 
         {notifications.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 bg-[var(--panel)] p-6 text-sm opacity-70 dark:border-white/15">
+          <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--panel)] p-6 text-sm text-[var(--muted-foreground)]">
             {t("empty")}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-black/10 dark:border-white/10">
+          <div className="overflow-hidden rounded-lg border border-[var(--border)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -279,13 +275,13 @@ export function NotificationAdminPanel({
                       <div className="font-medium">
                         {t(`eventTypes.${notification.eventType}`)}
                       </div>
-                      <div className="text-xs opacity-60">
+                      <div className="font-mono text-xs text-[var(--muted-foreground)]">
                         {notification.eventType}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>{notification.recipientEmail}</div>
-                      <div className="text-xs opacity-60">
+                      <div className="text-xs text-[var(--muted-foreground)]">
                         {t("localeValue", { locale: notification.locale })}
                       </div>
                     </TableCell>
@@ -298,14 +294,14 @@ export function NotificationAdminPanel({
                       {notification.subject}
                     </TableCell>
                     <TableCell>
-                      <div className="text-xs opacity-70">
+                      <div className="text-xs text-[var(--muted-foreground)]">
                         {notification.sentAt
                           ? t("sentAtValue", {
                               value: formatDate(notification.sentAt),
                             })
                           : t("notSentYet")}
                       </div>
-                      <div className="mt-1 text-xs opacity-70">
+                      <div className="mt-1 text-xs text-[var(--muted-foreground)]">
                         {t("retryCountValue", {
                           count: notification.retryCount,
                         })}
@@ -323,7 +319,11 @@ export function NotificationAdminPanel({
           </div>
         )}
 
-        {loading ? <p className="text-sm opacity-65">{t("loading")}</p> : null}
+        {loading ? (
+          <p className="text-sm text-[var(--muted-foreground)]">
+            {t("loading")}
+          </p>
+        ) : null}
       </section>
     </div>
   );
@@ -331,9 +331,11 @@ export function NotificationAdminPanel({
 
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
-    <article className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
-      <p className="text-sm uppercase tracking-[0.2em] opacity-45">{label}</p>
-      <p className="mt-3 text-3xl font-semibold">{value}</p>
+    <article className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
+        {label}
+      </p>
+      <p className="mt-3 font-mono text-3xl font-semibold">{value}</p>
     </article>
   );
 }

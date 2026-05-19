@@ -1,25 +1,23 @@
 # Continue
 
-<!-- continuity:fingerprint=f771c29d84c734188205a827a52d0169193564baa1e9ea00df1689404603604d -->
+<!-- continuity:fingerprint=10d0766a3a44dc9dd481405efdc757f795fd990a03b41d763a05952d03b115b9 -->
 
 ## Current Snapshot
 
-- Updated: 2026-05-11 16:26:35
+- Updated: 2026-05-20 00:19:22
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
 
-- b76a2c7 chore(quality): enforce bypassable thresholds
-- 39b3f2a chore(quality): add cli checks
-- f61b197 chore(quality): integrate tooling gates
-- 57d7b0e fix(i18n): sync locale cookies
-- ff2e8b7 chore(specs): refresh overview
+- 362ad8d fix(ui): add room for dashboard nav scrollbar
+- e26cf80 fix(docker): seed initial admin after migrations
+- 14ba778 chore(docker): add pnpm compose wrapper
+- f99b7bd fix(docker): allowlist compose environment
+- a17c64f fix(docker): layer docker env overrides
 
 ## Git Status
 
-- M package-lock.json
-- M package.json
-- ?? .deepsec/
+Working tree is clean.
 
 ## Active Specs
 

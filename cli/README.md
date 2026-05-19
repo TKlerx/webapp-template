@@ -113,7 +113,7 @@ node scripts/ensure-local-db.mjs
 3. Start the app.
 
 ```powershell
-npm run dev
+pnpm run dev
 ```
 
 4. In another terminal, build the CLI.
@@ -178,7 +178,7 @@ go run github.com/fzipp/gocyclo/cmd/gocyclo -over 15 .
 go build ./...
 ```
 
-From the repository root, `npm run quality:cli` runs the full CLI quality gate,
+From the repository root, `pnpm run quality:cli` runs the full CLI quality gate,
 including the Go cyclomatic-complexity threshold. Set
 `QUALITY_THRESHOLDS_BYPASS=1` to make that threshold advisory while keeping the
 other CLI checks blocking.

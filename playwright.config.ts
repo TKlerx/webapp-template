@@ -17,7 +17,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run build && npm run start",
+    command: "pnpm run build && pnpm run start",
     env: {
       ...process.env,
       PORT: String(port),

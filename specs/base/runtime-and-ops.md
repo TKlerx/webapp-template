@@ -6,7 +6,7 @@
 
 - `DATABASE_URL="file:./dev.db"`
 - app runs with SQLite
-- `npm run dev` prepares the local database before startup
+- `pnpm run dev` prepares the local database before startup
 - Prisma uses the SQLite schema by default
 
 ### Docker / Production-Style Deployment
@@ -23,7 +23,7 @@ sequenceDiagram
     participant App as Next.js
     participant DB as SQLite dev.db
 
-    Dev->>App: npm run dev
+    Dev->>App: pnpm run dev
     App->>DB: ensure local DB exists
     App->>DB: db push if empty
     App->>DB: migrate dev if non-empty
@@ -66,12 +66,12 @@ sequenceDiagram
 
 ## Dependency Safety Policy
 
-### npm
+### pnpm
 
 - repo-local policy file: `.npmrc`
 - required setting:
   - `min-release-age=7`
-- validation fails if the local npm binary does not support `--min-release-age`
+- validation fails if the local pnpm binary does not honor `min-release-age`
 
 ### uv
 

@@ -72,16 +72,16 @@ export function UserManagementTable({
   }
 
   return (
-    <div className="mt-4 overflow-x-auto">
+    <div className="overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-black/10 opacity-50 dark:border-white/10">
-            <th className="pb-3">{t("name")}</th>
-            <th className="pb-3">{t("email")}</th>
-            <th className="pb-3">{t("role")}</th>
-            <th className="pb-3">{t("statusLabel")}</th>
-            <th className="pb-3">{t("auth")}</th>
-            <th className="pb-3">{t("actions")}</th>
+          <tr className="border-b border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+            <th className="px-4 py-3 sm:px-6">{t("name")}</th>
+            <th className="px-4 py-3">{t("email")}</th>
+            <th className="px-4 py-3">{t("role")}</th>
+            <th className="px-4 py-3">{t("statusLabel")}</th>
+            <th className="px-4 py-3">{t("auth")}</th>
+            <th className="px-4 py-3 sm:px-6">{t("actions")}</th>
           </tr>
         </thead>
         <tbody>
@@ -91,14 +91,16 @@ export function UserManagementTable({
 
             return (
               <tr
-                className="border-b border-black/5 align-top dark:border-white/5"
+                className="border-b border-[var(--border)] align-top transition-colors last:border-b-0 hover:bg-[color:color-mix(in_srgb,var(--panel)_86%,var(--background)_14%)]"
                 key={entry.id}
               >
-                <td className="py-3">
+                <td className="px-4 py-4 sm:px-6">
                   <div className="font-medium">{entry.name}</div>
                 </td>
-                <td className="py-3 opacity-70">{entry.email}</td>
-                <td className="py-3">
+                <td className="px-4 py-4 text-[var(--muted-foreground)]">
+                  {entry.email}
+                </td>
+                <td className="px-4 py-4">
                   <Select
                     disabled={!canEditSelfRole || Boolean(isBusy)}
                     value={entry.role}
@@ -117,11 +119,11 @@ export function UserManagementTable({
                   >
                     <SelectTrigger
                       aria-label={t("role")}
-                      className="w-[13rem] rounded-2xl border-black/10 bg-white px-3 py-2 shadow-none dark:border-white/10 dark:bg-[var(--panel)]"
+                      className="w-[13rem] rounded-lg border-[var(--border)] bg-white px-3 py-2 shadow-none dark:bg-[var(--panel)]"
                     >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
+                    <SelectContent className="rounded-lg border-[var(--border)]">
                       {Object.values(RoleEnum).map((role) => (
                         <SelectItem key={role} value={role}>
                           {t(`roles.${role}`)}
@@ -130,13 +132,15 @@ export function UserManagementTable({
                     </SelectContent>
                   </Select>
                 </td>
-                <td className="py-3">
-                  <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold dark:bg-white/10">
+                <td className="px-4 py-4">
+                  <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-3 py-1 text-xs font-semibold text-[var(--secondary-foreground)]">
                     {t(`statuses.${entry.status}`)}
                   </span>
                 </td>
-                <td className="py-3 opacity-70">{entry.authMethod}</td>
-                <td className="py-3">
+                <td className="px-4 py-4 font-mono text-xs text-[var(--muted-foreground)]">
+                  {entry.authMethod}
+                </td>
+                <td className="px-4 py-4 sm:px-6">
                   <div className="flex flex-wrap gap-2">
                     {entry.status === UserStatusEnum.PENDING_APPROVAL ? (
                       <Button

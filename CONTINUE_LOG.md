@@ -6,7 +6,7 @@
 - Added Teams data model support in both Prisma schemas plus checked-in SQLite/PostgreSQL migrations at `20260427090000_add_teams_messaging_skeleton`.
 - Implemented Teams Graph client/types (`src/lib/teams`), admin/service/intake layers (`src/services/teams`), API routes under `/api/integrations/teams/*`, and a new admin page at `/admin/integrations/teams`.
 - Extended worker runtime with `graph_teams.py`, Teams DB operations in `worker/src/starter_worker/db.py`, and new job handling/scheduling in `worker/src/starter_worker/main.py`.
-- Added Teams i18n/navigation wiring and test coverage across unit/integration/worker suites; verified with `npm run typecheck`, `npm run lint`, focused Vitest runs, and `uv run python -m unittest tests/test_main.py -v`.
+- Added Teams i18n/navigation wiring and test coverage across unit/integration/worker suites; verified with `pnpm run typecheck`, `pnpm run lint`, focused Vitest runs, and `uv run python -m unittest tests/test_main.py -v`.
 - Updated `specs/015-teams-messaging-skeleton/tasks.md` to mark completed tasks; remaining unchecked task: `T038` (real quickstart runtime validation).
 
 ## 2026-04-27 23:32:00
@@ -44,7 +44,7 @@
 
 - Closed the final spec-013 gap by adding `/api/auth/me`, which reuses the existing shared session-or-token route auth and returns the authenticated user payload for PAT and CLI-token flows.
 - Updated `gvi configure` to call both `/api/health` and `/api/auth/me`, then print the authenticated user name and role before finishing.
-- Installed local Node dependencies, regenerated Prisma client artifacts, and verified the new web-side route with `npm exec -- tsc --noEmit` plus `npm exec -- vitest run tests/integration/token-api.test.ts`.
+- Installed local Node dependencies, regenerated Prisma client artifacts, and verified the new web-side route with `pnpm exec tsc --noEmit` plus `pnpm exec vitest run tests/integration/token-api.test.ts`.
 - Re-ran `go test ./...` and `go vet ./...` in `cli/`; spec `013-cli-client` is now fully complete and has been removed from `ACTIVE_SPECS.md`.
 
 ## 2026-04-10 10:45:00
@@ -78,34 +78,34 @@
 - Added a retry badge to the background-jobs dashboard for `PENDING` jobs that are scheduled to retry after a previous failure.
 - Kept the hint derived from the existing monitoring fields (`status`, `attemptCount`, `availableAt`, `updatedAt`, `error`) so no extra queue-specific metadata was needed.
 - Added the new `backgroundJobs.retryScheduled` translation key across the locale files and updated the dashboard unit test to cover the retry hint.
-- Verified with the focused background-jobs page unit test plus `npm run typecheck`, `npm run lint`, and `./validate.ps1 full`.
+- Verified with the focused background-jobs page unit test plus `pnpm run typecheck`, `pnpm run lint`, and `./validate.ps1 full`.
 
 ## 2026-04-10 01:35:00
 
 - Kept the starter on the existing database-backed queue instead of introducing Redis, and hardened the Python worker with retry/backoff and stale-lock recovery.
 - Added `WORKER_MAX_ATTEMPTS`, `WORKER_RETRY_BACKOFF_SECONDS`, and `WORKER_STALE_LOCK_SECONDS` configuration, with retries remaining observable through the existing `BackgroundJob` fields used by the dashboard.
 - Extended the worker test suite to cover retry scheduling, terminal failure after max attempts, and requeueing stale `IN_PROGRESS` jobs.
-- Verified the change with `uv run python -m unittest tests.test_main` from `worker/`, plus `npm run typecheck`, `npm run lint`, and `./validate.ps1 full`.
+- Verified the change with `uv run python -m unittest tests.test_main` from `worker/`, plus `pnpm run typecheck`, `pnpm run lint`, and `./validate.ps1 full`.
 
 ## 2026-04-10 01:05:00
 
 - Converted `CreateUserDialog` from an inline card form into a real shadcn dialog while keeping the surrounding page layout lightweight.
 - Replaced the remaining native `<select>` controls in user management and locale switching with shadcn `Select`.
 - Updated the affected Playwright user-management flow to open the dialog and interact with the shadcn combobox/option controls.
-- Verified the migration with `npm run typecheck`, `npm run lint`, `npm test`, the focused Playwright user-management spec, and `./validate.ps1 full`.
+- Verified the migration with `pnpm run typecheck`, `pnpm run lint`, `pnpm test`, the focused Playwright user-management spec, and `./validate.ps1 full`.
 
 ## 2026-04-10 00:00:00
 
 - Switched the existing `src/components/ui/Button.tsx` and `src/components/ui/Input.tsx` implementations to shadcn-backed compatibility wrappers.
 - Preserved the current import surface and the existing `primary | secondary` button API so auth and dashboard code did not need a large import rewrite.
-- Verified the wrapper migration with `npm run typecheck`, `npm run lint`, and `./validate.ps1 full`.
+- Verified the wrapper migration with `pnpm run typecheck`, `pnpm run lint`, and `./validate.ps1 full`.
 
 ## 2026-04-09 20:17:00
 
 - Added shadcn support to the starter without replacing the existing custom `src/components/ui` layer.
 - Created `components.json` so shadcn-generated components target `src/components/shadcn`, avoiding Windows case-insensitive filename conflicts with `Button.tsx` and `Input.tsx`.
 - Added `src/lib/utils.ts`, extended the global theme tokens, and installed a starter shadcn component set for forms, dialogs, tables, and layout primitives.
-- Declared the required shadcn runtime dependencies and verified the repo with `npm run typecheck`, `npm run lint`, and `./validate.ps1 full`.
+- Declared the required shadcn runtime dependencies and verified the repo with `pnpm run typecheck`, `pnpm run lint`, and `./validate.ps1 full`.
 
 ## 2026-03-29 12:00:00
 
@@ -516,7 +516,7 @@
 
 - Closed spec `014-shared-mailbox-notifications` task `T019` by adding Playwright coverage for the admin notification settings and log UI in `tests/e2e/notifications/admin-notifications.spec.ts`.
 - Extended the E2E database fixture worker so browser tests can seed notification type configuration and notification log records directly without depending on a long user-management setup chain.
-- Verified the new browser coverage with `npm exec -- tsc --noEmit` and `npm exec -- playwright test tests/e2e/notifications/admin-notifications.spec.ts` using a local `BETTER_AUTH_SECRET` override for the production-style Playwright server.
+- Verified the new browser coverage with `pnpm exec tsc --noEmit` and `pnpm exec playwright test tests/e2e/notifications/admin-notifications.spec.ts` using a local `BETTER_AUTH_SECRET` override for the production-style Playwright server.
 
 ## 2026-04-20 18:05:00
 
@@ -533,7 +533,7 @@
 - Active specs: 015-teams-messaging-skeleton.
 - Next focus: no next task.
 - Added dev-only code quality tooling for TypeScript and the Python worker: `eslint-plugin-sonarjs`, dependency-cruiser, Ruff, Radon, Xenon, and complexipy.
-- Wired `npm run quality:ts` and `npm run quality:python`, integrated both into `npm run validate` and `validate.ps1`, and documented the commands in `README.md`.
+- Wired `pnpm run quality:ts` and `pnpm run quality:python`, integrated both into `pnpm run validate` and `validate.ps1`, and documented the commands in `README.md`.
 - Baseline thresholds are intentionally permissive/reporting-first: TypeScript complexity and the existing auth import cycle warn, while Python Xenon/complexipy thresholds reflect the current worker baseline.
 - Tightened `validate.ps1` quality output so passing ESLint/dependency-cruiser/Python quality checks print compact score summaries and only dump captured tool details on failure.
 - Added a backlog item to create a repo-specific `SKILL.md` that teaches agents how to use this application and its workflow/quality gates.
@@ -557,7 +557,7 @@
 - Fixed the dashboard locale switcher so selecting a language writes the locale cookie and performs a full reload, ensuring the root i18n provider is rebuilt with the selected messages.
 - Updated the root layout to set `<html lang>` from the active locale instead of hardcoding English.
 - Added Playwright regression coverage in `tests/e2e/locale-switcher.spec.ts`.
-- Verified with `npm run typecheck`, `npm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
+- Verified with `pnpm run typecheck`, `pnpm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
 - Regenerated `specs/OVERVIEW.md` after CI reported `spec-overview` drift.
 
 ## 2026-05-08 13:55:53
@@ -565,25 +565,25 @@
 - Diagnosed remaining i18n switching failures as duplicate `starter_app_locale` cookies across `/` and `/webapp-template`; Next can read the stale root-path cookie after the base-path cookie.
 - Updated `/api/locale` to emit synchronized `Set-Cookie` headers for both paths so existing browsers heal on the next language selection.
 - Extended `tests/e2e/locale-switcher.spec.ts` with a stale root-path locale cookie regression.
-- Verified with `npm run typecheck`, `npm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
+- Verified with `pnpm run typecheck`, `pnpm run lint`, and `npx playwright test tests/e2e/locale-switcher.spec.ts`.
 - Fixed locale switcher label mojibake: `Español`, `Français`, and `Português`.
 
 ## 2026-05-11 15:25:16
 
-- Integrated `codex/quality-tooling-basepath` on `codex/integrate-quality-tooling`, resolving `package.json` / `package-lock.json` conflicts while preserving current `main` dependencies such as `@swc/helpers`.
+- Integrated `codex/quality-tooling-basepath` on `codex/integrate-quality-tooling`, resolving `package.json` / `pnpm-lock.yaml` conflicts while preserving current `main` dependencies such as `@swc/helpers`.
 - Added TypeScript quality gates (`quality:ts`, dependency-cruiser, SonarJS complexity warnings) and Python worker quality gates (Ruff, Xenon, Radon, complexipy) into validation.
 - Preserved the Next base-path normalization fix from the quality branch.
 - Adjusted the Python complexity baseline to current worker reality (`complexipy --max-complexity-allowed 50`) and left complexity findings as visible baseline output rather than immediate blockers.
 - Regenerated `specs/OVERVIEW.md` after the overview script gained inline-clarification detection.
-- Verified with `npm run typecheck`, `npm run quality:ts`, `npm run quality:python`, `npm run specs:overview:check`, `npm run validate`, and `npm run build`.
+- Verified with `pnpm run typecheck`, `pnpm run quality:ts`, `pnpm run quality:python`, `pnpm run specs:overview:check`, `pnpm run validate`, and `pnpm run build`.
 
 ## 2026-05-11 15:41:03
 
 - Added a root `quality:cli` gate for the Go CLI using a Node runner that checks `gofmt`, `go vet`, Staticcheck, `go test`, and `go build`.
 - Pinned Staticcheck in the CLI Go module via `cli/tools.go` and updated `cli/go.mod` / `cli/go.sum`.
 - Added Go LF line-ending rules to `.gitattributes` so `gofmt` checks remain stable on Windows.
-- Wired `quality:cli` into `npm run validate` and `validate.ps1`, and documented it in `README.md` and `cli/README.md`.
-- Verified with `npm run quality:cli`, `npm run semgrep`, `npm run validate`, `npm run specs:overview:check`, and `.\validate.ps1 quality`.
+- Wired `quality:cli` into `pnpm run validate` and `validate.ps1`, and documented it in `README.md` and `cli/README.md`.
+- Verified with `pnpm run quality:cli`, `pnpm run semgrep`, `pnpm run validate`, `pnpm run specs:overview:check`, and `.\validate.ps1 quality`.
 
 ## 2026-05-11 16:08:39
 
@@ -597,7 +597,7 @@
 - Converted TypeScript, Python worker, CLI, and duplication quality thresholds into blockers set to the current repository baseline.
 - Added `QUALITY_THRESHOLDS_BYPASS=1` to make numeric thresholds advisory during intentional transitions while keeping formatting, lint correctness, tests, and security checks blocking.
 - Added pinned CLI Go cyclomatic complexity checking with `gocyclo`.
-- Verified the normal path with `npm run validate` and the CLI bypass path with `QUALITY_THRESHOLDS_BYPASS=1 npm run quality:cli`.
+- Verified the normal path with `pnpm run validate` and the CLI bypass path with `QUALITY_THRESHOLDS_BYPASS=1 pnpm run quality:cli`.
 
 ## 2026-05-11 16:09:00
 
@@ -612,12 +612,185 @@
 
 ## 2026-05-11 16:25:00
 
-- Fixed production dependency audit drift by updating `next-intl` from 4.9.1 to 4.11.0, which also updates `icu-minify` and `use-intl` past the vulnerable `<=4.9.1` range while respecting the repo's 7-day npm cooldown.
+- Fixed production dependency audit drift by updating `next-intl` from 4.9.1 to 4.11.0, which also updates `icu-minify` and `use-intl` past the vulnerable `<=4.9.1` range while respecting the repo's 7-day pnpm cooldown.
 - Verified with `.\validate.ps1 full`; production audit now reports only the existing allowlisted `next`/`postcss` advisories and E2E passed.
 
 ## 2026-05-11 16:26:35
 
 - Branch snapshot refreshed for `main`.
 - Latest non-continuity commit: b76a2c7 chore(quality): enforce bypassable thresholds.
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-05-11 23:56:29
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 247475f chore(quality): add prettier, mypy, pytest, uv audit checks to validate.
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-05-12 12:09:33
+
+- Filled `.deepsec/data/webapp-template/INFO.md` with concise project-specific scan context for DeepSec.
+- Skimmed the DeepSec setup/docs plus representative auth, API route, token, proxy, Graph integration, worker, and Prisma files.
+- Next focus: run `pnpm deepsec scan --project-id webapp-template` from `.deepsec/` when ready.
+
+## 2026-05-19 00:47:17 +02:00 - UI refresh
+
+- Used installed UI skills: design-taste-frontend, redesign-existing-projects, ui-ux-pro-max, plus browser verification.
+- Updated global tokens/font/background, login shell, dashboard shell/navigation, dashboard overview cards, button/input/select/form primitives.
+- Fixed Form className preservation and default POST fallback to avoid credential leakage on non-hydrated login submit.
+- Verified: pnpm run lint, pnpm run typecheck, pnpm run build, browser desktop/mobile login layout.
+- Note: dashboard browser screenshot was not captured because the in-app browser cannot set HttpOnly session cookies from read-only page eval; build/type checks passed.
+
+## 2026-05-19 08:01:56 +02:00 - pnpm migration
+
+- Used the dependency-updater skill for package-manager migration policy.
+- Switched from npm lock/install commands to pnpm, pinned packageManager to pnpm@11.1.0, removed package-lock.json, and generated pnpm-lock.yaml.
+- Added pnpm-workspace.yaml allowBuilds entries for native/tooling packages approved during pnpm install.
+- Updated Dockerfile.app, docker-compose.yml, Playwright webServer, Prisma helper scripts, validate.ps1, specs, and docs to use pnpm/pnpm exec.
+- Fixed React lint fallout by removing redundant prop-to-state sync effects in NotificationAdminPanel, TokenList, and ThemeProvider.
+- Verified: pnpm run lint, pnpm run typecheck, pnpm run build, pnpm test, pnpm run specs:overview:update, pnpm run specs:overview:check, .\validate.ps1 quick.
+- Note: direct pnpm audit still reports the existing allowlisted postcss advisory via Next.
+
+## 2026-05-19 11:20:14 +02:00 - skill cleanup
+
+- Removed redundant ui-ux-pro-max skill directories from .agents/skills/ and .claude/skills/.
+- Removed ui-ux-pro-max from root skills-lock.json.
+- Kept design-taste-frontend as the preferred UI taste guardrail.
+
+## 2026-05-19 11:42:56 +02:00 - design taste frontend pass
+
+- Used design-taste-frontend.
+- Improved user management page hierarchy, status metrics, create-user panel, and table density.
+- Improved audit trail filters/export controls/table styling and added loading, error, and empty states for audit fetches.
+- Tightened shared button/input radii and fixed active navigation contrast after Playwright screenshots caught invisible active nav text.
+- Verified: pnpm run lint, pnpm run typecheck, pnpm run build, and Playwright screenshots using a throwaway visual-check SQLite database.
+## 2026-05-19 12:58:18
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 247475f chore(quality): add prettier, mypy, pytest, uv audit checks to validate.
+- Active specs: 010-auth-security-hardening, 011-route-refactor, 012-openapi-and-pat, 014-shared-mailbox-notifications, 015-teams-messaging-skeleton, base.
+- Next focus: no next task.
+
+## 2026-05-19 12:58:17 +02:00 - remaining UI and full validation
+
+- Kept supabase-postgres-best-practices because Prisma does not replace Postgres-specific index, query-plan, pooling, locking, RLS, and production tuning guidance.
+- Extended the design-taste-frontend pass across background jobs, personal/admin tokens, admin notifications, Teams integration, and API docs.
+- Added immediate token-list updates after personal token creation via a client event so the create-token E2E no longer waits on preserved initial state.
+- Fixed validate.ps1 pnpm cooldown detection to require packageManager-pinned pnpm plus .npmrc min-release-age=7 instead of relying on pnpm config get output.
+- Verified with Playwright smoke checks, targeted token-management E2E, and .\validate.ps1 full.
+## 2026-05-19 14:40:53
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 7fc3ce5 chore(security): add deepsec project config.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 14:41:57
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 7fc3ce5 chore(security): add deepsec project config.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 15:16:00
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 7fc3ce5 chore(security): add deepsec project config.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 15:16:37
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 1721d4b fix(auth): avoid login hydration mismatch.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 15:17:04
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 7f85b0b fix(auth): avoid login hydration mismatch.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 15:17:21
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 7f85b0b fix(auth): avoid login hydration mismatch.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 15:22:05
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 7f85b0b fix(auth): avoid login hydration mismatch.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 15:23:22
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: b3292ad fix(ui): soften dashboard shell chrome.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 15:23:31
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: b3292ad fix(ui): soften dashboard shell chrome.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 15:36:13
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 3b1b768 fix(ui): restore dashboard nav scrolling.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 19:00:31
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: d1a4a2e fix(docker): align production containers with pnpm.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 19:26:36
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: c22967f fix(docker): run worker from prebuilt venv.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 19:35:47
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: add4e92 fix(docker): slim app runtime image.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 19:53:46
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 811e341 fix(docker): slim migration image.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 23:33:00
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: a17c64f fix(docker): layer docker env overrides.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 23:39:04
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: f99b7bd fix(docker): allowlist compose environment.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-19 23:45:36
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 14ba778 chore(docker): add pnpm compose wrapper.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-20 00:12:40
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: e26cf80 fix(docker): seed initial admin after migrations.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-05-20 00:19:22
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 362ad8d fix(ui): add room for dashboard nav scrollbar.
 - Active specs: none.
 - Next focus: no next task.

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { useToast } from "@/components/ui/Toast";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 type TeamsConfigResponse = {
   sendEnabled: boolean;
@@ -333,22 +335,26 @@ export function TeamsIntegrationPanel({
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
-        <h2 className="text-lg font-semibold">{t("consent.title")}</h2>
-        <p className="mt-2 text-sm opacity-70">
-          {consentStatus.connected
-            ? t("consent.connected")
-            : t("consent.notConnected")}
-        </p>
-        <p className="mt-1 text-xs opacity-65">
-          {consentStatus.expiresAt
-            ? t("consent.expiresAt", {
-                value: formatDate(consentStatus.expiresAt),
-              })
-            : t("consent.noExpiry")}
-        </p>
+      <section className="grid gap-4 rounded-lg border border-[var(--border)] bg-[var(--panel)] p-5 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">
+            {t("consent.title")}
+          </h2>
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+            {consentStatus.connected
+              ? t("consent.connected")
+              : t("consent.notConnected")}
+          </p>
+          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+            {consentStatus.expiresAt
+              ? t("consent.expiresAt", {
+                  value: formatDate(consentStatus.expiresAt),
+                })
+              : t("consent.noExpiry")}
+          </p>
+        </div>
         <a
-          className="mt-3 inline-block rounded bg-black px-3 py-1 text-white dark:bg-white dark:text-black"
+          className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)] shadow-[0_14px_28px_-18px_var(--accent)] transition duration-200 ease-out hover:brightness-105 active:translate-y-px"
           href={withBasePath(
             "/api/integrations/teams/consent/start?redirectTo=/admin/integrations/teams",
           )}
@@ -357,10 +363,12 @@ export function TeamsIntegrationPanel({
         </a>
       </section>
 
-      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
-        <h2 className="text-lg font-semibold">{t("toggles.title")}</h2>
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-5">
+        <h2 className="text-lg font-semibold tracking-tight">
+          {t("toggles.title")}
+        </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="flex items-center justify-between rounded-xl border border-black/10 p-3 dark:border-white/10">
+          <label className="flex items-center justify-between gap-4 rounded-lg border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] p-3">
             <span>{t("toggles.sendEnabled")}</span>
             <input
               type="checkbox"
@@ -371,7 +379,7 @@ export function TeamsIntegrationPanel({
               }
             />
           </label>
-          <label className="flex items-center justify-between rounded-xl border border-black/10 p-3 dark:border-white/10">
+          <label className="flex items-center justify-between gap-4 rounded-lg border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] p-3">
             <span>{t("toggles.intakeEnabled")}</span>
             <input
               type="checkbox"
@@ -385,8 +393,10 @@ export function TeamsIntegrationPanel({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
-        <h2 className="text-lg font-semibold">{t("targets.title")}</h2>
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-5">
+        <h2 className="text-lg font-semibold tracking-tight">
+          {t("targets.title")}
+        </h2>
         <LinkParserControls
           label={t("linkParser.label")}
           placeholder={t("linkParser.placeholder")}
@@ -396,40 +406,35 @@ export function TeamsIntegrationPanel({
           onApply={applyLinkToTarget}
         />
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("targets.name")}
             value={newTarget.name}
             onChange={(e) =>
               setNewTarget((v) => ({ ...v, name: e.target.value }))
             }
           />
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("targets.teamId")}
             value={newTarget.teamId}
             onChange={(e) =>
               setNewTarget((v) => ({ ...v, teamId: e.target.value }))
             }
           />
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("targets.channelId")}
             value={newTarget.channelId}
             onChange={(e) =>
               setNewTarget((v) => ({ ...v, channelId: e.target.value }))
             }
           />
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("targets.teamName")}
             value={newTarget.teamName}
             onChange={(e) =>
               setNewTarget((v) => ({ ...v, teamName: e.target.value }))
             }
           />
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("targets.channelName")}
             value={newTarget.channelName}
             onChange={(e) =>
@@ -437,21 +442,18 @@ export function TeamsIntegrationPanel({
             }
           />
         </div>
-        <button
-          className="mt-3 rounded bg-black px-3 py-1 text-white dark:bg-white dark:text-black"
-          onClick={() => void addTarget()}
-        >
+        <Button className="mt-3" onClick={() => void addTarget()} type="button">
           {t("targets.add")}
-        </button>
+        </Button>
         <div className="mt-4 space-y-2">
           {targets.map((target) => (
             <div
               key={target.id}
-              className="flex flex-wrap items-center gap-3 rounded border border-black/10 p-3 dark:border-white/10"
+              className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] p-3"
             >
               <div className="min-w-[14rem] flex-1">
                 <p className="font-medium">{target.name}</p>
-                <p className="text-xs opacity-70">
+                <p className="break-all font-mono text-xs text-[var(--muted-foreground)]">
                   {target.teamId} / {target.channelId}
                 </p>
               </div>
@@ -468,8 +470,10 @@ export function TeamsIntegrationPanel({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
-        <h2 className="text-lg font-semibold">{t("subscriptions.title")}</h2>
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-5">
+        <h2 className="text-lg font-semibold tracking-tight">
+          {t("subscriptions.title")}
+        </h2>
         <LinkParserControls
           label={t("linkParser.label")}
           placeholder={t("linkParser.placeholder")}
@@ -479,32 +483,28 @@ export function TeamsIntegrationPanel({
           onApply={applyLinkToSubscription}
         />
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("subscriptions.teamId")}
             value={newSubscription.teamId}
             onChange={(e) =>
               setNewSubscription((v) => ({ ...v, teamId: e.target.value }))
             }
           />
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("subscriptions.channelId")}
             value={newSubscription.channelId}
             onChange={(e) =>
               setNewSubscription((v) => ({ ...v, channelId: e.target.value }))
             }
           />
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("subscriptions.teamName")}
             value={newSubscription.teamName}
             onChange={(e) =>
               setNewSubscription((v) => ({ ...v, teamName: e.target.value }))
             }
           />
-          <input
-            className="rounded border px-2 py-1"
+          <Input
             placeholder={t("subscriptions.channelName")}
             value={newSubscription.channelName}
             onChange={(e) =>
@@ -512,24 +512,25 @@ export function TeamsIntegrationPanel({
             }
           />
         </div>
-        <button
-          className="mt-3 rounded bg-black px-3 py-1 text-white dark:bg-white dark:text-black"
+        <Button
+          className="mt-3"
           onClick={() => void addSubscription()}
+          type="button"
         >
           {t("subscriptions.add")}
-        </button>
+        </Button>
         <div className="mt-4 space-y-2">
           {subscriptions.map((subscription) => (
             <div
               key={subscription.id}
-              className="flex flex-wrap items-center gap-3 rounded border border-black/10 p-3 dark:border-white/10"
+              className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] p-3"
             >
               <div className="min-w-[14rem] flex-1">
                 <p className="font-medium">
                   {subscription.teamName ?? subscription.teamId} /{" "}
                   {subscription.channelName ?? subscription.channelId}
                 </p>
-                <p className="text-xs opacity-70">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   {t("subscriptions.lastPolled")}:{" "}
                   {subscription.lastPolledAt
                     ? formatDate(subscription.lastPolledAt)
@@ -551,23 +552,27 @@ export function TeamsIntegrationPanel({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
-        <h2 className="text-lg font-semibold">{t("health.title")}</h2>
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-5">
+        <h2 className="text-lg font-semibold tracking-tight">
+          {t("health.title")}
+        </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {healthCards.map((card) => (
             <article
               key={card.label}
-              className="rounded-xl border border-black/10 p-3 dark:border-white/10"
+              className="rounded-lg border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] p-3"
             >
-              <p className="text-xs uppercase tracking-wider opacity-60">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
                 {card.label}
               </p>
-              <p className="mt-2 text-lg font-semibold">{String(card.value)}</p>
+              <p className="mt-2 font-mono text-lg font-semibold">
+                {String(card.value)}
+              </p>
             </article>
           ))}
         </div>
         {sendWarnings.length > 0 ? (
-          <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
+          <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
             <p className="font-medium">
               {t("messages.archivedChannelWarning")}
             </p>
@@ -656,17 +661,17 @@ function LinkParserControls({
   return (
     <>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <input
-          className="min-w-[18rem] flex-1 rounded border px-2 py-1"
+        <Input
+          className="min-w-[18rem] flex-1"
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
         />
-        <button className="rounded border px-3 py-1" onClick={onApply}>
+        <Button onClick={onApply} type="button" variant="secondary">
           {buttonLabel}
-        </button>
+        </Button>
       </div>
-      <p className="mt-1 text-xs opacity-65">{label}</p>
+      <p className="mt-1 text-xs text-[var(--muted-foreground)]">{label}</p>
     </>
   );
 }
@@ -696,9 +701,9 @@ function ActiveDeleteControls({
         />
         {active ? activeLabel : inactiveLabel}
       </label>
-      <button className="rounded border px-3 py-1" onClick={onDelete}>
+      <Button onClick={onDelete} type="button" variant="secondary">
         {deleteLabel}
-      </button>
+      </Button>
     </>
   );
 }

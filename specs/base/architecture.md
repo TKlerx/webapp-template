@@ -133,4 +133,4 @@ flowchart TD
 - local development should work without PostgreSQL
 - production-style deployment should fail loudly if PostgreSQL is unavailable
 - continuity files should reflect the current repo state
-- dependency install policy should reject unsupported npm/uv environments
+- dependency install policy should reject unsupported pnpm/uv environments

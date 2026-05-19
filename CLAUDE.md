@@ -29,17 +29,17 @@ tests/           # Unit and E2E tests
 
 ## Commands
 
-- `npm run dev` - Start dev server
-- `npm run build` - Production build
-- `npm test` - Run unit tests (vitest)
-- `npm run test:e2e` - Run E2E tests (playwright)
-- `npm run lint` - ESLint
-- `npm run typecheck` - TypeScript check
-- `npm run validate` - Run all checks
-- `npm run continuity:update` - Refresh `CONTINUE.md` and `CONTINUE_LOG.md`
-- `npm run prisma:generate` - Generate Prisma client
-- `npm run prisma:migrate` - Run migrations
-- `npm run prisma:seed` - Seed database
+- `pnpm run dev` - Start dev server
+- `pnpm run build` - Production build
+- `pnpm test` - Run unit tests (vitest)
+- `pnpm run test:e2e` - Run E2E tests (playwright)
+- `pnpm run lint` - ESLint
+- `pnpm run typecheck` - TypeScript check
+- `pnpm run validate` - Run all checks
+- `pnpm run continuity:update` - Refresh `CONTINUE.md` and `CONTINUE_LOG.md`
+- `pnpm run prisma:generate` - Generate Prisma client
+- `pnpm run prisma:migrate` - Run migrations
+- `pnpm run prisma:seed` - Seed database
 
 ## Key Features
 

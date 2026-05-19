@@ -122,7 +122,7 @@ Target date: 2026-04-17
 
 Problem:
 
-- `npm audit --omit=dev --omit=optional` currently reports production vulnerabilities in `next` and `next-intl`.
+- `pnpm audit --prod --no-optional` currently reports production vulnerabilities in `next` and `next-intl`.
 - The repo enforces `min-release-age=7` in `.npmrc`, so the fixed versions should not be installed immediately after release.
 
 What to do on 2026-04-17:
@@ -130,7 +130,7 @@ What to do on 2026-04-17:
 - Upgrade `next` to `16.2.3` or newer.
 - Upgrade `next-intl` to `4.9.1` or newer.
 - Run `.\validate.ps1 all`.
-- Re-run `npm audit --omit=dev --omit=optional` and confirm the production audit is clean.
+- Re-run `pnpm audit --prod --no-optional` and confirm the production audit is clean.
 
 Why 2026-04-17:
 
@@ -139,7 +139,7 @@ Why 2026-04-17:
 
 Suggested command:
 
-- `npm install next@16.2.3 next-intl@4.9.1`
+- `pnpm install next@16.2.3 next-intl@4.9.1`
 
 ### Action 11: Move Rate Limiting To Shared Store For Multi-Instance Deployments
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
@@ -7,6 +8,16 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AppVersionBadge } from "@/components/ui/AppVersionBadge";
 import { ToastProvider } from "@/components/ui/Toast";
+
+const geistSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+});
 
 export const metadata: Metadata = {
   title: "Business App Starter",
@@ -24,7 +35,10 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body data-base-path={configuredBasePath}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable}`}
+        data-base-path={configuredBasePath}
+      >
         <SessionLayout locale={locale} sessionPromise={sessionPromise}>
           {children}
         </SessionLayout>

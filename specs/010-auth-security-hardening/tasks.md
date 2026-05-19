@@ -20,7 +20,7 @@
 
 **Purpose**: Schema changes and Prisma migration needed before any implementation
 
-- [x] T001 Add `AUTH_PASSWORD_CHANGED` to `AuditAction` in `prisma/schema.prisma` and `prisma/schema.postgres.prisma`, add matching SQLite/Postgres migrations, and run `npx prisma generate`
+- [x] T001 Add `AUTH_PASSWORD_CHANGED` to `AuditAction` in `prisma/schema.prisma` and `prisma/schema.postgres.prisma`, add matching SQLite/Postgres migrations, and run `pnpm exec prisma generate`
 
 ---
 
@@ -109,7 +109,7 @@
 
 **Purpose**: Final validation and project hygiene
 
-- [x] T024 Run `npm run validate` and fix any issues
+- [x] T024 Run `pnpm run validate` and fix any issues
 - [x] T025 Update `CONTINUE.md` and append to `CONTINUE_LOG.md` with the implementation summary
 - [x] T026 Update `ACTIVE_SPECS.md` / tracking docs to reflect that this spec is complete
 
@@ -142,5 +142,5 @@
 ## Implementation Notes
 
 - The feature is implemented and validated.
-- Verification completed with `npx prisma generate`, `npm run typecheck`, `npm test`, `npm run validate`, and `npm run build`.
+- Verification completed with `pnpm exec prisma generate`, `pnpm run typecheck`, `pnpm test`, `pnpm run validate`, and `pnpm run build`.
 - Remaining follow-up work, if any, should be tracked in a new numbered spec rather than reopening this one.

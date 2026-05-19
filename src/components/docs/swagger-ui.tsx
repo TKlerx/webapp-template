@@ -55,7 +55,7 @@ export function SwaggerUi() {
 
   return (
     <div
-      className="min-h-[60vh] rounded-[2rem] bg-white p-4 text-black"
+      className="min-h-[60vh] overflow-hidden rounded-lg border border-[var(--border)] bg-white p-4 text-black shadow-[0_18px_42px_-38px_var(--foreground)]"
       id="swagger-ui"
     />
   );

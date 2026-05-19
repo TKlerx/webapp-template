@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from starter_worker.config import WorkerConfig, load_config
-from starter_worker.db import JobStore
+from starter_worker.db import JobStore, normalize_postgres_database_url
 from starter_worker.main import process_inbound_mail_poll, process_job, process_teams_intake_poll
 
 
@@ -55,7 +55,9 @@ class WorkerTests(unittest.TestCase):
         self.assertIn("processedAt", result)
 
     def test_process_job_teams_delivery_sends_message(self) -> None:
-        with patch("starter_worker.main.send_teams_channel_message", return_value={"id": "graph-1"}) as send_teams:
+        with patch(
+            "starter_worker.main.send_teams_channel_message", return_value={"id": "graph-1"}
+        ) as send_teams:
             result = process_job(
                 type(
                     "Job",
@@ -78,34 +80,50 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result["status"], "sent")
 
     def test_process_inbound_mail_poll_stores_bounces_and_entity_links(self) -> None:
-        with patch(
-            "starter_worker.main.list_graph_mail_messages",
-            return_value=[
-                {"id": "msg-bounce"},
-                {"id": "msg-link"},
-            ],
-        ), patch(
-            "starter_worker.main.get_graph_mail_message",
-            side_effect=[
-                {
-                    "id": "msg-bounce",
-                    "subject": "Undeliverable [notification:notification-1]",
-                    "bodyPreview": "Delivery failed",
-                    "receivedDateTime": "2026-04-20T10:00:00Z",
-                    "from": {"emailAddress": {"address": "postmaster@example.com", "name": "Postmaster"}},
-                    "body": {"contentType": "text", "content": "Delivery failed [notification:notification-1]"},
-                    "internetMessageHeaders": [],
-                },
-                {
-                    "id": "msg-link",
-                    "subject": "Question [ref:Scope:scope-7]",
-                    "bodyPreview": "Can you help?",
-                    "receivedDateTime": "2026-04-20T10:05:00Z",
-                    "from": {"emailAddress": {"address": "person@example.com", "name": "Person"}},
-                    "body": {"contentType": "text", "content": "Following up on [ref:Scope:scope-7]"},
-                    "internetMessageHeaders": [],
-                },
-            ],
+        with (
+            patch(
+                "starter_worker.main.list_graph_mail_messages",
+                return_value=[
+                    {"id": "msg-bounce"},
+                    {"id": "msg-link"},
+                ],
+            ),
+            patch(
+                "starter_worker.main.get_graph_mail_message",
+                side_effect=[
+                    {
+                        "id": "msg-bounce",
+                        "subject": "Undeliverable [notification:notification-1]",
+                        "bodyPreview": "Delivery failed",
+                        "receivedDateTime": "2026-04-20T10:00:00Z",
+                        "from": {
+                            "emailAddress": {
+                                "address": "postmaster@example.com",
+                                "name": "Postmaster",
+                            }
+                        },
+                        "body": {
+                            "contentType": "text",
+                            "content": "Delivery failed [notification:notification-1]",
+                        },
+                        "internetMessageHeaders": [],
+                    },
+                    {
+                        "id": "msg-link",
+                        "subject": "Question [ref:Scope:scope-7]",
+                        "bodyPreview": "Can you help?",
+                        "receivedDateTime": "2026-04-20T10:05:00Z",
+                        "from": {
+                            "emailAddress": {"address": "person@example.com", "name": "Person"}
+                        },
+                        "body": {
+                            "contentType": "text",
+                            "content": "Following up on [ref:Scope:scope-7]",
+                        },
+                        "internetMessageHeaders": [],
+                    },
+                ],
+            ),
         ):
             self._insert_notification("notification-1")
             store = self._make_store()
@@ -276,6 +294,16 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(config.retry_backoff_seconds, 20)
         self.assertEqual(config.stale_lock_seconds, 600)
         self.assertEqual(config.teams_poll_interval_seconds, 45)
+
+    def test_worker_strips_prisma_only_postgres_url_params(self) -> None:
+        url = normalize_postgres_database_url(
+            "postgresql://worker:test@localhost:5432/app?connection_limit=10&sslmode=require"
+        )
+
+        self.assertEqual(
+            url,
+            "postgresql://worker:test@localhost:5432/app?sslmode=require",
+        )
 
     def _make_store(
         self,

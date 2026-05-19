@@ -24,13 +24,13 @@ try {
 }
 
 if (databaseIsEmpty) {
-  runStep("Push local SQLite schema", "npx prisma db push");
+  runStep("Push local SQLite schema", "pnpm exec prisma db push");
   markExistingMigrationsAsApplied();
 } else {
-  runStep("Apply local SQLite migrations", "npx prisma migrate dev");
+  runStep("Apply local SQLite migrations", "pnpm exec prisma migrate dev");
 }
 
-runStep("Seed local starter data", "npx tsx prisma/seed.ts");
+runStep("Seed local starter data", "pnpm exec tsx prisma/seed.ts");
 
 function isEmptyDatabase(database) {
   const row = database
@@ -69,7 +69,7 @@ function markExistingMigrationsAsApplied() {
   for (const migration of migrations) {
     runStep(
       `Mark local migration ${migration} as applied`,
-      `npx prisma migrate resolve --applied ${migration}`,
+      `pnpm exec prisma migrate resolve --applied ${migration}`,
     );
   }
 }

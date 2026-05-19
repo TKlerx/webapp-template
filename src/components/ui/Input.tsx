@@ -9,7 +9,7 @@ export function Input({
   return (
     <ShadcnInput
       className={cn(
-        "h-auto rounded-2xl border-black/10 bg-white px-4 py-3 shadow-none placeholder:text-black/40 dark:border-white/10 dark:bg-[var(--panel)] dark:placeholder:text-white/40",
+        "min-h-11 rounded-lg border-[var(--border)] bg-[var(--panel)] px-4 py-3 shadow-none transition duration-200 placeholder:text-[color:color-mix(in_srgb,var(--muted-foreground)_72%,transparent)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]",
         className,
       )}
       {...props}

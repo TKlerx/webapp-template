@@ -24,9 +24,9 @@
 ## Setup Steps
 
 1. Add Graph API permissions in Azure portal for the existing app registration
-2. Run `npm run prisma:migrate` to create new Teams tables
-3. Run `npm run prisma:generate` to update Prisma client
-4. Start dev server: `npm run dev`
+2. Run `pnpm run prisma:migrate` to create new Teams tables
+3. Run `pnpm run prisma:generate` to update Prisma client
+4. Start dev server: `pnpm run dev`
 5. Start worker: `cd worker && uv run python -m starter_worker.main`
 6. Navigate to Settings → Integrations → Teams
 7. Enable Teams integration (send toggle)

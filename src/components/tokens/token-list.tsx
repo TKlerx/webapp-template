@@ -86,8 +86,29 @@ export function TokenList({
   const [userIdFilter, setUserIdFilter] = useState<string>("all");
 
   useEffect(() => {
-    setTokens(initialTokens);
-  }, [initialTokens]);
+    if (adminMode) {
+      return;
+    }
+
+    function handleTokenCreated(event: Event) {
+      const payload = (event as CustomEvent<{ token?: TokenItem }>).detail;
+      if (!payload?.token) {
+        return;
+      }
+
+      setTokens((current) => {
+        if (current.some((token) => token.id === payload.token!.id)) {
+          return current;
+        }
+
+        return [payload.token!, ...current];
+      });
+    }
+
+    window.addEventListener("tokens:created", handleTokenCreated);
+    return () =>
+      window.removeEventListener("tokens:created", handleTokenCreated);
+  }, [adminMode]);
 
   async function refreshTokens(
     nextShowAll = showAll,
@@ -190,11 +211,13 @@ export function TokenList({
 
   return (
     <>
-      <section className="rounded-[2rem] border border-black/10 bg-[var(--panel)] p-4 sm:p-6 dark:border-white/10">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="text-xl font-semibold">{t("tableTitle")}</h2>
-            <p className="mt-1 text-sm opacity-70">{t("tableDescription")}</p>
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+              {t("tableDescription")}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {adminMode ? (
@@ -207,11 +230,11 @@ export function TokenList({
               >
                 <SelectTrigger
                   aria-label={t("filterByUser")}
-                  className="w-[18rem] rounded-2xl border-black/10 bg-white px-3 py-2 shadow-none dark:border-white/10 dark:bg-[var(--panel)]"
+                  className="w-[18rem] rounded-lg border-[var(--border)] bg-white px-3 py-2 shadow-none dark:bg-[var(--panel)]"
                 >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
+                <SelectContent className="rounded-lg border-[var(--border)]">
                   <SelectItem value="all">{t("allUsers")}</SelectItem>
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
@@ -238,7 +261,7 @@ export function TokenList({
         </div>
 
         {tokens.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-black/15 px-4 py-8 text-center text-sm opacity-70 dark:border-white/15">
+          <div className="mt-6 rounded-lg border border-dashed border-[var(--border)] px-4 py-8 text-center text-sm text-[var(--muted-foreground)]">
             {sharedT("empty")}
           </div>
         ) : (
@@ -266,7 +289,7 @@ export function TokenList({
                           <div className="font-medium">
                             {token.user?.name ?? "—"}
                           </div>
-                          <div className="text-xs opacity-65">
+                          <div className="text-xs text-[var(--muted-foreground)]">
                             {token.user?.email ?? "—"}
                           </div>
                         </TableCell>
@@ -329,19 +352,21 @@ export function TokenList({
             <div className="mt-6 grid gap-4 md:hidden">
               {tokens.map((token) => (
                 <article
-                  className="rounded-2xl border border-black/10 p-4 dark:border-white/10"
+                  className="rounded-lg border border-[var(--border)] p-4"
                   key={token.id}
                 >
                   {adminMode ? (
                     <p className="text-sm font-medium">
                       {token.user?.name}{" "}
-                      <span className="opacity-65">({token.user?.email})</span>
+                      <span className="text-[var(--muted-foreground)]">
+                        ({token.user?.email})
+                      </span>
                     </p>
                   ) : null}
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <div>
                       <h3 className="font-semibold">{token.name}</h3>
-                      <p className="text-xs opacity-65">
+                      <p className="text-xs text-[var(--muted-foreground)]">
                         {sharedT("prefixColumn")}: {token.tokenPrefix}
                       </p>
                     </div>
@@ -353,15 +378,19 @@ export function TokenList({
                   </div>
                   <dl className="mt-4 grid gap-2 text-sm">
                     <div className="flex justify-between gap-3">
-                      <dt className="opacity-65">{sharedT("typeColumn")}</dt>
+                      <dt className="text-[var(--muted-foreground)]">
+                        {sharedT("typeColumn")}
+                      </dt>
                       <dd>{token.type}</dd>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <dt className="opacity-65">{sharedT("expiresColumn")}</dt>
+                      <dt className="text-[var(--muted-foreground)]">
+                        {sharedT("expiresColumn")}
+                      </dt>
                       <dd>{formatDate(token.expiresAt)}</dd>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <dt className="opacity-65">
+                      <dt className="text-[var(--muted-foreground)]">
                         {sharedT("lastUsedColumn")}
                       </dt>
                       <dd>{formatDate(token.lastUsedAt)}</dd>
@@ -403,7 +432,9 @@ export function TokenList({
         )}
 
         {loading ? (
-          <p className="mt-4 text-sm opacity-65">{sharedT("loading")}</p>
+          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
+            {sharedT("loading")}
+          </p>
         ) : null}
       </section>
 
