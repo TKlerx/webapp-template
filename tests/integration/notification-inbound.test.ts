@@ -19,6 +19,11 @@ describe("notification inbound processing", () => {
   });
 
   it("marks bounced notifications when an inbound bounce references a notification", async () => {
+    prismaMock.notification.findFirst.mockResolvedValue({
+      id: "notification-1",
+      providerMessageId: "<provider-message-1@example.com>",
+    } as never);
+
     const inbound = {
       id: "inbound-1",
       subject:
@@ -27,8 +32,8 @@ describe("notification inbound processing", () => {
       bodyText:
         "Delivery failed for Notification reference: [notification:notification-1]",
       bodyHtml: null,
-      inReplyTo: null,
-      referenceIds: "[]",
+      inReplyTo: "<provider-message-1@example.com>",
+      referenceIds: '["<provider-message-1@example.com>"]',
       senderEmail: "postmaster@example.com",
     };
 
@@ -50,6 +55,67 @@ describe("notification inbound processing", () => {
       data: expect.objectContaining({
         processingStatus: "PROCESSED",
         correlatedNotificationId: "notification-1",
+      }),
+    });
+  });
+
+  it("ignores bounce-like messages without provider-message correlation", async () => {
+    prismaMock.notification.findFirst.mockResolvedValue(null);
+
+    const inbound = {
+      id: "inbound-3",
+      subject:
+        "Undeliverable: Your role has changed [notification:notification-1]",
+      bodyPreview: "Delivery failed",
+      bodyText:
+        "Delivery failed for Notification reference: [notification:notification-1]",
+      bodyHtml: null,
+      inReplyTo: "<different-message@example.com>",
+      referenceIds: '["<different-message@example.com>"]',
+      senderEmail: "postmaster@example.com",
+    };
+
+    const result = await processInboundEmailRecord(inbound);
+
+    expect(result).toMatchObject({
+      processingStatus: "IGNORED",
+      correlatedNotificationId: null,
+    });
+    expect(prismaMock.notification.update).not.toHaveBeenCalled();
+  });
+
+  it("ignores bounce-like messages when body content disagrees with provider correlation", async () => {
+    prismaMock.notification.findFirst.mockResolvedValue({
+      id: "notification-from-provider",
+      providerMessageId: "<provider-message-2@example.com>",
+    } as never);
+
+    const inbound = {
+      id: "inbound-4",
+      subject:
+        "Undeliverable: Your role has changed [notification:notification-from-body]",
+      bodyPreview: "Delivery failed",
+      bodyText:
+        "Delivery failed for Notification reference: [notification:notification-from-body]",
+      bodyHtml: null,
+      inReplyTo: "<provider-message-2@example.com>",
+      referenceIds: '["<provider-message-2@example.com>"]',
+      senderEmail: "postmaster@example.com",
+    };
+
+    const result = await processInboundEmailRecord(inbound);
+
+    expect(result).toMatchObject({
+      processingStatus: "IGNORED",
+      correlatedNotificationId: null,
+    });
+    expect(prismaMock.notification.update).not.toHaveBeenCalled();
+    expect(prismaMock.inboundEmail.update).toHaveBeenCalledWith({
+      where: { id: "inbound-4" },
+      data: expect.objectContaining({
+        processingStatus: "IGNORED",
+        processingNotes:
+          "Bounce-like message content disagreed with provider-message correlation.",
       }),
     });
   });

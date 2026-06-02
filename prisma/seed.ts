@@ -11,6 +11,7 @@ import {
   UserStatus,
 } from "../generated/prisma/enums";
 import { validatePasswordComplexity } from "../src/lib/auth";
+import { normalizeInitialAdminEmail } from "./seed-utils";
 
 const require = createRequire(import.meta.url);
 
@@ -29,19 +30,23 @@ function createAdapter(connectionString: string) {
   return new PrismaPg({ connectionString });
 }
 
-const connectionString = process.env.DATABASE_URL ?? "file:./dev.db";
+const connectionString =
+  process.env.MIGRATION_DATABASE_URL ??
+  process.env.DATABASE_URL ??
+  "file:./dev.db";
 const adapter = createAdapter(connectionString);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const email = process.env.INITIAL_ADMIN_EMAIL;
+  const rawEmail = process.env.INITIAL_ADMIN_EMAIL;
   const password = process.env.INITIAL_ADMIN_PASSWORD;
 
-  if (!email || !password) {
+  if (!rawEmail || !password) {
     throw new Error(
       "INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set",
     );
   }
+  const email = normalizeInitialAdminEmail(rawEmail);
 
   if (!validatePasswordComplexity(password)) {
     throw new Error(
@@ -88,7 +93,7 @@ async function main() {
       accounts: {
         create: {
           providerId: "credential",
-          accountId: email.toLowerCase(),
+          accountId: email,
           password: passwordHash,
         },
       },

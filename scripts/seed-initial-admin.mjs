@@ -18,9 +18,17 @@ function createId() {
 async function main() {
   const email = process.env.INITIAL_ADMIN_EMAIL?.toLowerCase();
   const password = process.env.INITIAL_ADMIN_PASSWORD;
+  const databaseUrl =
+    process.env.MIGRATION_DATABASE_URL?.trim() || process.env.DATABASE_URL;
 
   if (!email || !password) {
-    throw new Error("INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set");
+    throw new Error(
+      "INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set",
+    );
+  }
+
+  if (!databaseUrl) {
+    throw new Error("MIGRATION_DATABASE_URL or DATABASE_URL must be set");
   }
 
   if (!validatePasswordComplexity(password)) {
@@ -35,7 +43,7 @@ async function main() {
     );
   }
 
-  const client = new Client({ connectionString: process.env.DATABASE_URL });
+  const client = new Client({ connectionString: databaseUrl });
   await client.connect();
 
   try {

@@ -17,6 +17,14 @@ const ALLOWED_BACKGROUND_JOB_TYPES = new Set([
   "teams_intake_poll",
 ]);
 const MAX_BACKGROUND_JOB_PAYLOAD_LENGTH = 10 * 1024;
+const SENSITIVE_JOB_KEYS = new Set([
+  "delegatedAccessToken",
+  "accessToken",
+  "refreshToken",
+  "authorization",
+  "token",
+  "apiKey",
+]);
 
 export function safeParseJobJson(value: string | null) {
   if (!value) {
@@ -28,6 +36,41 @@ export function safeParseJobJson(value: string | null) {
   } catch {
     return value;
   }
+}
+
+function sanitizeJobValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((entry) => sanitizeJobValue(entry));
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).map(
+      ([key, entryValue]) => {
+        if (SENSITIVE_JOB_KEYS.has(key)) {
+          return [key, "[REDACTED]"];
+        }
+
+        return [key, sanitizeJobValue(entryValue)];
+      },
+    );
+    return Object.fromEntries(entries);
+  }
+
+  return value;
+}
+
+function sanitizeJobField(value: string | null) {
+  return sanitizeJobValue(safeParseJobJson(value));
+}
+
+function sanitizeStoredJobJson(value: string | null) {
+  const parsed = safeParseJobJson(value);
+  if (parsed === null) {
+    return null;
+  }
+
+  const sanitized = sanitizeJobValue(parsed);
+  return JSON.stringify(sanitized ?? {});
 }
 
 export async function listBackgroundJobsForUser(user: SessionUser) {
@@ -44,9 +87,9 @@ export async function listBackgroundJobsForUser(user: SessionUser) {
     id: job.id,
     jobType: job.jobType,
     status: job.status,
-    payload: safeParseJobJson(job.payload),
-    result: safeParseJobJson(job.result),
-    error: job.error,
+    payload: sanitizeJobField(job.payload),
+    result: sanitizeJobField(job.result),
+    error: sanitizeJobValue(job.error),
     attemptCount: job.attemptCount,
     availableAt: job.availableAt,
     startedAt: job.startedAt,
@@ -89,8 +132,49 @@ export async function createBackgroundJobForUser(
       id: job.id,
       jobType: job.jobType,
       status: job.status,
-      payload: safeParseJobJson(job.payload),
+      payload: sanitizeJobField(job.payload),
       createdAt: job.createdAt,
     },
   };
+}
+
+export async function cleanupHistoricalBackgroundJobPayloads(limit = 200) {
+  const jobs = await prisma.backgroundJob.findMany({
+    where: {
+      OR: [
+        { payload: { contains: "delegatedAccessToken" } },
+        { payload: { contains: "accessToken" } },
+        { payload: { contains: "refreshToken" } },
+        { payload: { contains: "authorization" } },
+        { payload: { contains: "apiKey" } },
+      ],
+    },
+    select: {
+      id: true,
+      payload: true,
+      result: true,
+      error: true,
+    },
+    take: limit,
+    orderBy: { createdAt: "asc" },
+  });
+
+  let updated = 0;
+  for (const job of jobs) {
+    await prisma.backgroundJob.update({
+      where: { id: job.id },
+      data: {
+        payload: sanitizeStoredJobJson(job.payload) ?? "{}",
+        result: sanitizeStoredJobJson(job.result) ?? "{}",
+        error: typeof job.error === "string" ? String(sanitizeJobValue(job.error)) : job.error,
+      },
+    });
+    updated += 1;
+  }
+
+  return { scanned: jobs.length, updated };
+}
+
+export async function runBackgroundJobPayloadCleanupMaintenance() {
+  return cleanupHistoricalBackgroundJobPayloads();
 }

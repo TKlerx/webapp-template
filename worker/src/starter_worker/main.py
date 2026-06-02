@@ -199,15 +199,41 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
         is_bounce = _is_bounce_like(sender_email, str(message.get("subject") or ""))
 
         if is_bounce and notification_id:
+            provider_message_candidates = _provider_message_id_candidates(
+                [in_reply_to or "", *reference_ids]
+            )
+            notification = store.find_notification_by_provider_message_id(provider_message_candidates)
+
+            if notification is None:
+                store.update_inbound_email(
+                    inbound_email_id,
+                    processing_status="IGNORED",
+                    processing_notes="Bounce-like message lacked verified provider-message correlation.",
+                )
+                ignored += 1
+                continue
+
+            correlated_notification_id = str(notification.get("id") or "")
+            if correlated_notification_id != notification_id:
+                store.update_inbound_email(
+                    inbound_email_id,
+                    processing_status="IGNORED",
+                    processing_notes=(
+                        "Bounce-like message content disagreed with provider-message correlation."
+                    ),
+                )
+                ignored += 1
+                continue
+
             store.mark_notification_bounced(
-                notification_id,
+                correlated_notification_id,
                 f"Bounce/NDR received for inbound email {provider_message_id}",
             )
             store.update_inbound_email(
                 inbound_email_id,
                 processing_status="PROCESSED",
                 processing_notes="Bounce correlated to notification delivery reference.",
-                correlated_notification_id=notification_id,
+                correlated_notification_id=correlated_notification_id,
             )
             bounced += 1
             continue
@@ -280,6 +306,24 @@ def _is_bounce_like(sender_email: str, subject: str) -> bool:
     return bool(BOUNCE_SENDER_PATTERN.search(sender_email or "")) or bool(
         BOUNCE_SUBJECT_PATTERN.search(subject or "")
     )
+
+
+def _provider_message_id_candidates(values: list[str]) -> list[str]:
+    candidates: set[str] = set()
+    for value in values:
+        normalized = _normalize_message_id(value)
+        if not normalized:
+            continue
+        candidates.add(normalized)
+        candidates.add(f"<{normalized}>")
+    return sorted(candidates)
+
+
+def _normalize_message_id(value: str) -> str:
+    trimmed = value.strip().lower()
+    if trimmed.startswith("<") and trimmed.endswith(">"):
+        return trimmed[1:-1]
+    return trimmed
 
 
 def _find_header(headers: object, name: str) -> str:

@@ -4,14 +4,20 @@ const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..");
 const prismaConfigPath = process.env.PRISMA_CONFIG_PATH?.trim();
+const databaseUrl =
+  process.env.MIGRATION_DATABASE_URL?.trim() || process.env.DATABASE_URL;
 
-if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL must be set for pre-deploy Prisma verification.");
+if (!databaseUrl) {
+  console.error(
+    "MIGRATION_DATABASE_URL or DATABASE_URL must be set for pre-deploy Prisma verification.",
+  );
   process.exit(1);
 }
 
-if (process.env.DATABASE_URL.startsWith("file:")) {
-  const databasePath = process.env.DATABASE_URL.replace("file:", "");
+process.env.DATABASE_URL = databaseUrl;
+
+if (databaseUrl.startsWith("file:")) {
+  const databasePath = databaseUrl.replace("file:", "");
   if (!fs.existsSync(databasePath)) {
     console.log(
       `Local database not found at ${databasePath}; treating as fresh bootstrap and skipping drift check.`,

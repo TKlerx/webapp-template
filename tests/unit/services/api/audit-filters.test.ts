@@ -27,6 +27,29 @@ describe("audit filter service", () => {
     }
   });
 
+  it("rejects invalid pagination values", async () => {
+    const badPage = parseAuditListRequest(
+      new Request("http://localhost/api/audit?page=0&limit=10"),
+    );
+    const badLimit = parseAuditListRequest(
+      new Request("http://localhost/api/audit?page=1&limit=0"),
+    );
+
+    expect("error" in badPage).toBe(true);
+    expect("error" in badLimit).toBe(true);
+  });
+
+  it("caps oversized pagination limits", async () => {
+    const result = parseAuditListRequest(
+      new Request("http://localhost/api/audit?page=1&limit=9999"),
+    );
+
+    expect("error" in result).toBe(false);
+    if (!("error" in result)) {
+      expect(result.limit).toBe(100);
+    }
+  });
+
   it("rejects invalid audit actions", async () => {
     const result = parseAuditListRequest(
       new Request("http://localhost/api/audit?action=NOT_REAL"),

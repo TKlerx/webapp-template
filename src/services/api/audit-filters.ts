@@ -14,6 +14,10 @@ type ParsedAuditExportRequest = {
   filters: AuditFilters;
 };
 
+const DEFAULT_AUDIT_PAGE = 1;
+const DEFAULT_AUDIT_LIMIT = 25;
+const MAX_AUDIT_LIMIT = 100;
+
 export function buildAuditFilters(filters: AuditFilters = {}) {
   return {
     ...(filters.action ? { action: filters.action } : {}),
@@ -78,13 +82,28 @@ export function parseAuditListRequest(
     return parsed;
   }
 
+  const pageRaw = url.searchParams.get("page") ?? String(DEFAULT_AUDIT_PAGE);
+  const limitRaw = url.searchParams.get("limit") ?? String(DEFAULT_AUDIT_LIMIT);
+  const page = Number(pageRaw);
+  const limit = Number(limitRaw);
+
+  if (!Number.isInteger(page) || page < 1) {
+    return { error: jsonError("Invalid page parameter", 400) };
+  }
+
+  if (!Number.isInteger(limit) || limit < 1) {
+    return { error: jsonError("Invalid limit parameter", 400) };
+  }
+
+  const boundedLimit = Math.min(limit, MAX_AUDIT_LIMIT);
+
   return {
-    page: Number(url.searchParams.get("page") ?? "1"),
-    limit: Number(url.searchParams.get("limit") ?? "25"),
+    page,
+    limit: boundedLimit,
     filters: {
       ...parsed.filters,
-      page: Number(url.searchParams.get("page") ?? "1"),
-      limit: Number(url.searchParams.get("limit") ?? "25"),
+      page,
+      limit: boundedLimit,
     } satisfies AuditFilters,
   };
 }

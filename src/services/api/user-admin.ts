@@ -28,6 +28,9 @@ import {
   UserStatus,
 } from "../../../generated/prisma/enums";
 import type { User } from "../../../generated/prisma/client";
+import { Prisma } from "../../../generated/prisma/client";
+
+const SERIALIZABLE_RETRY_LIMIT = 3;
 
 export function parseUserStatusFilter(value: string | null) {
   if (!value) {
@@ -167,8 +170,9 @@ export async function updateOwnThemePreference(
 
 export async function requireManagedUserContext(
   params: RouteParamsWithId,
+  request?: Request,
 ): Promise<ManagedUserResult> {
-  const auth = await requireRouteUserWithRoles([Role.PLATFORM_ADMIN]);
+  const auth = await requireRouteUserWithRoles([Role.PLATFORM_ADMIN], request);
   if ("error" in auth) {
     return auth;
   }
@@ -190,6 +194,9 @@ export async function ensureAdminUserCanChange(
     status?: UserStatus;
     message: string;
   },
+  countUsers: (args: {
+    where: { role: Role; status: UserStatus | { not: UserStatus } };
+  }) => Promise<number> = prisma.user.count,
 ) {
   if (user.role !== Role.PLATFORM_ADMIN) {
     return null;
@@ -200,15 +207,15 @@ export async function ensureAdminUserCanChange(
 
   if (
     effectiveRole === Role.PLATFORM_ADMIN &&
-    effectiveStatus !== UserStatus.INACTIVE
+    effectiveStatus === UserStatus.ACTIVE
   ) {
     return null;
   }
 
-  const adminCount = await prisma.user.count({
+  const adminCount = await countUsers({
     where: {
       role: Role.PLATFORM_ADMIN,
-      status: { not: UserStatus.INACTIVE },
+      status: UserStatus.ACTIVE,
     },
   });
 
@@ -223,44 +230,66 @@ export async function updateManagedUserStatus(
   params: RouteParamsWithId,
   nextStatus: UserStatus,
   options?: ManagedUserStatusUpdateOptions,
+  request?: Request,
 ) {
-  const managed = await requireManagedUserContext(params);
+  const managed = await requireManagedUserContext(params, request);
   if ("error" in managed) {
     return managed.error;
   }
 
   const { user, actor } = managed;
+  let previousStatus = user.status;
 
-  if (
-    options?.requireCurrentStatus &&
-    user.status !== options.requireCurrentStatus
-  ) {
-    return jsonError(
-      options.blockedMessage ?? "User is in an invalid status",
-      400,
-    );
-  }
+  let updated: User;
+  try {
+    updated = await withSerializableRetry(async () => {
+      return prisma.$transaction(
+        async (tx) => {
+          const fresh = await tx.user.findUnique({ where: { id: user.id } });
+          if (!fresh) {
+            throw jsonError("User not found", 404);
+          }
 
-  if (options?.lastAdminMessage) {
-    const denied = await ensureAdminUserCanChange(user, {
-      status: nextStatus,
-      message: options.lastAdminMessage,
+          if (
+            options?.requireCurrentStatus &&
+            fresh.status !== options.requireCurrentStatus
+          ) {
+            throw jsonError(
+              options.blockedMessage ?? "User is in an invalid status",
+              400,
+            );
+          }
+
+          if (options?.lastAdminMessage) {
+            const denied = await ensureAdminUserCanChange(fresh, {
+              status: nextStatus,
+              message: options.lastAdminMessage,
+            }, tx.user.count);
+            if (denied) {
+              throw denied;
+            }
+          }
+
+          previousStatus = fresh.status;
+          return tx.user.update({
+            where: { id: user.id },
+            data: { status: nextStatus },
+          });
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
     });
-
-    if (denied) {
-      return denied;
+  } catch (error) {
+    if (error instanceof Response) {
+      return error;
     }
+    throw error;
   }
-
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: { status: nextStatus },
-  });
 
   await options?.afterUpdate?.({
     actorId: actor.id,
     userId: user.id,
-    previousStatus: user.status,
+    previousStatus,
     nextStatus,
   });
 
@@ -270,7 +299,7 @@ export async function updateManagedUserStatus(
       ...user,
       status: updated.status,
     },
-    previousStatus: user.status,
+    previousStatus,
     nextStatus: updated.status,
   });
 
@@ -280,6 +309,7 @@ export async function updateManagedUserStatus(
 export async function updateManagedUserRole(
   params: RouteParamsWithId,
   body: { role?: Role },
+  request?: Request,
 ) {
   if (!body.role) {
     return { error: jsonError("Role is required", 400) };
@@ -289,23 +319,43 @@ export async function updateManagedUserRole(
     return { error: jsonError("Invalid role", 400) };
   }
 
-  const managed = await requireManagedUserContext(params);
+  const managed = await requireManagedUserContext(params, request);
   if ("error" in managed) {
     return managed;
   }
 
-  const denied = await ensureAdminUserCanChange(managed.user, {
-    role: body.role,
-    message: "Cannot change role of the last Admin user",
-  });
-  if (denied) {
-    return { error: denied };
-  }
+  let updated: User;
+  try {
+    updated = await withSerializableRetry(async () => {
+      return prisma.$transaction(
+        async (tx) => {
+          const fresh = await tx.user.findUnique({ where: { id: managed.user.id } });
+          if (!fresh) {
+            throw jsonError("User not found", 404);
+          }
 
-  const updated = await prisma.user.update({
-    where: { id: managed.user.id },
-    data: { role: body.role },
-  });
+          const denied = await ensureAdminUserCanChange(fresh, {
+            role: body.role,
+            message: "Cannot change role of the last Admin user",
+          }, tx.user.count);
+          if (denied) {
+            throw denied;
+          }
+
+          return tx.user.update({
+            where: { id: managed.user.id },
+            data: { role: body.role },
+          });
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    });
+  } catch (error) {
+    if (error instanceof Response) {
+      return { error };
+    }
+    throw error;
+  }
 
   await safeLogAudit({
     action: AuditAction.ROLE_CHANGED,
@@ -329,4 +379,38 @@ export async function updateManagedUserRole(
   });
 
   return { user: { id: updated.id, role: updated.role } };
+}
+
+async function withSerializableRetry<T>(run: () => Promise<T>) {
+  let attempt = 0;
+  while (attempt < SERIALIZABLE_RETRY_LIMIT) {
+    try {
+      return await run();
+    } catch (error) {
+      if (error instanceof Response) {
+        throw error;
+      }
+
+      if (isSerializableConflict(error) && attempt < SERIALIZABLE_RETRY_LIMIT - 1) {
+        attempt += 1;
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Unreachable serializable retry state");
+}
+
+function isSerializableConflict(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === "P2034";
+  }
+
+  if (typeof error === "object" && error !== null && "code" in error) {
+    return (error as { code?: string }).code === "P2034";
+  }
+
+  return false;
 }

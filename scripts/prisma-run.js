@@ -2,6 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const { spawnSync } = require("child_process");
 const dotenv = require("dotenv");
+const { computeExitCode } = require("./prisma-run-lib");
 
 const root = path.resolve(__dirname, "..");
 const envLocal = path.join(root, ".env.local");
@@ -35,4 +36,8 @@ const result = spawnSync(command, commandArgs, {
   env: process.env,
 });
 
-process.exit(result.status ?? 0);
+if (result.error) {
+  console.error(result.error.message);
+}
+
+process.exit(computeExitCode(result));

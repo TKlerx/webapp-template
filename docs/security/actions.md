@@ -6,6 +6,36 @@ This document turns the broader review in [followups.md](/c:/dev/webapp-template
 
 ## Completed
 
+### Action 13: Pin Release Workflow Actions And Scope Write Permission
+
+Status: Completed
+
+Changes landed:
+
+- Split CLI release workflow into `validate` (read-only) and `publish` (write) jobs.
+- Pinned `actions/checkout`, `actions/setup-go`, and `goreleaser/goreleaser-action` to immutable commit SHAs.
+- Replaced GoReleaser `latest` with explicit `v2.16.0`.
+
+Files:
+
+- [.github/workflows/cli-release.yml](/c:/dev/webapp-template/.github/workflows/cli-release.yml)
+- [tests/unit/security/release-workflow.test.ts](/c:/dev/webapp-template/tests/unit/security/release-workflow.test.ts)
+
+Maintenance procedure:
+
+1. Choose target action tag/version and GoReleaser release version.
+2. Resolve immutable action commit SHA via GitHub API:
+   - `https://api.github.com/repos/actions/checkout/git/ref/tags/<tag>`
+   - `https://api.github.com/repos/actions/setup-go/git/ref/tags/<tag>`
+   - `https://api.github.com/repos/goreleaser/goreleaser-action/git/ref/tags/<tag>`
+3. Update `.github/workflows/cli-release.yml` with new SHAs and explicit GoReleaser version.
+4. Run `pnpm vitest run tests/unit/security/release-workflow.test.ts`.
+5. Record update in `specs/017-deepsec-remediation/remediation-evidence.md`.
+
+Latest verification:
+
+- Revalidated during Phase 1 closure on 2026-06-01 with `pnpm vitest run tests/unit/security/release-workflow.test.ts` (pass).
+
 ### Action 1: Restrict Background Jobs Endpoint
 
 Status: Completed
@@ -113,6 +143,28 @@ Files:
 - [src/app/api/cli-auth/token/route.ts](/c:/dev/webapp-template/src/app/api/cli-auth/token/route.ts)
 
 ## Remaining
+
+### Action 12: Complete Runtime Credential Separation
+
+Priority: Medium
+
+Problem:
+
+- Production-style Compose previously used one broad environment block for the app, worker, and migration services.
+- That made it easy for the public app runtime to receive worker-only or migration-only credentials.
+
+What to do:
+
+- Complete spec `016-runtime-credential-separation`.
+- Keep app, worker, and migration database URLs separate through `APP_DATABASE_URL`, `WORKER_DATABASE_URL`, and `MIGRATION_DATABASE_URL`.
+- Keep worker-owned Graph mail credentials out of the app runtime unless a documented exception exists.
+- Run `pnpm run validate:runtime-credentials` with the normal validation flow.
+
+Suggested files:
+
+- [docs/runtime-credentials.md](/c:/dev/webapp-template/docs/runtime-credentials.md)
+- [docker-compose.yml](/c:/dev/webapp-template/docker-compose.yml)
+- [scripts/validate-runtime-credentials.ps1](/c:/dev/webapp-template/scripts/validate-runtime-credentials.ps1)
 
 ### Action 0: Upgrade `next` And `next-intl` After Cooldown Window
 

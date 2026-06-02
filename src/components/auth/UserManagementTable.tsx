@@ -60,7 +60,7 @@ export function UserManagementTable({
           : await response.json().catch(() => null);
 
       if (!response.ok) {
-        pushToast(payload?.error ?? t("couldNotUpdate"));
+        pushToast(mapUserError(payload?.error, t));
         return;
       }
 
@@ -204,4 +204,23 @@ export function UserManagementTable({
       </table>
     </div>
   );
+}
+
+function mapUserError(
+  error: unknown,
+  t: ReturnType<typeof useTranslations<"users">>,
+) {
+  if (typeof error !== "string") {
+    return t("couldNotUpdate");
+  }
+
+  if (error === "Cannot deactivate the last Admin user") {
+    return t("lastAdminDeactivateError");
+  }
+
+  if (error === "Cannot change role of the last Admin user") {
+    return t("lastAdminRoleError");
+  }
+
+  return error;
 }

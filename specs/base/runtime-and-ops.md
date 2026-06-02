@@ -12,8 +12,13 @@
 ### Docker / Production-Style Deployment
 
 - Docker Compose runs PostgreSQL, migrations, app, and worker
-- app and worker use an explicit Postgres `DATABASE_URL`
+- app, worker, and migration flows use explicit runtime-specific Postgres URLs:
+  - `APP_DATABASE_URL`
+  - `WORKER_DATABASE_URL`
+  - `MIGRATION_DATABASE_URL`
+- each service maps its runtime-specific URL into `DATABASE_URL` for Prisma or compatibility paths
 - Prisma migrations run through `prisma.config.postgres.ts`
+- local development can continue using `DATABASE_URL="file:./dev.db"` without defining every runtime-specific URL
 
 ## Database Behavior
 
@@ -91,7 +96,8 @@ sequenceDiagram
 ## Baseline Operational Rules
 
 - keep local dev simple
-- keep Docker/prod behavior explicit
+- keep Docker/prod behavior explicit and separated by runtime responsibility
 - prefer one shared source of truth in the database
 - keep validation deterministic
 - fail clearly when required tooling or policy support is missing
+- do not give the app runtime migration-only or worker-only credentials without a documented exception

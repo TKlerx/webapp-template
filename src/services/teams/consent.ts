@@ -8,6 +8,7 @@ import {
 
 export const TEAMS_CONSENT_STATE_COOKIE = "starter_app_teams_consent_state";
 const TEAMS_DELEGATED_SCOPE = "offline_access ChannelMessage.Send";
+const ENCRYPTED_TOKEN_PREFIX = "enc:v1";
 
 type TeamsTokenResponse = {
   access_token: string;
@@ -15,6 +16,73 @@ type TeamsTokenResponse = {
   expires_in?: number;
   scope?: string;
 };
+
+function getTeamsGrantEncryptionSecret() {
+  const configured =
+    process.env.TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY ??
+    process.env.BETTERAUTH_SECRET;
+
+  if (!configured?.trim()) {
+    throw new Error(
+      "Missing delegated grant encryption secret. Set TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY or BETTERAUTH_SECRET.",
+    );
+  }
+
+  return configured.trim();
+}
+
+function deriveEncryptionKey(secret: string) {
+  return crypto
+    .createHash("sha256")
+    .update(secret)
+    .update(":teams-delegated-grant:v1")
+    .digest();
+}
+
+export function encryptGrantToken(token: string) {
+  const iv = crypto.randomBytes(12);
+  const key = deriveEncryptionKey(getTeamsGrantEncryptionSecret());
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const ciphertext = Buffer.concat([
+    cipher.update(token, "utf8"),
+    cipher.final(),
+  ]);
+  const tag = cipher.getAuthTag();
+
+  return [
+    ENCRYPTED_TOKEN_PREFIX,
+    iv.toString("base64url"),
+    tag.toString("base64url"),
+    ciphertext.toString("base64url"),
+  ].join(":");
+}
+
+export function decryptGrantToken(value: string) {
+  if (!value.startsWith(`${ENCRYPTED_TOKEN_PREFIX}:`)) {
+    return value;
+  }
+
+  const payload = value.slice(`${ENCRYPTED_TOKEN_PREFIX}:`.length);
+  const [ivBase64, tagBase64, dataBase64] = payload.split(":");
+  if (!ivBase64 || !tagBase64 || !dataBase64) {
+    throw new Error("Invalid encrypted delegated grant token format.");
+  }
+
+  const key = deriveEncryptionKey(getTeamsGrantEncryptionSecret());
+  const decipher = crypto.createDecipheriv(
+    "aes-256-gcm",
+    key,
+    Buffer.from(ivBase64, "base64url"),
+  );
+  decipher.setAuthTag(Buffer.from(tagBase64, "base64url"));
+
+  const plaintext = Buffer.concat([
+    decipher.update(Buffer.from(dataBase64, "base64url")),
+    decipher.final(),
+  ]);
+
+  return plaintext.toString("utf8");
+}
 
 export function createTeamsConsentState() {
   return crypto.randomBytes(24).toString("hex");
@@ -118,15 +186,19 @@ export async function saveTeamsDelegatedGrant(
     where: { userId },
     update: {
       scope: token.scope ?? TEAMS_DELEGATED_SCOPE,
-      accessToken: token.access_token,
-      refreshToken: token.refresh_token ?? null,
+      accessToken: encryptGrantToken(token.access_token),
+      refreshToken: token.refresh_token
+        ? encryptGrantToken(token.refresh_token)
+        : null,
       expiresAt,
     },
     create: {
       userId,
       scope: token.scope ?? TEAMS_DELEGATED_SCOPE,
-      accessToken: token.access_token,
-      refreshToken: token.refresh_token ?? null,
+      accessToken: encryptGrantToken(token.access_token),
+      refreshToken: token.refresh_token
+        ? encryptGrantToken(token.refresh_token)
+        : null,
       expiresAt,
     },
   });
@@ -168,12 +240,13 @@ export async function getFreshTeamsDelegatedAccessToken(userId: string) {
   }
 
   if (grant.expiresAt && grant.expiresAt.getTime() > Date.now() + 60_000) {
-    return grant.accessToken;
+    return decryptGrantToken(grant.accessToken);
   }
 
   if (!grant.refreshToken) {
     return null;
   }
+  const refreshToken = decryptGrantToken(grant.refreshToken);
 
   const tenantId = process.env.AZURE_AD_TENANT_ID;
   const clientId = process.env.AZURE_AD_CLIENT_ID;
@@ -191,7 +264,7 @@ export async function getFreshTeamsDelegatedAccessToken(userId: string) {
         client_id: clientId,
         client_secret: clientSecret,
         grant_type: "refresh_token",
-        refresh_token: grant.refreshToken,
+        refresh_token: refreshToken,
         scope: TEAMS_DELEGATED_SCOPE,
       }),
       cache: "no-store",

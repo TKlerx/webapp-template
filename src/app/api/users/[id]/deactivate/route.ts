@@ -6,7 +6,7 @@ import {
 } from "../../../../../../generated/prisma/enums";
 
 export async function PATCH(
-  _: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   return updateManagedUserStatus(params, UserStatus.INACTIVE, {
@@ -23,5 +23,5 @@ export async function PATCH(
         },
       });
     },
-  });
+  }, request);
 }

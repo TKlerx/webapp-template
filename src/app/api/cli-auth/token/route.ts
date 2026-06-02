@@ -2,8 +2,33 @@ import { jsonError } from "@/lib/http";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { cleanupExpiredCodes, exchangeAuthCode } from "@/services/api/cli-auth";
 
+function getTokenRateLimitKey(request: Request, code?: string, state?: string) {
+  const clientIp = getClientIp(request);
+  if (clientIp !== "unknown") {
+    return `ip:${clientIp}`;
+  }
+
+  if (code?.trim()) {
+    return `code:${code.trim().slice(0, 128)}`;
+  }
+
+  if (state?.trim()) {
+    return `state:${state.trim().slice(0, 128)}`;
+  }
+
+  return "request:missing-code-state";
+}
+
 export async function POST(request: Request) {
-  const rateLimit = checkRateLimit(getClientIp(request), "cli-auth-token");
+  const body = (await request.json().catch(() => ({}))) as {
+    code?: string;
+    state?: string;
+  };
+
+  const rateLimit = checkRateLimit(
+    getTokenRateLimitKey(request, body.code, body.state),
+    "cli-auth-token",
+  );
   if (!rateLimit.allowed) {
     const response = jsonError(
       "Too many attempts. Please try again later.",
@@ -16,10 +41,6 @@ export async function POST(request: Request) {
     return response;
   }
 
-  const body = (await request.json().catch(() => ({}))) as {
-    code?: string;
-    state?: string;
-  };
   if (!body.code || !body.state) {
     return jsonError("code and state are required", 400);
   }

@@ -1064,6 +1064,18 @@ if ($Phase -in "all", "full", "quality", "commit") {
 }
 
 if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "Runtime credential validation"
+    try {
+        $exitCode = Invoke-NativeCommand "pnpm run validate:runtime-credentials"
+        if ($exitCode -ne 0) { throw "runtime credential validation failed" }
+        Write-Pass "runtime credential validation passed"
+    } catch {
+        Write-Fail "runtime credential validation failed"
+        $failures += "runtime-credentials"
+    }
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
     Test-Utf8Encoding
 }
 

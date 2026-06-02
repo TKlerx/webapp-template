@@ -79,6 +79,8 @@
     "userDeactivated": "Benutzer deaktiviert",
     "userReactivated": "Benutzer reaktiviert",
     "roleUpdated": "Rolle aktualisiert auf {role}",
+    "lastAdminDeactivateError": "Der letzte Admin-Benutzer kann nicht deaktiviert werden",
+    "lastAdminRoleError": "Die Rolle des letzten Admin-Benutzers kann nicht geandert werden",
     "couldNotUpdate": "Benutzer konnte nicht aktualisiert werden",
     "roles": {
       "PLATFORM_ADMIN": "Plattform-Admin",
@@ -105,6 +107,7 @@
     "filters": "Filter",
     "exportCsv": "CSV exportieren",
     "exportPdf": "PDF exportieren",
+    "exportTruncated": "Export auf {count} Eintrage begrenzt. Bitte Filter weiter einschranken.",
     "empty": "Keine Audit-Eintrage fur diese Filter."
   },
   "backgroundJobs": {
@@ -257,7 +260,10 @@
     "successTitle": "Browser login approved",
     "errorTitle": "CLI login failed",
     "redirecting": "Returning to your CLI callback now...",
-    "errorMessage": "This CLI login request is missing or has already expired."
+    "errorMessage": "This CLI login request is missing or has already expired.",
+    "confirmTitle": "Approve CLI login",
+    "confirmMessage": "Approve the CLI login request from {callback}.",
+    "approve": "Approve login"
   },
   "teams": {
     "eyebrow": "Teams Ops",

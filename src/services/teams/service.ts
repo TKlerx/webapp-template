@@ -2,7 +2,6 @@ import { prisma } from "@/lib/db";
 import { NotificationEventType } from "../../../generated/prisma/enums";
 import { createGraphTeamsClient } from "@/lib/teams/client";
 import { getOrCreateTeamsConfig } from "@/services/teams/admin";
-import { getFreshTeamsDelegatedAccessToken } from "@/services/teams/consent";
 
 const MAX_TEAMS_CONTENT_BYTES = 28 * 1024;
 const DELIVERY_JOB_TYPE = "teams_message_delivery";
@@ -43,10 +42,6 @@ export async function queueTeamsMessages(input: QueueTeamsInput) {
 
   const content = buildTeamsContent(input.eventType, input.payload);
   const prepared = truncateUtf8(content, MAX_TEAMS_CONTENT_BYTES);
-  const delegatedAccessToken = await getFreshTeamsDelegatedAccessToken(
-    input.actorId,
-  );
-
   await prisma.$transaction(async (tx) => {
     for (const target of targets) {
       const outbound = await tx.teamsOutboundMessage.create({
@@ -70,7 +65,6 @@ export async function queueTeamsMessages(input: QueueTeamsInput) {
             channelId: target.channelId,
             content: outbound.content,
             contentType: outbound.contentType,
-            delegatedAccessToken,
           }),
           createdByUserId: input.actorId,
         },

@@ -26,6 +26,22 @@ describe("logger", () => {
     expect(payload).toContain('"password":"[REDACTED]"');
   });
 
+  it("redacts normalized token key variants", () => {
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+    const testLogger = createLogger({ level: "info" });
+
+    testLogger.info("token.event", {
+      access_token: "abc",
+      tokenValue: "def",
+      session_token: "ghi",
+    });
+
+    const payload = String(infoSpy.mock.calls[0][0]);
+    expect(payload).toContain('"access_token":"[REDACTED]"');
+    expect(payload).toContain('"tokenValue":"[REDACTED]"');
+    expect(payload).toContain('"session_token":"[REDACTED]"');
+  });
+
   it("filters logs below the configured level", () => {
     const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});

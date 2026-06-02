@@ -16,21 +16,25 @@ export async function GET(request: Request) {
   }
 
   if (parsedRequest.format === "csv") {
-    const buffer = await exportToCSV(parsedRequest.filters);
-    return new Response(buffer, {
+    const result = await exportToCSV(parsedRequest.filters);
+    return new Response(result.buffer, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": 'attachment; filename="audit-trail.csv"',
+        "X-Audit-Export-Truncated": result.truncated ? "1" : "0",
+        "X-Audit-Export-Count": String(result.exportedCount),
       },
     });
   }
 
   if (parsedRequest.format === "pdf") {
-    const buffer = await exportToPDF(parsedRequest.filters);
-    return new Response(buffer, {
+    const result = await exportToPDF(parsedRequest.filters);
+    return new Response(result.buffer, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": 'attachment; filename="audit-trail.pdf"',
+        "X-Audit-Export-Truncated": result.truncated ? "1" : "0",
+        "X-Audit-Export-Count": String(result.exportedCount),
       },
     });
   }

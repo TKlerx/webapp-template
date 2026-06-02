@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifyPassword } from "@/lib/auth";
 import { safeLogAudit } from "@/lib/audit";
 import { auth } from "@/lib/better-auth";
 import { prisma } from "@/lib/db";
@@ -11,6 +12,9 @@ import {
   UserStatus,
 } from "../../../../../generated/prisma/enums";
 
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$y2Qs9vpYONDfvCzuE8RFJOe9a9BH64nv61TPNm3xrdTNB7/SwXKoe";
+
 function getSafeRedirectTarget(redirectTo?: string) {
   if (!redirectTo?.startsWith("/") || redirectTo.startsWith("//")) {
     return null;
@@ -20,19 +24,6 @@ function getSafeRedirectTarget(redirectTo?: string) {
 }
 
 export async function POST(request: Request) {
-  const rateLimit = checkRateLimit(getClientIp(request), "login");
-  if (!rateLimit.allowed) {
-    const response = jsonError(
-      "Too many login attempts. Please try again later.",
-      429,
-    );
-    response.headers.set(
-      "Retry-After",
-      Math.ceil(rateLimit.retryAfterMs / 1000).toString(),
-    );
-    return response;
-  }
-
   const body = (await request.json()) as {
     email?: string;
     password?: string;
@@ -44,6 +35,21 @@ export async function POST(request: Request) {
   }
 
   const email = body.email.toLowerCase();
+  const clientIp = getClientIp(request);
+  const loginBucketKey =
+    clientIp === "unknown" ? `email:${email}` : `ip:${clientIp}`;
+  const rateLimit = checkRateLimit(loginBucketKey, "login");
+  if (!rateLimit.allowed) {
+    const response = jsonError(
+      "Too many login attempts. Please try again later.",
+      429,
+    );
+    response.headers.set(
+      "Retry-After",
+      Math.ceil(rateLimit.retryAfterMs / 1000).toString(),
+    );
+    return response;
+  }
 
   const accountLimit = checkRateLimit(email, "login-account", {
     maxAttempts: 10,
@@ -63,8 +69,21 @@ export async function POST(request: Request) {
   const user = await prisma.user.findUnique({
     where: { email },
   });
+  const credentialAccount = await prisma.account.findUnique({
+    where: {
+      providerId_accountId: {
+        providerId: "credential",
+        accountId: email,
+      },
+    },
+    select: {
+      password: true,
+    },
+  });
+  const passwordHash = credentialAccount?.password ?? DUMMY_PASSWORD_HASH;
+  const validPassword = await verifyPassword(body.password, passwordHash);
 
-  if (!user) {
+  if (!user || !credentialAccount?.password || !validPassword) {
     return jsonError("Invalid email or password", 401);
   }
 
@@ -78,10 +97,7 @@ export async function POST(request: Request) {
         reason: "inactive_account",
       },
     });
-    return jsonError(
-      "Your account has been deactivated. Contact an administrator.",
-      403,
-    );
+    return jsonError("Invalid email or password", 401);
   }
 
   const authResponse = await auth.api.signInEmail({

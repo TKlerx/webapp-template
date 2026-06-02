@@ -1,0 +1,9 @@
+[
+  "src/app/api/auth/login/route.ts",
+  "src/app/api/health/route.ts",
+  "src/lib/monitoring.ts",
+  "src/services/notifications/inbound.ts",
+  "src/lib/rate-limit.ts",
+  "src/app/api/audit/route.ts",
+  "src/app/(dashboard)/background-jobs/page.tsx"
+]

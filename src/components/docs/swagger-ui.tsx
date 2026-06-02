@@ -16,7 +16,7 @@ export function SwaggerUi() {
       const link = document.createElement("link");
       link.id = stylesheetId;
       link.rel = "stylesheet";
-      link.href = "https://unpkg.com/swagger-ui-dist@5/swagger-ui.css";
+      link.href = withBasePath("/vendor/swagger-ui/swagger-ui.css");
       document.head.appendChild(link);
     }
 
@@ -43,7 +43,7 @@ export function SwaggerUi() {
 
     const script = document.createElement("script");
     script.id = "swagger-ui-script";
-    script.src = "https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js";
+    script.src = withBasePath("/vendor/swagger-ui/swagger-ui-bundle.js");
     script.async = true;
     script.addEventListener("load", mountSwagger, { once: true });
     document.body.appendChild(script);

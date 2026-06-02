@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
+import { Prisma } from "../../../generated/prisma/client";
 import {
   TokenStatus,
   TokenType,
@@ -13,6 +14,7 @@ const DEFAULT_CLI_EXPIRY_DAYS = 30;
 const DEFAULT_PAT_LIMIT = 10;
 const RECENTLY_VISIBLE_WINDOW_DAYS = 90;
 const TOKEN_SEGMENT_LENGTH = 8;
+const SERIALIZABLE_RETRY_LIMIT = 3;
 
 function readPositiveInteger(value: string | undefined, fallback: number) {
   const parsed = Number.parseInt(value ?? "", 10);
@@ -142,22 +144,49 @@ export async function createToken(
     return { error: jsonError("A token with this name already exists", 409) };
   }
 
-  const activeCount = await countActiveTokens(userId);
-  if (activeCount >= getMaxActiveTokensPerUser()) {
-    return { error: jsonError("You have reached the active token limit", 429) };
-  }
-
   const tokenValue = generateToken();
-  const created = await prisma.personalAccessToken.create({
-    data: {
-      userId,
-      name: normalizedName,
-      tokenHash: hashToken(tokenValue),
-      tokenPrefix: getTokenDisplayPrefix(tokenValue),
-      type,
-      expiresAt: buildExpiryDate(expiresInDays),
-    },
-  });
+  const tokenHash = hashToken(tokenValue);
+  const tokenPrefix = getTokenDisplayPrefix(tokenValue);
+
+  let created;
+  try {
+    created = await withSerializableRetry(async () => {
+      return prisma.$transaction(
+        async (tx) => {
+          const activeCount = await tx.personalAccessToken.count({
+            where: {
+              userId,
+              status: TokenStatus.ACTIVE,
+              expiresAt: {
+                gt: new Date(),
+              },
+            },
+          });
+
+          if (activeCount >= getMaxActiveTokensPerUser()) {
+            throw jsonError("You have reached the active token limit", 429);
+          }
+
+          return tx.personalAccessToken.create({
+            data: {
+              userId,
+              name: normalizedName,
+              tokenHash,
+              tokenPrefix,
+              type,
+              expiresAt: buildExpiryDate(expiresInDays),
+            },
+          });
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    });
+  } catch (error) {
+    if (error instanceof Response) {
+      return { error };
+    }
+    throw error;
+  }
 
   return {
     token: {
@@ -170,6 +199,40 @@ export async function createToken(
       createdAt: created.createdAt,
     },
   };
+}
+
+async function withSerializableRetry<T>(run: () => Promise<T>) {
+  let attempt = 0;
+  while (attempt < SERIALIZABLE_RETRY_LIMIT) {
+    try {
+      return await run();
+    } catch (error) {
+      if (error instanceof Response) {
+        throw error;
+      }
+
+      if (isSerializableConflict(error) && attempt < SERIALIZABLE_RETRY_LIMIT - 1) {
+        attempt += 1;
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Unreachable serializable retry state");
+}
+
+function isSerializableConflict(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === "P2034";
+  }
+
+  if (typeof error === "object" && error !== null && "code" in error) {
+    return (error as { code?: string }).code === "P2034";
+  }
+
+  return false;
 }
 
 export async function validateToken(tokenValue: string) {

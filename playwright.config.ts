@@ -32,6 +32,7 @@ export default defineConfig({
       BETTERAUTH_SECRET: "e2e-test-secret-not-for-production-use-only",
       E2E_TESTING: "1",
       E2E_MOCK_SSO: "1",
+      E2E_MOCK_SSO_SECRET: "e2e-mock-sso-secret",
       E2E_DISABLE_RATE_LIMIT: "1",
       AZURE_AD_CLIENT_ID: "replace-me",
       AZURE_AD_CLIENT_SECRET: "replace-me",

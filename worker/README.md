@@ -15,9 +15,10 @@ uv sync
 uv run starter-worker
 ```
 
-The worker automatically loads the shared repo-root `.env` file, so the
-same `DATABASE_URL` and related settings used by the Node app also apply
-when the worker is started from the `worker/` subdirectory.
+The worker automatically loads the shared repo-root `.env` file when started
+from the `worker/` subdirectory. Production-style runs should set
+`WORKER_DATABASE_URL`; local development can still fall back to
+`DATABASE_URL=file:./dev.db`.
 
 The worker supports both:
 
@@ -26,6 +27,7 @@ The worker supports both:
 
 ## Reliability Settings
 
+- `WORKER_DATABASE_URL` preferred worker database URL
 - `WORKER_POLL_INTERVAL_SECONDS` default: `3`
 - `WORKER_MAX_ATTEMPTS` default: `3`
 - `WORKER_RETRY_BACKOFF_SECONDS` default: `15`

@@ -22,6 +22,7 @@ ARG BASE_PATH
 ENV BASE_PATH=$BASE_PATH
 ENV AUTH_BASE_URL=http://localhost:3270
 ENV BETTER_AUTH_SECRET=docker-build-secret-change-me-at-least-32-characters
+ENV APP_DATABASE_URL=postgresql://starter:starter@localhost:5432/business_app_starter
 ENV DATABASE_URL=postgresql://starter:starter@localhost:5432/business_app_starter
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

@@ -37,7 +37,7 @@ describe("health route", () => {
       requestId: "req-123",
       checks: {
         database: { status: "ok" },
-        process: { status: "ok", uptimeSeconds: 10, nodeEnv: "test" },
+        process: { status: "ok" },
       },
     });
   });
@@ -59,7 +59,7 @@ describe("health route", () => {
     await expect(response.json()).resolves.toMatchObject({
       status: "degraded",
       checks: {
-        database: { status: "error", message: "db down" },
+        database: { status: "error" },
       },
     });
   });

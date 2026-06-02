@@ -69,6 +69,11 @@ describe("teams service", () => {
         }),
       }),
     );
+
+    const firstPayload = JSON.parse(
+      prismaMock.backgroundJob.create.mock.calls[0]?.[0]?.data?.payload ?? "{}",
+    ) as Record<string, unknown>;
+    expect(firstPayload).not.toHaveProperty("delegatedAccessToken");
   });
 
   it("truncates content above 28KB", async () => {
@@ -84,7 +89,7 @@ describe("teams service", () => {
       actorId: "admin-1",
       eventType: NotificationEventType.USER_CREATED,
       eventId: "event-1",
-      payload: { big: "x".repeat(40_000) },
+      payload: { big: "x".repeat(30_000) },
     });
 
     expect(prismaMock.teamsOutboundMessage.create).toHaveBeenCalledWith(

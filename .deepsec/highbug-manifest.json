@@ -1,0 +1,7 @@
+[
+  "src/lib/audit-export.ts",
+  "src/app/api/audit/export/route.ts",
+  "src/services/api/user-admin.ts",
+  "src/app/api/users/[id]/deactivate/route.ts",
+  "src/app/api/users/[id]/role/route.ts"
+]

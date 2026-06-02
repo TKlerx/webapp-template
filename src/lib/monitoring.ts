@@ -6,11 +6,10 @@ export async function checkDatabaseHealth() {
     return {
       status: "ok" as const,
     };
-  } catch (error) {
+  } catch {
     return {
       status: "error" as const,
-      message:
-        error instanceof Error ? error.message : "Unknown database error",
+      message: "Database health check failed",
     };
   }
 }

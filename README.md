@@ -121,9 +121,11 @@ That guide covers:
 
 - Local `pnpm run dev` uses SQLite via `DATABASE_URL=file:./dev.db`.
 - Put Docker-only PostgreSQL and initial admin values in `.env.docker` using `.env.docker.example` as the template, then start Docker with `pnpm docker up`.
+- Production-style Docker uses separate database URL names by runtime: `APP_DATABASE_URL`, `WORKER_DATABASE_URL`, and `MIGRATION_DATABASE_URL`.
 - Docker services receive explicit allowlisted environment variables; the Postgres container only receives `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`.
 - `pnpm docker build app migrate worker` builds the production app, migration, and worker images.
 - `pnpm docker up -d worker` starts the Python background worker against the same Postgres database.
+- Review [`docs/runtime-credentials.md`](./docs/runtime-credentials.md) before adding secrets to app, worker, or migration environments.
 
 ## Mail Integration
 

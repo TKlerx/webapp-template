@@ -73,6 +73,7 @@ paths:
     get:
       tags: [Audit]
       summary: Export audit trail
+      description: Returns bounded export data and sets `X-Audit-Export-Truncated` when results are capped.
       security:
         - bearerAuth: []
         - apiKeyAuth: []
@@ -83,6 +84,7 @@ paths:
     get:
       tags: [Background Jobs]
       summary: List background jobs visible to the current user
+      description: Sensitive payload, result, and error token-like fields are redacted in responses.
       security:
         - bearerAuth: []
         - apiKeyAuth: []
@@ -179,6 +181,13 @@ paths:
       responses:
         "302":
           description: Redirect to login
+  /api/cli-auth/approve:
+    post:
+      tags: [CLI Auth]
+      summary: Approve a CLI browser login request
+      responses:
+        "302":
+          description: Redirect to the local CLI callback
   /api/cli-auth/token:
     post:
       tags: [CLI Auth]

@@ -58,8 +58,9 @@ type ManagedUserResult =
 
 export async function requireManagedUser(
   params: RouteParams,
+  request?: Request,
 ): Promise<ManagedUserResult> {
-  return requireManagedUserContext(params);
+  return requireManagedUserContext(params, request);
 }
 
 export async function ensureAdminUserCanChange(
@@ -87,6 +88,7 @@ export async function updateManagedUserStatus(
       nextStatus: UserStatus;
     }) => Promise<void>;
   },
+  request?: Request,
 ) {
-  return updateManagedUserStatusInService(params, nextStatus, options);
+  return updateManagedUserStatusInService(params, nextStatus, options, request);
 }
