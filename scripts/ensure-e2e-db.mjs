@@ -109,6 +109,8 @@ function waitForPostgres() {
         "exec",
         containerName,
         "pg_isready",
+        "-h",
+        "127.0.0.1",
         "-U",
         postgresUser,
         "-d",
@@ -145,17 +147,7 @@ function ensureTargetDatabase() {
     return;
   }
 
-  runNativeStep("Create PostgreSQL E2E database", "docker", [
-    "exec",
-    containerName,
-    "psql",
-    "-U",
-    postgresUser,
-    "-d",
-    "postgres",
-    "-c",
-    `CREATE DATABASE ${quoteSqlIdentifier(postgresDb)} OWNER ${quoteSqlIdentifier(postgresUser)}`,
-  ]);
+  createTargetDatabase();
 }
 
 function runStep(label, commandLine, envOverrides = {}) {
@@ -199,6 +191,45 @@ function runNativeCaptured(command, args) {
   }
 
   return result.stdout ?? "";
+}
+
+function createTargetDatabase() {
+  console.log("> Create PostgreSQL E2E database");
+  const result = spawnSync(
+    "docker",
+    [
+      "exec",
+      containerName,
+      "psql",
+      "-U",
+      postgresUser,
+      "-d",
+      "postgres",
+      "-c",
+      `CREATE DATABASE ${quoteSqlIdentifier(postgresDb)} OWNER ${quoteSqlIdentifier(postgresUser)}`,
+    ],
+    {
+      encoding: "utf8",
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+
+  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+  if ((result.status ?? 1) === 0) {
+    process.stdout.write(result.stdout ?? "");
+    process.stderr.write(result.stderr ?? "");
+    return;
+  }
+
+  if (/already exists/i.test(output)) {
+    console.log(`Database ${postgresDb} already exists.`);
+    return;
+  }
+
+  process.stdout.write(result.stdout ?? "");
+  process.stderr.write(result.stderr ?? "");
+  process.exit(result.status ?? 1);
 }
 
 function quoteSqlIdentifier(value) {

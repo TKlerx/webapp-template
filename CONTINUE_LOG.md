@@ -1223,3 +1223,15 @@
 - This keeps Playwright reset/seed data isolated at the database boundary; manual exploratory testing should use a separate database such as `business_app_starter_manual` in the same container.
 - Kept Prisma Postgres adapter `{ schema }` support in app runtime and seed runtime for explicit schema URLs.
 - Validation passed with `node scripts/ensure-e2e-db.mjs`, direct schema row-count check, `pnpm run test:e2e`, `pnpm run typecheck`, `pnpm run lint`, and targeted Prettier check.
+
+## 2026-06-04 22:10:00 +02:00
+
+- Investigated failed GitHub Actions run `26976072944` for commit `d5f7f0b`.
+- Root cause: on a fresh CI Postgres container, `pg_isready` observed the temporary bootstrap Unix-socket server before the final TCP server was ready, while the entrypoint was also creating `POSTGRES_DB`.
+- Fixed `scripts/ensure-e2e-db.mjs` to wait on TCP `127.0.0.1` and treat the entrypoint race's `database already exists` response as success.
+- Validation passed:
+  - `docker rm -f webapp-template-e2e-postgres; node scripts/ensure-e2e-db.mjs`
+  - `pnpm run test:e2e`
+  - `pnpm run typecheck`
+  - `pnpm run lint`
+  - `pnpm exec prettier --check scripts/ensure-e2e-db.mjs`

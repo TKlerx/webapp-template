@@ -32,6 +32,7 @@
   - default URL: `postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e_test`
 - The E2E default intentionally uses its own database; manual exploratory data should live in a separate database such as `business_app_starter_manual` in the same local Postgres container.
 - Added `scripts/ensure-e2e-db.mjs` to create/start the E2E Postgres container, wait for readiness, generate the Postgres Prisma client, reset migrations, and seed the initial admin.
+- Fixed CI fresh-container provisioning by waiting for the final Postgres TCP listener instead of the temporary bootstrap Unix socket; database creation now treats the entrypoint race's "already exists" response as success.
 - Preserved explicit SQLite fallback when `DATABASE_URL` starts with `file:`.
 - Disabled implicit Playwright app-server reuse for default E2E runs; set `E2E_REUSE_SERVER=1` only for intentional reuse without schema resets.
 - Added transient Postgres connection retry handling around the E2E DB worker helper.
@@ -41,6 +42,7 @@
 ## Validation
 
 - `node scripts/ensure-e2e-db.mjs` -> pass; resets and seeds the dedicated `business_app_starter_e2e_test` database.
+- Fresh-container repro `docker rm -f webapp-template-e2e-postgres; node scripts/ensure-e2e-db.mjs` -> pass.
 - `pnpm run test:e2e` -> pass (`17` passed, `1` skipped) against the dedicated Postgres E2E database.
 - `pnpm run typecheck` -> pass.
 - `pnpm run lint` -> pass.
