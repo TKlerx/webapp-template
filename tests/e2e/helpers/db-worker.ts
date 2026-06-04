@@ -16,7 +16,6 @@ type Operation =
   | "seedSsoUser"
   | "findUserByEmail"
   | "updateUserStatus"
-  | "deactivateOtherPlatformAdmins"
   | "assignUserToScope"
   | "addAuditEntryFixture"
   | "seedBackgroundJob"
@@ -174,25 +173,6 @@ async function main() {
       await prisma.user.update({
         where: { email: normalizeEmail(email) },
         data: { status },
-      });
-
-      process.stdout.write("null");
-      break;
-    }
-
-    case "deactivateOtherPlatformAdmins": {
-      const { exceptEmail } = await readJson<{ exceptEmail: string }>();
-      await prisma.user.updateMany({
-        where: {
-          email: {
-            not: normalizeEmail(exceptEmail),
-          },
-          role: Role.PLATFORM_ADMIN,
-          status: UserStatus.ACTIVE,
-        },
-        data: {
-          status: UserStatus.INACTIVE,
-        },
       });
 
       process.stdout.write("null");

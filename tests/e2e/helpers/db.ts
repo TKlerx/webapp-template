@@ -78,13 +78,6 @@ export function updateUserStatus(email: string, status: UserStatus) {
   );
 }
 
-export function deactivateOtherPlatformAdmins(exceptEmail: string) {
-  return runDbWorker<{ exceptEmail: string }, null>(
-    "deactivateOtherPlatformAdmins",
-    { exceptEmail },
-  );
-}
-
 export function assignUserToScope(
   email: string,
   scope: { code: string; name: string },
