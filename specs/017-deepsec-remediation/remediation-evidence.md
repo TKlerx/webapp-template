@@ -341,3 +341,15 @@ Remaining unresolved findings after the 2026-06-01 closure pass were explicitly 
 | File                   | Severity | Disposition   | Owner            | Review Date | Notes                                                                              |
 | ---------------------- | -------- | ------------- | ---------------- | ----------- | ---------------------------------------------------------------------------------- |
 | `playwright.config.ts` | MEDIUM   | accepted-risk | tklerx@paiqo.com | 2026-06-15  | Static credentials are test-only for E2E runtime and not used in production paths. |
+
+## Post-Merge Postgres E2E Default Validation (2026-06-04)
+
+- Switched Playwright E2E defaults from SQLite to a local Postgres container at `localhost:55432`.
+- Preserved an explicit SQLite fallback via `DATABASE_URL=file:...`.
+- Disabled implicit app server reuse during E2E runs so schema resets do not leave stale Prisma/Postgres connections in a reused Next.js process.
+- Validation:
+  - `pnpm run test:e2e` -> pass (`17` tests, `1` skipped) against Postgres.
+  - `pnpm run typecheck` -> pass.
+  - `pnpm run lint` -> pass.
+  - `pnpm exec prettier --check playwright.config.ts tests/e2e/global.setup.ts tests/e2e/global.teardown.ts tests/e2e/helpers/db.ts scripts/ensure-e2e-db.mjs` -> pass.
+  - `pnpm exec prettier --check .` -> fail on broad pre-existing formatting debt outside this slice.

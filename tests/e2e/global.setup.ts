@@ -1,21 +1,18 @@
-import fs from "node:fs";
 import { spawnSync } from "node:child_process";
+
+const defaultE2eDatabaseUrl =
+  "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=public";
 
 export default async function globalSetup() {
   const env = {
     ...process.env,
-    DATABASE_URL: process.env.DATABASE_URL ?? "file:./e2e.db",
+    DATABASE_URL: process.env.DATABASE_URL ?? defaultE2eDatabaseUrl,
     INITIAL_ADMIN_EMAIL: process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
     INITIAL_ADMIN_PASSWORD:
       process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
   };
 
-  const databasePath = env.DATABASE_URL.replace(/^file:/, "");
-  if (databasePath && fs.existsSync(databasePath)) {
-    fs.rmSync(databasePath, { force: true });
-  }
-
-  const result = spawnSync(process.execPath, ["scripts/ensure-local-db.mjs"], {
+  const result = spawnSync(process.execPath, ["scripts/ensure-e2e-db.mjs"], {
     stdio: "inherit",
     env,
   });

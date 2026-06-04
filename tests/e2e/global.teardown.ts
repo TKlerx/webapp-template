@@ -1,5 +1,7 @@
 export default async function globalTeardown() {
-  const databaseUrl = process.env.DATABASE_URL ?? "file:./e2e.db";
+  const databaseUrl =
+    process.env.DATABASE_URL ??
+    "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=public";
   if (!databaseUrl.startsWith("file:")) {
     return;
   }

@@ -325,3 +325,10 @@ After Phase 1 is validated, use `phase-2-findings.md` and the refreshed export t
 - Keep tasks checked only when code, tests, and evidence for that task are complete.
 - Do not mark a scanner finding fixed unless local tests and refreshed DeepSec evidence support it or accepted risk is documented.
 - Avoid broad refactors outside the files listed in this task plan.
+
+## Post-Merge Postgres E2E Default Hardening
+
+- [x] T096 Add Postgres-first E2E database provisioning in `scripts/ensure-e2e-db.mjs`.
+- [x] T097 Update Playwright global setup, teardown, and DB helpers to default to the Postgres E2E database while preserving explicit SQLite fallback.
+- [x] T098 Disable implicit Playwright web server reuse for database-resetting E2E runs, with `E2E_REUSE_SERVER=1` as an explicit opt-in.
+- [x] T099 Run the full Playwright suite against the default Postgres E2E path and record validation evidence.

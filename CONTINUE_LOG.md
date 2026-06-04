@@ -1202,3 +1202,17 @@
 - Validation passed:
   - `pnpm exec playwright test tests/e2e/users/user-management.spec.ts`
   - `pnpm run typecheck`
+
+## 2026-06-04 17:34:45 +02:00
+
+- Switched Playwright E2E defaults from SQLite to local Postgres.
+- Added `scripts/ensure-e2e-db.mjs` to create/start `webapp-template-e2e-postgres`, wait for readiness, reset migrations, generate the Postgres Prisma client, and seed the admin user.
+- Updated Playwright setup/teardown and DB worker helpers to use the Postgres URL by default while preserving explicit `file:` SQLite fallback.
+- Disabled implicit Playwright web server reuse during E2E runs; `E2E_REUSE_SERVER=1` is now the explicit opt-in.
+- Updated README and `specs/017-deepsec-remediation` tasks/evidence for the Postgres E2E default.
+- Validation passed:
+  - `pnpm run test:e2e` (`17` passed, `1` skipped) against Postgres.
+  - `pnpm run typecheck`
+  - `pnpm run lint`
+  - `pnpm exec prettier --check playwright.config.ts tests/e2e/global.setup.ts tests/e2e/global.teardown.ts tests/e2e/helpers/db.ts scripts/ensure-e2e-db.mjs`
+- Repo-wide `pnpm exec prettier --check .` still fails on broad pre-existing formatting debt outside this slice.

@@ -3,12 +3,18 @@ import { defineConfig } from "@playwright/test";
 const port = Number(process.env.E2E_PORT ?? "3280");
 const normalizedBasePath = process.env.E2E_BASE_PATH ?? "/app-starter";
 const authBaseUrl = `http://localhost:${port}${normalizedBasePath}`;
+const databaseUrl =
+  process.env.DATABASE_URL ??
+  "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=public";
+const reuseExistingServer = process.env.E2E_REUSE_SERVER === "1";
 
 process.env.E2E_PORT = String(port);
 process.env.E2E_BASE_PATH = normalizedBasePath;
+process.env.DATABASE_URL = databaseUrl;
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  timeout: 60_000,
   workers: 1,
   globalSetup: "./tests/e2e/global.setup.ts",
   globalTeardown: "./tests/e2e/global.teardown.ts",
@@ -17,12 +23,13 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "pnpm run build && pnpm run start",
+    command:
+      "pnpm run prisma:generate:postgres && pnpm run build && pnpm run start",
     env: {
       ...process.env,
       PORT: String(port),
       BASE_PATH: normalizedBasePath,
-      DATABASE_URL: process.env.DATABASE_URL ?? "file:./e2e.db",
+      DATABASE_URL: databaseUrl,
       AUTH_BASE_URL: process.env.AUTH_BASE_URL ?? authBaseUrl,
       E2E_BASE_PATH: normalizedBasePath,
       INITIAL_ADMIN_EMAIL:
@@ -40,6 +47,6 @@ export default defineConfig({
     },
     port,
     timeout: 240 * 1000,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer,
   },
 });

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { execFileSync } from "node:child_process";
+import { execFileSync, type ExecFileSyncOptions } from "node:child_process";
 import {
   AuditAction,
   AuthMethod,
@@ -23,21 +23,65 @@ function runDbWorker<TInput, TResult>(
   operation: string,
   payload: TInput,
 ): TResult {
-  const output = execFileSync(
-    process.execPath,
-    ["--import", "tsx", "tests/e2e/helpers/db-worker.ts", operation],
-    {
-      cwd: process.cwd(),
-      env: {
-        ...process.env,
-        DATABASE_URL: "file:./e2e.db",
-      },
-      encoding: "utf8",
-      input: JSON.stringify(payload),
-    },
-  ).trim();
+  const databaseUrl =
+    process.env.DATABASE_URL ??
+    "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=public";
+  const output = runDbWorkerWithRetry(operation, payload, databaseUrl).trim();
 
   return output ? (JSON.parse(output) as TResult) : (null as TResult);
+}
+
+function runDbWorkerWithRetry<TInput>(
+  operation: string,
+  payload: TInput,
+  databaseUrl: string,
+) {
+  const options = {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      DATABASE_URL: databaseUrl,
+    },
+    encoding: "utf8",
+    input: JSON.stringify(payload),
+    stdio: ["pipe", "pipe", "pipe"],
+  } satisfies ExecFileSyncOptions;
+
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return execFileSync(
+        process.execPath,
+        ["--import", "tsx", "tests/e2e/helpers/db-worker.ts", operation],
+        options,
+      ) as string;
+    } catch (error) {
+      lastError = error;
+      if (!isRetryableDatabaseWorkerError(error) || attempt === 3) {
+        throw error;
+      }
+      Atomics.wait(
+        new Int32Array(new SharedArrayBuffer(4)),
+        0,
+        0,
+        250 * attempt,
+      );
+    }
+  }
+
+  throw lastError;
+}
+
+function isRetryableDatabaseWorkerError(error: unknown) {
+  const candidate = error as { stderr?: Buffer | string; message?: string };
+  const stderr = Buffer.isBuffer(candidate.stderr)
+    ? candidate.stderr.toString("utf8")
+    : (candidate.stderr ?? "");
+  const message = candidate.message ?? "";
+
+  return /P1017|ConnectionClosed|Server has closed the connection/i.test(
+    `${stderr}\n${message}`,
+  );
 }
 
 export function seedLocalUser(user: LocalUserSeed) {
