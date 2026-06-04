@@ -110,9 +110,9 @@ Heavier validation:
 
 ## Dependency Safety Gates
 
-### npm
+### pnpm
 
-- must support `--min-release-age`
+- must honor `min-release-age`
 - repo config requires `min-release-age=7`
 
 ### uv

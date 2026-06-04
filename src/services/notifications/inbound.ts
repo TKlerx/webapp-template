@@ -22,6 +22,7 @@ type ReferenceSource = {
 
 type InboundRecordLike = {
   id: string;
+  providerMessageId?: string | null;
   subject: string;
   bodyPreview: string | null;
   bodyText: string | null;
@@ -121,11 +122,70 @@ export async function processInboundEmailRecord(inbound: InboundRecordLike) {
     senderEmail: inbound.senderEmail,
     subject: inbound.subject,
   });
+  const providerCorrelationCandidates = [
+    inbound.inReplyTo,
+    ...referenceIds,
+  ].flatMap((value) =>
+    typeof value === "string" && value.trim() ? [value.trim()] : [],
+  );
 
-  if (isBounce && notificationId) {
+  if (isBounce) {
+    const messageIdCandidates = getProviderMessageIdCandidates(
+      providerCorrelationCandidates,
+    );
+    const notification = messageIdCandidates.length
+      ? await prisma.notification.findFirst({
+          where: {
+            providerMessageId: {
+              in: messageIdCandidates,
+            },
+          },
+          select: {
+            id: true,
+            providerMessageId: true,
+          },
+        })
+      : null;
+
+    if (!notification?.providerMessageId) {
+      await prisma.inboundEmail.update({
+        where: { id: inbound.id },
+        data: {
+          processingStatus: InboundEmailStatus.IGNORED,
+          processingNotes:
+            "Bounce-like message lacked verified provider-message correlation.",
+        },
+      });
+
+      return {
+        processingStatus: InboundEmailStatus.IGNORED,
+        correlatedNotificationId: null,
+        linkedEntityType: null,
+        linkedEntityId: null,
+      };
+    }
+
+    if (notificationId && notification.id !== notificationId) {
+      await prisma.inboundEmail.update({
+        where: { id: inbound.id },
+        data: {
+          processingStatus: InboundEmailStatus.IGNORED,
+          processingNotes:
+            "Bounce-like message content disagreed with provider-message correlation.",
+        },
+      });
+
+      return {
+        processingStatus: InboundEmailStatus.IGNORED,
+        correlatedNotificationId: null,
+        linkedEntityType: null,
+        linkedEntityId: null,
+      };
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.notification.update({
-        where: { id: notificationId },
+        where: { id: notification.id },
         data: {
           status: NotificationStatus.BOUNCED,
           lastError: `Bounce/NDR received for inbound email ${inbound.id}`,
@@ -138,14 +198,14 @@ export async function processInboundEmailRecord(inbound: InboundRecordLike) {
           processingStatus: InboundEmailStatus.PROCESSED,
           processingNotes:
             "Bounce correlated to notification delivery reference.",
-          correlatedNotificationId: notificationId,
+          correlatedNotificationId: notification.id,
         },
       });
     });
 
     return {
       processingStatus: InboundEmailStatus.PROCESSED,
-      correlatedNotificationId: notificationId,
+      correlatedNotificationId: notification.id,
       linkedEntityType: null,
       linkedEntityId: null,
     };
@@ -186,6 +246,30 @@ export async function processInboundEmailRecord(inbound: InboundRecordLike) {
     linkedEntityType: null,
     linkedEntityId: null,
   };
+}
+
+function normalizeMessageId(value: string) {
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed.startsWith("<") && trimmed.endsWith(">")) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+}
+
+function getProviderMessageIdCandidates(values: string[]) {
+  const candidates = new Set<string>();
+  for (const value of values) {
+    const normalized = normalizeMessageId(value);
+    if (!normalized) {
+      continue;
+    }
+
+    candidates.add(normalized);
+    candidates.add(`<${normalized}>`);
+  }
+
+  return [...candidates];
 }
 
 function collectReferenceCandidates(source: ReferenceSource) {

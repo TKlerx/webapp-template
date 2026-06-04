@@ -42,6 +42,9 @@ describe("token API integration", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-10T12:00:00.000Z"));
+    prismaMock.$transaction.mockImplementation(async (callback) =>
+      callback(prismaMock),
+    );
     process.env.PAT_TOKEN_PREFIX = "starter_pat";
     process.env.PAT_MAX_ACTIVE_PER_USER = "10";
     process.env.PAT_DEFAULT_EXPIRY_DAYS = "90";

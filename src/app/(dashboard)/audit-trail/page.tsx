@@ -13,11 +13,11 @@ export default async function AuditTrailPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm uppercase tracking-[0.2em] opacity-45">
+      <div className="max-w-3xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
           {t("title")}
         </p>
-        <h1 className="mt-3 text-2xl font-semibold sm:text-4xl">
+        <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
           {t("title")}
         </h1>
       </div>

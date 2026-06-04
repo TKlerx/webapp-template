@@ -7,6 +7,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   basePath,
+  output: "standalone",
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },

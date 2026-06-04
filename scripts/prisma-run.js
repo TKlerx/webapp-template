@@ -2,6 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const { spawnSync } = require("child_process");
 const dotenv = require("dotenv");
+const { computeExitCode } = require("./prisma-run-lib");
 
 const root = path.resolve(__dirname, "..");
 const envLocal = path.join(root, ".env.local");
@@ -19,11 +20,24 @@ if (args.length === 0) {
   process.exit(1);
 }
 
-const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
+const localPrismaCommand = path.join(
+  root,
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "prisma.cmd" : "prisma",
+);
+const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const hasLocalPrisma = fs.existsSync(localPrismaCommand);
+const command = hasLocalPrisma ? localPrismaCommand : pnpmCommand;
+const commandArgs = hasLocalPrisma ? args : ["exec", "prisma", ...args];
 
-const result = spawnSync(npxCommand, ["prisma", ...args], {
+const result = spawnSync(command, commandArgs, {
   stdio: "inherit",
   env: process.env,
 });
 
-process.exit(result.status ?? 0);
+if (result.error) {
+  console.error(result.error.message);
+}
+
+process.exit(computeExitCode(result));

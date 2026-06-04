@@ -6,6 +6,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import prettier from "prettier";
 
 const repoRoot = process.cwd();
 const specsDir = path.join(repoRoot, "specs");
@@ -253,7 +254,11 @@ function buildOverview(features) {
 }
 
 const features = listFeatureDirs().map(summarizeFeature);
-const nextOverview = buildOverview(features);
+const prettierOptions = (await prettier.resolveConfig(overviewPath)) ?? {};
+const nextOverview = await prettier.format(buildOverview(features), {
+  ...prettierOptions,
+  parser: "markdown",
+});
 const previousOverview = readIfExists(overviewPath);
 
 if (checkOnly) {

@@ -8,6 +8,10 @@ export async function GET(request: Request) {
   ]);
 
   const status = database.status === "ok" ? 200 : 503;
+  const databaseCheck =
+    database.status === "ok"
+      ? { status: "ok" as const }
+      : { status: "error" as const };
 
   return NextResponse.json(
     {
@@ -15,8 +19,11 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString(),
       requestId: request.headers.get("x-request-id"),
       checks: {
-        database,
-        process: processHealth,
+        database: databaseCheck,
+        process:
+          processHealth.status === "ok"
+            ? { status: "ok" as const }
+            : { status: "error" as const },
       },
     },
     { status },

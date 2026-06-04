@@ -4,6 +4,15 @@ import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Role } from "../../../../generated/prisma/enums";
 
+const SENSITIVE_JOB_KEYS = new Set([
+  "delegatedAccessToken",
+  "accessToken",
+  "refreshToken",
+  "authorization",
+  "token",
+  "apiKey",
+]);
+
 export default async function BackgroundJobsPage() {
   const user = await requireSession();
   const t = await getTranslations("backgroundJobs");
@@ -33,23 +42,25 @@ export default async function BackgroundJobsPage() {
   };
 
   return (
-    <div>
-      <p className="text-sm uppercase tracking-[0.2em] opacity-45">
-        {t("eyebrow")}
-      </p>
-      <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-7">
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,0.45fr)] lg:items-end">
         <div>
-          <h1 className="text-2xl font-semibold sm:text-4xl">{t("title")}</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
+            {t("eyebrow")}
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
+            {t("title")}
+          </h1>
           <p className="mt-2 max-w-2xl text-sm opacity-70 sm:text-base">
             {t("description")}
           </p>
         </div>
-        <p className="text-sm opacity-55">
+        <p className="rounded-lg border border-[var(--border)] bg-[var(--panel)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
           {t("showingRecent", { count: jobs.length })}
         </p>
-      </div>
+      </section>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
           label={t("summary.pending")}
           value={summary.pending}
@@ -72,21 +83,23 @@ export default async function BackgroundJobsPage() {
         />
       </section>
 
-      <section className="mt-8 space-y-4">
+      <section className="space-y-3">
         {jobs.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/15 bg-[var(--panel)] p-6 text-sm opacity-70 dark:border-white/15">
+          <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--panel)] p-6 text-sm text-[var(--muted-foreground)]">
             {t("empty")}
           </div>
         ) : (
           jobs.map((job) => (
             <article
               key={job.id}
-              className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 shadow-[0_12px_30px_rgba(15,23,42,0.06)] dark:border-white/10"
+              className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 shadow-[0_18px_42px_-38px_var(--foreground)] sm:p-5"
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-lg font-semibold">{job.jobType}</h2>
+                    <h2 className="text-lg font-semibold tracking-tight">
+                      {job.jobType}
+                    </h2>
                     <StatusBadge status={job.status} />
                     {showRetryHint(job) ? (
                       <RetryBadge
@@ -97,7 +110,7 @@ export default async function BackgroundJobsPage() {
                       />
                     ) : null}
                   </div>
-                  <p className="mt-2 break-all font-mono text-xs opacity-55">
+                  <p className="mt-2 break-all font-mono text-xs text-[var(--muted-foreground)]">
                     {job.id}
                   </p>
                 </div>
@@ -132,7 +145,7 @@ export default async function BackgroundJobsPage() {
                 </dl>
               </div>
 
-              <div className="mt-4 grid gap-4 xl:grid-cols-3">
+              <div className="mt-4 grid gap-3 xl:grid-cols-3">
                 <CodeBlock
                   label={t("fields.payload")}
                   value={formatJson(job.payload)}
@@ -171,9 +184,13 @@ function SummaryCard({
   }[tone];
 
   return (
-    <article className="rounded-2xl border border-black/10 bg-[var(--panel)] p-5 dark:border-white/10">
-      <p className="text-sm uppercase tracking-[0.2em] opacity-45">{label}</p>
-      <p className={`mt-3 text-3xl font-semibold ${toneClass}`}>{value}</p>
+    <article className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
+        {label}
+      </p>
+      <p className={`mt-3 font-mono text-3xl font-semibold ${toneClass}`}>
+        {value}
+      </p>
     </article>
   );
 }
@@ -188,7 +205,9 @@ function StatusBadge({ status }: { status: string }) {
     }[status] ?? "bg-slate-500/15 text-slate-700 dark:text-slate-300";
 
   return (
-    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>
+    <span
+      className={`rounded-full border border-current/15 px-2.5 py-1 text-xs font-semibold ${tone}`}
+    >
       {status}
     </span>
   );
@@ -196,7 +215,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function RetryBadge({ label }: { label: string }) {
   return (
-    <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+    <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
       {label}
     </span>
   );
@@ -220,17 +239,19 @@ function showRetryHint(job: {
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <>
-      <dt className="opacity-50">{label}</dt>
-      <dd className="truncate text-right">{value}</dd>
+      <dt className="text-[var(--muted-foreground)]">{label}</dt>
+      <dd className="truncate text-right font-medium">{value}</dd>
     </>
   );
 }
 
 function CodeBlock({ label, value }: { label: string; value: string }) {
   return (
-    <section className="rounded-2xl bg-black/[0.04] p-4 dark:bg-white/[0.04]">
-      <p className="text-xs uppercase tracking-[0.18em] opacity-45">{label}</p>
-      <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs opacity-85">
+    <section className="rounded-lg border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_86%,var(--background)_14%)] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
+        {label}
+      </p>
+      <pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-[var(--muted-foreground)]">
         {value}
       </pre>
     </section>
@@ -254,8 +275,27 @@ function formatJson(value: string | null) {
   }
 
   try {
-    return JSON.stringify(JSON.parse(value), null, 2);
+    return JSON.stringify(sanitizeJobValue(JSON.parse(value)), null, 2);
   } catch {
     return value;
   }
+}
+
+function sanitizeJobValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((entry) => sanitizeJobValue(entry));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(
+        ([key, entryValue]) =>
+          SENSITIVE_JOB_KEYS.has(key)
+            ? [key, "[REDACTED]"]
+            : [key, sanitizeJobValue(entryValue)],
+      ),
+    );
+  }
+
+  return value;
 }

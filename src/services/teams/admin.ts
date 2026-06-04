@@ -15,11 +15,23 @@ export async function getOrCreateTeamsConfig() {
     return existing;
   }
 
-  return prisma.teamsIntegrationConfig.create({
-    data: {
-      id: DEFAULT_CONFIG_ID,
-    },
-  });
+  try {
+    return await prisma.teamsIntegrationConfig.create({
+      data: {
+        id: DEFAULT_CONFIG_ID,
+      },
+    });
+  } catch (error) {
+    if (String(error).includes("Unique constraint failed")) {
+      const recovered = await prisma.teamsIntegrationConfig.findUnique({
+        where: { id: DEFAULT_CONFIG_ID },
+      });
+      if (recovered) {
+        return recovered;
+      }
+    }
+    throw error;
+  }
 }
 
 export async function updateTeamsConfig(input: {
@@ -172,9 +184,24 @@ export async function updateIntakeSubscription(
 }
 
 export async function deleteIntakeSubscription(subscriptionId: string) {
-  await prisma.teamsIntakeSubscription.delete({
-    where: { id: subscriptionId },
-  });
+  try {
+    await prisma.teamsIntakeSubscription.delete({
+      where: { id: subscriptionId },
+    });
+  } catch (error) {
+    if (
+      String(error).includes("P2003") ||
+      String(error).includes("Foreign key constraint")
+    ) {
+      return {
+        error: jsonError(
+          "Subscription has inbound message history and cannot be deleted. Set it inactive instead.",
+          409,
+        ),
+      };
+    }
+    throw error;
+  }
 
   return { deleted: true };
 }

@@ -439,7 +439,7 @@ Runner stage copies entire `.next` dir and full prod `node_modules`. With Next.j
 ```dockerfile
 // Current — runner copies full node_modules
 COPY --from=prod-deps /app/node_modules ./node_modules
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "run", "start"]
 
 // With standalone — only standalone output + static
 COPY --from=builder /app/.next/standalone ./
@@ -447,7 +447,7 @@ COPY --from=builder /app/.next/static ./.next/static
 CMD ["node", "server.js"]
 ```
 
-Requires `output: "standalone"` in `next.config.ts`. Also eliminates D6 (npm as PID 1).
+Requires `output: "standalone"` in `next.config.ts`. Also eliminates D6 (package manager as PID 1).
 
 ### D2: No HEALTHCHECK in Dockerfile.app
 
@@ -479,15 +479,15 @@ FROM node:20-slim AS base
 FROM node:20.19.0-slim AS base
 ```
 
-### D4: npm cache not cleaned after install
+### D4: pnpm store not cleaned after install
 
 **Severity:** Info
 **File:** `Dockerfile.app:7,28`
 
-`npm ci` leaves cache in intermediate layers. Not shipped in final image (multi-stage), but inflates build cache on CI.
+`pnpm install` can leave store data in intermediate layers. Not shipped in final image (multi-stage), but can inflate build cache on CI.
 
 ```dockerfile
-RUN npm ci --omit=optional && npm cache clean --force
+RUN pnpm install --frozen-lockfile --no-optional && pnpm store prune
 ```
 
 ### D5: Build context includes unnecessary files
@@ -509,12 +509,12 @@ tests/
 docker-compose.yml
 ```
 
-### D6: npm as PID 1 — no graceful shutdown
+### D6: package manager as PID 1 — no graceful shutdown
 
 **Severity:** Medium
 **File:** `Dockerfile.app:48`
 
-`CMD ["npm", "run", "start"]` makes npm PID 1. npm does not forward SIGTERM to the child Node process. On container stop, Docker waits 10s then sends SIGKILL — no graceful shutdown of connections or in-flight requests.
+Package-manager launchers as PID 1 do not reliably forward SIGTERM to the child Node process. On container stop, Docker waits 10s then sends SIGKILL — no graceful shutdown of connections or in-flight requests.
 
 Fix options:
 

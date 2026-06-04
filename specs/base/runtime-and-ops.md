@@ -6,14 +6,19 @@
 
 - `DATABASE_URL="file:./dev.db"`
 - app runs with SQLite
-- `npm run dev` prepares the local database before startup
+- `pnpm run dev` prepares the local database before startup
 - Prisma uses the SQLite schema by default
 
 ### Docker / Production-Style Deployment
 
 - Docker Compose runs PostgreSQL, migrations, app, and worker
-- app and worker use an explicit Postgres `DATABASE_URL`
+- app, worker, and migration flows use explicit runtime-specific Postgres URLs:
+  - `APP_DATABASE_URL`
+  - `WORKER_DATABASE_URL`
+  - `MIGRATION_DATABASE_URL`
+- each service maps its runtime-specific URL into `DATABASE_URL` for Prisma or compatibility paths
 - Prisma migrations run through `prisma.config.postgres.ts`
+- local development can continue using `DATABASE_URL="file:./dev.db"` without defining every runtime-specific URL
 
 ## Database Behavior
 
@@ -23,7 +28,7 @@ sequenceDiagram
     participant App as Next.js
     participant DB as SQLite dev.db
 
-    Dev->>App: npm run dev
+    Dev->>App: pnpm run dev
     App->>DB: ensure local DB exists
     App->>DB: db push if empty
     App->>DB: migrate dev if non-empty
@@ -66,12 +71,12 @@ sequenceDiagram
 
 ## Dependency Safety Policy
 
-### npm
+### pnpm
 
 - repo-local policy file: `.npmrc`
 - required setting:
   - `min-release-age=7`
-- validation fails if the local npm binary does not support `--min-release-age`
+- validation fails if the local pnpm binary does not honor `min-release-age`
 
 ### uv
 
@@ -91,7 +96,8 @@ sequenceDiagram
 ## Baseline Operational Rules
 
 - keep local dev simple
-- keep Docker/prod behavior explicit
+- keep Docker/prod behavior explicit and separated by runtime responsibility
 - prefer one shared source of truth in the database
 - keep validation deterministic
 - fail clearly when required tooling or policy support is missing
+- do not give the app runtime migration-only or worker-only credentials without a documented exception

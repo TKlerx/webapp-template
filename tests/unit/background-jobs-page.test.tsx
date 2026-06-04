@@ -84,7 +84,7 @@ describe("background jobs dashboard page", () => {
         id: "job-1",
         jobType: "echo",
         status: "PENDING",
-        payload: '{"message":"hello"}',
+        payload: '{"message":"hello","delegatedAccessToken":"secret-token"}',
         result: null,
         error: "boom",
         attemptCount: 2,
@@ -136,6 +136,8 @@ describe("background jobs dashboard page", () => {
     expect(text).toContain("boom");
     expect(text).toContain("Retry 3 at");
     expect(text).toContain("Showing the latest 2 jobs");
+    expect(text).toContain("[REDACTED]");
+    expect(text).not.toContain("secret-token");
   });
 });
 

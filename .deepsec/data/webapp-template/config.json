@@ -1,0 +1,30 @@
+{
+  "ignorePaths": [
+    ".deepsec/**",
+    ".env",
+    ".env.*",
+    ".next/**",
+    "coverage/**",
+    "dev.db",
+    "e2e.db",
+    "generated/**",
+    "node_modules/**",
+    "test-results/**",
+    "tests/**",
+    "worker/.venv/**",
+    "worker/dev.db",
+    "worker/tests/**",
+    "**/*.spec.*",
+    "**/*.test.*"
+  ],
+  "priorityPaths": [
+    "src/app/api/",
+    "src/app/cli-login/",
+    "src/services/api/",
+    "src/services/teams/",
+    "src/lib/",
+    "worker/src/",
+    "cli/internal/"
+  ],
+  "promptAppend": "Focus AI review on production/runtime code. Ignore test fixtures, generated Prisma client code, local env files, build output, and scanner workspace data unless a production path imports or exposes them."
+}

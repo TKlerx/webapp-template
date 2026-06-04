@@ -20,12 +20,32 @@ const REDACTED_KEYS = new Set([
   "password",
   "secret",
   "token",
+  "tokenValue",
   "accessToken",
   "refreshToken",
   "idToken",
   "clientSecret",
   "set-cookie",
+  "apiKey",
+  "apiToken",
+  "sessionToken",
 ]);
+const REDACTED_KEYS_NORMALIZED = new Set(
+  Array.from(REDACTED_KEYS, (key) => normalizeKeyName(key)),
+);
+
+function normalizeKeyName(key: string) {
+  return key.toLowerCase().replaceAll(/[^a-z0-9]/g, "");
+}
+
+function isSensitiveKey(key: string) {
+  if (REDACTED_KEYS.has(key) || REDACTED_KEYS.has(key.toLowerCase())) {
+    return true;
+  }
+
+  const normalized = normalizeKeyName(key);
+  return REDACTED_KEYS_NORMALIZED.has(normalized);
+}
 
 function getConfiguredLevel(): LogLevel {
   const configured = process.env.LOG_LEVEL?.toLowerCase();
@@ -65,7 +85,7 @@ function sanitizeValue(value: unknown, depth = 0): unknown {
   if (typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>).map(
       ([key, entryValue]) => {
-        if (REDACTED_KEYS.has(key)) {
+        if (isSensitiveKey(key)) {
           return [key, "[REDACTED]"];
         }
 

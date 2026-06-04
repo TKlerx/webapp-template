@@ -14,8 +14,8 @@ Notification workflows, inbox polling, admin settings, and durable delivery trac
 
 ## Prerequisites
 
-- Node.js and npm installed
-- Project dependencies installed with `npm install`
+- Node.js and pnpm installed
+- Project dependencies installed with `pnpm install`
 - Microsoft 365 / Azure app registration configured for Graph mail access
 - Environment variables set for:
   - `GRAPH_TENANT_ID`
@@ -63,8 +63,8 @@ await mail.sendMessage({
 ## Validation Commands
 
 ```powershell
-npm exec -- tsc --noEmit
-npm exec -- vitest run tests/unit/mail-provider.test.ts tests/unit/graph-mail.test.ts
+pnpm exec tsc --noEmit
+pnpm exec vitest run tests/unit/mail-provider.test.ts tests/unit/graph-mail.test.ts
 .\validate.ps1 all
 ```
 

@@ -40,7 +40,10 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  await deleteIntakeSubscription(id);
+  const result = await deleteIntakeSubscription(id);
+  if ("error" in result) {
+    return result.error;
+  }
 
   return new Response(null, { status: 204 });
 }

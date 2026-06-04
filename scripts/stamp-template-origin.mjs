@@ -81,13 +81,13 @@ When a product app is created from this template, keep both \`TEMPLATE_VERSION.m
 Then run:
 
 \`\`\`powershell
-npm run template:stamp
+pnpm run template:stamp
 \`\`\`
 
 When the app later pulls in upstream template fixes:
 
 1. Apply the upstream template change.
-2. Run \`npm run template:stamp\`.
+2. Run \`pnpm run template:stamp\`.
 3. Commit the updated \`.template-origin.json\` and \`TEMPLATE_VERSION.md\`.
 
 That gives each downstream app a visible and scriptable record of the template version it is based on.

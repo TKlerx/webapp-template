@@ -64,7 +64,6 @@ function buildNextResponse(request: NextRequest) {
       requestId,
       method: request.method,
       pathname: request.nextUrl.pathname,
-      search: request.nextUrl.search,
       userAgent: request.headers.get("user-agent"),
     });
   }

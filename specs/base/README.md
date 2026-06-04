@@ -31,7 +31,7 @@ that new feature specs should build on.
 - Update it when the repo's underlying architecture materially changes.
 - Prefer adding a focused new markdown file over turning one file into a giant catch-all spec.
 - Preserve `TEMPLATE_VERSION.md` and `.template-origin.json` in downstream apps so template provenance stays visible.
-- Refresh those files with `npm run template:stamp` after pulling upstream template changes into a downstream app.
+- Refresh those files with `pnpm run template:stamp` after pulling upstream template changes into a downstream app.
 - Those provenance files are shipped with the template on purpose, so copied repos still know their last recorded upstream baseline even without Git history.
 
 ## Upstream Workflow

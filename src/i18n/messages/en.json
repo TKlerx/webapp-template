@@ -79,6 +79,8 @@
     "userDeactivated": "User deactivated",
     "userReactivated": "User reactivated",
     "roleUpdated": "Role updated to {role}",
+    "lastAdminDeactivateError": "Cannot deactivate the last Admin user",
+    "lastAdminRoleError": "Cannot change role of the last Admin user",
     "couldNotUpdate": "Could not update user",
     "roles": {
       "PLATFORM_ADMIN": "Platform Admin",
@@ -105,6 +107,7 @@
     "filters": "Filters",
     "exportCsv": "Export CSV",
     "exportPdf": "Export PDF",
+    "exportTruncated": "Export limited to {count} entries. Narrow filters for full dataset.",
     "empty": "No audit entries match your filters."
   },
   "backgroundJobs": {
@@ -257,7 +260,10 @@
     "successTitle": "Browser login approved",
     "errorTitle": "CLI login failed",
     "redirecting": "Returning to your CLI callback now...",
-    "errorMessage": "This CLI login request is missing or has already expired."
+    "errorMessage": "This CLI login request is missing or has already expired.",
+    "confirmTitle": "Approve CLI login",
+    "confirmMessage": "Approve the CLI login request from {callback}.",
+    "approve": "Approve login"
   },
   "teams": {
     "eyebrow": "Teams Ops",

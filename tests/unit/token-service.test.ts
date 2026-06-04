@@ -26,6 +26,9 @@ describe("token service", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-10T12:00:00.000Z"));
+    prismaMock.$transaction.mockImplementation(async (callback) =>
+      callback(prismaMock),
+    );
     process.env.PAT_TOKEN_PREFIX = "starter_pat";
     process.env.PAT_DEFAULT_EXPIRY_DAYS = "90";
     process.env.CLI_TOKEN_DEFAULT_EXPIRY_DAYS = "30";

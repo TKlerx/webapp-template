@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
 import { Role, UserStatus } from "../../generated/prisma/enums";
 
-const { requireApiUserWithRoles } = vi.hoisted(() => ({
+const { requireApiUser, requireApiUserWithRoles } = vi.hoisted(() => ({
+  requireApiUser: vi.fn(),
   requireApiUserWithRoles: vi.fn(),
 }));
 
@@ -11,6 +12,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 vi.mock("@/lib/route-auth", () => ({
+  requireApiUser,
   requireApiUserWithRoles,
 }));
 
@@ -22,9 +24,22 @@ import {
   GET as getTargets,
   POST as postTarget,
 } from "@/app/api/integrations/teams/targets/route";
+import { DELETE as deleteSubscription } from "@/app/api/integrations/teams/subscriptions/[id]/route";
+import { GET as getBackgroundJobs } from "@/app/api/background-jobs/route";
+import {
+  cleanupHistoricalBackgroundJobPayloads,
+  runBackgroundJobPayloadCleanupMaintenance,
+} from "@/services/api/background-jobs";
 
 describe("teams integration API", () => {
   beforeEach(() => {
+    requireApiUser.mockResolvedValue({
+      user: {
+        id: "admin-1",
+        role: Role.PLATFORM_ADMIN,
+        status: UserStatus.ACTIVE,
+      },
+    });
     requireApiUserWithRoles.mockResolvedValue({
       user: {
         id: "admin-1",
@@ -117,5 +132,107 @@ describe("teams integration API", () => {
       }),
     );
     expect(createResponse.status).toBe(201);
+  });
+
+  it("returns conflict when deleting subscription with inbound history", async () => {
+    prismaMock.teamsIntakeSubscription.delete.mockRejectedValue(
+      new Error("Foreign key constraint failed"),
+    );
+
+    const response = await deleteSubscription(
+      new Request(
+        "http://localhost/api/integrations/teams/subscriptions/sub-1",
+        {
+          method: "DELETE",
+        },
+      ),
+      { params: Promise.resolve({ id: "sub-1" }) },
+    );
+    if (!response) {
+      throw new Error("Expected delete subscription response");
+    }
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({
+      error:
+        "Subscription has inbound message history and cannot be deleted. Set it inactive instead.",
+    });
+  });
+
+  it("redacts sensitive background job fields in read response", async () => {
+    prismaMock.backgroundJob.findMany.mockResolvedValue([
+      {
+        id: "job-1",
+        jobType: "teams_message_delivery",
+        status: "PENDING",
+        payload:
+          '{"teamsOutboundMessageId":"out-1","delegatedAccessToken":"secret-token"}',
+        result: '{"accessToken":"secret-result"}',
+        error: null,
+        attemptCount: 0,
+        availableAt: new Date("2026-06-01T09:00:00Z"),
+        startedAt: null,
+        lockedAt: null,
+        finishedAt: null,
+        workerId: null,
+        createdByUserId: "admin-1",
+        createdAt: new Date("2026-06-01T09:00:00Z"),
+        updatedAt: new Date("2026-06-01T09:00:00Z"),
+      },
+    ] as never);
+
+    const response = await getBackgroundJobs(
+      new Request("http://localhost/api/background-jobs"),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      jobs: [
+        {
+          payload: {
+            teamsOutboundMessageId: "out-1",
+            delegatedAccessToken: "[REDACTED]",
+          },
+          result: {
+            accessToken: "[REDACTED]",
+          },
+        },
+      ],
+    });
+  });
+
+  it("cleans historical token-bearing payloads", async () => {
+    prismaMock.backgroundJob.findMany.mockResolvedValue([
+      {
+        id: "job-legacy-1",
+        payload:
+          '{"delegatedAccessToken":"old-token","nested":{"apiKey":"abc"}}',
+        result: '{"refreshToken":"old-refresh"}',
+        error: "failed",
+      },
+    ] as never);
+    prismaMock.backgroundJob.update.mockResolvedValue({
+      id: "job-legacy-1",
+    } as never);
+
+    const result = await cleanupHistoricalBackgroundJobPayloads();
+
+    expect(result).toMatchObject({ scanned: 1, updated: 1 });
+    expect(prismaMock.backgroundJob.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          payload: expect.stringContaining(
+            '"delegatedAccessToken":"[REDACTED]"',
+          ),
+          result: expect.stringContaining('"refreshToken":"[REDACTED]"'),
+        }),
+      }),
+    );
+    await expect(
+      runBackgroundJobPayloadCleanupMaintenance(),
+    ).resolves.toMatchObject({
+      scanned: 1,
+      updated: 1,
+    });
   });
 });

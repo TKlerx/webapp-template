@@ -4,7 +4,14 @@ import { jsonError } from "@/lib/http";
 import { changePasswordForUser } from "@/services/api/auth";
 
 export async function POST(request: Request) {
-  const rateLimit = checkRateLimit(getClientIp(request), "change-password");
+  const authResult = await requireApiUser();
+  if ("error" in authResult) return authResult.error;
+  const user = authResult.user;
+
+  const clientIp = getClientIp(request);
+  const bucketKey =
+    clientIp === "unknown" ? `user:${user.id}` : `ip:${clientIp}`;
+  const rateLimit = checkRateLimit(bucketKey, "change-password");
   if (!rateLimit.allowed) {
     const response = jsonError(
       "Too many attempts. Please try again later.",
@@ -16,10 +23,6 @@ export async function POST(request: Request) {
     );
     return response;
   }
-
-  const authResult = await requireApiUser();
-  if ("error" in authResult) return authResult.error;
-  const user = authResult.user;
 
   const body = (await request.json()) as {
     currentPassword?: string;

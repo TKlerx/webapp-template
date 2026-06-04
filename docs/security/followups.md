@@ -25,7 +25,7 @@ Next steps:
 
 Risk:
 
-- `npm audit --omit=dev --omit=optional` currently reports production vulnerabilities in `next` and `next-intl`.
+- `pnpm audit --prod --no-optional` currently reports production vulnerabilities in `next` and `next-intl`.
 - The fixes exist, but the repo's `min-release-age=7` policy means they should not be installed immediately.
 
 Why it matters:
@@ -37,7 +37,7 @@ Next steps:
 
 - On 2026-04-17, upgrade `next` to `16.2.3` or newer and `next-intl` to `4.9.1` or newer.
 - Run `.\validate.ps1 all`.
-- Re-run `npm audit --omit=dev --omit=optional` and confirm production runtime audit is clean again.
+- Re-run `pnpm audit --prod --no-optional` and confirm production runtime audit is clean again.
 
 ## 3. Build/Deploy Tooling Supply Chain Surface
 
@@ -90,7 +90,24 @@ Next steps:
 - Add payload size limits and validation for queued jobs.
 - Consider rate limiting or role-based restrictions around job creation endpoints if they grow beyond admin/internal use.
 
-## 6. Runtime Hardening Around Deployment Defaults
+## 6. Runtime Credential Separation
+
+Risk:
+
+- App, worker, and migration processes should not silently inherit each other's privileged credentials.
+- A future app-runtime issue would have a larger blast radius if worker-only Graph secrets or migration database credentials are present in the app environment.
+
+Why it matters:
+
+- The template now has distinct app, worker, and migration responsibilities, so credentials should follow those boundaries.
+
+Next steps:
+
+- Complete spec `016-runtime-credential-separation`.
+- Keep `APP_DATABASE_URL`, `WORKER_DATABASE_URL`, and `MIGRATION_DATABASE_URL` separate in production-style settings.
+- Keep `docs/runtime-credentials.md` current and run `pnpm run validate:runtime-credentials`.
+
+## 7. Runtime Hardening Around Deployment Defaults
 
 Risk:
 
@@ -107,7 +124,7 @@ Next steps:
 - Confirm container runtime users, writable paths, and volume expectations are as narrow as possible.
 - Document the intended production deployment posture more explicitly.
 
-## 7. Observability For Security-Relevant Events
+## 8. Observability For Security-Relevant Events
 
 Risk:
 
@@ -122,7 +139,7 @@ Next steps:
 - Review whether failed auth attempts, role changes, approval actions, and export actions are sufficiently surfaced.
 - Decide which events should trigger alerts or operational review outside the app UI.
 
-## 8. Dependency Policy Maintenance
+## 9. Dependency Policy Maintenance
 
 Risk:
 
@@ -144,5 +161,13 @@ Next steps:
 1. On 2026-04-17, upgrade `next` and `next-intl` after the cooldown window clears.
 2. Review secrets and production config handling.
 3. Do a focused auth/authorization review.
-4. Tighten queue input validation and abuse guardrails.
-5. Revisit deploy-time tooling exposure and whether any extra hardening is worth the complexity.
+4. Complete runtime credential separation.
+5. Tighten queue input validation and abuse guardrails.
+6. Revisit deploy-time tooling exposure and whether any extra hardening is worth the complexity.
+
+## DeepSec Phase 2 Tracking (2026-06-01)
+
+- Source: `specs/017-deepsec-remediation/phase-2-findings.md` derived from refreshed `.deepsec/findings-full-codex.json`.
+- Current accepted-risk candidate:
+  - `playwright.config.ts` static E2E admin/mock SSO credentials, constrained to test-only runtime (`owner: tklerx@paiqo.com`).
+- Deferred-with-owner items: none in current Phase 2 classification.

@@ -59,7 +59,15 @@ export function CreateTokenDialog() {
 
       const payload = (await response.json().catch(() => null)) as {
         error?: string;
-        token?: { name: string; tokenValue: string };
+        token?: {
+          id: string;
+          name: string;
+          tokenValue: string;
+          tokenPrefix: string;
+          type: string;
+          expiresAt: string | Date;
+          createdAt: string | Date;
+        };
       } | null;
 
       if (!response.ok || !payload?.token) {
@@ -72,6 +80,25 @@ export function CreateTokenDialog() {
         name: payload.token.name,
         tokenValue: payload.token.tokenValue,
       });
+      window.dispatchEvent(
+        new CustomEvent("tokens:created", {
+          detail: {
+            token: {
+              id: payload.token.id,
+              name: payload.token.name,
+              tokenPrefix: payload.token.tokenPrefix,
+              type: payload.token.type,
+              status: "ACTIVE",
+              expiresAt: payload.token.expiresAt,
+              lastUsedAt: null,
+              revokedAt: null,
+              renewalCount: 0,
+              createdAt: payload.token.createdAt,
+              isExpired: false,
+            },
+          },
+        }),
+      );
       setOpen(false);
       setName("");
       setExpiresInDays("90");
@@ -86,20 +113,22 @@ export function CreateTokenDialog() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <button
-            className="rounded-[2rem] border border-black/10 bg-[var(--panel)] p-6 text-left shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 dark:border-white/10"
+            className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-6 text-left shadow-[0_18px_42px_-38px_var(--foreground)] transition hover:-translate-y-0.5"
             type="button"
           >
-            <p className="text-xs uppercase tracking-[0.28em] opacity-45">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
               {t("eyebrow")}
             </p>
             <h2 className="mt-3 text-2xl font-semibold">{t("title")}</h2>
-            <p className="mt-2 text-sm opacity-70">{t("description")}</p>
+            <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+              {t("description")}
+            </p>
             <span className="mt-5 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)]">
               {t("create")}
             </span>
           </button>
         </DialogTrigger>
-        <DialogContent className="rounded-[2rem] border-black/10 bg-[var(--panel)] p-6 dark:border-white/10">
+        <DialogContent className="rounded-lg border-[var(--border)] bg-[var(--panel)] p-6">
           <DialogHeader>
             <DialogTitle>{t("createTitle")}</DialogTitle>
             <DialogDescription>{t("createDescription")}</DialogDescription>
@@ -125,12 +154,12 @@ export function CreateTokenDialog() {
               <Select onValueChange={setExpiresInDays} value={expiresInDays}>
                 <SelectTrigger
                   aria-label={t("expiryLabel")}
-                  className="w-full rounded-2xl border-black/10 bg-white px-3 py-3 shadow-none dark:border-white/10 dark:bg-[var(--panel)]"
+                  className="w-full rounded-lg border-[var(--border)] bg-white px-3 py-3 shadow-none dark:bg-[var(--panel)]"
                   id="token-expiry"
                 >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
+                <SelectContent className="rounded-lg border-[var(--border)]">
                   {EXPIRY_OPTIONS.map((value) => (
                     <SelectItem key={value} value={value.toString()}>
                       {t(`expiryOptions.${value}`)}

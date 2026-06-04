@@ -2,6 +2,10 @@ import { expect, type Page } from "@playwright/test";
 
 export const appBasePath = process.env.E2E_BASE_PATH ?? "";
 export const appOrigin = `http://localhost:${process.env.E2E_PORT ?? "3280"}`;
+export const mockSsoHeaders = {
+  "x-e2e-mock-sso-secret":
+    process.env.E2E_MOCK_SSO_SECRET ?? "e2e-mock-sso-secret",
+};
 
 export async function loginWithPassword(
   page: Page,
@@ -27,6 +31,7 @@ export async function loginWithSso(
   page: Page,
   args: { email: string; name: string },
 ) {
+  await page.setExtraHTTPHeaders(mockSsoHeaders);
   const url = `${appBasePath}/api/auth/sso/azure?email=${encodeURIComponent(args.email)}&name=${encodeURIComponent(args.name)}`;
   await page.goto(url, { waitUntil: "networkidle" });
 }

@@ -16,8 +16,8 @@
     "**/.next/**",
     "**/generated/**",
     "**/node_modules/**",
-    "app/api/integrations/teams/**",
-    "components/teams/**",
-    "services/teams/**"
+    "**/src/app/api/integrations/teams/**",
+    "**/src/components/teams/**",
+    "**/src/services/teams/**"
   ]
 }

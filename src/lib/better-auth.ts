@@ -14,14 +14,17 @@ import {
   trimTrailingSlash,
 } from "@/lib/azure-auth";
 import { hashPassword, verifyPassword } from "@/lib/auth";
+import {
+  getDatabaseProviderForUrl,
+  resolveAppDatabaseUrl,
+} from "@/lib/database-url";
 import { prisma } from "@/lib/db";
 
 export const BETTER_AUTH_COOKIE_PREFIX = "business-app-starter";
 export const BETTER_AUTH_API_BASE_PATH = `${getConfiguredBasePath()}/api/auth`;
 
 function getDatabaseProvider() {
-  const databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db";
-  return databaseUrl.startsWith("file:") ? "sqlite" : "postgresql";
+  return getDatabaseProviderForUrl(resolveAppDatabaseUrl());
 }
 
 export function getConfiguredAuthBaseUrl() {

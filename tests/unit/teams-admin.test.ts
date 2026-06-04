@@ -8,6 +8,7 @@ vi.mock("@/lib/db", () => ({
 import {
   createDeliveryTarget,
   deleteDeliveryTarget,
+  deleteIntakeSubscription,
   getIntegrationStatus,
   getOrCreateTeamsConfig,
   updateTeamsConfig,
@@ -51,6 +52,23 @@ describe("teams admin service", () => {
 
     expect(config.sendEnabled).toBe(true);
     expect(prismaMock.teamsIntegrationConfig.update).toHaveBeenCalled();
+  });
+
+  it("recovers when config create races with another request", async () => {
+    prismaMock.teamsIntegrationConfig.findFirst.mockResolvedValueOnce(
+      null as never,
+    );
+    prismaMock.teamsIntegrationConfig.create.mockRejectedValueOnce(
+      new Error("Unique constraint failed on the fields: (`id`)"),
+    );
+    prismaMock.teamsIntegrationConfig.findUnique.mockResolvedValueOnce({
+      id: "default",
+      sendEnabled: false,
+      intakeEnabled: false,
+    } as never);
+
+    const config = await getOrCreateTeamsConfig();
+    expect(config.id).toBe("default");
   });
 
   it("creates delivery target", async () => {
@@ -112,5 +130,18 @@ describe("teams admin service", () => {
     const result = await deleteDeliveryTarget("target-1");
     expect("error" in result).toBe(true);
     expect(prismaMock.teamsDeliveryTarget.delete).not.toHaveBeenCalled();
+  });
+
+  it("blocks intake subscription deletion when inbound history exists", async () => {
+    const foreignKeyError = new Error("Foreign key constraint failed");
+    prismaMock.teamsIntakeSubscription.delete.mockRejectedValue(
+      foreignKeyError,
+    );
+
+    const result = await deleteIntakeSubscription("subscription-1");
+    expect("error" in result).toBe(true);
+    if ("error" in result) {
+      expect(result.error?.status).toBe(409);
+    }
   });
 });

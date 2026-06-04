@@ -6,7 +6,9 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- None.
+- 017 DeepSec Remediation
+  - Status: In Progress
+  - Next required work: Prepare final closure/PR summary; only unresolved DeepSec export item is the accepted-risk `playwright.config.ts` E2E credentials finding.
 
 ## Maintenance Rules
 

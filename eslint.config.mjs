@@ -17,6 +17,7 @@ const config = [
       "test-results/**",
       "playwright-report/**",
       "generated/**",
+      "public/vendor/**",
       ".agents/**",
       ".claude/**",
       "**/*.min.js",

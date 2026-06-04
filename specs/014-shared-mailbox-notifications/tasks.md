@@ -40,7 +40,7 @@
 - [x] T006 [P] Add provider-resolution coverage in `tests/unit/mail-provider.test.ts`
 - [x] T007 [P] Add Graph mail client coverage in `tests/unit/graph-mail.test.ts`
 - [x] T008 Update operator/developer docs in `.env.example`, `README.md`, and `docs/mail.md`
-- [x] T009 Run validation for the mail foundation with `npm exec -- tsc --noEmit`, `npm exec -- vitest run tests/unit/mail-provider.test.ts tests/unit/graph-mail.test.ts`, and `.\validate.ps1 all`
+- [x] T009 Run validation for the mail foundation with `pnpm exec tsc --noEmit`, `pnpm exec vitest run tests/unit/mail-provider.test.ts tests/unit/graph-mail.test.ts`, and `.\validate.ps1 all`
 
 **Checkpoint**: The repository has a documented, tested, provider-neutral Graph mail foundation that other features can consume.
 

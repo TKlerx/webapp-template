@@ -5,7 +5,7 @@
 ## Prerequisites
 
 - Node.js 20+
-- Project dependencies installed with `npm install`
+- Project dependencies installed with `pnpm install`
 - Database initialized for local development
 - Existing route tests passing before the refactor starts
 
@@ -33,10 +33,10 @@
 
 ```powershell
 # Focused regression pass
-npx vitest run tests/unit/auth tests/unit/background-jobs-route.test.ts tests/unit/users-status-filter.test.ts tests/unit/audit-trail.test.ts
+pnpm exec vitest run tests/unit/auth tests/unit/background-jobs-route.test.ts tests/unit/users-status-filter.test.ts tests/unit/audit-trail.test.ts
 
 # Duplication gate
-npm run duplication
+pnpm run duplication
 
 # Standard validation gate
 .\validate.ps1 all

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Form } from "@/components/ui/Form";
@@ -9,11 +9,20 @@ import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
 
+const emptySubscribe = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
+
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const formReady = useSyncExternalStore(
+    emptySubscribe,
+    clientSnapshot,
+    serverSnapshot,
+  );
   const router = useRouter();
   const searchParams = useSearchParams();
   const { pushToast } = useToast();
@@ -57,7 +66,7 @@ export function LoginForm() {
   return (
     <>
       {searchParams.get("error") ? (
-        <div className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--destructive)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--destructive)_10%,var(--panel))] px-4 py-3 text-sm text-[var(--destructive)]">
           {searchParams.get("error") === "revoked"
             ? t("ssoRevoked")
             : searchParams.get("error") === "sso-config"
@@ -67,12 +76,12 @@ export function LoginForm() {
       ) : null}
 
       {loginError ? (
-        <div className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--destructive)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--destructive)_10%,var(--panel))] px-4 py-3 text-sm text-[var(--destructive)]">
           {loginError}
         </div>
       ) : null}
 
-      <div className="mt-6">
+      <div className="mt-1">
         <a
           href={withBasePath(
             redirectTo
@@ -86,59 +95,80 @@ export function LoginForm() {
         </a>
       </div>
 
-      <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-[0.2em] opacity-35">
+      <div className="my-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
         <span className="h-px flex-1 bg-current" />
         <span>{t("localAccount")}</span>
         <span className="h-px flex-1 bg-current" />
       </div>
 
-      <Form onSubmit={handleSubmit}>
-        <label className="block text-sm font-medium" htmlFor="login-email">
-          {t("email")}
-        </label>
-        <Input
-          id="login-email"
-          className="mt-2"
-          type="email"
-          name="email"
-          autoComplete="email"
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          suppressHydrationWarning
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value);
-            if (loginError) {
-              setLoginError(null);
-            }
-          }}
-          placeholder="admin@example.com"
-          required
-        />
-        <label className="block text-sm font-medium" htmlFor="login-password">
-          {t("password")}
-        </label>
-        <Input
-          id="login-password"
-          className="mt-2"
-          type="password"
-          name="password"
-          autoComplete="current-password"
-          suppressHydrationWarning
-          value={password}
-          onChange={(event) => {
-            setPassword(event.target.value);
-            if (loginError) {
-              setLoginError(null);
-            }
-          }}
-          required
-        />
-        <Button className="w-full" disabled={loading} type="submit">
-          {loading ? t("signingIn") : t("signIn")}
-        </Button>
-      </Form>
+      {formReady ? (
+        <Form onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium" htmlFor="login-email">
+              {t("email")}
+            </label>
+            <Input
+              id="login-email"
+              className="mt-2"
+              type="email"
+              name="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              suppressHydrationWarning
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                if (loginError) {
+                  setLoginError(null);
+                }
+              }}
+              placeholder="admin@example.com"
+              required
+            />
+          </div>
+          <div>
+            <label
+              className="block text-sm font-medium"
+              htmlFor="login-password"
+            >
+              {t("password")}
+            </label>
+            <Input
+              id="login-password"
+              className="mt-2"
+              type="password"
+              name="password"
+              autoComplete="current-password"
+              suppressHydrationWarning
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                if (loginError) {
+                  setLoginError(null);
+                }
+              }}
+              required
+            />
+          </div>
+          <Button className="w-full" disabled={loading} type="submit">
+            {loading ? t("signingIn") : t("signIn")}
+          </Button>
+        </Form>
+      ) : (
+        <div aria-hidden="true" className="space-y-4">
+          <div>
+            <div className="h-5 w-14 rounded bg-[color:color-mix(in_srgb,var(--muted-foreground)_18%,transparent)]" />
+            <div className="mt-2 h-11 rounded-lg border border-[var(--border)] bg-[var(--panel)]" />
+          </div>
+          <div>
+            <div className="h-5 w-20 rounded bg-[color:color-mix(in_srgb,var(--muted-foreground)_18%,transparent)]" />
+            <div className="mt-2 h-11 rounded-lg border border-[var(--border)] bg-[var(--panel)]" />
+          </div>
+          <div className="h-11 rounded-lg bg-[color:color-mix(in_srgb,var(--primary)_34%,var(--panel))]" />
+        </div>
+      )}
     </>
   );
 }

@@ -14,14 +14,59 @@ export default async function UsersPage() {
   }
 
   const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
+  const activeUsers = users.filter((entry) => entry.status === "ACTIVE").length;
+  const pendingUsers = users.filter(
+    (entry) => entry.status === "PENDING_APPROVAL",
+  ).length;
+  const adminUsers = users.filter(
+    (entry) => entry.role === "PLATFORM_ADMIN",
+  ).length;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-      <CreateUserDialog />
-      <section className="rounded-2xl border border-black/10 bg-[var(--panel)] p-4 sm:p-6 dark:border-white/10">
-        <h2 className="text-xl font-semibold">{t("title")}</h2>
-        <UserManagementTable currentUserId={user.id} users={users} />
+    <div className="space-y-7">
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,0.45fr)] lg:items-end">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
+            {t("title")}
+          </p>
+          <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight tracking-tight text-pretty sm:text-5xl">
+            {t("title")}
+          </h1>
+        </div>
+        <div className="grid grid-cols-3 divide-x divide-[var(--border)] rounded-lg border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_92%,transparent)]">
+          <UserMetric label={t("statuses.ACTIVE")} value={activeUsers} />
+          <UserMetric
+            label={t("statuses.PENDING_APPROVAL")}
+            value={pendingUsers}
+          />
+          <UserMetric label={t("roles.PLATFORM_ADMIN")} value={adminUsers} />
+        </div>
       </section>
+
+      <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+        <CreateUserDialog />
+        <section className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--panel)]">
+          <div className="border-b border-[var(--border)] px-4 py-4 sm:px-6">
+            <h2 className="text-lg font-semibold tracking-tight">
+              {t("title")}
+            </h2>
+          </div>
+          <UserManagementTable currentUserId={user.id} users={users} />
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function UserMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="min-w-0 px-4 py-3">
+      <p className="truncate text-xs font-medium text-[var(--muted-foreground)]">
+        {label}
+      </p>
+      <p className="mt-1 font-mono text-2xl font-semibold tracking-tight">
+        {value}
+      </p>
     </div>
   );
 }

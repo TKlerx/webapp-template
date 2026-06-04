@@ -96,7 +96,11 @@ def process_teams_intake_poll(store: JobStore) -> dict[str, object]:
                 continue
 
             body = message.get("body") or {}
-            from_info = (message.get("from") or {}).get("user") or (message.get("from") or {}).get("application") or {}
+            from_info = (
+                (message.get("from") or {}).get("user")
+                or (message.get("from") or {}).get("application")
+                or {}
+            )
             content = str(body.get("content") or "")
             content_type = str(body.get("contentType") or "html").lower()
             truncated_content, truncated = _truncate_text(content, 64 * 1024)
@@ -113,12 +117,17 @@ def process_teams_intake_poll(store: JobStore) -> dict[str, object]:
                     "content": truncated_content,
                     "contentType": "text" if content_type == "text" else "html",
                     "truncated": truncated,
-                    "messageCreatedAt": str(message.get("createdDateTime") or datetime.now(timezone.utc).isoformat()),
+                    "messageCreatedAt": str(
+                        message.get("createdDateTime") or datetime.now(timezone.utc).isoformat()
+                    ),
                 }
             )
             created += 1
 
-        next_delta = str(response.get("@odata.deltaLink") or response.get("@odata.nextLink") or "").strip() or None
+        next_delta = (
+            str(response.get("@odata.deltaLink") or response.get("@odata.nextLink") or "").strip()
+            or None
+        )
         store.update_teams_subscription_poll_state(subscription["id"], next_delta)
 
     return {
@@ -130,7 +139,10 @@ def process_teams_intake_poll(store: JobStore) -> dict[str, object]:
 
 
 def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> dict[str, object]:
-    mailbox = str(payload.get("mailbox") or "").strip() or str(os.environ.get("MAIL_DEFAULT_MAILBOX") or "").strip()
+    mailbox = (
+        str(payload.get("mailbox") or "").strip()
+        or str(os.environ.get("MAIL_DEFAULT_MAILBOX") or "").strip()
+    )
     if not mailbox:
         raise ValueError("MAIL_DEFAULT_MAILBOX is required for inbound_mail_poll jobs.")
 
@@ -153,14 +165,20 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
         message = get_graph_mail_message(mailbox, provider_message_id)
         created += 1
         inbound_email_id = provider_message_id
-        sender = ((message.get("from") or {}).get("emailAddress") or {}) if isinstance(message, dict) else {}
+        sender = (
+            ((message.get("from") or {}).get("emailAddress") or {})
+            if isinstance(message, dict)
+            else {}
+        )
         body = message.get("body") if isinstance(message, dict) else {}
         body_content = str((body or {}).get("content") or "")
         body_type = str((body or {}).get("contentType") or "").lower()
         headers = message.get("internetMessageHeaders") if isinstance(message, dict) else None
         in_reply_to = _find_header(headers, "In-Reply-To")
         reference_header = _find_header(headers, "References")
-        reference_ids = [value for value in (reference_header.split() if reference_header else []) if value]
+        reference_ids = [
+            value for value in (reference_header.split() if reference_header else []) if value
+        ]
 
         store.create_inbound_email(
             {
@@ -177,7 +195,9 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
                 "bodyHtml": body_content if body_type == "html" else None,
                 "inReplyTo": in_reply_to or None,
                 "referenceIds": reference_ids,
-                "receivedAt": str(message.get("receivedDateTime") or datetime.now(timezone.utc).isoformat()),
+                "receivedAt": str(
+                    message.get("receivedDateTime") or datetime.now(timezone.utc).isoformat()
+                ),
             }
         )
 
@@ -198,18 +218,20 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
         sender_email = str(sender.get("address") or "")
         is_bounce = _is_bounce_like(sender_email, str(message.get("subject") or ""))
 
-        if is_bounce and notification_id:
-            store.mark_notification_bounced(
-                notification_id,
-                f"Bounce/NDR received for inbound email {provider_message_id}",
-            )
-            store.update_inbound_email(
-                inbound_email_id,
-                processing_status="PROCESSED",
-                processing_notes="Bounce correlated to notification delivery reference.",
-                correlated_notification_id=notification_id,
-            )
-            bounced += 1
+        bounce_status = _try_process_bounce_notification(
+            store,
+            is_bounce=is_bounce,
+            inbound_email_id=inbound_email_id,
+            provider_message_id=provider_message_id,
+            notification_id=notification_id,
+            in_reply_to=in_reply_to,
+            reference_ids=reference_ids,
+        )
+        if bounce_status is not None:
+            if bounce_status == "bounced":
+                bounced += 1
+            else:
+                ignored += 1
             continue
 
         if entity_reference is not None:
@@ -243,6 +265,75 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
         "ignored": ignored,
         "processedAt": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def _try_process_bounce_notification(
+    store: JobStore,
+    *,
+    is_bounce: bool,
+    inbound_email_id: str,
+    provider_message_id: str,
+    notification_id: str | None,
+    in_reply_to: str | None,
+    reference_ids: list[str],
+) -> str | None:
+    if not is_bounce or not notification_id:
+        return None
+
+    return _process_bounce_notification(
+        store,
+        inbound_email_id=inbound_email_id,
+        provider_message_id=provider_message_id,
+        notification_id=notification_id,
+        in_reply_to=in_reply_to,
+        reference_ids=reference_ids,
+    )
+
+
+def _process_bounce_notification(
+    store: JobStore,
+    *,
+    inbound_email_id: str,
+    provider_message_id: str,
+    notification_id: str,
+    in_reply_to: str | None,
+    reference_ids: list[str],
+) -> str:
+    provider_message_candidates = _provider_message_id_candidates(
+        [in_reply_to or "", *reference_ids]
+    )
+    notification = store.find_notification_by_provider_message_id(provider_message_candidates)
+
+    if notification is None:
+        store.update_inbound_email(
+            inbound_email_id,
+            processing_status="IGNORED",
+            processing_notes="Bounce-like message lacked verified provider-message correlation.",
+        )
+        return "ignored"
+
+    correlated_notification_id = str(notification.get("id") or "")
+    if correlated_notification_id != notification_id:
+        store.update_inbound_email(
+            inbound_email_id,
+            processing_status="IGNORED",
+            processing_notes=(
+                "Bounce-like message content disagreed with provider-message correlation."
+            ),
+        )
+        return "ignored"
+
+    store.mark_notification_bounced(
+        correlated_notification_id,
+        f"Bounce/NDR received for inbound email {provider_message_id}",
+    )
+    store.update_inbound_email(
+        inbound_email_id,
+        processing_status="PROCESSED",
+        processing_notes="Bounce correlated to notification delivery reference.",
+        correlated_notification_id=correlated_notification_id,
+    )
+    return "bounced"
 
 
 def _extract_notification_reference(
@@ -280,6 +371,24 @@ def _is_bounce_like(sender_email: str, subject: str) -> bool:
     return bool(BOUNCE_SENDER_PATTERN.search(sender_email or "")) or bool(
         BOUNCE_SUBJECT_PATTERN.search(subject or "")
     )
+
+
+def _provider_message_id_candidates(values: list[str]) -> list[str]:
+    candidates: set[str] = set()
+    for value in values:
+        normalized = _normalize_message_id(value)
+        if not normalized:
+            continue
+        candidates.add(normalized)
+        candidates.add(f"<{normalized}>")
+    return sorted(candidates)
+
+
+def _normalize_message_id(value: str) -> str:
+    trimmed = value.strip().lower()
+    if trimmed.startswith("<") and trimmed.endswith(">"):
+        return trimmed[1:-1]
+    return trimmed
 
 
 def _find_header(headers: object, name: str) -> str:

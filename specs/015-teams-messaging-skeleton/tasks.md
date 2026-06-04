@@ -21,7 +21,7 @@
 **Purpose**: Prisma schema, shared types, TeamsClient abstraction, env config
 
 - [x] T001 Add TeamsMessageStatus and TeamsInboundStatus enums plus TeamsIntegrationConfig, TeamsDeliveryTarget, TeamsOutboundMessage, TeamsIntakeSubscription, and TeamsInboundMessage models to prisma/schema.prisma per data-model.md
-- [x] T002 Run `npm run prisma:migrate` to generate migration, then `npm run prisma:generate` to update Prisma client
+- [x] T002 Run `pnpm run prisma:migrate` to generate migration, then `pnpm run prisma:generate` to update Prisma client
 - [x] T003 [P] Create Teams types and TeamsClient interface in src/lib/teams/types.ts per data-model.md and contracts/api.md
 - [x] T004 [P] Add TEAMS_ENABLED and TEAMS_POLL_INTERVAL_SECONDS to .env.example with defaults (false, 60)
 - [x] T005 Add `teams_message_delivery` and `teams_intake_poll` to allowed job types in src/services/api/background-jobs.ts

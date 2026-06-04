@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 import { PrismaPg } from "@prisma/adapter-pg";
 import type { SqlDriverAdapterFactory } from "@prisma/client/runtime/client";
 import { PrismaClient } from "../../generated/prisma/client";
+import { resolveAppDatabaseUrl } from "@/lib/database-url";
 
 const require = createRequire(import.meta.url);
 
@@ -30,7 +31,7 @@ declare global {
   var prisma: AppPrismaClient | undefined;
 }
 
-const connectionString = process.env.DATABASE_URL ?? "file:./dev.db";
+const connectionString = resolveAppDatabaseUrl();
 const adapter = createAdapter(connectionString);
 
 export const prisma: AppPrismaClient =

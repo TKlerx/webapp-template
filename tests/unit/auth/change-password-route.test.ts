@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/lib/__mocks__/db";
+import { __resetRateLimitStore } from "@/lib/rate-limit";
 
 const {
   requireApiUser,
@@ -49,6 +50,7 @@ import { POST } from "@/app/api/auth/change-password/route";
 describe("change password route", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    __resetRateLimitStore();
   });
 
   it("updates the credential account password and revokes other sessions", async () => {
@@ -165,5 +167,28 @@ describe("change password route", () => {
     await expect(response.json()).resolves.toEqual({
       error: "Password must contain test requirements.",
     });
+  });
+
+  it("does not consume a shared unauthenticated rate-limit bucket", async () => {
+    requireApiUser.mockResolvedValue({
+      error: new Response(JSON.stringify({ error: "Not authenticated" }), {
+        status: 401,
+      }),
+    });
+
+    for (let index = 0; index < 10; index += 1) {
+      const response = await POST(
+        new Request("http://localhost/api/auth/change-password", {
+          method: "POST",
+          body: JSON.stringify({
+            currentPassword: "TempPass123",
+            newPassword: "NewPass123",
+          }),
+          headers: { "content-type": "application/json" },
+        }),
+      );
+
+      expect(response?.status).toBe(401);
+    }
   });
 });

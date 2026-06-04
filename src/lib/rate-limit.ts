@@ -49,19 +49,13 @@ function ensureCleanupTimer() {
 }
 
 export function getClientIp(request: Request): string {
-  const trustProxyHeaders = process.env.TRUST_PROXY_HEADERS === "1";
+  const trustProxyHeaders =
+    process.env.TRUST_PROXY_HEADERS === "1" &&
+    trustedProxySecretMatches(request);
 
   if (trustProxyHeaders) {
-    const forwardedFor = request.headers.get("x-forwarded-for");
-    if (forwardedFor) {
-      const firstHop = forwardedFor.split(",")[0]?.trim();
-      if (firstHop) {
-        return firstHop;
-      }
-    }
-
-    const realIp = request.headers.get("x-real-ip")?.trim();
-    if (realIp) {
+    const realIp = request.headers.get("x-real-ip")?.trim() ?? "";
+    if (isValidIp(realIp)) {
       return realIp;
     }
   }
@@ -69,12 +63,37 @@ export function getClientIp(request: Request): string {
   return "unknown";
 }
 
+function trustedProxySecretMatches(request: Request) {
+  const configuredSecret = process.env.TRUST_PROXY_HEADER_SECRET?.trim();
+  if (!configuredSecret) {
+    return false;
+  }
+
+  return request.headers.get("x-trusted-proxy-secret") === configuredSecret;
+}
+
+function isValidIp(value: string) {
+  if (!value) {
+    return false;
+  }
+
+  const ipv4 =
+    /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
+  const ipv6 = /^[0-9a-fA-F:]+$/;
+
+  return ipv4.test(value) || ipv6.test(value);
+}
+
 export function checkRateLimit(
   key: string,
   endpoint: string,
   options?: RateLimitOptions,
 ): { allowed: boolean; retryAfterMs: number } {
-  if (process.env.E2E_DISABLE_RATE_LIMIT === "1") {
+  const allowE2eBypass =
+    process.env.E2E_DISABLE_RATE_LIMIT === "1" &&
+    process.env.NODE_ENV !== "production";
+
+  if (allowE2eBypass) {
     return { allowed: true, retryAfterMs: 0 };
   }
 

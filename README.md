@@ -10,7 +10,7 @@ Template provenance files:
 
 - `TEMPLATE_VERSION.md`
 - `.template-origin.json`
-- refresh helper: `npm run template:stamp`
+- refresh helper: `pnpm run template:stamp`
 
 These files are intentionally committed into the template so copied repos still retain a visible upstream baseline even if Git history is removed.
 
@@ -29,7 +29,7 @@ These files are intentionally committed into the template so copied repos still 
 - audit trail and export
 - i18n, theme toggle, responsive UI
 - Vitest, Playwright, Semgrep, duplication checks
-- repo-local npm and uv dependency cooldown policy
+- repo-local pnpm and uv dependency cooldown policy
 - continuity workflow with `CONTINUE.md` and `CONTINUE_LOG.md`
 
 ## Base Spec
@@ -59,7 +59,7 @@ Guidelines:
 - Prefer small commits such as `fix(auth): ...` over large mixed changes.
 - If a subsystem like auth needs repeated cross-app fixes, consider extracting it into a shared package later.
 - Downstream apps should keep `TEMPLATE_VERSION.md` and `.template-origin.json` so they know which upstream template commit they are based on.
-- After creating a downstream app or after pulling upstream template fixes, run `npm run template:stamp` and commit the updated provenance files.
+- After creating a downstream app or after pulling upstream template fixes, run `pnpm run template:stamp` and commit the updated provenance files.
 
 ## Validation
 
@@ -70,14 +70,14 @@ Guidelines:
 ```
 
 `all` includes TypeScript, Python, and CLI quality checks plus dependency cooldown
-validation for npm and uv support.
+validation for pnpm and uv support.
 
 Quality checks can also be run independently:
 
 ```powershell
-npm run quality:ts
-npm run quality:python
-npm run quality:cli
+pnpm run quality:ts
+pnpm run quality:python
+pnpm run quality:cli
 ```
 
 `quality:ts` runs blocking ESLint complexity, SonarJS cognitive-complexity, and
@@ -119,10 +119,13 @@ That guide covers:
 
 ## Docker Deployment
 
-- Local `npm run dev` uses SQLite via `DATABASE_URL=file:./dev.db`.
-- Docker Compose overrides `DATABASE_URL` so `app` and `migrate` use PostgreSQL.
-- `docker compose build app` builds one shared image reused by both `migrate` and `app`.
-- `docker compose up -d worker` starts the Python background worker against the same Postgres database.
+- Local `pnpm run dev` uses SQLite via `DATABASE_URL=file:./dev.db`.
+- Put Docker-only PostgreSQL and initial admin values in `.env.docker` using `.env.docker.example` as the template, then start Docker with `pnpm docker up`.
+- Production-style Docker uses separate database URL names by runtime: `APP_DATABASE_URL`, `WORKER_DATABASE_URL`, and `MIGRATION_DATABASE_URL`.
+- Docker services receive explicit allowlisted environment variables; the Postgres container only receives `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`.
+- `pnpm docker build app migrate worker` builds the production app, migration, and worker images.
+- `pnpm docker up -d worker` starts the Python background worker against the same Postgres database.
+- Review [`docs/runtime-credentials.md`](./docs/runtime-credentials.md) before adding secrets to app, worker, or migration environments.
 
 ## Mail Integration
 
@@ -142,9 +145,9 @@ That guide covers:
 
 ## Dependency Safety
 
-- npm is configured with a 7-day package release delay through `.npmrc`
+- pnpm is configured with a 7-day package release delay through `.npmrc`
 - uv worker resolution is configured with `exclude-newer = "1 week"`
-- `validate.ps1` fails if the installed npm or uv version does not support those controls
+- `validate.ps1` fails if the installed pnpm or uv version does not support those controls
 
 ## Suggested Next Step
 

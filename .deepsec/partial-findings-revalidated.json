@@ -1,0 +1,418 @@
+[
+  {
+    "title": "[HIGH] Environment-gated mock SSO endpoint can take over existing accounts",
+    "description": "**File:** [`src/app/api/auth/sso/azure/route.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/app/api/auth/sso/azure/route.ts#L44-L120) (lines 44, 52, 62, 83, 90, 107, 120)\n**Project:** webapp-template\n**Severity:** HIGH  •  **Confidence:** high  •  **Slug:** `auth-bypass`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\nWhen E2E_MOCK_SSO=1 and the environment is non-production or E2E_TESTING=1, this public GET/POST handler accepts an attacker-controlled email query parameter, derives a deterministic password from it, upserts the user, creates or overwrites that user's credential account password, and immediately signs in with that password. For an existing active user, an attacker can request the endpoint with the victim email and receive a valid session; the credential password remains usable afterward. The production guard still permits this path when E2E_TESTING=1, and the branch has no authentication, domain allowlist, existing-user restriction, or rate limit.\n\n## Recommendation\n\nRemove the mock SSO branch from production-shipped route code. If test SSO must remain, compile it only into test builds or require a server-side test-only secret, restrict it to isolated test users, never overwrite existing credential accounts, never create persistent passwords, and fail closed for any production deployment regardless of E2E_TESTING.\n\n## Revalidation\n\n**Verdict:** true-positive\n\nThe current route is public: `src/proxy.ts` skips `/api/auth/` paths, and this handler exports `POST = GET`. The production guard only throws when `E2E_MOCK_SSO=1`, `NODE_ENV=production`, and `E2E_TESTING !== \"1\"`, while the mock branch is explicitly enabled when the environment is non-production or `E2E_TESTING === \"1\"`. In that branch, attacker-controlled `email` and `name` query parameters are used to upsert a user. For an existing active user, the code updates account metadata and then `prisma.account.upsert` creates or overwrites the `credential` account password with a deterministic value derived from the email. Better Auth email/password login is enabled, and the route immediately calls `auth.api.signInEmail` with that deterministic password and copies the returned session cookies into the redirect response. I found no authentication, server-side test secret, email/domain allowlist, existing-user restriction, or rate limit on this mock path; `getSafeRedirectTarget` only constrains the post-login redirect. Git history shows commit `1260248` added a hard production guard, but commit `ee8215d` reintroduced the `E2E_TESTING` production bypass, so the current code is not fixed. A reachable deployment with both `E2E_MOCK_SSO=1` and `E2E_TESTING=1` lets an attacker request the endpoint with a victim email, receive a victim session, and leave behind an attacker-known credential password.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-05-11)",
+    "severity": "HIGH",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:HIGH",
+      "slug:auth-bypass",
+      "confidence:high",
+      "revalidation:true-positive"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/app/api/auth/sso/azure/route.ts",
+      "lineNumbers": [
+        44,
+        52,
+        62,
+        83,
+        90,
+        107,
+        120
+      ],
+      "severity": "HIGH",
+      "vulnSlug": "auth-bypass",
+      "confidence": "high",
+      "discoveredAt": "2026-06-01T06:48:49.316Z",
+      "runId": "20260601064358-f76abd6707ae59bf",
+      "revalidation": {
+        "verdict": "true-positive",
+        "reasoning": "The current route is public: `src/proxy.ts` skips `/api/auth/` paths, and this handler exports `POST = GET`. The production guard only throws when `E2E_MOCK_SSO=1`, `NODE_ENV=production`, and `E2E_TESTING !== \"1\"`, while the mock branch is explicitly enabled when the environment is non-production or `E2E_TESTING === \"1\"`. In that branch, attacker-controlled `email` and `name` query parameters are used to upsert a user. For an existing active user, the code updates account metadata and then `prisma.account.upsert` creates or overwrites the `credential` account password with a deterministic value derived from the email. Better Auth email/password login is enabled, and the route immediately calls `auth.api.signInEmail` with that deterministic password and copies the returned session cookies into the redirect response. I found no authentication, server-side test secret, email/domain allowlist, existing-user restriction, or rate limit on this mock path; `getSafeRedirectTarget` only constrains the post-login redirect. Git history shows commit `1260248` added a hard production guard, but commit `ee8215d` reintroduced the `E2E_TESTING` production bypass, so the current code is not fixed. A reachable deployment with both `E2E_MOCK_SSO=1` and `E2E_TESTING=1` lets an attacker request the endpoint with a victim email, receive a victim session, and leave behind an attacker-known credential password."
+      },
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/app/api/auth/sso/azure/route.ts#L44-L120",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-05-11T23:28:53+02:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[HIGH] CLI login grants can be issued by a GET-based CSRF flow",
+    "description": "**File:** [`src/services/api/cli-auth.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/services/api/cli-auth.ts#L41-L50) (lines 41, 46, 50)\n**Project:** webapp-template\n**Severity:** HIGH  •  **Confidence:** high  •  **Slug:** `auth-bypass`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\nThe CLI login page calls bindAuthCodeToUser during server rendering, and this helper binds any unexpired auth-code id to the currently authenticated user without an explicit approval POST, CSRF token, or session-bound nonce. Because /cli-login?request=<id> is a GET page and SameSite=Lax cookies are sent on top-level navigations, a malicious local process can create a CLI auth request with its localhost callback, open the victim browser to /cli-login?request=<id>, receive the resulting code at its callback, and exchange it for a CLI bearer token for the active user.\n\n## Recommendation\n\nDo not bind or approve CLI auth requests during GET rendering. Render a confirmation page, require an explicit POST protected by a CSRF token/session nonce, bind the request to that browser session, and only then redirect to the localhost callback. Consider adding PKCE-style code verifier binding for the token exchange as defense in depth.\n\n## Revalidation\n\n**Verdict:** true-positive\n\n`GET /api/cli-auth/authorize` is public and only validates that `callback_url` points to localhost or 127.0.0.1 and that `state` is non-empty before creating a `CliAuthCode`. The `/cli-login` page then performs the approval side effect during GET rendering: it calls `requireSession()`, reads `searchParams.request`, and invokes `bindAuthCodeToUser(request, user.id)`. `bindAuthCodeToUser` only checks that the row exists and has not expired, then updates `userId`; it does not require an explicit POST, CSRF token, session-bound nonce, browser approval, or ownership proof for the CLI request. After binding, the page puts the code and state into the stored callback URL, and the client component navigates the browser there. Proxy/session checks do not mitigate this for an already authenticated user because a top-level navigation to the same site will include normal session cookies. A malicious local process can create a CLI auth request with its own localhost callback, open the victim browser to `/cli-login?request=<id>`, receive the code on localhost, and exchange it for a CLI token. The issued token is a real bearer credential because token auth accepts it through `Authorization: Bearer` or `x-api-key`. The localhost callback restriction is therefore not a defense against the stated local-process attacker.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-04-10)",
+    "severity": "HIGH",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:HIGH",
+      "slug:auth-bypass",
+      "confidence:high",
+      "revalidation:true-positive"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/services/api/cli-auth.ts",
+      "lineNumbers": [
+        41,
+        46,
+        50
+      ],
+      "severity": "HIGH",
+      "vulnSlug": "auth-bypass",
+      "confidence": "high",
+      "discoveredAt": "2026-06-01T06:48:49.316Z",
+      "runId": "20260601064358-f76abd6707ae59bf",
+      "revalidation": {
+        "verdict": "true-positive",
+        "reasoning": "`GET /api/cli-auth/authorize` is public and only validates that `callback_url` points to localhost or 127.0.0.1 and that `state` is non-empty before creating a `CliAuthCode`. The `/cli-login` page then performs the approval side effect during GET rendering: it calls `requireSession()`, reads `searchParams.request`, and invokes `bindAuthCodeToUser(request, user.id)`. `bindAuthCodeToUser` only checks that the row exists and has not expired, then updates `userId`; it does not require an explicit POST, CSRF token, session-bound nonce, browser approval, or ownership proof for the CLI request. After binding, the page puts the code and state into the stored callback URL, and the client component navigates the browser there. Proxy/session checks do not mitigate this for an already authenticated user because a top-level navigation to the same site will include normal session cookies. A malicious local process can create a CLI auth request with its own localhost callback, open the victim browser to `/cli-login?request=<id>`, receive the code on localhost, and exchange it for a CLI token. The issued token is a real bearer credential because token auth accepts it through `Authorization: Bearer` or `x-api-key`. The localhost callback restriction is therefore not a defense against the stated local-process attacker."
+      },
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/services/api/cli-auth.ts#L41-L50",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-04-10T18:39:26+02:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Logger can retain auth secrets in query strings and common token fields",
+    "description": "**File:** [`src/lib/logger.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/lib/logger.ts#L16-L136) (lines 16, 44, 68, 131, 136)\n**Project:** webapp-template\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `secret-in-log`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\nThe logger only redacts exact object keys from REDACTED_KEYS, preserves Error.message/Error.stack verbatim, and then writes the entry to console. A traced production caller in src/proxy.ts logs request.nextUrl.search for non-static requests, which includes /api/auth/callback/* query strings carrying OAuth code/state values. The redaction set also misses common snake_case OAuth keys such as access_token, refresh_token, id_token, and client_secret. In deployments that collect console logs, short-lived auth codes or token-shaped fields can be retained in durable logs and reused by anyone with log access before expiry.\n\n## Recommendation\n\nNormalize metadata keys before redaction, add common header-case and snake_case secret names, scrub URL/query-string values before logging, and avoid logging raw Error messages/stacks when they can contain upstream auth responses.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:MEDIUM",
+      "slug:secret-in-log",
+      "confidence:medium"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/lib/logger.ts",
+      "lineNumbers": [
+        16,
+        44,
+        68,
+        131,
+        136
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "secret-in-log",
+      "confidence": "medium",
+      "discoveredAt": "2026-05-31T23:13:06.732Z",
+      "runId": "20260531230131-d41dc8c41639c5aa",
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/lib/logger.ts#L16-L136",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-05-11T23:28:53+02:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] CLI authorization codes are not consumed atomically",
+    "description": "**File:** [`src/services/api/cli-auth.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/services/api/cli-auth.ts#L60-L90) (lines 60, 68, 79, 90)\n**Project:** webapp-template\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `other-race-condition`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\nexchangeAuthCode first reads the code and checks exchanged=false, then creates a CLI token, and only afterward updates the auth code to exchanged=true. Concurrent exchanges for the same code and state can pass the initial check before either update occurs, resulting in multiple active CLI tokens. If token creation succeeds but the exchanged update fails, the code also remains redeemable.\n\n## Recommendation\n\nConsume the authorization code atomically. Use a transaction with a conditional update/updateMany requiring exchanged=false, matching state, userId present, and expiresAt in the future, then create the token only if exactly one row was consumed.\n\n## Revalidation\n\n**Verdict:** true-positive\n\n`exchangeAuthCode` first reads the row with `findUnique`, then checks `exchanged === false`, matching state, non-expiry, and presence of a user. It then calls `createToken` before marking the authorization code as exchanged. The later `prisma.cliAuthCode.update` uses only `where: { id: record.id }`, so it does not conditionally require `exchanged: false` and does not prevent a second concurrent updater from also succeeding. Concurrent exchange requests for the same code can therefore all pass the initial read/check window before any request flips the flag. `createToken` can create multiple active CLI tokens for the same user up to the active token limit, and its timestamp-based name is not a reliable serialization mechanism. The token endpoint's rate limit does not make this atomic; it still allows multiple attempts and does not lock the database row. If token creation succeeds but the later exchanged update fails, there is also no transaction to roll back the token or consume the code. The exploit requires a valid code/state and a race, so the existing medium severity is appropriate.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-04-10)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:MEDIUM",
+      "slug:other-race-condition",
+      "confidence:high",
+      "revalidation:true-positive"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/services/api/cli-auth.ts",
+      "lineNumbers": [
+        60,
+        68,
+        79,
+        90
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "other-race-condition",
+      "confidence": "high",
+      "discoveredAt": "2026-06-01T06:48:49.316Z",
+      "runId": "20260601064358-f76abd6707ae59bf",
+      "revalidation": {
+        "verdict": "true-positive",
+        "reasoning": "`exchangeAuthCode` first reads the row with `findUnique`, then checks `exchanged === false`, matching state, non-expiry, and presence of a user. It then calls `createToken` before marking the authorization code as exchanged. The later `prisma.cliAuthCode.update` uses only `where: { id: record.id }`, so it does not conditionally require `exchanged: false` and does not prevent a second concurrent updater from also succeeding. Concurrent exchange requests for the same code can therefore all pass the initial read/check window before any request flips the flag. `createToken` can create multiple active CLI tokens for the same user up to the active token limit, and its timestamp-based name is not a reliable serialization mechanism. The token endpoint's rate limit does not make this atomic; it still allows multiple attempts and does not lock the database row. If token creation succeeds but the later exchanged update fails, there is also no transaction to roll back the token or consume the code. The exploit requires a valid code/state and a race, so the existing medium severity is appropriate."
+      },
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/services/api/cli-auth.ts#L60-L90",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-04-10T18:39:26+02:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Public CLI authorization can create unbounded database rows",
+    "description": "**File:** [`src/services/api/cli-auth.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/services/api/cli-auth.ts#L28-L118) (lines 28, 29, 31, 34, 118)\n**Project:** webapp-template\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `rate-limit-bypass`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\ncreateAuthCode writes a CliAuthCode row for the public /api/cli-auth/authorize flow. The caller validates only that callback_url is local and state is non-empty, with no rate limit, length limit, or guaranteed cleanup path. Expired codes are deleted only when the token exchange endpoint runs cleanupExpiredCodes, so an unauthenticated attacker can repeatedly hit the authorize endpoint and grow the database with stale auth-code records.\n\n## Recommendation\n\nAdd rate limiting to the authorize endpoint, enforce maximum lengths for state and callbackUrl, run cleanup on authorize as well as exchange or via a scheduled job, and consider a database TTL/retention policy for expired CLI auth codes.\n\n## Revalidation\n\n**Verdict:** true-positive\n\n`GET /api/cli-auth/authorize` is unauthenticated and has no `checkRateLimit` call. Its validation only requires a localhost or 127.0.0.1 HTTP callback URL and a non-blank `state`; there are no explicit maximum lengths for either value. Each valid request reaches `createAuthCode`, which writes a new `CliAuthCode` row containing a random code plus the caller-controlled callback URL and state. The Prisma schema stores `state` and `callbackUrl` as unconstrained `String` fields and only adds indexes; there is no database TTL or retention rule. `cleanupExpiredCodes` deletes expired rows, but it is only called by the token exchange route, and I found no scheduled cleanup or authorize-side cleanup path. An unauthenticated attacker can repeatedly call authorize and never exchange the codes, causing expired rows to accumulate until some unrelated exchange happens. The token exchange rate limit does not protect this creation path and can even limit how often cleanup is triggered through that endpoint. Practical HTTP URL size limits bound each individual request, but not the number of rows, so this is a real unauthenticated database growth/resource exhaustion issue.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-04-10)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:MEDIUM",
+      "slug:rate-limit-bypass",
+      "confidence:high",
+      "revalidation:true-positive"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/services/api/cli-auth.ts",
+      "lineNumbers": [
+        28,
+        29,
+        31,
+        34,
+        118
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "rate-limit-bypass",
+      "confidence": "high",
+      "discoveredAt": "2026-06-01T06:48:49.316Z",
+      "runId": "20260601064358-f76abd6707ae59bf",
+      "revalidation": {
+        "verdict": "true-positive",
+        "reasoning": "`GET /api/cli-auth/authorize` is unauthenticated and has no `checkRateLimit` call. Its validation only requires a localhost or 127.0.0.1 HTTP callback URL and a non-blank `state`; there are no explicit maximum lengths for either value. Each valid request reaches `createAuthCode`, which writes a new `CliAuthCode` row containing a random code plus the caller-controlled callback URL and state. The Prisma schema stores `state` and `callbackUrl` as unconstrained `String` fields and only adds indexes; there is no database TTL or retention rule. `cleanupExpiredCodes` deletes expired rows, but it is only called by the token exchange route, and I found no scheduled cleanup or authorize-side cleanup path. An unauthenticated attacker can repeatedly call authorize and never exchange the codes, causing expired rows to accumulate until some unrelated exchange happens. The token exchange rate limit does not protect this creation path and can even limit how often cleanup is triggered through that endpoint. Practical HTTP URL size limits bound each individual request, but not the number of rows, so this is a real unauthenticated database growth/resource exhaustion issue."
+      },
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/services/api/cli-auth.ts#L28-L118",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-04-10T18:39:26+02:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Concurrent token creation can bypass the active-token limit",
+    "description": "**File:** [`src/services/api/tokens.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/services/api/tokens.ts#L145-L151) (lines 145, 146, 151)\n**Project:** webapp-template\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `rate-limit-bypass`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\ncreateToken enforces PAT_MAX_ACTIVE_PER_USER with a separate countActiveTokens read before creating the token. Because the count and create are not performed under a per-user lock, serializable transaction, or database-enforced quota, an authenticated user can submit parallel token-creation requests with different names and have each request observe the same below-limit count before all create active tokens. This bypasses the intended active bearer-token limit.\n\n## Recommendation\n\nEnforce the active-token limit atomically, for example by taking a per-user lock inside a transaction, using serializable isolation with retry handling, or maintaining a locked per-user active-token counter before inserting the token.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:MEDIUM",
+      "slug:rate-limit-bypass",
+      "confidence:high"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/services/api/tokens.ts",
+      "lineNumbers": [
+        145,
+        146,
+        151
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "rate-limit-bypass",
+      "confidence": "high",
+      "discoveredAt": "2026-05-31T23:07:29.715Z",
+      "runId": "20260531230131-d41dc8c41639c5aa",
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/services/api/tokens.ts#L145-L151",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-05-11T23:28:53+02:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Delegated Microsoft Graph tokens are stored and propagated in plaintext",
+    "description": "**File:** [`src/services/teams/consent.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/services/teams/consent.ts#L121-L171) (lines 121, 122, 128, 129, 171)\n**Project:** webapp-template\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `secrets-exposure`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\nsaveTeamsDelegatedGrant persists raw Microsoft Graph access and refresh tokens directly in TeamsDelegatedGrant, and getFreshTeamsDelegatedAccessToken returns the raw bearer token. Tracing the call flow shows queueTeamsMessages writes that delegatedAccessToken into BackgroundJob.payload, while the background job APIs and admin page render job payloads. A platform admin, database reader, backup reader, or job-payload exposure can exfiltrate a usable delegated Graph token and send Teams messages as the consenting user until token expiry or revocation; the refresh token persistence also extends the impact of a database compromise.\n\n## Recommendation\n\nEncrypt delegated access and refresh tokens at rest with a server-side key/KMS, avoid storing short-lived access tokens when a refresh token is available, and do not place bearer tokens in background job payloads. Store a grant/user reference in the job and let the worker fetch/decrypt the token just in time. Redact token-shaped fields from job list APIs and admin UI.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:MEDIUM",
+      "slug:secrets-exposure",
+      "confidence:high"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/services/teams/consent.ts",
+      "lineNumbers": [
+        121,
+        122,
+        128,
+        129,
+        171
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "secrets-exposure",
+      "confidence": "high",
+      "discoveredAt": "2026-05-31T23:18:36.596Z",
+      "runId": "20260531230131-d41dc8c41639c5aa",
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/services/teams/consent.ts#L121-L171",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-05-11T23:28:53+02:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Teams config creation is non-atomic",
+    "description": "**File:** [`src/services/teams/admin.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/services/teams/admin.ts#L11-L18) (lines 11, 18)\n**Project:** webapp-template\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-race-condition`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\ngetOrCreateTeamsConfig first calls findFirst and then creates a fixed id of \"default\" when no record exists. Two concurrent first-time callers can both observe no config, then one create succeeds and the other hits a unique constraint, causing an avoidable 500 on startup or first admin/worker access.\n\n## Recommendation\n\nUse prisma.teamsIntegrationConfig.upsert with the default id, or catch the unique-constraint error and re-read the existing config.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-05-11)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:BUG",
+      "slug:other-race-condition",
+      "confidence:high"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/services/teams/admin.ts",
+      "lineNumbers": [
+        11,
+        18
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-race-condition",
+      "confidence": "high",
+      "discoveredAt": "2026-05-31T23:18:36.688Z",
+      "runId": "20260531230131-d41dc8c41639c5aa",
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/services/teams/admin.ts#L11-L18",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-05-11T23:28:53+02:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Deleting intake subscriptions with history returns an unhandled database error",
+    "description": "**File:** [`src/services/teams/admin.ts`](https://github.com/TKlerx/webapp-template/blob/main/src/services/teams/admin.ts#L174-L175) (lines 174, 175)\n**Project:** webapp-template\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-unhandled-constraint`\n\n## Owners\n\n**Suggested assignee:** `tklerx@paiqo.com` _(via last-committer)_\n\n## Finding\n\ndeleteIntakeSubscription directly deletes by id, but TeamsInboundMessage has a restrictive foreign key to TeamsIntakeSubscription. Once a subscription has ingested messages, the DELETE route will surface a Prisma/foreign-key failure instead of a controlled response, leaving admins unable to delete it cleanly and producing a 500-style failure path.\n\n## Recommendation\n\nMirror deleteDeliveryTarget: count related inbound messages first and return a 409 advising deactivation, or change the data model/delete semantics intentionally.\n\n## Recent committers (`git log`)\n\n- Timo Klerx <tklerx@paiqo.com> (2026-05-11)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:webapp-template",
+      "severity:BUG",
+      "slug:other-unhandled-constraint",
+      "confidence:high"
+    ],
+    "assignee": "tklerx@paiqo.com",
+    "metadata": {
+      "projectId": "webapp-template",
+      "filePath": "src/services/teams/admin.ts",
+      "lineNumbers": [
+        174,
+        175
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-unhandled-constraint",
+      "confidence": "high",
+      "discoveredAt": "2026-05-31T23:18:36.688Z",
+      "runId": "20260531230131-d41dc8c41639c5aa",
+      "githubUrl": "https://github.com/TKlerx/webapp-template/blob/main/src/services/teams/admin.ts#L174-L175",
+      "owners": {
+        "assignee": "tklerx@paiqo.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Timo Klerx",
+            "email": "tklerx@paiqo.com",
+            "date": "2026-05-11T23:28:53+02:00"
+          }
+        ]
+      }
+    }
+  }
+]

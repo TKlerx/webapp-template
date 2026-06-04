@@ -86,6 +86,6 @@ RateLimitEntry (in-memory, no DB relationship)
 **Prisma migration needed**: Only if `AUTH_PASSWORD_CHANGED` is added to the `AuditAction` enum.
 
 - Add `AUTH_PASSWORD_CHANGED` to the `AuditAction` enum in `prisma/schema.prisma`
-- Run `npx prisma migrate dev --name add-password-changed-audit-action`
+- Run `pnpm exec prisma migrate dev --name add-password-changed-audit-action`
 - SQLite: enum changes are handled by Prisma's adapter (stored as strings)
 - PostgreSQL: requires an `ALTER TYPE` migration (Prisma handles this automatically)

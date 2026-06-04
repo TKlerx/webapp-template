@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from starter_worker.config import WorkerConfig, load_config
-from starter_worker.db import JobStore
+from starter_worker.db import JobStore, normalize_postgres_database_url
 from starter_worker.main import process_inbound_mail_poll, process_job, process_teams_intake_poll
 
 
@@ -55,7 +55,9 @@ class WorkerTests(unittest.TestCase):
         self.assertIn("processedAt", result)
 
     def test_process_job_teams_delivery_sends_message(self) -> None:
-        with patch("starter_worker.main.send_teams_channel_message", return_value={"id": "graph-1"}) as send_teams:
+        with patch(
+            "starter_worker.main.send_teams_channel_message", return_value={"id": "graph-1"}
+        ) as send_teams:
             result = process_job(
                 type(
                     "Job",
@@ -78,36 +80,60 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result["status"], "sent")
 
     def test_process_inbound_mail_poll_stores_bounces_and_entity_links(self) -> None:
-        with patch(
-            "starter_worker.main.list_graph_mail_messages",
-            return_value=[
-                {"id": "msg-bounce"},
-                {"id": "msg-link"},
-            ],
-        ), patch(
-            "starter_worker.main.get_graph_mail_message",
-            side_effect=[
-                {
-                    "id": "msg-bounce",
-                    "subject": "Undeliverable [notification:notification-1]",
-                    "bodyPreview": "Delivery failed",
-                    "receivedDateTime": "2026-04-20T10:00:00Z",
-                    "from": {"emailAddress": {"address": "postmaster@example.com", "name": "Postmaster"}},
-                    "body": {"contentType": "text", "content": "Delivery failed [notification:notification-1]"},
-                    "internetMessageHeaders": [],
-                },
-                {
-                    "id": "msg-link",
-                    "subject": "Question [ref:Scope:scope-7]",
-                    "bodyPreview": "Can you help?",
-                    "receivedDateTime": "2026-04-20T10:05:00Z",
-                    "from": {"emailAddress": {"address": "person@example.com", "name": "Person"}},
-                    "body": {"contentType": "text", "content": "Following up on [ref:Scope:scope-7]"},
-                    "internetMessageHeaders": [],
-                },
-            ],
+        with (
+            patch(
+                "starter_worker.main.list_graph_mail_messages",
+                return_value=[
+                    {"id": "msg-bounce"},
+                    {"id": "msg-link"},
+                ],
+            ),
+            patch(
+                "starter_worker.main.get_graph_mail_message",
+                side_effect=[
+                    {
+                        "id": "msg-bounce",
+                        "subject": "Undeliverable [notification:notification-1]",
+                        "bodyPreview": "Delivery failed",
+                        "receivedDateTime": "2026-04-20T10:00:00Z",
+                        "from": {
+                            "emailAddress": {
+                                "address": "postmaster@example.com",
+                                "name": "Postmaster",
+                            }
+                        },
+                        "body": {
+                            "contentType": "text",
+                            "content": "Delivery failed [notification:notification-1]",
+                        },
+                        "internetMessageHeaders": [
+                            {
+                                "name": "In-Reply-To",
+                                "value": "<provider-message-1@example.com>",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "msg-link",
+                        "subject": "Question [ref:Scope:scope-7]",
+                        "bodyPreview": "Can you help?",
+                        "receivedDateTime": "2026-04-20T10:05:00Z",
+                        "from": {
+                            "emailAddress": {"address": "person@example.com", "name": "Person"}
+                        },
+                        "body": {
+                            "contentType": "text",
+                            "content": "Following up on [ref:Scope:scope-7]",
+                        },
+                        "internetMessageHeaders": [],
+                    },
+                ],
+            ),
         ):
-            self._insert_notification("notification-1")
+            self._insert_notification(
+                "notification-1",
+                provider_message_id="<provider-message-1@example.com>",
+            )
             store = self._make_store()
             result = process_inbound_mail_poll(store, {"mailbox": "shared@example.com"})
 
@@ -125,6 +151,55 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(inbound_link["linkedEntityType"], "Scope")
         self.assertEqual(inbound_link["linkedEntityId"], "scope-7")
         self.assertEqual(bounced_notification["status"], "BOUNCED")
+
+    def test_process_inbound_mail_poll_ignores_spoofed_bounce_content(self) -> None:
+        with (
+            patch(
+                "starter_worker.main.list_graph_mail_messages",
+                return_value=[{"id": "msg-bounce-spoof"}],
+            ),
+            patch(
+                "starter_worker.main.get_graph_mail_message",
+                return_value={
+                    "id": "msg-bounce-spoof",
+                    "subject": "Undeliverable [notification:notification-1]",
+                    "bodyPreview": "Delivery failed",
+                    "receivedDateTime": "2026-04-20T10:00:00Z",
+                    "from": {
+                        "emailAddress": {
+                            "address": "postmaster@example.com",
+                            "name": "Postmaster",
+                        }
+                    },
+                    "body": {
+                        "contentType": "text",
+                        "content": "Delivery failed [notification:notification-1]",
+                    },
+                    "internetMessageHeaders": [
+                        {
+                            "name": "In-Reply-To",
+                            "value": "<different-provider-message@example.com>",
+                        }
+                    ],
+                },
+            ),
+        ):
+            self._insert_notification(
+                "notification-1",
+                provider_message_id="<provider-message-1@example.com>",
+            )
+            store = self._make_store()
+            result = process_inbound_mail_poll(store, {"mailbox": "shared@example.com"})
+
+        self.assertEqual(result["created"], 1)
+        self.assertEqual(result["bounced"], 0)
+        self.assertEqual(result["ignored"], 1)
+
+        inbound_bounce = self._fetch_inbound_email("msg-bounce-spoof")
+        notification = self._fetch_notification("notification-1")
+
+        self.assertEqual(inbound_bounce["processingStatus"], "IGNORED")
+        self.assertEqual(notification["status"], "SENT")
 
     def test_sqlite_job_store_claims_and_completes_job(self) -> None:
         self._insert_job(job_id="job-1", job_type="noop", payload={"message": "hello"})
@@ -277,6 +352,29 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(config.stale_lock_seconds, 600)
         self.assertEqual(config.teams_poll_interval_seconds, 45)
 
+    def test_load_config_prefers_worker_database_url(self) -> None:
+        env_path = Path(self.temp_dir.name) / ".env"
+        env_path.write_text(
+            'DATABASE_URL="postgresql://legacy:test@localhost:5432/app"\n'
+            'WORKER_DATABASE_URL="postgresql://worker:test@localhost:5432/app"\n',
+            encoding="utf-8",
+        )
+
+        with patch.dict(os.environ, {}, clear=True):
+            config = load_config(env_path=env_path)
+
+        self.assertEqual(config.database_url, "postgresql://worker:test@localhost:5432/app")
+
+    def test_worker_strips_prisma_only_postgres_url_params(self) -> None:
+        url = normalize_postgres_database_url(
+            "postgresql://worker:test@localhost:5432/app?connection_limit=10&sslmode=require"
+        )
+
+        self.assertEqual(
+            url,
+            "postgresql://worker:test@localhost:5432/app?sslmode=require",
+        )
+
     def _make_store(
         self,
         *,
@@ -323,6 +421,7 @@ class WorkerTests(unittest.TestCase):
                 """
                 CREATE TABLE Notification (
                     id TEXT PRIMARY KEY,
+                    providerMessageId TEXT,
                     status TEXT NOT NULL DEFAULT 'QUEUED',
                     lastError TEXT,
                     updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -441,14 +540,22 @@ class WorkerTests(unittest.TestCase):
         assert row is not None
         return row
 
-    def _insert_notification(self, notification_id: str) -> None:
+    def _insert_notification(
+        self,
+        notification_id: str,
+        *,
+        provider_message_id: str | None = None,
+    ) -> None:
         with closing(sqlite3.connect(self.db_path)) as connection:
             connection.execute(
                 """
-                INSERT INTO Notification (id, status, lastError, updatedAt)
-                VALUES (?, 'SENT', NULL, CURRENT_TIMESTAMP)
+                INSERT INTO Notification (id, providerMessageId, status, lastError, updatedAt)
+                VALUES (?, ?, 'SENT', NULL, CURRENT_TIMESTAMP)
                 """,
-                (notification_id,),
+                (
+                    notification_id,
+                    provider_message_id or f"<provider-{notification_id}@example.com>",
+                ),
             )
             connection.commit()
 

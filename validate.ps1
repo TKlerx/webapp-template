@@ -243,7 +243,7 @@ function Test-Utf8Encoding {
 }
 
 function Test-DependencyCooldownSupport {
-    Write-Step "Dependency cooldown support (npm + uv)"
+    Write-Step "Dependency cooldown support (pnpm + uv)"
     try {
         if (-not (Test-Path ".npmrc" -PathType Leaf)) {
             throw ".npmrc is missing"
@@ -251,12 +251,24 @@ function Test-DependencyCooldownSupport {
 
         $npmrcContent = Get-Content ".npmrc" -Raw
         if ($npmrcContent -notmatch '(?m)^\s*min-release-age\s*=\s*7\s*$') {
-            throw "project npm cooldown is not configured"
+            throw "project pnpm cooldown is not configured"
         }
 
-        $npmHelp = Invoke-NativeCommandCaptured "npm install --help"
-        if ($npmHelp.ExitCode -ne 0 -or -not (($npmHelp.Output -join "`n") -match '--min-release-age')) {
-            throw "installed npm does not support --min-release-age"
+        $packageJson = Get-Content "package.json" -Raw | ConvertFrom-Json
+        $expectedPackageManager = [string]$packageJson.packageManager
+        if ($expectedPackageManager -notmatch '^pnpm@(.+)$') {
+            throw "packageManager does not pin pnpm"
+        }
+        $expectedPnpmVersion = $Matches[1]
+
+        $pnpmVersion = Invoke-NativeCommandCaptured "pnpm --version"
+        if ($pnpmVersion.ExitCode -ne 0) {
+            throw "pnpm is not available"
+        }
+
+        $actualPnpmVersion = ($pnpmVersion.Output -join "`n").Trim()
+        if ($actualPnpmVersion -ne $expectedPnpmVersion) {
+            throw "installed pnpm does not match packageManager"
         }
 
         if (-not (Test-Path "worker\pyproject.toml" -PathType Leaf)) {
@@ -278,19 +290,25 @@ function Test-DependencyCooldownSupport {
             throw "installed uv does not support --exclude-newer"
         }
 
-        Write-Pass "dependency cooldown support is available (npm min-release-age=7, uv exclude-newer=1 week)"
+        Write-Pass "dependency cooldown support is available (pnpm min-release-age=7, uv exclude-newer=1 week)"
     } catch {
         Write-Fail "dependency cooldown support is not available"
         $message = $_.Exception.Message
         switch -Regex ($message) {
             '^\.npmrc is missing$' {
-                Write-Host "Create .npmrc with `min-release-age=7` so npm installs respect the repo cooldown policy." -ForegroundColor Yellow
+                Write-Host "Create .npmrc with `min-release-age=7` so pnpm installs respect the repo cooldown policy." -ForegroundColor Yellow
             }
-            '^project npm cooldown is not configured$' {
-                Write-Host "Set `min-release-age=7` in .npmrc to enforce the npm package release delay." -ForegroundColor Yellow
+            '^project pnpm cooldown is not configured$' {
+                Write-Host "Set `min-release-age=7` in .npmrc to enforce the pnpm package release delay." -ForegroundColor Yellow
             }
-            '^installed npm does not support --min-release-age$' {
-                Write-Host "Upgrade npm to 11.10.0 or newer. This repo requires npm support for `--min-release-age` so fresh packages cannot bypass the 7-day delay." -ForegroundColor Yellow
+            '^packageManager does not pin pnpm$' {
+                Write-Host "Set package.json `packageManager` to the pinned pnpm version, for example `pnpm@11.1.0`." -ForegroundColor Yellow
+            }
+            '^pnpm is not available$' {
+                Write-Host "Install pnpm through Corepack (`corepack enable` then `corepack prepare pnpm@11.1.0 --activate`)." -ForegroundColor Yellow
+            }
+            '^installed pnpm does not match packageManager$' {
+                Write-Host "Use the pinned pnpm version from package.json so `.npmrc` min-release-age=7 is applied consistently." -ForegroundColor Yellow
             }
             '^worker/pyproject\.toml is missing$' {
                 Write-Host "Restore worker/pyproject.toml so the repo-local uv cooldown policy can be validated." -ForegroundColor Yellow
@@ -388,7 +406,7 @@ function Test-TemplateProvenance {
                 Write-Host "Set recordedUpstreamTemplateShortCommit in .template-origin.json to the matching short git SHA." -ForegroundColor Yellow
             }
             '^TEMPLATE_VERSION\.md does not match \.template-origin\.json$' {
-                Write-Host "Run `npm run template:stamp` or manually sync TEMPLATE_VERSION.md with .template-origin.json." -ForegroundColor Yellow
+                Write-Host "Run `pnpm run template:stamp` or manually sync TEMPLATE_VERSION.md with .template-origin.json." -ForegroundColor Yellow
             }
             default {
                 Write-Host $message -ForegroundColor Yellow
@@ -428,10 +446,10 @@ function Test-SpecOverview {
                 Write-Host "Restore scripts/update-spec-overview.mjs so the repo can regenerate specs/OVERVIEW.md." -ForegroundColor Yellow
             }
             '^specs/OVERVIEW\.md is missing$' {
-                Write-Host "Run `npm run specs:overview:update` to create specs/OVERVIEW.md." -ForegroundColor Yellow
+                Write-Host "Run `pnpm run specs:overview:update` to create specs/OVERVIEW.md." -ForegroundColor Yellow
             }
             '^specs/OVERVIEW\.md is out of date$' {
-                Write-Host "Run `npm run specs:overview:update` after spec changes so the repo-wide overview stays current." -ForegroundColor Yellow
+                Write-Host "Run `pnpm run specs:overview:update` after spec changes so the repo-wide overview stays current." -ForegroundColor Yellow
             }
             default {
                 Write-Host $message -ForegroundColor Yellow
@@ -502,7 +520,7 @@ function Test-ContinuityFreshness {
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
         if ($stagedContinuityFiles.Count -gt 0) {
-            $exitCode = Invoke-NativeCommand "npm run continuity:update"
+            $exitCode = Invoke-NativeCommand "pnpm run continuity:update"
             if ($exitCode -ne 0) {
                 throw "continuity update failed"
             }
@@ -530,15 +548,15 @@ function Test-ContinuityFreshness {
         Write-Pass "continuity files are current"
     } catch {
         Write-Fail "continuity files are out of date"
-        Write-Host 'Run `npm run continuity:update`, review CONTINUE.md and CONTINUE_LOG.md, commit the updates, then try again.' -ForegroundColor Yellow
+        Write-Host 'Run `pnpm run continuity:update`, review CONTINUE.md and CONTINUE_LOG.md, commit the updates, then try again.' -ForegroundColor Yellow
         $script:failures += "continuity"
     }
 }
 
 function Test-ProductionDependencyAudit([switch]$Blocking) {
-    Write-Step "Production dependency audit (npm audit --omit=dev --omit=optional)"
+    Write-Step "Production dependency audit (pnpm audit --prod --no-optional)"
     try {
-        $result = Invoke-NativeCommandCaptured "npm audit --omit=dev --omit=optional --json"
+        $result = Invoke-NativeCommandCaptured "pnpm audit --prod --no-optional --json"
         $rawOutput = ($result.Output -join "`n").Trim()
 
         if ($result.ExitCode -eq 0) {
@@ -596,7 +614,7 @@ function Test-ProductionDependencyAudit([switch]$Blocking) {
                 Write-Host ("Unexpected packages: " + ($unexpectedPackages -join ", ")) -ForegroundColor Yellow
             } else {
                 Write-Host ("Allowlisted packages: " + ($AllowedProductionAuditPackages -join ", ")) -ForegroundColor Yellow
-                Write-Host "This repo enforces npm min-release-age=7. If the fixed package versions are newer than that cooldown window, the allowlisted audit can stay red temporarily." -ForegroundColor Yellow
+                Write-Host "This repo enforces pnpm min-release-age=7. If the fixed package versions are newer than that cooldown window, the allowlisted audit can stay red temporarily." -ForegroundColor Yellow
             }
             if ($packageStatuses.Count -gt 0) {
                 Write-Host "Per-package fix status:" -ForegroundColor Yellow
@@ -624,7 +642,7 @@ function Test-ProductionDependencyAudit([switch]$Blocking) {
             } else {
                 Write-Fail "production dependency audit failed"
             }
-            Write-Host "npm audit returned a non-zero status but did not produce machine-readable details." -ForegroundColor Yellow
+            Write-Host "pnpm audit returned a non-zero status but did not produce machine-readable details." -ForegroundColor Yellow
             $script:failures += "prod-audit"
             return
         }
@@ -681,7 +699,7 @@ function Get-PackagePublishTimestamp([string]$packageName, [string]$version) {
     }
 
     $escapedPackageName = $packageName.Replace('"', '\"')
-    $result = Invoke-NativeCommandCaptured "npm view ""$escapedPackageName"" time --json"
+    $result = Invoke-NativeCommandCaptured "pnpm view ""$escapedPackageName"" time --json"
     if ($result.ExitCode -ne 0) {
         $PackagePublishTimeCache[$cacheKey] = $null
         return $null
@@ -751,7 +769,7 @@ function Get-AuditPackageStatuses($audit) {
         if ($fixAvailable -is [bool]) {
             $statuses += [pscustomobject]@{
                 PackageName = $packageName
-                Status = "Fix available (version not specified by npm audit)"
+                Status = "Fix available (version not specified by pnpm audit)"
                 FixPackage = $null
                 FixVersion = $null
                 PublishedAt = $null
@@ -766,7 +784,7 @@ function Get-AuditPackageStatuses($audit) {
         $isSemVerMajor = [bool]$fixAvailable.isSemVerMajor
 
         $statusText = if ([string]::IsNullOrWhiteSpace($fixPackageName) -or [string]::IsNullOrWhiteSpace($fixVersion)) {
-            "Fix available (version not specified by npm audit)"
+            "Fix available (version not specified by pnpm audit)"
         } elseif ($null -eq $publishTimestamp -or $null -eq $cutoff) {
             "Fix available (publish date unavailable)"
         } elseif ($publishTimestamp -gt $cutoff) {
@@ -793,7 +811,7 @@ $failures = @()
 if ($Phase -in "all", "full", "quick", "commit") {
     Write-Step "Typecheck (tsc --noEmit)"
     try {
-        $exitCode = Invoke-NativeCommand "npm run typecheck"
+        $exitCode = Invoke-NativeCommand "pnpm run typecheck"
         if ($exitCode -ne 0) { throw "typecheck failed" }
         Write-Pass "typecheck passed"
     } catch {
@@ -825,7 +843,7 @@ if ($Phase -in "all", "full", "quick", "commit") {
 if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Lint (eslint)"
     try {
-        $result = Invoke-NativeCommandCaptured "npm run lint"
+        $result = Invoke-NativeCommandCaptured "pnpm run lint"
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "lint failed"
@@ -882,7 +900,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
             Write-Warn "prettier not installed (add to devDependencies)"
             return
         }
-        $result = Invoke-NativeCommandCaptured "npx --no-install prettier --check ."
+        $result = Invoke-NativeCommandCaptured "pnpm exec prettier --check ."
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             Write-Fail "Prettier format check failed"
@@ -896,7 +914,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
 if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Architecture (dependency-cruiser)"
     try {
-        $result = Invoke-NativeCommandCaptured "npm run architecture"
+        $result = Invoke-NativeCommandCaptured "pnpm run architecture"
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "architecture check failed"
@@ -928,7 +946,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
             Write-Info "configured duplication threshold: $threshold%"
         }
 
-        $result = Invoke-NativeCommandCaptured "npm run duplication"
+        $result = Invoke-NativeCommandCaptured "pnpm run duplication"
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "duplication check failed"
@@ -958,7 +976,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
 if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Python quality (ruff, xenon, radon, complexipy)"
     try {
-        $result = Invoke-NativeCommandCaptured "npm run quality:python"
+        $result = Invoke-NativeCommandCaptured "pnpm run quality:python"
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "python quality failed"
@@ -1005,7 +1023,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
 if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "CLI quality (gofmt, go vet, staticcheck, gocyclo, go test, go build)"
     try {
-        $result = Invoke-NativeCommandCaptured "npm run quality:cli"
+        $result = Invoke-NativeCommandCaptured "pnpm run quality:cli"
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "cli quality failed"
@@ -1022,7 +1040,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Security scan (semgrep)"
     try {
         $env:PYTHONUTF8 = "1"
-        $result = Invoke-NativeCommandCaptured "npm run semgrep"
+        $result = Invoke-NativeCommandCaptured "pnpm run semgrep"
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "semgrep failed"
@@ -1042,6 +1060,18 @@ if ($Phase -in "all", "full", "quality", "commit") {
     } catch {
         Write-Fail "semgrep failed"
         $failures += "semgrep"
+    }
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "Runtime credential validation"
+    try {
+        $exitCode = Invoke-NativeCommand "pnpm run validate:runtime-credentials"
+        if ($exitCode -ne 0) { throw "runtime credential validation failed" }
+        Write-Pass "runtime credential validation passed"
+    } catch {
+        Write-Fail "runtime credential validation failed"
+        $failures += "runtime-credentials"
     }
 }
 
@@ -1100,7 +1130,7 @@ if ($Phase -in "all", "full", "test", "commit") {
 if ($Phase -in "all", "full", "test", "commit") {
     Write-Step "Tests (vitest)"
     try {
-        $result = Invoke-NativeCommandCaptured "npm test"
+        $result = Invoke-NativeCommandCaptured "pnpm test"
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "tests failed"
@@ -1180,9 +1210,9 @@ if ($Phase -in "full", "e2e") {
     } else {
         try {
             $commandLine = if ($IsWindows -or $env:OS -eq "Windows_NT") {
-                "set CI=1 && set E2E_PORT=3290 && npm run test:e2e"
+                "set CI=1 && set E2E_PORT=3290 && pnpm run test:e2e"
             } else {
-                "CI=1 E2E_PORT=3290 npm run test:e2e"
+                "CI=1 E2E_PORT=3290 pnpm run test:e2e"
             }
 
             $result = Invoke-NativeCommandCaptured $commandLine
@@ -1218,7 +1248,7 @@ Write-Host "ALL CHECKS PASSED" -ForegroundColor Green
 
 if ($Phase -eq "commit") {
     Write-Step "Continuity refresh"
-    $continuityExitCode = Invoke-NativeCommand "npm run continuity:update"
+    $continuityExitCode = Invoke-NativeCommand "pnpm run continuity:update"
     if ($continuityExitCode -ne 0) {
         Write-Fail "continuity refresh failed"
         exit 1

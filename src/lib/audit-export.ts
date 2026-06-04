@@ -3,6 +3,8 @@ import { buildAuditFilters } from "@/services/api/audit-filters";
 import type { AuditFilters } from "@/services/api/types";
 import { AuditAction } from "../../generated/prisma/enums";
 
+const MAX_AUDIT_EXPORT_ROWS = 1000;
+
 export async function getAuditEntries(filters: AuditFilters = {}) {
   const where = buildAuditFilters(filters);
 
@@ -41,12 +43,30 @@ export async function getAuditEntries(filters: AuditFilters = {}) {
 }
 
 function csvEscape(value: unknown) {
-  const text = String(value ?? "");
+  const text = neutralizeSpreadsheetFormula(String(value ?? ""));
   return `"${text.replaceAll('"', '""')}"`;
 }
 
+function neutralizeSpreadsheetFormula(value: string) {
+  const trimmedLeading = value.trimStart();
+  if (!trimmedLeading) {
+    return value;
+  }
+
+  const first = trimmedLeading[0];
+  if (first === "=" || first === "+" || first === "-" || first === "@") {
+    return `'${value}`;
+  }
+
+  return value;
+}
+
 export async function exportToCSV(filters: AuditFilters = {}) {
-  const { entries } = await getAuditEntries(filters);
+  const { total, entries } = await getAuditEntries({
+    ...filters,
+    page: 1,
+    limit: MAX_AUDIT_EXPORT_ROWS,
+  });
   const lines = [
     [
       "Date",
@@ -72,7 +92,12 @@ export async function exportToCSV(filters: AuditFilters = {}) {
     ),
   ];
 
-  return Buffer.from(lines.join("\n"), "utf8");
+  return {
+    buffer: Buffer.from(lines.join("\n"), "utf8"),
+    truncated: total > entries.length,
+    total,
+    exportedCount: entries.length,
+  };
 }
 
 function escapePdfText(value: string) {
@@ -83,7 +108,11 @@ function escapePdfText(value: string) {
 }
 
 export async function exportToPDF(filters: AuditFilters = {}) {
-  const { entries } = await getAuditEntries(filters);
+  const { total, entries } = await getAuditEntries({
+    ...filters,
+    page: 1,
+    limit: MAX_AUDIT_EXPORT_ROWS,
+  });
   const lines = [
     "Audit Trail Export",
     "",
@@ -96,20 +125,43 @@ export async function exportToPDF(filters: AuditFilters = {}) {
     ]),
   ];
 
-  const stream = lines
-    .map(
-      (line, index) =>
-        `BT /F1 10 Tf 40 ${780 - index * 14} Td (${escapePdfText(line)}) Tj ET`,
-    )
-    .join("\n");
-  const content = Buffer.from(stream, "utf8");
-  const objects = [
-    "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
-    "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
-    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
-    "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
-    `5 0 obj << /Length ${content.length} >> stream\n${stream}\nendstream endobj`,
-  ];
+  const linesPerPage = 52;
+  const pageChunks: string[][] = [];
+  for (let index = 0; index < lines.length; index += linesPerPage) {
+    pageChunks.push(lines.slice(index, index + linesPerPage));
+  }
+
+  const objects: string[] = [];
+  objects.push("1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj");
+  const firstPageId = 4;
+  const pageKids = pageChunks
+    .map((_, pageIndex) => `${firstPageId + pageIndex * 2} 0 R`)
+    .join(" ");
+  objects.push(
+    `2 0 obj << /Type /Pages /Kids [${pageKids}] /Count ${pageChunks.length} >> endobj`,
+  );
+  objects.push(
+    "3 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
+  );
+
+  pageChunks.forEach((pageLines, pageIndex) => {
+    const pageId = firstPageId + pageIndex * 2;
+    const contentId = pageId + 1;
+    const stream = pageLines
+      .map(
+        (line, lineIndex) =>
+          `BT /F1 10 Tf 40 ${780 - lineIndex * 14} Td (${escapePdfText(line)}) Tj ET`,
+      )
+      .join("\n");
+    const content = Buffer.from(stream, "utf8");
+
+    objects.push(
+      `${pageId} 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >> endobj`,
+    );
+    objects.push(
+      `${contentId} 0 obj << /Length ${content.length} >> stream\n${stream}\nendstream endobj`,
+    );
+  });
 
   let pdf = "%PDF-1.4\n";
   const offsets = [0];
@@ -125,5 +177,10 @@ export async function exportToPDF(filters: AuditFilters = {}) {
   }
   pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
 
-  return Buffer.from(pdf, "utf8");
+  return {
+    buffer: Buffer.from(pdf, "utf8"),
+    truncated: total > entries.length,
+    total,
+    exportedCount: entries.length,
+  };
 }

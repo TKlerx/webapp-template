@@ -41,14 +41,14 @@ export function TokenValueDisplay({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-[2rem] border-black/10 bg-[var(--panel)] p-6 dark:border-white/10">
+      <DialogContent className="rounded-lg border-[var(--border)] bg-[var(--panel)] p-6">
         <DialogHeader>
           <DialogTitle>
             {t("tokenValueTitle", { name: currentToken.name })}
           </DialogTitle>
           <DialogDescription>{t("tokenValueWarning")}</DialogDescription>
         </DialogHeader>
-        <div className="rounded-2xl border border-dashed border-black/15 bg-black/5 p-4 font-mono text-sm break-all dark:border-white/15 dark:bg-white/5">
+        <div className="rounded-lg border border-dashed border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_86%,var(--background)_14%)] p-4 font-mono text-sm break-all">
           {currentToken.tokenValue}
         </div>
         <div className="flex justify-end gap-2">

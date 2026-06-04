@@ -6,7 +6,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const body = (await request.json()) as { role?: Role };
-  const result = await updateManagedUserRole(params, body);
+  const result = await updateManagedUserRole(params, body, request);
   if ("error" in result) {
     return result.error;
   }
