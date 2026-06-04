@@ -71,12 +71,13 @@ Guidelines:
 
 Playwright E2E defaults to a local PostgreSQL container named
 `webapp-template-e2e-postgres` on host port `55432`. The E2E setup script
-creates or starts that container, resets the Postgres schema, seeds the initial
-admin, and runs the app with the Postgres Prisma schema. Tests use the dedicated
-`e2e` schema so manual data can live separately in `public`. Set an explicit
-`DATABASE_URL=file:./e2e.db` only when you intentionally need the legacy SQLite
-E2E path. Set `E2E_REUSE_SERVER=1` only when you are not resetting the database
-between runs.
+creates or starts that container, ensures the `business_app_starter_e2e_test`
+database exists, resets that database, seeds the initial admin, and runs the app
+with the Postgres Prisma schema. Use a separate database such as
+`business_app_starter_manual` in the same container for manual exploratory
+testing. Set an explicit `DATABASE_URL=file:./e2e.db` only when you intentionally
+need the legacy SQLite E2E path. Set `E2E_REUSE_SERVER=1` only when you are not
+resetting the database between runs.
 
 `all` includes TypeScript, Python, and CLI quality checks plus dependency cooldown
 validation for pnpm and uv support.

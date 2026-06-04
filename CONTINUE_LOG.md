@@ -1219,7 +1219,7 @@
 
 ## 2026-06-04 17:50:00 +02:00
 
-- Moved the default Postgres E2E URL from `schema=public` to `schema=e2e`.
-- This keeps Playwright reset/seed data in a dedicated schema while leaving the same local database's `public` schema available for manual testing data.
-- Added the missing Prisma Postgres adapter `{ schema }` option in app runtime and seed runtime so queries actually target `e2e`, not only migrations.
+- Moved the default Postgres E2E URL away from schema isolation and back to the default `public` schema inside the dedicated `business_app_starter_e2e_test` database.
+- This keeps Playwright reset/seed data isolated at the database boundary; manual exploratory testing should use a separate database such as `business_app_starter_manual` in the same container.
+- Kept Prisma Postgres adapter `{ schema }` support in app runtime and seed runtime for explicit schema URLs.
 - Validation passed with `node scripts/ensure-e2e-db.mjs`, direct schema row-count check, `pnpm run test:e2e`, `pnpm run typecheck`, `pnpm run lint`, and targeted Prettier check.

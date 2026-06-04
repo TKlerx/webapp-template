@@ -332,4 +332,4 @@ After Phase 1 is validated, use `phase-2-findings.md` and the refreshed export t
 - [x] T097 Update Playwright global setup, teardown, and DB helpers to default to the Postgres E2E database while preserving explicit SQLite fallback.
 - [x] T098 Disable implicit Playwright web server reuse for database-resetting E2E runs, with `E2E_REUSE_SERVER=1` as an explicit opt-in.
 - [x] T099 Run the full Playwright suite against the default Postgres E2E path and record validation evidence.
-- [x] T100 Move the default E2E Postgres URL to `schema=e2e` and pass that schema into the Prisma Postgres adapter for app and seed runtime.
+- [x] T100 Move the default E2E Postgres URL to its own test database and keep Prisma Postgres adapter schema support for explicit schema URLs.

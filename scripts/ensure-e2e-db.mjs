@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const DEFAULT_E2E_DATABASE_URL =
-  "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=e2e";
+  "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e_test";
 
 const databaseUrl =
   process.env.DATABASE_URL?.trim() || DEFAULT_E2E_DATABASE_URL;
@@ -34,10 +34,11 @@ const postgresPassword = decodeURIComponent(
   parsed.password || "starter_e2e_password",
 );
 const postgresDb =
-  parsed.pathname.replace(/^\//, "") || "business_app_starter_e2e";
+  parsed.pathname.replace(/^\//, "") || "business_app_starter_e2e_test";
 const hostPort = parsed.port || "55432";
 
 ensureDockerPostgres();
+ensureTargetDatabase();
 
 const env = {
   DATABASE_URL: databaseUrl,
@@ -111,7 +112,7 @@ function waitForPostgres() {
         "-U",
         postgresUser,
         "-d",
-        postgresDb,
+        "postgres",
       ],
       { encoding: "utf8" },
     );
@@ -125,6 +126,36 @@ function waitForPostgres() {
   throw new Error(
     `Timed out waiting for PostgreSQL E2E container. Last output: ${lastOutput}`,
   );
+}
+
+function ensureTargetDatabase() {
+  const exists = runNativeCaptured("docker", [
+    "exec",
+    containerName,
+    "psql",
+    "-U",
+    postgresUser,
+    "-d",
+    "postgres",
+    "-tAc",
+    `SELECT 1 FROM pg_database WHERE datname = ${quoteSqlLiteral(postgresDb)}`,
+  ]).trim();
+
+  if (exists === "1") {
+    return;
+  }
+
+  runNativeStep("Create PostgreSQL E2E database", "docker", [
+    "exec",
+    containerName,
+    "psql",
+    "-U",
+    postgresUser,
+    "-d",
+    "postgres",
+    "-c",
+    `CREATE DATABASE ${quoteSqlIdentifier(postgresDb)} OWNER ${quoteSqlIdentifier(postgresUser)}`,
+  ]);
 }
 
 function runStep(label, commandLine, envOverrides = {}) {
@@ -168,6 +199,14 @@ function runNativeCaptured(command, args) {
   }
 
   return result.stdout ?? "";
+}
+
+function quoteSqlIdentifier(value) {
+  return `"${String(value).replaceAll('"', '""')}"`;
+}
+
+function quoteSqlLiteral(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
 }
 
 function getShellCommand() {
