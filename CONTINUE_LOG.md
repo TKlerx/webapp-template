@@ -1194,3 +1194,11 @@
   - `pnpm exec prettier --check .`
   - `pwsh -NoProfile -ExecutionPolicy Bypass -File validate.ps1 all`
   - `pnpm exec playwright test tests/e2e/users/user-management.spec.ts --grep "last active admin cannot be deactivated"`
+
+## 2026-06-04 16:01:00 +02:00
+
+- Fixed remote E2E suite-order dependence in `tests/e2e/users/user-management.spec.ts`.
+- Added `deactivateOtherPlatformAdmins` E2E DB helper so the last-active-admin UI assertion starts from deterministic admin state even after other E2E specs seed active admins.
+- Validation passed:
+  - `pnpm exec playwright test tests/e2e/users/user-management.spec.ts`
+  - `pnpm run typecheck`

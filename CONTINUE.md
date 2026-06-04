@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-04 15:51:06 +02:00
+- Updated: 2026-06-04 16:01:00 +02:00
 - Branch: `017-deepsec-remediation`
 
 ## Recent Non-Continuity Commits
@@ -30,6 +30,6 @@
 
 ## Next Recommended Actions
 
-1. Push PR validation cleanup and watch GitHub Actions for PR #1.
+1. Push E2E determinism cleanup and watch GitHub Actions for PR #1.
 2. Merge PR #1 after checks pass.
 3. Keep `playwright.config.ts` as accepted-risk unless test-only static credentials should also be removed; review on/after 2026-06-15.

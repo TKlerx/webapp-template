@@ -6,7 +6,7 @@ import {
   expectOnDashboard,
   loginWithPassword,
 } from "../helpers/auth";
-import { seedLocalUser } from "../helpers/db";
+import { deactivateOtherPlatformAdmins, seedLocalUser } from "../helpers/db";
 
 test.setTimeout(60000);
 
@@ -150,6 +150,9 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
         adminPage.getByText("User deactivated").first(),
       ).toBeVisible();
     }
+
+    await deactivateOtherPlatformAdmins("admin@example.com");
+    await adminPage.reload();
 
     const selfRow = adminPage.getByRole("row", {
       name: /Admin User\s+admin@example\.com/,
