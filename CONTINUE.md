@@ -29,19 +29,22 @@
   - container: `webapp-template-e2e-postgres`
   - image: `postgres:18-alpine`
   - host port: `55432`
-  - default URL: `postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=public`
+  - default URL: `postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=e2e`
+- The E2E default intentionally uses the `e2e` schema so manual data can live separately in the same local Postgres database's `public` schema.
 - Added `scripts/ensure-e2e-db.mjs` to create/start the E2E Postgres container, wait for readiness, generate the Postgres Prisma client, reset migrations, and seed the initial admin.
 - Preserved explicit SQLite fallback when `DATABASE_URL` starts with `file:`.
 - Disabled implicit Playwright app-server reuse for default E2E runs; set `E2E_REUSE_SERVER=1` only for intentional reuse without schema resets.
 - Added transient Postgres connection retry handling around the E2E DB worker helper.
+- Passed the parsed `schema` URL parameter into the Prisma Postgres adapter for app and seed runtime; migrations honored `schema=e2e`, but runtime queries needed the adapter option.
 - Updated README and `specs/017-deepsec-remediation` tasks/evidence with the Postgres E2E default.
 
 ## Validation
 
-- `pnpm run test:e2e` -> pass (`17` passed, `1` skipped) against Postgres.
+- `node scripts/ensure-e2e-db.mjs` -> pass; seeded admin lands in `e2e.User`, while existing `public.User` rows remain untouched.
+- `pnpm run test:e2e` -> pass (`17` passed, `1` skipped) against Postgres `schema=e2e`.
 - `pnpm run typecheck` -> pass.
 - `pnpm run lint` -> pass.
-- `pnpm exec prettier --check playwright.config.ts tests/e2e/global.setup.ts tests/e2e/global.teardown.ts tests/e2e/helpers/db.ts scripts/ensure-e2e-db.mjs` -> pass.
+- `pnpm exec prettier --check playwright.config.ts scripts/ensure-e2e-db.mjs tests/e2e/global.setup.ts tests/e2e/global.teardown.ts tests/e2e/helpers/db.ts src/lib/db.ts prisma/seed.ts` -> pass.
 - `pnpm exec prettier --check .` -> fails on broad pre-existing formatting debt outside this slice.
 
 ## Next Recommended Actions

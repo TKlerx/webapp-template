@@ -344,12 +344,14 @@ Remaining unresolved findings after the 2026-06-01 closure pass were explicitly 
 
 ## Post-Merge Postgres E2E Default Validation (2026-06-04)
 
-- Switched Playwright E2E defaults from SQLite to a local Postgres container at `localhost:55432`.
+- Switched Playwright E2E defaults from SQLite to a local Postgres container at `localhost:55432`, using the dedicated `e2e` schema.
+- Passed the parsed Postgres `schema` URL parameter into `PrismaPg` for app runtime and seed runtime; migrations already honored the schema parameter, but runtime queries need the adapter option too.
 - Preserved an explicit SQLite fallback via `DATABASE_URL=file:...`.
 - Disabled implicit app server reuse during E2E runs so schema resets do not leave stale Prisma/Postgres connections in a reused Next.js process.
 - Validation:
-  - `pnpm run test:e2e` -> pass (`17` tests, `1` skipped) against Postgres.
+  - `node scripts/ensure-e2e-db.mjs` -> pass; seeded admin lands in `e2e.User` while existing `public.User` rows remain untouched.
+  - `pnpm run test:e2e` -> pass (`17` tests, `1` skipped) against Postgres `schema=e2e`.
   - `pnpm run typecheck` -> pass.
   - `pnpm run lint` -> pass.
-  - `pnpm exec prettier --check playwright.config.ts tests/e2e/global.setup.ts tests/e2e/global.teardown.ts tests/e2e/helpers/db.ts scripts/ensure-e2e-db.mjs` -> pass.
+  - `pnpm exec prettier --check playwright.config.ts scripts/ensure-e2e-db.mjs tests/e2e/global.setup.ts tests/e2e/global.teardown.ts tests/e2e/helpers/db.ts src/lib/db.ts prisma/seed.ts` -> pass.
   - `pnpm exec prettier --check .` -> fail on broad pre-existing formatting debt outside this slice.

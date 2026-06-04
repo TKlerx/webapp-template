@@ -1216,3 +1216,10 @@
   - `pnpm run lint`
   - `pnpm exec prettier --check playwright.config.ts tests/e2e/global.setup.ts tests/e2e/global.teardown.ts tests/e2e/helpers/db.ts scripts/ensure-e2e-db.mjs`
 - Repo-wide `pnpm exec prettier --check .` still fails on broad pre-existing formatting debt outside this slice.
+
+## 2026-06-04 17:50:00 +02:00
+
+- Moved the default Postgres E2E URL from `schema=public` to `schema=e2e`.
+- This keeps Playwright reset/seed data in a dedicated schema while leaving the same local database's `public` schema available for manual testing data.
+- Added the missing Prisma Postgres adapter `{ schema }` option in app runtime and seed runtime so queries actually target `e2e`, not only migrations.
+- Validation passed with `node scripts/ensure-e2e-db.mjs`, direct schema row-count check, `pnpm run test:e2e`, `pnpm run typecheck`, `pnpm run lint`, and targeted Prettier check.

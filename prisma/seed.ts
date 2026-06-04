@@ -27,7 +27,14 @@ function createAdapter(connectionString: string) {
     return new PrismaBetterSqlite3({ url: connectionString });
   }
 
-  return new PrismaPg({ connectionString });
+  return new PrismaPg(
+    { connectionString },
+    { schema: getPostgresSchema(connectionString) },
+  );
+}
+
+function getPostgresSchema(connectionString: string) {
+  return new URL(connectionString).searchParams.get("schema") ?? undefined;
 }
 
 const connectionString =

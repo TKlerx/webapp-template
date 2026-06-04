@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const DEFAULT_E2E_DATABASE_URL =
-  "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=public";
+  "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e?schema=e2e";
 
 const databaseUrl =
   process.env.DATABASE_URL?.trim() || DEFAULT_E2E_DATABASE_URL;
