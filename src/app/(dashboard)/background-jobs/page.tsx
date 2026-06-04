@@ -288,10 +288,11 @@ function sanitizeJobValue(value: unknown): unknown {
 
   if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(([key, entryValue]) =>
-        SENSITIVE_JOB_KEYS.has(key)
-          ? [key, "[REDACTED]"]
-          : [key, sanitizeJobValue(entryValue)],
+      Object.entries(value as Record<string, unknown>).map(
+        ([key, entryValue]) =>
+          SENSITIVE_JOB_KEYS.has(key)
+            ? [key, "[REDACTED]"]
+            : [key, sanitizeJobValue(entryValue)],
       ),
     );
   }

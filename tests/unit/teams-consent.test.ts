@@ -31,7 +31,9 @@ describe("teams delegated grant token handling", () => {
   it("stores encrypted delegated grant tokens at rest", async () => {
     process.env.TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY =
       "test-key-for-delegated-grants";
-    prismaMock.teamsDelegatedGrant.upsert.mockResolvedValue({ id: "grant-1" } as never);
+    prismaMock.teamsDelegatedGrant.upsert.mockResolvedValue({
+      id: "grant-1",
+    } as never);
 
     await saveTeamsDelegatedGrant("user-1", {
       access_token: "access-plain",

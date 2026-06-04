@@ -17,7 +17,9 @@ const {
 } = vi.hoisted(() => ({
   createTeamsConsentState: vi.fn(() => "state-123"),
   getTeamsConsentAppRedirectPath: vi.fn((path: string) => path),
-  getTeamsAuthorizeUrl: vi.fn(() => new URL("https://login.microsoftonline.com/authorize")),
+  getTeamsAuthorizeUrl: vi.fn(
+    () => new URL("https://login.microsoftonline.com/authorize"),
+  ),
   getTeamsConsentCookiePath: vi.fn(() => "/"),
   TEAMS_CONSENT_STATE_COOKIE: "starter_app_teams_consent_state",
 }));

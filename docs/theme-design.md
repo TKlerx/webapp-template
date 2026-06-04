@@ -56,7 +56,7 @@ useEffect(() => {
 Tailwind is configured in `tailwind.config.ts` to use that selector:
 
 ```ts
-darkMode: ["selector", "[data-theme='dark']"]
+darkMode: ["selector", "[data-theme='dark']"];
 ```
 
 This keeps CSS variable styling and Tailwind `dark:` variants aligned.

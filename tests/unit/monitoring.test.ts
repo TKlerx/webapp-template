@@ -13,7 +13,9 @@ describe("monitoring", () => {
   });
 
   it("returns a generic failure message when the database health check fails", async () => {
-    prismaMock.$queryRaw.mockRejectedValue(new Error("dial tcp 10.0.0.1:5432: i/o timeout"));
+    prismaMock.$queryRaw.mockRejectedValue(
+      new Error("dial tcp 10.0.0.1:5432: i/o timeout"),
+    );
 
     const health = await checkDatabaseHealth();
 

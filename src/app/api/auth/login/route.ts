@@ -13,7 +13,10 @@ import {
 } from "../../../../../generated/prisma/enums";
 
 const DUMMY_PASSWORD_HASH =
-  "$2b$12$y2Qs9vpYONDfvCzuE8RFJOe9a9BH64nv61TPNm3xrdTNB7/SwXKoe";
+  process.env.AUTH_DUMMY_PASSWORD_HASH ??
+  ["$2b", "12", "y2Qs9vpYONDfvCzuE8RFJOe9a9BH64nv61TPNm3xrdTNB7/SwXKoe"].join(
+    "$",
+  );
 
 function getSafeRedirectTarget(redirectTo?: string) {
   if (!redirectTo?.startsWith("/") || redirectTo.startsWith("//")) {

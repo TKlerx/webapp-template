@@ -87,8 +87,8 @@ describe("audit export", () => {
     const csv = await exportToCSV();
     const body = csv.buffer.toString("utf8");
     expect(body).toContain("\"'=cmd|' /C calc'!A0\"");
-    expect(body).toContain("\"'+admin\"");
-    expect(body).toContain("\"'@scope\"");
+    expect(body).toContain('"\'+admin"');
+    expect(body).toContain('"\'@scope"');
   });
 
   it("exports a PDF buffer", async () => {

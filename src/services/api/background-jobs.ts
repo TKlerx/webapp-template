@@ -166,7 +166,10 @@ export async function cleanupHistoricalBackgroundJobPayloads(limit = 200) {
       data: {
         payload: sanitizeStoredJobJson(job.payload) ?? "{}",
         result: sanitizeStoredJobJson(job.result) ?? "{}",
-        error: typeof job.error === "string" ? String(sanitizeJobValue(job.error)) : job.error,
+        error:
+          typeof job.error === "string"
+            ? String(sanitizeJobValue(job.error))
+            : job.error,
       },
     });
     updated += 1;

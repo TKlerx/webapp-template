@@ -140,9 +140,12 @@ describe("teams integration API", () => {
     );
 
     const response = await deleteSubscription(
-      new Request("http://localhost/api/integrations/teams/subscriptions/sub-1", {
-        method: "DELETE",
-      }),
+      new Request(
+        "http://localhost/api/integrations/teams/subscriptions/sub-1",
+        {
+          method: "DELETE",
+        },
+      ),
       { params: Promise.resolve({ id: "sub-1" }) },
     );
     if (!response) {
@@ -202,12 +205,15 @@ describe("teams integration API", () => {
     prismaMock.backgroundJob.findMany.mockResolvedValue([
       {
         id: "job-legacy-1",
-        payload: '{"delegatedAccessToken":"old-token","nested":{"apiKey":"abc"}}',
+        payload:
+          '{"delegatedAccessToken":"old-token","nested":{"apiKey":"abc"}}',
         result: '{"refreshToken":"old-refresh"}',
         error: "failed",
       },
     ] as never);
-    prismaMock.backgroundJob.update.mockResolvedValue({ id: "job-legacy-1" } as never);
+    prismaMock.backgroundJob.update.mockResolvedValue({
+      id: "job-legacy-1",
+    } as never);
 
     const result = await cleanupHistoricalBackgroundJobPayloads();
 
@@ -215,12 +221,16 @@ describe("teams integration API", () => {
     expect(prismaMock.backgroundJob.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          payload: expect.stringContaining('"delegatedAccessToken":"[REDACTED]"'),
+          payload: expect.stringContaining(
+            '"delegatedAccessToken":"[REDACTED]"',
+          ),
           result: expect.stringContaining('"refreshToken":"[REDACTED]"'),
         }),
       }),
     );
-    await expect(runBackgroundJobPayloadCleanupMaintenance()).resolves.toMatchObject({
+    await expect(
+      runBackgroundJobPayloadCleanupMaintenance(),
+    ).resolves.toMatchObject({
       scanned: 1,
       updated: 1,
     });

@@ -9,7 +9,9 @@ export async function GET(request: Request) {
 
   const status = database.status === "ok" ? 200 : 503;
   const databaseCheck =
-    database.status === "ok" ? { status: "ok" as const } : { status: "error" as const };
+    database.status === "ok"
+      ? { status: "ok" as const }
+      : { status: "error" as const };
 
   return NextResponse.json(
     {

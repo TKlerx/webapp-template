@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-02 22:25:00 +02:00
+- Updated: 2026-06-04 15:51:06 +02:00
 - Branch: `017-deepsec-remediation`
 
 ## Recent Non-Continuity Commits
@@ -26,10 +26,10 @@
 
 ## Active Specs
 
-- `specs/017-deepsec-remediation`: In Progress. Completed Phase 1 (HIGH/HIGH_BUG closed), Phase 2 Batches 1-12, and focused final MEDIUM fix slice T089-T095. Latest targeted run `20260602221332-8f8dc06fba1876ca` returned `TP 0`, `Fixed 10`, `Dupe 3`; refreshed `.deepsec/findings-full-codex.json` now contains `1` unresolved MEDIUM accepted-risk finding (`playwright.config.ts`).
+- `specs/017-deepsec-remediation`: In Progress. Completed Phase 1 (HIGH/HIGH_BUG closed), Phase 2 Batches 1-12, focused final MEDIUM fix slice T089-T095, and PR validation cleanup. Latest targeted run `20260602221332-8f8dc06fba1876ca` returned `TP 0`, `Fixed 10`, `Dupe 3`; refreshed `.deepsec/findings-full-codex.json` now contains `1` unresolved MEDIUM accepted-risk finding (`playwright.config.ts`).
 
 ## Next Recommended Actions
 
-1. Prepare final remediation closure summary/PR notes from `specs/017-deepsec-remediation/remediation-evidence.md`.
-2. Keep `playwright.config.ts` as accepted-risk unless test-only static credentials should also be removed.
-3. On/after 2026-06-15, review the accepted-risk Playwright item.
+1. Push PR validation cleanup and watch GitHub Actions for PR #1.
+2. Merge PR #1 after checks pass.
+3. Keep `playwright.config.ts` as accepted-risk unless test-only static credentials should also be removed; review on/after 2026-06-15.

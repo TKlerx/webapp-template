@@ -9,7 +9,8 @@ export async function POST(request: Request) {
   const user = authResult.user;
 
   const clientIp = getClientIp(request);
-  const bucketKey = clientIp === "unknown" ? `user:${user.id}` : `ip:${clientIp}`;
+  const bucketKey =
+    clientIp === "unknown" ? `user:${user.id}` : `ip:${clientIp}`;
   const rateLimit = checkRateLimit(bucketKey, "change-password");
   if (!rateLimit.allowed) {
     const response = jsonError(

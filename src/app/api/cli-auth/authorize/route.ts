@@ -15,14 +15,24 @@ import {
 const MAX_CALLBACK_URL_LENGTH = 300;
 const MAX_STATE_LENGTH = 256;
 
-function getAuthorizeRateLimitKey(request: Request, callbackUrl: string | null, state: string | null) {
+function getAuthorizeRateLimitKey(
+  request: Request,
+  callbackUrl: string | null,
+  state: string | null,
+) {
   const clientIp = getClientIp(request);
   if (clientIp !== "unknown") {
     return `ip:${clientIp}`;
   }
 
-  const stateKey = (state?.trim() || "missing-state").slice(0, MAX_STATE_LENGTH);
-  const callbackKey = (callbackUrl ?? "missing-callback").slice(0, MAX_CALLBACK_URL_LENGTH);
+  const stateKey = (state?.trim() || "missing-state").slice(
+    0,
+    MAX_STATE_LENGTH,
+  );
+  const callbackKey = (callbackUrl ?? "missing-callback").slice(
+    0,
+    MAX_CALLBACK_URL_LENGTH,
+  );
   return `request:${stateKey}:${callbackKey}`;
 }
 
@@ -35,7 +45,7 @@ export async function GET(request: Request) {
     getAuthorizeRateLimitKey(request, callbackUrl, state),
     "cli-auth-authorize",
     {
-    maxAttempts: 20,
+      maxAttempts: 20,
     },
   );
   if (!rateLimit.allowed) {

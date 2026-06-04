@@ -392,24 +392,28 @@ class JobStore:
                 )
             connection.commit()
 
-    def find_notification_by_provider_message_id(self, provider_message_ids: list[str]) -> dict[str, object] | None:
+    def find_notification_by_provider_message_id(
+        self, provider_message_ids: list[str]
+    ) -> dict[str, object] | None:
         if not provider_message_ids:
             return None
 
         if self._is_sqlite:
-            placeholders = ", ".join("?" for _ in provider_message_ids)
             with closing(self._sqlite_conn()) as connection:
                 connection.row_factory = sqlite3.Row
-                row = connection.execute(
-                    f"""
-                    SELECT id, providerMessageId
-                    FROM Notification
-                    WHERE providerMessageId IN ({placeholders})
-                    LIMIT 1
-                    """,
-                    provider_message_ids,
-                ).fetchone()
-            return dict(row) if row is not None else None
+                for provider_message_id in provider_message_ids:
+                    row = connection.execute(
+                        """
+                        SELECT id, providerMessageId
+                        FROM Notification
+                        WHERE providerMessageId = ?
+                        LIMIT 1
+                        """,
+                        (provider_message_id,),
+                    ).fetchone()
+                    if row is not None:
+                        return dict(row)
+            return None
 
         with psycopg.connect(self._postgres_database_url) as connection:
             with connection.cursor(row_factory=dict_row) as cursor:

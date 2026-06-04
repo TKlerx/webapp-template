@@ -127,11 +127,7 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
   const adminPage = await adminContext.newPage();
 
   try {
-    await loginWithPassword(
-      adminPage,
-      "admin@example.com",
-      "AdminPass123",
-    );
+    await loginWithPassword(adminPage, "admin@example.com", "AdminPass123");
     await expectOnDashboard(adminPage);
     await adminPage.goto(`${appBasePath}/users`);
 
@@ -140,14 +136,19 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
     });
     await expect(adminRow).toBeVisible();
     await adminRow.getByRole("button", { name: "Deactivate" }).click();
-    await expect(adminPage.getByText("User deactivated")).toBeVisible();
+    await expect(adminPage.getByText("User deactivated").first()).toBeVisible();
 
     const priorAdminRow = adminPage.locator("tr", {
       hasText: "e2e-admin-manage@example.com",
     });
     if (await priorAdminRow.count()) {
-      await priorAdminRow.first().getByRole("button", { name: "Deactivate" }).click();
-      await expect(adminPage.getByText("User deactivated")).toBeVisible();
+      await priorAdminRow
+        .first()
+        .getByRole("button", { name: "Deactivate" })
+        .click();
+      await expect(
+        adminPage.getByText("User deactivated").first(),
+      ).toBeVisible();
     }
 
     const selfRow = adminPage.getByRole("row", {

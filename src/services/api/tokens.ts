@@ -211,7 +211,10 @@ async function withSerializableRetry<T>(run: () => Promise<T>) {
         throw error;
       }
 
-      if (isSerializableConflict(error) && attempt < SERIALIZABLE_RETRY_LIMIT - 1) {
+      if (
+        isSerializableConflict(error) &&
+        attempt < SERIALIZABLE_RETRY_LIMIT - 1
+      ) {
         attempt += 1;
         continue;
       }

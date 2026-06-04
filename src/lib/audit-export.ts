@@ -140,7 +140,9 @@ export async function exportToPDF(filters: AuditFilters = {}) {
   objects.push(
     `2 0 obj << /Type /Pages /Kids [${pageKids}] /Count ${pageChunks.length} >> endobj`,
   );
-  objects.push("3 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj");
+  objects.push(
+    "3 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
+  );
 
   pageChunks.forEach((pageLines, pageIndex) => {
     const pageId = firstPageId + pageIndex * 2;

@@ -310,12 +310,12 @@
 
 Remaining unresolved findings after the 2026-06-01 closure pass were explicitly dispositioned as follows. The deferred items were later fixed in the 2026-06-02 final MEDIUM fix slice.
 
-| File | Severity | Disposition | Owner | Review Date | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `playwright.config.ts` | MEDIUM | accepted-risk | tklerx@paiqo.com | 2026-06-15 | Static credentials are test-only for E2E runtime and not used in production paths. |
-| `src/app/api/auth/login/route.ts` | MEDIUM | fixed 2026-06-02 | tklerx@paiqo.com | n/a | Superseded by T089-T090; no longer unresolved after run `20260602221332-8f8dc06fba1876ca`. |
-| `src/lib/rate-limit.ts` | MEDIUM | fixed 2026-06-02 | tklerx@paiqo.com | n/a | Superseded by T091-T092; no longer unresolved after run `20260602221332-8f8dc06fba1876ca`. |
-| `src/services/notifications/inbound.ts` | MEDIUM | fixed 2026-06-02 | tklerx@paiqo.com | n/a | Superseded by T093-T094; no longer unresolved after run `20260602221332-8f8dc06fba1876ca`. |
+| File                                    | Severity | Disposition      | Owner            | Review Date | Notes                                                                                      |
+| --------------------------------------- | -------- | ---------------- | ---------------- | ----------- | ------------------------------------------------------------------------------------------ |
+| `playwright.config.ts`                  | MEDIUM   | accepted-risk    | tklerx@paiqo.com | 2026-06-15  | Static credentials are test-only for E2E runtime and not used in production paths.         |
+| `src/app/api/auth/login/route.ts`       | MEDIUM   | fixed 2026-06-02 | tklerx@paiqo.com | n/a         | Superseded by T089-T090; no longer unresolved after run `20260602221332-8f8dc06fba1876ca`. |
+| `src/lib/rate-limit.ts`                 | MEDIUM   | fixed 2026-06-02 | tklerx@paiqo.com | n/a         | Superseded by T091-T092; no longer unresolved after run `20260602221332-8f8dc06fba1876ca`. |
+| `src/services/notifications/inbound.ts` | MEDIUM   | fixed 2026-06-02 | tklerx@paiqo.com | n/a         | Superseded by T093-T094; no longer unresolved after run `20260602221332-8f8dc06fba1876ca`. |
 
 ### Phase 2 Final MEDIUM Fix Slice (2026-06-02)
 
@@ -338,6 +338,6 @@ Remaining unresolved findings after the 2026-06-01 closure pass were explicitly 
 
 ## Final Phase 2 Remaining Register (2026-06-02)
 
-| File | Severity | Disposition | Owner | Review Date | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `playwright.config.ts` | MEDIUM | accepted-risk | tklerx@paiqo.com | 2026-06-15 | Static credentials are test-only for E2E runtime and not used in production paths. |
+| File                   | Severity | Disposition   | Owner            | Review Date | Notes                                                                              |
+| ---------------------- | -------- | ------------- | ---------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `playwright.config.ts` | MEDIUM   | accepted-risk | tklerx@paiqo.com | 2026-06-15  | Static credentials are test-only for E2E runtime and not used in production paths. |

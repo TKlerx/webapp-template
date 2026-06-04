@@ -27,18 +27,18 @@ The implementation should stay close to existing Next.js, Prisma, Better Auth, w
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| Simplicity First | PASS | Uses local redaction/cleanup, bounded queries, workflow pinning, and transactional invariants instead of introducing a new security framework. |
-| Test Coverage | PASS | Each Phase 1 user story maps to unit/integration/workflow validation plus refreshed DeepSec evidence. |
-| Duplication Control | PASS | Shared sanitization, bounds, and last-admin guard logic should be centralized where existing code already has service helpers. |
-| Incremental Delivery | PASS | Phase 1 can ship independently from Phase 2; P1 stories are separately testable. |
-| Spec Sequencing And Completion | PASS | `ACTIVE_SPECS.md` was reviewed and lists no open specs; user explicitly moved from clarify to plan for 017. |
-| Continuity And Handoff | PASS | `CONTINUE.md` was reviewed in prior DeepSec/spec steps and is updated with current branch/spec context. |
-| Azure OpenAI Integration | PASS | No LLM runtime behavior is introduced or changed. |
-| Web Application Standards | PASS | Existing API/UI behavior is preserved except security-mandated redaction, bounds, and rejection paths. |
-| Internationalization | PASS | Any new user-facing messages for audit truncation or admin rejection must use existing locale infrastructure. |
-| Responsive Design | PASS | No primary UI redesign is planned; any visible notices must fit existing responsive surfaces. |
+| Principle                      | Status | Notes                                                                                                                                          |
+| ------------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Simplicity First               | PASS   | Uses local redaction/cleanup, bounded queries, workflow pinning, and transactional invariants instead of introducing a new security framework. |
+| Test Coverage                  | PASS   | Each Phase 1 user story maps to unit/integration/workflow validation plus refreshed DeepSec evidence.                                          |
+| Duplication Control            | PASS   | Shared sanitization, bounds, and last-admin guard logic should be centralized where existing code already has service helpers.                 |
+| Incremental Delivery           | PASS   | Phase 1 can ship independently from Phase 2; P1 stories are separately testable.                                                               |
+| Spec Sequencing And Completion | PASS   | `ACTIVE_SPECS.md` was reviewed and lists no open specs; user explicitly moved from clarify to plan for 017.                                    |
+| Continuity And Handoff         | PASS   | `CONTINUE.md` was reviewed in prior DeepSec/spec steps and is updated with current branch/spec context.                                        |
+| Azure OpenAI Integration       | PASS   | No LLM runtime behavior is introduced or changed.                                                                                              |
+| Web Application Standards      | PASS   | Existing API/UI behavior is preserved except security-mandated redaction, bounds, and rejection paths.                                         |
+| Internationalization           | PASS   | Any new user-facing messages for audit truncation or admin rejection must use existing locale infrastructure.                                  |
+| Responsive Design              | PASS   | No primary UI redesign is planned; any visible notices must fit existing responsive surfaces.                                                  |
 
 **Gate result: PASS.**
 
@@ -109,12 +109,12 @@ No constitution violations or exceptional complexity waivers are required.
 
 ## Post-Design Constitution Check
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| Simplicity First | PASS | Design artifacts keep changes bounded to affected services, routes, workflow, and scanner evidence. |
-| Test Coverage | PASS | Quickstart and contracts define targeted regression checks for every Phase 1 risk area. |
-| Duplication Control | PASS | Data model calls out reusable sanitized payload and admin invariant concepts to avoid repeated ad hoc checks. |
-| Incremental Delivery | PASS | Phase 1 and Phase 2 remain independently taskable and verifiable. |
-| Continuity And Handoff | PASS | Plan completion should update `CONTINUE.md` and `CONTINUE_LOG.md`; this plan records that requirement. |
+| Principle              | Status | Notes                                                                                                         |
+| ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
+| Simplicity First       | PASS   | Design artifacts keep changes bounded to affected services, routes, workflow, and scanner evidence.           |
+| Test Coverage          | PASS   | Quickstart and contracts define targeted regression checks for every Phase 1 risk area.                       |
+| Duplication Control    | PASS   | Data model calls out reusable sanitized payload and admin invariant concepts to avoid repeated ad hoc checks. |
+| Incremental Delivery   | PASS   | Phase 1 and Phase 2 remain independently taskable and verifiable.                                             |
+| Continuity And Handoff | PASS   | Plan completion should update `CONTINUE.md` and `CONTINUE_LOG.md`; this plan records that requirement.        |
 
 **Post-design gate result: PASS.**

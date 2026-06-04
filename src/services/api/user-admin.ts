@@ -261,10 +261,14 @@ export async function updateManagedUserStatus(
           }
 
           if (options?.lastAdminMessage) {
-            const denied = await ensureAdminUserCanChange(fresh, {
-              status: nextStatus,
-              message: options.lastAdminMessage,
-            }, tx.user.count);
+            const denied = await ensureAdminUserCanChange(
+              fresh,
+              {
+                status: nextStatus,
+                message: options.lastAdminMessage,
+              },
+              tx.user.count,
+            );
             if (denied) {
               throw denied;
             }
@@ -329,15 +333,21 @@ export async function updateManagedUserRole(
     updated = await withSerializableRetry(async () => {
       return prisma.$transaction(
         async (tx) => {
-          const fresh = await tx.user.findUnique({ where: { id: managed.user.id } });
+          const fresh = await tx.user.findUnique({
+            where: { id: managed.user.id },
+          });
           if (!fresh) {
             throw jsonError("User not found", 404);
           }
 
-          const denied = await ensureAdminUserCanChange(fresh, {
-            role: body.role,
-            message: "Cannot change role of the last Admin user",
-          }, tx.user.count);
+          const denied = await ensureAdminUserCanChange(
+            fresh,
+            {
+              role: body.role,
+              message: "Cannot change role of the last Admin user",
+            },
+            tx.user.count,
+          );
           if (denied) {
             throw denied;
           }
@@ -391,7 +401,10 @@ async function withSerializableRetry<T>(run: () => Promise<T>) {
         throw error;
       }
 
-      if (isSerializableConflict(error) && attempt < SERIALIZABLE_RETRY_LIMIT - 1) {
+      if (
+        isSerializableConflict(error) &&
+        attempt < SERIALIZABLE_RETRY_LIMIT - 1
+      ) {
         attempt += 1;
         continue;
       }

@@ -42,7 +42,9 @@ function deriveEncryptionKey(secret: string) {
 export function encryptGrantToken(token: string) {
   const iv = crypto.randomBytes(12);
   const key = deriveEncryptionKey(getTeamsGrantEncryptionSecret());
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv, {
+    authTagLength: 16,
+  });
   const ciphertext = Buffer.concat([
     cipher.update(token, "utf8"),
     cipher.final(),
@@ -73,6 +75,7 @@ export function decryptGrantToken(value: string) {
     "aes-256-gcm",
     key,
     Buffer.from(ivBase64, "base64url"),
+    { authTagLength: 16 },
   );
   decipher.setAuthTag(Buffer.from(tagBase64, "base64url"));
 

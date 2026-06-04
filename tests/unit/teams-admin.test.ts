@@ -55,7 +55,9 @@ describe("teams admin service", () => {
   });
 
   it("recovers when config create races with another request", async () => {
-    prismaMock.teamsIntegrationConfig.findFirst.mockResolvedValueOnce(null as never);
+    prismaMock.teamsIntegrationConfig.findFirst.mockResolvedValueOnce(
+      null as never,
+    );
     prismaMock.teamsIntegrationConfig.create.mockRejectedValueOnce(
       new Error("Unique constraint failed on the fields: (`id`)"),
     );
@@ -132,7 +134,9 @@ describe("teams admin service", () => {
 
   it("blocks intake subscription deletion when inbound history exists", async () => {
     const foreignKeyError = new Error("Foreign key constraint failed");
-    prismaMock.teamsIntakeSubscription.delete.mockRejectedValue(foreignKeyError);
+    prismaMock.teamsIntakeSubscription.delete.mockRejectedValue(
+      foreignKeyError,
+    );
 
     const result = await deleteIntakeSubscription("subscription-1");
     expect("error" in result).toBe(true);

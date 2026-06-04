@@ -18,7 +18,11 @@ const TOKEN_SHAPES = [
 describe("security redaction fixtures", () => {
   it("keeps a stable sensitive key fixture list", () => {
     expect(SENSITIVE_KEYS).toEqual(
-      expect.arrayContaining(["delegatedAccessToken", "authorization", "apiKey"]),
+      expect.arrayContaining([
+        "delegatedAccessToken",
+        "authorization",
+        "apiKey",
+      ]),
     );
   });
 

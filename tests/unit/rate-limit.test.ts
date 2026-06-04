@@ -94,8 +94,12 @@ describe("rate limit utility", () => {
     });
     const unknownRequest = new Request("http://localhost/test");
 
-    expect(getClientIp(forwardedRequest)).toBe(TRUSTED_PROXY_FIXTURE.trustedRealIp);
-    expect(getClientIp(realIpRequest)).toBe(TRUSTED_PROXY_FIXTURE.trustedRealIp);
+    expect(getClientIp(forwardedRequest)).toBe(
+      TRUSTED_PROXY_FIXTURE.trustedRealIp,
+    );
+    expect(getClientIp(realIpRequest)).toBe(
+      TRUSTED_PROXY_FIXTURE.trustedRealIp,
+    );
     expect(getClientIp(unknownRequest)).toBe("unknown");
   });
 
