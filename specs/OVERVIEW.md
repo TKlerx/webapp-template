@@ -28,7 +28,7 @@ Purpose: Track the status of all planned features, their implementation progress
 | 015 | Teams Messaging Skeleton      | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
 | 016 | Runtime Credential Separation | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
 | 017 | DeepSec Remediation           | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
-| 018 | OpenTofu Azure Infrastructure | Planned           | -                                                                                            | Task planning | Run `/speckit.tasks`                               |
+| 018 | OpenTofu Azure Infrastructure | Tasked            | -                                                                                            | Implementation | Run `/speckit.implement`                          |
 
 ## Implementation Roadmap
 
@@ -49,4 +49,4 @@ Purpose: Track the status of all planned features, their implementation progress
 
 ### Blocked / Prep Needed
 
-- 018 OpenTofu Azure Infrastructure: Planned (plan + research + data-model + contracts + quickstart generated). Run `/speckit.tasks`.
+- 018 OpenTofu Azure Infrastructure: Tasked (48 tasks across 8 phases). Run `/speckit.implement`.

@@ -7,8 +7,8 @@ when the spec is fully finished.
 ## Open Specs
 
 - 018 OpenTofu Azure Infrastructure
-  - Status: In Progress (spec clarified; planning underway)
-  - Next required work: Generate plan artifacts via `/speckit.plan`, then `/speckit.tasks`.
+  - Status: In Progress (spec clarified; plan + tasks generated)
+  - Next required work: Implement tasks (48 across 8 phases) via `/speckit.implement`, starting with US1 MVP (provision a complete environment).
 
 ## Maintenance Rules
 
