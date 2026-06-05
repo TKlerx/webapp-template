@@ -6,9 +6,9 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- 017 DeepSec Remediation
-  - Status: In Progress
-  - Next required work: Prepare final closure/PR summary; only unresolved DeepSec export item is the accepted-risk `playwright.config.ts` E2E credentials finding.
+- 018 OpenTofu Azure Infrastructure
+  - Status: In Progress (spec clarified; planning underway)
+  - Next required work: Generate plan artifacts via `/speckit.plan`, then `/speckit.tasks`.
 
 ## Maintenance Rules
 

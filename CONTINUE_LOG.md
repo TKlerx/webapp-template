@@ -1235,3 +1235,17 @@
   - `pnpm run typecheck`
   - `pnpm run lint`
   - `pnpm exec prettier --check scripts/ensure-e2e-db.mjs`
+
+## 2026-06-05 10:04:08 +02:00
+
+- Started Spec Kit feature `018-opentofu-azure-infra`.
+- Created the OpenTofu Azure infrastructure specification draft under `specs/018-opentofu-azure-infra/`.
+- Added a complete specification quality checklist.
+- Updated `.specify/feature.json` to point at spec `018`.
+- Updated `specs/OVERVIEW.md` to list `018 OpenTofu Azure Infrastructure` as planned.
+## 2026-06-05 12:13:13
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: 14939e2 test: stabilize e2e postgres startup.
+- Active specs: 017-deepsec-remediation, 018-opentofu-azure-infra.
+- Next focus: no next task.
