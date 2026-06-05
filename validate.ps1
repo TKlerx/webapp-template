@@ -553,6 +553,52 @@ function Test-ContinuityFreshness {
     }
 }
 
+function Test-OpenTofuInfrastructure {
+    Write-Step "OpenTofu infrastructure"
+    try {
+        if (-not (Test-Path "infra\azure" -PathType Container)) {
+            Write-Pass "OpenTofu infrastructure check passed (infra/azure not present)"
+            return
+        }
+
+        $tofuVersion = Invoke-NativeCommandCaptured "tofu version"
+        if ($tofuVersion.ExitCode -ne 0) {
+            throw "OpenTofu CLI is required for infra validation"
+        }
+
+        $fmtExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure fmt -check -recursive"
+        if ($fmtExitCode -ne 0) {
+            throw "tofu fmt failed for infra/azure"
+        }
+
+        $rootInitExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure init -backend=false -input=false"
+        if ($rootInitExitCode -ne 0) {
+            throw "tofu init failed for infra/azure"
+        }
+
+        $rootValidateExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure validate"
+        if ($rootValidateExitCode -ne 0) {
+            throw "tofu validate failed for infra/azure"
+        }
+
+        $bootstrapInitExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure/bootstrap init -backend=false -input=false"
+        if ($bootstrapInitExitCode -ne 0) {
+            throw "tofu init failed for infra/azure/bootstrap"
+        }
+
+        $bootstrapValidateExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure/bootstrap validate"
+        if ($bootstrapValidateExitCode -ne 0) {
+            throw "tofu validate failed for infra/azure/bootstrap"
+        }
+
+        Write-Pass "OpenTofu infrastructure check passed"
+    } catch {
+        Write-Fail "OpenTofu infrastructure check failed"
+        Write-Host $_ -ForegroundColor Red
+        $script:failures += "opentofu"
+    }
+}
+
 function Test-ProductionDependencyAudit([switch]$Blocking) {
     Write-Step "Production dependency audit (pnpm audit --prod --no-optional)"
     try {
@@ -1093,6 +1139,10 @@ if ($Phase -in "all", "full", "quality", "commit") {
 
 if ($Phase -in "all", "full", "quality", "commit") {
     Test-SpecWorkflowStages
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Test-OpenTofuInfrastructure
 }
 
 if ($Phase -in "all", "full", "test", "commit") {

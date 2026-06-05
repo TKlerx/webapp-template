@@ -24,6 +24,11 @@ __pycache__/
 data/documents/
 test-results/
 *.tsbuildinfo
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars.local
+.terraform.lock.hcl
 .DS_Store
 Thumbs.db
 *.tmp

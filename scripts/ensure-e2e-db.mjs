@@ -61,7 +61,7 @@ runStep(
 runStep("Seed PostgreSQL E2E data", "pnpm exec tsx prisma/seed.ts", env);
 
 function ensureDockerPostgres() {
-  const existing = runNativeCaptured("docker", [
+  const existing = runDockerCaptured([
     "ps",
     "-a",
     "--filter",
@@ -72,13 +72,10 @@ function ensureDockerPostgres() {
 
   if (existing) {
     if (!existing.includes("Up ")) {
-      runNativeStep("Start PostgreSQL E2E container", "docker", [
-        "start",
-        containerName,
-      ]);
+      runDockerStep("Start PostgreSQL E2E container", ["start", containerName]);
     }
   } else {
-    runNativeStep("Create PostgreSQL E2E container", "docker", [
+    runDockerStep("Create PostgreSQL E2E container", [
       "run",
       "-d",
       "--name",
@@ -131,7 +128,7 @@ function waitForPostgres() {
 }
 
 function ensureTargetDatabase() {
-  const exists = runNativeCaptured("docker", [
+  const exists = runDockerCaptured([
     "exec",
     containerName,
     "psql",
@@ -165,9 +162,9 @@ function runStep(label, commandLine, envOverrides = {}) {
   }
 }
 
-function runNativeStep(label, command, args, envOverrides = {}) {
+function runDockerStep(label, args, envOverrides = {}) {
   console.log(`> ${label}`);
-  const result = spawnSync(command, args, {
+  const result = spawnSync("docker", args, {
     stdio: "inherit",
     env: {
       ...process.env,
@@ -180,8 +177,8 @@ function runNativeStep(label, command, args, envOverrides = {}) {
   }
 }
 
-function runNativeCaptured(command, args) {
-  const result = spawnSync(command, args, {
+function runDockerCaptured(args) {
+  const result = spawnSync("docker", args, {
     encoding: "utf8",
     env: process.env,
   });

@@ -18,17 +18,17 @@ Purpose: Track the status of all planned features, their implementation progress
 
 ## Specs Summary
 
-| #   | Feature                       | Status            | Depends On                                                                                   | Est. Effort   | Next Step                                          |
-| --- | ----------------------------- | ----------------- | -------------------------------------------------------------------------------------------- | ------------- | -------------------------------------------------- |
-| 010 | Auth Security Hardening       | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
-| 011 | API Route Refactor            | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
-| 012 | Openapi And Pat               | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
-| 013 | Cli Client                    | Fully Implemented | Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow | Large         | Review, commit, and propagate the finished feature |
-| 014 | Shared Mailbox Notifications  | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
-| 015 | Teams Messaging Skeleton      | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
-| 016 | Runtime Credential Separation | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
-| 017 | DeepSec Remediation           | Fully Implemented | -                                                                                            | Large         | Review, commit, and propagate the finished feature |
-| 018 | OpenTofu Azure Infrastructure | Tasked            | -                                                                                            | Implementation | Run `/speckit.implement`                          |
+| #   | Feature                       | Status            | Depends On                                                                                   | Est. Effort | Next Step                                                |
+| --- | ----------------------------- | ----------------- | -------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------- |
+| 010 | Auth Security Hardening       | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 011 | API Route Refactor            | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 012 | Openapi And Pat               | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 013 | Cli Client                    | Fully Implemented | Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow | Large       | Review, commit, and propagate the finished feature       |
+| 014 | Shared Mailbox Notifications  | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 015 | Teams Messaging Skeleton      | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 016 | Runtime Credential Separation | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 017 | DeepSec Remediation           | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 018 | OpenTofu Azure Infrastructure | In Progress       | -                                                                                            | Large       | Continue implementation and complete the remaining tasks |
 
 ## Implementation Roadmap
 
@@ -45,8 +45,8 @@ Purpose: Track the status of all planned features, their implementation progress
 
 ### Begin Immediately
 
-- No tasked or in-progress numbered features are waiting for implementation work
+- 018 OpenTofu Azure Infrastructure: Continue implementation and complete the remaining tasks
 
 ### Blocked / Prep Needed
 
-- 018 OpenTofu Azure Infrastructure: Tasked (48 tasks across 8 phases). Run `/speckit.implement`.
+- No planned features are blocked on clarify/analyze/planning work

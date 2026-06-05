@@ -10,12 +10,12 @@ Satisfies FR-004, FR-005, FR-006, FR-015, FR-017. Defines the required deploymen
 
 ## Inputs
 
-| Input | Required | Notes |
-| --- | --- | --- |
-| `environment` | yes | Selects `.tfvars` + state key + GitHub Environment |
-| `app_image_tag` | yes | Promoted app image |
-| `worker_image_tag` | yes | Promoted worker image |
-| `migration_image_tag` | no | Defaults to `app_image_tag` |
+| Input                 | Required | Notes                                              |
+| --------------------- | -------- | -------------------------------------------------- |
+| `environment`         | yes      | Selects `.tfvars` + state key + GitHub Environment |
+| `app_image_tag`       | yes      | Promoted app image                                 |
+| `worker_image_tag`    | yes      | Promoted worker image                              |
+| `migration_image_tag` | no       | Defaults to `app_image_tag`                        |
 
 ## Required sequence (ordering is the contract)
 

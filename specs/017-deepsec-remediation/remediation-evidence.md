@@ -366,6 +366,6 @@ Remaining unresolved findings after the 2026-06-01 closure pass were explicitly 
 - Validation:
   - `pnpm run typecheck` -> pass.
 
-| File                   | Severity | Disposition | Owner            | Date       | Notes                                                                                            |
-| ---------------------- | -------- | ----------- | ---------------- | ---------- | ------------------------------------------------------------------------------------------------ |
+| File                   | Severity | Disposition | Owner            | Date       | Notes                                                                                    |
+| ---------------------- | -------- | ----------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------- |
 | `playwright.config.ts` | MEDIUM   | remediated  | tklerx@paiqo.com | 2026-06-05 | Secret literals made env-overridable; documented as E2E test fixtures in `.env.example`. |

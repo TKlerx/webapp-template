@@ -28,12 +28,12 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 **Purpose**: Project scaffolding and shared configuration
 
-- [ ] T001 Create `infra/azure/` structure: root files placeholder, `bootstrap/`, `environments/`, and `modules/{network,data,registry,secrets,observability,runtime}/` directories
-- [ ] T002 [P] Create `infra/azure/providers.tf` pinning `required_version >= 1.8`, `hashicorp/azurerm ~> 4.x`, `hashicorp/azuread`, `hashicorp/random`
-- [ ] T003 [P] Create `infra/azure/variables.tf` implementing the input contract in `specs/018-opentofu-azure-infra/contracts/variables-contract.md` (required + optional vars + `validation` blocks for `environment` and image tags)
-- [ ] T004 [P] Create `infra/azure/locals.tf` with naming (`<project>-<environment>`), standard tags (`environment`, `project`, `managed-by=opentofu`), and a deterministic `name_suffix` via `random_string` for globally-unique names (Azure length-limit edge case)
-- [ ] T005 [P] Create `infra/azure/README.md` pointing to `quickstart.md` and the contracts
-- [ ] T006 Add `tofu fmt -check` and `tofu validate` (infra/azure + bootstrap) to the validation workflow (`validate.ps1` / `.github/workflows/validate.yml`)
+- [x] T001 Create `infra/azure/` structure: root files placeholder, `bootstrap/`, `environments/`, and `modules/{network,data,registry,secrets,observability,runtime}/` directories
+- [x] T002 [P] Create `infra/azure/providers.tf` pinning `required_version >= 1.8`, `hashicorp/azurerm ~> 4.x`, `hashicorp/azuread`, `hashicorp/random`
+- [x] T003 [P] Create `infra/azure/variables.tf` implementing the input contract in `specs/018-opentofu-azure-infra/contracts/variables-contract.md` (required + optional vars + `validation` blocks for `environment` and image tags)
+- [x] T004 [P] Create `infra/azure/locals.tf` with naming (`<project>-<environment>`), standard tags (`environment`, `project`, `managed-by=opentofu`), and a deterministic `name_suffix` via `random_string` for globally-unique names (Azure length-limit edge case)
+- [x] T005 [P] Create `infra/azure/README.md` pointing to `quickstart.md` and the contracts
+- [x] T006 Add `tofu fmt -check` and `tofu validate` (infra/azure + bootstrap) to the validation workflow (`validate.ps1` / `.github/workflows/validate.yml`)
 
 ---
 
@@ -43,12 +43,12 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Create `infra/azure/bootstrap/main.tf` + `variables.tf`: state resource group + Storage Account + blob container (`tfstate`), with `prevent_destroy` lifecycle (clarify Q1; data-model State Store)
-- [ ] T008 Add to bootstrap: `azuread_application` + federated credential (GitHub OIDC, repo + environment scoped) + subscription/RG role assignments (Contributor, AcrPush, Key Vault Secrets Officer), a user-assigned managed identity for runtimes, and the **single shared Azure Container Registry** (Standard, public access disabled) used by all environments (data-model Deployment Identity + Registry; FR-015, FR-010, SC-007)
-- [ ] T009 Create `infra/azure/bootstrap/outputs.tf`: state account/container names, deploy client id, runtime MI ids, and shared ACR login server + id
-- [ ] T010 Create `infra/azure/backend.tf`: `azurerm` backend using bootstrap outputs, per-environment `key = app/<environment>.tfstate`, `use_oidc = true`
-- [ ] T011 Create `infra/azure/main.tf` root composition skeleton: provider config + one resource group per environment from locals
-- [ ] T012 Create `modules/network` (VNet + delegated subnet for Container Apps + private DNS zone for PostgreSQL); wire into root `main.tf` (clarify Q2; data-model Network)
+- [x] T007 Create `infra/azure/bootstrap/main.tf` + `variables.tf`: state resource group + Storage Account + blob container (`tfstate`), with `prevent_destroy` lifecycle (clarify Q1; data-model State Store)
+- [x] T008 Add to bootstrap: `azuread_application` + federated credential (GitHub OIDC, repo + environment scoped) + subscription/RG role assignments (Contributor, AcrPush, Key Vault Secrets Officer), a user-assigned managed identity for runtimes, and the **single shared Azure Container Registry** (Standard, public access disabled) used by all environments (data-model Deployment Identity + Registry; FR-015, FR-010, SC-007)
+- [x] T009 Create `infra/azure/bootstrap/outputs.tf`: state account/container names, deploy client id, runtime MI ids, and shared ACR login server + id
+- [x] T010 Create `infra/azure/backend.tf`: `azurerm` backend using bootstrap outputs, per-environment `key = app/<environment>.tfstate`, `use_oidc = true`
+- [x] T011 Create `infra/azure/main.tf` root composition skeleton: provider config + one resource group per environment from locals
+- [x] T012 Create `modules/network` (VNet + delegated subnet for Container Apps + private DNS zone for PostgreSQL); wire into root `main.tf` (clarify Q2; data-model Network)
 
 **Checkpoint**: State, identity, and network ready — user stories can begin
 

@@ -35,18 +35,18 @@ Per the clarifications, the technical approach is:
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-| --- | --- | --- |
-| I. Simplicity First | PASS | Single flat OpenTofu module per environment via `.tfvars`; no premature multi-module abstraction. Consumption profile, public-FQDN-only TLS, RG-per-env are the simplest viable choices. Any added abstraction justified in Complexity Tracking. |
-| II. Test Coverage | PASS (adapted) | IaC "tests" = `tofu validate` + `tofu plan` + `tofu fmt -check` in CI, plus a documented staged-apply smoke. Task generation MUST include these validation tasks. No app unit tests affected. |
-| III. Duplication Control | PASS | Shared values (names, tags, region) centralized in locals/variables; per-environment differences isolated to `.tfvars`. No copy-paste per environment. |
-| IV. Incremental Delivery | PASS | User stories P1→P3. US1 (provision runtime) is the MVP and is independently testable before US2+ (deploy pipeline, secrets, observability, multi-env). |
-| V. Spec Sequencing | PASS | Older spec 017 closed (last finding remediated 2026-06-05); 018 is the sole active spec. Confirmation recorded in chat + `ACTIVE_SPECS.md`. |
-| VI. Continuity & Handoff | PASS | `CONTINUE.md` / `CONTINUE_LOG.md` / `ACTIVE_SPECS.md` updated as part of this work. |
-| VII. Azure OpenAI | N/A | No LLM functionality in this feature. (Key Vault makes it easy to add Azure OpenAI secrets later.) |
-| VIII. Web Application Standards | PASS | Base path preserved: infra passes `BASE_PATH` / `AUTH_BASE_URL` env to the app container; default FQDN used to build the public origin. No app behavior change. |
-| IX. Internationalization | N/A | No user-facing UI strings added by infrastructure code. |
-| X. Responsive Design | N/A | No UI changes. |
+| Principle                       | Status         | Notes                                                                                                                                                                                                                                            |
+| ------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| I. Simplicity First             | PASS           | Single flat OpenTofu module per environment via `.tfvars`; no premature multi-module abstraction. Consumption profile, public-FQDN-only TLS, RG-per-env are the simplest viable choices. Any added abstraction justified in Complexity Tracking. |
+| II. Test Coverage               | PASS (adapted) | IaC "tests" = `tofu validate` + `tofu plan` + `tofu fmt -check` in CI, plus a documented staged-apply smoke. Task generation MUST include these validation tasks. No app unit tests affected.                                                    |
+| III. Duplication Control        | PASS           | Shared values (names, tags, region) centralized in locals/variables; per-environment differences isolated to `.tfvars`. No copy-paste per environment.                                                                                           |
+| IV. Incremental Delivery        | PASS           | User stories P1→P3. US1 (provision runtime) is the MVP and is independently testable before US2+ (deploy pipeline, secrets, observability, multi-env).                                                                                           |
+| V. Spec Sequencing              | PASS           | Older spec 017 closed (last finding remediated 2026-06-05); 018 is the sole active spec. Confirmation recorded in chat + `ACTIVE_SPECS.md`.                                                                                                      |
+| VI. Continuity & Handoff        | PASS           | `CONTINUE.md` / `CONTINUE_LOG.md` / `ACTIVE_SPECS.md` updated as part of this work.                                                                                                                                                              |
+| VII. Azure OpenAI               | N/A            | No LLM functionality in this feature. (Key Vault makes it easy to add Azure OpenAI secrets later.)                                                                                                                                               |
+| VIII. Web Application Standards | PASS           | Base path preserved: infra passes `BASE_PATH` / `AUTH_BASE_URL` env to the app container; default FQDN used to build the public origin. No app behavior change.                                                                                  |
+| IX. Internationalization        | N/A            | No user-facing UI strings added by infrastructure code.                                                                                                                                                                                          |
+| X. Responsive Design            | N/A            | No UI changes.                                                                                                                                                                                                                                   |
 
 **Technology Constraints alignment**: Constitution states "Deployment: Docker with Docker Compose (to be added later)" and "single instance (no horizontal scaling needed)". This feature is the hosted-deployment realization of that intent. Container Apps single-replica / scale-to-zero respects the single-instance, small-team scale guidance. No conflict.
 
@@ -101,15 +101,15 @@ scripts/
 └── deploy-azure.yml            # FR-015 OIDC deploy: plan → migrate Job → promote app/worker
 ```
 
-**Structure Decision**: Infrastructure lives under `infra/azure/`, separate from the existing app (`src/`, `worker/`). A `bootstrap/` configuration creates the state backend storage and federated identity *before* the main per-environment configuration (resolves the chicken-and-egg of remote state + OIDC). The root configuration is applied once per environment using `environments/<env>.tfvars`, with remote state keyed per environment in a shared state Storage Account. Modules are introduced only where they remove real duplication (network, data, registry, secrets, observability, runtime); per Constitution I, if the root config stays simple enough, modules may be collapsed — this is revisited in Phase 1 and tracked below.
+**Structure Decision**: Infrastructure lives under `infra/azure/`, separate from the existing app (`src/`, `worker/`). A `bootstrap/` configuration creates the state backend storage and federated identity _before_ the main per-environment configuration (resolves the chicken-and-egg of remote state + OIDC). The root configuration is applied once per environment using `environments/<env>.tfvars`, with remote state keyed per environment in a shared state Storage Account. Modules are introduced only where they remove real duplication (network, data, registry, secrets, observability, runtime); per Constitution I, if the root config stays simple enough, modules may be collapsed — this is revisited in Phase 1 and tracked below.
 
 ## Complexity Tracking
 
 > Fill ONLY if Constitution Check has violations that must be justified.
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-| --- | --- | --- |
-| Separate `bootstrap/` configuration | Remote state and OIDC identity must exist before the main config can use them; cannot self-host their own backend | Single config can't create the storage account it already needs as a backend (chicken-and-egg) |
-| `modules/` decomposition (network/data/secrets/observability/runtime; shared ACR in bootstrap) | Each is a cohesive resource group reused across 3 environments; isolates blast radius and keeps root readable | A single flat `main.tf` with ~30+ resources × env duplication would violate Duplication Control (III) and hurt readability |
+| Violation                                                                                      | Why Needed                                                                                                        | Simpler Alternative Rejected Because                                                                                       |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Separate `bootstrap/` configuration                                                            | Remote state and OIDC identity must exist before the main config can use them; cannot self-host their own backend | Single config can't create the storage account it already needs as a backend (chicken-and-egg)                             |
+| `modules/` decomposition (network/data/secrets/observability/runtime; shared ACR in bootstrap) | Each is a cohesive resource group reused across 3 environments; isolates blast radius and keeps root readable     | A single flat `main.tf` with ~30+ resources × env duplication would violate Duplication Control (III) and hurt readability |
 
 _Note: The two items above are deliberate, bounded structure — not speculative abstraction. If Phase 1 finds the module split is heavier than the duplication it removes, the runtime/data/secrets modules will be collapsed into the root config and this table updated._
