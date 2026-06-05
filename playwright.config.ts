@@ -36,14 +36,18 @@ export default defineConfig({
         process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
       INITIAL_ADMIN_PASSWORD:
         process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
-      BETTERAUTH_SECRET: "e2e-test-secret-not-for-production-use-only",
+      BETTERAUTH_SECRET:
+        process.env.BETTERAUTH_SECRET ??
+        "e2e-test-secret-not-for-production-use-only",
       E2E_TESTING: "1",
       E2E_MOCK_SSO: "1",
-      E2E_MOCK_SSO_SECRET: "e2e-mock-sso-secret",
+      E2E_MOCK_SSO_SECRET:
+        process.env.E2E_MOCK_SSO_SECRET ?? "e2e-mock-sso-secret",
       E2E_DISABLE_RATE_LIMIT: "1",
-      AZURE_AD_CLIENT_ID: "replace-me",
-      AZURE_AD_CLIENT_SECRET: "replace-me",
-      AZURE_AD_TENANT_ID: "replace-me",
+      AZURE_AD_CLIENT_ID: process.env.AZURE_AD_CLIENT_ID ?? "replace-me",
+      AZURE_AD_CLIENT_SECRET:
+        process.env.AZURE_AD_CLIENT_SECRET ?? "replace-me",
+      AZURE_AD_TENANT_ID: process.env.AZURE_AD_TENANT_ID ?? "replace-me",
     },
     port,
     timeout: 240 * 1000,
