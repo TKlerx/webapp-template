@@ -11,9 +11,9 @@ Provide repeatable OpenTofu (Terraform-compatible) infrastructure-as-code that p
 
 Per the clarifications, the technical approach is:
 
-- **Runtime**: Azure Container Apps Environment, VNet-integrated on a shared/delegated subnet, Consumption workload profile. App = external ingress; worker = no ingress (internal); migration = Container Apps **Job** (one-shot, gates promotion).
+- **Runtime**: Azure Container Apps **workload-profiles environment (single Consumption profile)**, VNet-integrated on a shared/delegated subnet. App = external ingress; worker = no ingress (internal); migration = Container Apps **Job** (one-shot, gates promotion). The workload-profiles environment keeps consumption billing/scale-to-zero while supporting VNet reach to private endpoints.
 - **Database**: Azure Database for PostgreSQL Flexible Server, VNet-only reachability.
-- **Registry**: Azure Container Registry, VNet-only pull via managed identity.
+- **Registry**: A single shared Azure Container Registry provisioned in `bootstrap/`, VNet-only pull via each environment's managed identity (same image tag promoted across environments).
 - **Secrets**: Azure Key Vault as central source of truth; Container Apps reference secrets via managed identity.
 - **State**: Azure Storage Account backend with blob lease locking, created by a bootstrap step before main provisioning.
 - **Environments**: One resource group per environment (dev/staging/prod) in a single subscription.
@@ -25,7 +25,7 @@ Per the clarifications, the technical approach is:
 **Primary Dependencies**: `hashicorp/azurerm`, `hashicorp/azuread` (federated identity / app registration), optional `hashicorp/random` for unique suffixes  
 **Storage**: Azure Storage Account (OpenTofu remote state, blob lease locking); Azure Database for PostgreSQL Flexible Server (application data)  
 **Testing**: `tofu validate` + `tofu plan` against per-environment variable files; `tofu fmt -check`; example/dev environment plan smoke in CI. No live `apply` in CI gate.  
-**Target Platform**: Azure (Container Apps, PostgreSQL Flexible Server, Container Registry, Key Vault, Log Analytics/Application Insights), driven from GitHub Actions runners  
+**Target Platform**: Azure (Container Apps workload-profiles environment / Consumption profile, PostgreSQL Flexible Server, Container Registry, Key Vault, Log Analytics/Application Insights), driven from GitHub Actions runners  
 **Project Type**: Infrastructure-as-code module set (additive to existing web app; does not change app runtime code)  
 **Performance Goals**: Operator can generate a plan for a new environment in < 15 min (SC-001); locate app/worker/migration logs + revision health within 5 min (SC-006)  
 **Constraints**: No secrets in source control (FR-008); destructive data operations opt-in (FR-013); local dev + Docker Compose unaffected and require no Azure credentials (FR-018, SC-008); small internal-app cost profile (Consumption profile, scale-to-zero where possible)  
@@ -71,7 +71,7 @@ specs/018-opentofu-azure-infra/
 ```text
 infra/
 └── azure/
-    ├── bootstrap/              # One-time: state Storage Account + OIDC federated identity / app registration
+    ├── bootstrap/              # One-time: state Storage Account + OIDC federated identity / app registration + shared ACR
     │   ├── main.tf
     │   ├── variables.tf
     │   └── outputs.tf
@@ -80,18 +80,22 @@ infra/
     │   ├── staging.tfvars
     │   └── prod.tfvars
     ├── modules/                # Added only if duplication justifies (see Complexity Tracking)
-    │   ├── network/            # VNet + delegated subnet
+    │   ├── network/            # VNet + delegated subnet + private endpoints
     │   ├── data/               # PostgreSQL Flexible Server (VNet-only)
-    │   ├── registry/           # ACR (VNet-only pull, managed identity)
-    │   ├── secrets/            # Key Vault + secret wiring
+    │   ├── secrets/            # Key Vault + secret wiring (VNet-only)
     │   ├── observability/      # Log Analytics + Application Insights
     │   └── runtime/            # Container Apps Environment + app/worker + migration Job
+    │                           # (shared ACR lives in bootstrap/; runtime is granted AcrPull)
     ├── main.tf                 # Root composition (per-environment apply)
     ├── variables.tf
     ├── outputs.tf              # FR-011 operator outputs
     ├── providers.tf
     ├── backend.tf              # azurerm state backend (from bootstrap outputs)
     └── README.md
+
+scripts/
+├── infra-plan-check.mjs        # SC-002 plan coverage assertion (tofu show -json)
+└── infra-env-isolation.mjs     # SC-007 cross-environment isolation assertion
 
 .github/workflows/
 └── deploy-azure.yml            # FR-015 OIDC deploy: plan → migrate Job → promote app/worker
@@ -106,6 +110,6 @@ infra/
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 | --- | --- | --- |
 | Separate `bootstrap/` configuration | Remote state and OIDC identity must exist before the main config can use them; cannot self-host their own backend | Single config can't create the storage account it already needs as a backend (chicken-and-egg) |
-| `modules/` decomposition (network/data/registry/secrets/observability/runtime) | Each is a cohesive resource group reused across 3 environments; isolates blast radius and keeps root readable | A single flat `main.tf` with ~30+ resources × env duplication would violate Duplication Control (III) and hurt readability |
+| `modules/` decomposition (network/data/secrets/observability/runtime; shared ACR in bootstrap) | Each is a cohesive resource group reused across 3 environments; isolates blast radius and keeps root readable | A single flat `main.tf` with ~30+ resources × env duplication would violate Duplication Control (III) and hurt readability |
 
 _Note: The two items above are deliberate, bounded structure — not speculative abstraction. If Phase 1 finds the module split is heavier than the duplication it removes, the runtime/data/secrets modules will be collapsed into the root config and this table updated._

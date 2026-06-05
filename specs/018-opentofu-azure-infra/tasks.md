@@ -44,8 +44,8 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
 - [ ] T007 Create `infra/azure/bootstrap/main.tf` + `variables.tf`: state resource group + Storage Account + blob container (`tfstate`), with `prevent_destroy` lifecycle (clarify Q1; data-model State Store)
-- [ ] T008 Add to bootstrap: `azuread_application` + federated credential (GitHub OIDC, repo + environment scoped) + subscription/RG role assignments (Contributor, AcrPush, Key Vault Secrets Officer) + a user-assigned managed identity for runtimes (data-model Deployment Identity, FR-015)
-- [ ] T009 Create `infra/azure/bootstrap/outputs.tf`: state account/container names, deploy client id, runtime MI ids
+- [ ] T008 Add to bootstrap: `azuread_application` + federated credential (GitHub OIDC, repo + environment scoped) + subscription/RG role assignments (Contributor, AcrPush, Key Vault Secrets Officer), a user-assigned managed identity for runtimes, and the **single shared Azure Container Registry** (Standard, public access disabled) used by all environments (data-model Deployment Identity + Registry; FR-015, FR-010, SC-007)
+- [ ] T009 Create `infra/azure/bootstrap/outputs.tf`: state account/container names, deploy client id, runtime MI ids, and shared ACR login server + id
 - [ ] T010 Create `infra/azure/backend.tf`: `azurerm` backend using bootstrap outputs, per-environment `key = app/<environment>.tfstate`, `use_oidc = true`
 - [ ] T011 Create `infra/azure/main.tf` root composition skeleton: provider config + one resource group per environment from locals
 - [ ] T012 Create `modules/network` (VNet + delegated subnet for Container Apps + private DNS zone for PostgreSQL); wire into root `main.tf` (clarify Q2; data-model Network)
@@ -62,15 +62,15 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Add a plan-coverage check (script or documented `tofu plan` assertion) verifying the dev plan includes app, worker, migration Job, PostgreSQL, ACR, Key Vault, Log Analytics/App Insights, and identities (SC-002) — `tests/infra/plan-coverage.md` or `scripts/infra-plan-check.mjs`
+- [ ] T013 [P] [US1] Create `scripts/infra-plan-check.mjs`: run `tofu plan -out=tfplan` then `tofu show -json tfplan`, assert the plan includes app, worker, migration Job, PostgreSQL, Key Vault, Log Analytics/App Insights, and identities (shared ACR verified via bootstrap), exit non-zero on any missing type (SC-002)
 
 ### Implementation for User Story 1
 
 - [ ] T014 [P] [US1] Create `modules/data`: PostgreSQL Flexible Server (VNet-only, `public_network_access=false`), application database, distinct app/worker/migration roles, burstable SKU default, `prevent_destroy` (data-model Database; FR-007, FR-021, FR-013)
-- [ ] T015 [P] [US1] Create `modules/registry`: ACR Standard, public network access disabled, `AcrPull` role for runtime MI (data-model Registry; FR-010, FR-021)
+- [ ] T015 [P] [US1] Grant the environment's runtime MI `AcrPull` on the shared bootstrap ACR and wire the app/worker image references (login server from bootstrap output) into the runtime module (data-model Registry; FR-010, FR-021)
 - [ ] T016 [P] [US1] Create `modules/secrets`: Key Vault (VNet-only) with RBAC for runtime MI (read) and deploy identity (write) (data-model Secret; FR-008)
 - [ ] T017 [P] [US1] Create `modules/observability`: Log Analytics workspace + Application Insights, `prevent_destroy` (data-model Observability; FR-012)
-- [ ] T018 [US1] Create `modules/runtime/environment.tf`: Container Apps Environment, VNet-integrated on the subnet, Consumption workload profile (depends on T012)
+- [ ] T018 [US1] Create `modules/runtime/environment.tf`: Container Apps Environment (**workload-profiles type with a single Consumption profile**), VNet-integrated on the subnet so egress reaches the private endpoints (depends on T012)
 - [ ] T019 [US1] Create `modules/runtime/app.tf`: app Container App, external ingress, app image ref, env (`BASE_PATH`, `AUTH_BASE_URL`), runtime MI, scale 0→`app_max_replicas` (Constitution VIII; clarify Q5)
 - [ ] T020 [US1] Create `modules/runtime/worker.tf`: worker Container App, no ingress, worker image ref, `worker_min_replicas` default 1
 - [ ] T021 [US1] Create `modules/runtime/job.tf`: migration Container Apps Job, app image, run-to-completion (`restart=Never`) (FR-005)
@@ -152,7 +152,7 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 ### Tests for User Story 5
 
-- [ ] T039 [P] [US5] Add a cross-environment isolation check: plan `dev` and `staging`, assert no shared resource/database/secret/endpoint names except explicitly shared bootstrap resources (SC-007) — `tests/infra/env-isolation.md`
+- [ ] T039 [P] [US5] Create `scripts/infra-env-isolation.mjs`: plan `dev` and `staging` as JSON, assert no shared resource/database/secret/endpoint names except explicitly shared bootstrap resources (state account, shared ACR) (SC-007)
 
 ### Implementation for User Story 5
 
@@ -169,7 +169,7 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 - [ ] T044 [P] Finalize `infra/azure/README.md` linking contracts, variables, outputs, and quickstart
 - [ ] T045 [P] Update `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` to reflect implementation progress/completion
-- [ ] T046 Run `quickstart.md` end-to-end against a throwaway environment and record evidence
+- [ ] T046 Run `quickstart.md` end-to-end against a throwaway environment and record evidence, including `tofu plan` wall-clock (SC-001 < 15 min) and confirmation that bootstrap ordering matches quickstart (FR-014)
 - [ ] T047 Confirm `pnpm run dev` and Docker Compose still work with no Azure credentials (FR-018, SC-008)
 - [ ] T048 Ensure `tofu fmt -check` + `tofu validate` pass for the full `infra/azure` tree in CI
 
@@ -218,9 +218,9 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 ```bash
 # Launch the independent resource modules together:
 Task: "Create modules/data (PostgreSQL Flexible Server)"
-Task: "Create modules/registry (ACR)"
 Task: "Create modules/secrets (Key Vault)"
 Task: "Create modules/observability (Log Analytics + App Insights)"
+Task: "Grant runtime MI AcrPull on the shared bootstrap ACR + wire image refs"
 # Then runtime: environment before app/worker/job
 ```
 

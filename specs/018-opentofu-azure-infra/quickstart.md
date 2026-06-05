@@ -11,21 +11,20 @@ Operator guide for provisioning and deploying an environment. Covers the bootstr
 
 ## Step 0 — Bootstrap (once per subscription)
 
-Creates the OpenTofu state Storage Account and the GitHub OIDC federated identity. This must run before the main config because the main config stores its state in that account (clarify Q1).
+Creates the OpenTofu state Storage Account, the GitHub OIDC federated identity, and the **single shared Azure Container Registry** used by all environments. This must run before the main config because the main config stores its state in that account (clarify Q1) and pulls images from the shared ACR.
 
 ```bash
 cd infra/azure/bootstrap
 tofu init
-tofu apply   # creates: state RG + Storage Account + container, Entra app registration + federated credential, base role assignments
+tofu apply   # creates: state RG + Storage Account + container, Entra app registration + federated credential, base role assignments, shared ACR
 ```
 
-Record the outputs (state account name, container, app/client id) — they configure `backend.tf` and the GitHub OIDC login.
+Record the outputs (state account name, container, app/client id, ACR login server) — they configure `backend.tf`, the GitHub OIDC login, and image push/pull.
 
-## Step 1 — Create the registry and publish images (FR-014 ordering)
+## Step 1 — Publish images to the shared registry (FR-014 ordering)
 
-The registry must exist and images must be pushed before runtimes can pull them.
+The shared ACR (from Step 0) must contain the images before any environment's runtimes can pull them.
 
-- Either apply the `registry` portion first, or run a full `apply` (the runtimes will pick up images on the next revision once pushed).
 - Push the app and worker images:
 
 ```bash
@@ -45,7 +44,7 @@ tofu plan  -var-file=environments/dev.tfvars   # review (SC-001: < 15 min)
 tofu apply -var-file=environments/dev.tfvars
 ```
 
-Provisions: VNet + subnet, PostgreSQL Flexible Server (VNet-only), Key Vault, ACR (if not shared), Log Analytics + App Insights, Container Apps Environment, app + worker Container Apps, and the migration Job.
+Provisions: VNet + subnet + private endpoints, PostgreSQL Flexible Server (VNet-only), Key Vault, Log Analytics + App Insights, Container Apps Environment (workload-profiles / Consumption), app + worker Container Apps, and the migration Job. (The shared ACR comes from bootstrap; this env is granted `AcrPull`.)
 
 ## Step 3 — Set secrets in Key Vault
 

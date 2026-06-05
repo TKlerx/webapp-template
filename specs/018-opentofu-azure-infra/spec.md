@@ -15,7 +15,7 @@
 - Q: What network posture for the MVP? → A: VNet-integrated Container Apps Environment on a shared/delegated subnet. Public ingress only on the app frontend; worker and migration are internal-only. Data plane (PostgreSQL, ACR, Key Vault) reachable only from the VNet, not externally.
 - Q: How are dev/staging/prod isolated? → A: One resource group per environment within a single subscription.
 - Q: What is the secret boundary split? → A: Azure Key Vault as the central source of truth; Container Apps reference secrets from Key Vault via managed identity.
-- Q: How is custom domain / TLS handled in the MVP? → A: Use the default Container Apps FQDN (`<app>.<region>.azurecontainerapps.io`) with the platform default TLS certificate; no custom domain binding in MVP. Domain/base-URL inputs still drive app config (e.g. trusted origins, base path). Custom domain is a later customization (FR-016). Hosted runtime remains Azure Container Apps (app = ingress, worker = internal, migration = one-shot Container Apps Job); use the Consumption workload profile to control cost.
+- Q: How is custom domain / TLS handled in the MVP? → A: Use the default Container Apps FQDN (`<app>.<region>.azurecontainerapps.io`) with the platform default TLS certificate; no custom domain binding in MVP. Domain/base-URL inputs still drive app config (e.g. trusted origins, base path). Custom domain is a later customization (FR-016). Hosted runtime remains Azure Container Apps (app = ingress, worker = internal, migration = one-shot Container Apps Job); use a workload-profiles environment with a single Consumption profile to control cost while keeping VNet reach to private endpoints.
 
 ## User Scenarios & Testing _(mandatory)_
 

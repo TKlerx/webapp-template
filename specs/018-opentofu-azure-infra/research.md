@@ -17,11 +17,11 @@ All NEEDS CLARIFICATION items from the spec were resolved during `/speckit.clari
 
 ## D3. Compute runtime
 
-- **Decision**: Azure Container Apps Environment (Consumption workload profile).
+- **Decision**: Azure Container Apps **workload-profiles environment** running a single **Consumption** profile.
   - app → Container App, external ingress, public FQDN.
   - worker → Container App, **no ingress** (internal), min replicas 1 (long-running poller).
   - migration → Container Apps **Job** (manual/triggered, restart=Never), gates promotion.
-- **Rationale**: Template already ships three containers (`Dockerfile.app`, `Dockerfile.worker`, migrate command reusing `Dockerfile.app`). Container Apps Jobs natively express the one-shot migrate-before-promote flow (FR-005/FR-006). Consumption profile keeps cost low and is cheaper than App Service plans for low/bursty internal traffic (clarify Q5 cost note). Scale-to-zero applies to the app; worker stays warm.
+- **Rationale**: Template already ships three containers (`Dockerfile.app`, `Dockerfile.worker`, migrate command reusing `Dockerfile.app`). Container Apps Jobs natively express the one-shot migrate-before-promote flow (FR-005/FR-006). The workload-profiles environment with only a Consumption profile keeps consumption billing + scale-to-zero (cheaper than App Service plans for low/bursty internal traffic — clarify Q5) **while supporting full VNet integration and reachability to private endpoints** (ACR/Key Vault/PostgreSQL), which the legacy Consumption-only environment does not fully support. Scale-to-zero applies to the app; worker stays warm.
 - **Alternatives considered**: Azure App Service (no clean one-shot job primitive; would need a bolt-on WebJob/ACI — rejected); AKS (heavy operationally for a small internal app, violates Simplicity — rejected); ACI alone (no revision/ingress/scaling model — rejected).
 
 ## D4. Network posture
@@ -29,7 +29,7 @@ All NEEDS CLARIFICATION items from the spec were resolved during `/speckit.clari
 - **Decision**: VNet-integrated Container Apps Environment on a shared/delegated subnet. Only the app frontend has public ingress; worker + migration are internal-only. PostgreSQL, ACR, and Key Vault are reachable only from the VNet (private access / VNet rules / private endpoint as appropriate per service), not from the public internet.
 - **Rationale**: clarify Q2 — meets "small internal-app" cost goal while keeping the data plane off the public internet. Single subnet keeps it cheap and simple vs. full private-endpoint mesh.
 - **Alternatives considered**: Fully public with firewall rules only (weaker — rejected); full private networking with private endpoints for every service + private DNS zones (more cost/complexity than MVP needs, documented as an upgrade path).
-- **Phase 1 detail**: PostgreSQL Flexible Server VNet integration uses **delegated subnet + private DNS zone** (its standard private-access mode). ACR/Key Vault VNet-only via network ACLs (public network access disabled) and, where the Consumption profile allows, reached over the environment's VNet. Confirm Consumption-profile private networking limits during Phase 1 (some private-endpoint features need the Dedicated profile — if so, document the cost tradeoff rather than silently upgrading).
+- **Phase 1 detail**: PostgreSQL Flexible Server VNet integration uses **delegated subnet + private DNS zone** (its standard private-access mode). ACR/Key Vault are VNet-only (public network access disabled) via **private endpoints** in the environment's subnet. The workload-profiles environment (Consumption profile) supports VNet egress to these private endpoints, so no Dedicated profile is required.
 
 ## D5. Secrets boundary
 
@@ -50,9 +50,9 @@ All NEEDS CLARIFICATION items from the spec were resolved during `/speckit.clari
 
 ## D7. Container registry
 
-- **Decision**: Azure Container Registry (Standard SKU), public network access disabled (VNet-only), pull via the runtimes' managed identity (`AcrPull` role). No registry passwords in source (FR-010).
-- **Rationale**: clarify Q2 data-plane-private; managed-identity pull avoids embedded credentials. Two repositories: the app image (also used by the migration Job) and the worker image.
-- **Bootstrap ordering (FR-014)**: ACR must exist and images must be pushed before runtimes can pull. The bootstrap/registry creation precedes first image publish; documented in quickstart.
+- **Decision**: A **single shared** Azure Container Registry (Standard SKU) provisioned in `bootstrap/`, public network access disabled (VNet-only via private endpoint), pulled by each environment's runtime managed identity (`AcrPull` role). No registry passwords in source (FR-010).
+- **Rationale**: clarify Q2 data-plane-private; managed-identity pull avoids embedded credentials. The deploy flow promotes the **same image tag** dev→staging→prod, so one registry matches the workflow, avoids per-env rebuild/retag, and saves cost. SC-007 explicitly permits shared bootstrap resources. Two repositories: the app image (also used by the migration Job) and the worker image.
+- **Bootstrap ordering (FR-014)**: the shared ACR must exist and images must be pushed before any environment's runtimes can pull. Bootstrap creates the ACR before first image publish and before environment provisioning; documented in quickstart.
 
 ## D8. Observability
 
@@ -84,7 +84,8 @@ All NEEDS CLARIFICATION items from the spec were resolved during `/speckit.clari
 - **Decision**: All Azure code is additive under `infra/azure/`; no change to `src/`, `worker/`, `docker-compose.yml`, or local `.env` flows. Validation includes confirming `pnpm run dev` / Docker Compose still work without Azure credentials (FR-018, SC-008).
 - **Rationale**: Constitution + FR-018 require local/Docker workflows to remain credential-free and unchanged.
 
-## Open items carried to Phase 1
+## Resolved post-analysis (2026-06-05)
 
-- Confirm Consumption-profile private-networking limits (D4) and document any Dedicated-profile cost tradeoff if a private endpoint is unavoidable.
-- Decide shared vs per-env state Storage Account and whether ACR is shared across environments or per-environment (D2/D7). Default: shared state account (separate keys), **per-environment ACR** unless cost argues for one shared registry.
+- D4: Use a **workload-profiles environment with a single Consumption profile** — supports VNet + private endpoints with consumption billing/scale-to-zero. No Dedicated profile needed. (No open item.)
+- D7: **Single shared ACR in `bootstrap/`** (same image tag promoted across environments; SC-007 allows shared bootstrap resources).
+- D2: Shared state Storage Account in `bootstrap/`, separate state keys per environment.

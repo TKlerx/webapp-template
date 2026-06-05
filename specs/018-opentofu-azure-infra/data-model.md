@@ -106,14 +106,16 @@ Hosted execution unit (app / worker / migration) (spec Key Entity).
 | `public_network_access` | bool=false | VNet-only (FR-021) |
 | `prevent_destroy` | lifecycle | Destructive ops opt-in (FR-013) |
 
-## Entity: Container Registry (Persistent-ish)
+## Entity: Container Registry (shared bootstrap resource)
+
+Single shared ACR created in `bootstrap/` and reused by all environments (same image tag promoted dev→staging→prod; SC-007 shared-bootstrap exemption).
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `name` | string (globally unique) | ACR |
+| `name` | string (globally unique) | ACR (one, in bootstrap) |
 | `sku` | string | Standard |
-| `public_network_access` | bool=false | VNet-only pull (FR-021) |
-| `pull_principals` | list | Runtime managed identity (`AcrPull`) (FR-010) |
+| `public_network_access` | bool=false | VNet-only pull via private endpoint (FR-021) |
+| `pull_principals` | list | Each environment's runtime managed identity (`AcrPull`) (FR-010) |
 
 ## Entity: Observability Workspace (Persistent Data Resource)
 
