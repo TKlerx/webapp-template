@@ -1271,3 +1271,17 @@
 - Latest non-continuity commit: 0b1b390 @ docs(018): apply analyze remediation.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T013.
+
+## 2026-06-06 01:59:35
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: 83148ed feat(018): scaffold Azure OpenTofu foundation.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: 018-opentofu-azure-infra: T025.
+
+## 2026-06-06 02:05:50
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: 83148ed feat(018): scaffold Azure OpenTofu foundation.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: 018-opentofu-azure-infra: T025.

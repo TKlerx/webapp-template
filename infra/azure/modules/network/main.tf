@@ -38,6 +38,13 @@ resource "azurerm_subnet" "postgres" {
   }
 }
 
+resource "azurerm_subnet" "private_endpoints" {
+  name                 = "${var.name_prefix}-private-endpoints-snet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.environment.name
+  address_prefixes     = [var.private_endpoints_subnet_address_prefix]
+}
+
 resource "azurerm_private_dns_zone" "postgres" {
   name                = "privatelink.postgres.database.azure.com"
   resource_group_name = var.resource_group_name

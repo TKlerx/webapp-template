@@ -62,21 +62,21 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Create `scripts/infra-plan-check.mjs`: run `tofu plan -out=tfplan` then `tofu show -json tfplan`, assert the plan includes app, worker, migration Job, PostgreSQL, Key Vault, Log Analytics/App Insights, and identities (shared ACR verified via bootstrap), exit non-zero on any missing type (SC-002)
+- [x] T013 [P] [US1] Create `scripts/infra-plan-check.mjs`: run `tofu plan -out=tfplan` then `tofu show -json tfplan`, assert the plan includes app, worker, migration Job, PostgreSQL, Key Vault, Log Analytics/App Insights, and identities (shared ACR verified via bootstrap), exit non-zero on any missing type (SC-002)
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Create `modules/data`: PostgreSQL Flexible Server (VNet-only, `public_network_access=false`), application database, distinct app/worker/migration roles, burstable SKU default, `prevent_destroy` (data-model Database; FR-007, FR-021, FR-013)
-- [ ] T015 [P] [US1] Grant the environment's runtime MI `AcrPull` on the shared bootstrap ACR and wire the app/worker image references (login server from bootstrap output) into the runtime module (data-model Registry; FR-010, FR-021)
-- [ ] T016 [P] [US1] Create `modules/secrets`: Key Vault (VNet-only) with RBAC for runtime MI (read) and deploy identity (write) (data-model Secret; FR-008)
-- [ ] T017 [P] [US1] Create `modules/observability`: Log Analytics workspace + Application Insights, `prevent_destroy` (data-model Observability; FR-012)
-- [ ] T018 [US1] Create `modules/runtime/environment.tf`: Container Apps Environment (**workload-profiles type with a single Consumption profile**), VNet-integrated on the subnet so egress reaches the private endpoints (depends on T012)
-- [ ] T019 [US1] Create `modules/runtime/app.tf`: app Container App, external ingress, app image ref, env (`BASE_PATH`, `AUTH_BASE_URL`), runtime MI, scale 0→`app_max_replicas` (Constitution VIII; clarify Q5)
-- [ ] T020 [US1] Create `modules/runtime/worker.tf`: worker Container App, no ingress, worker image ref, `worker_min_replicas` default 1
-- [ ] T021 [US1] Create `modules/runtime/job.tf`: migration Container Apps Job, app image, run-to-completion (`restart=Never`) (FR-005)
-- [ ] T022 [US1] Wire all modules in root `infra/azure/main.tf` (network → data/registry/secrets/observability/runtime)
-- [ ] T023 [US1] Create `infra/azure/outputs.tf` per `contracts/outputs-contract.md` (FR-011)
-- [ ] T024 [US1] Create `infra/azure/environments/dev.tfvars` with dev inputs
+- [x] T014 [P] [US1] Create `modules/data`: PostgreSQL Flexible Server (VNet-only, `public_network_access=false`), application database, distinct app/worker/migration roles, burstable SKU default, `prevent_destroy` (data-model Database; FR-007, FR-021, FR-013)
+- [x] T015 [P] [US1] Grant the environment's runtime MI `AcrPull` on the shared bootstrap ACR and wire the app/worker image references (login server from bootstrap output) into the runtime module (data-model Registry; FR-010, FR-021)
+- [x] T016 [P] [US1] Create `modules/secrets`: Key Vault (VNet-only) with RBAC for runtime MI (read) and deploy identity (write) (data-model Secret; FR-008)
+- [x] T017 [P] [US1] Create `modules/observability`: Log Analytics workspace + Application Insights, `prevent_destroy` (data-model Observability; FR-012)
+- [x] T018 [US1] Create `modules/runtime/environment.tf`: Container Apps Environment (**workload-profiles type with a single Consumption profile**), VNet-integrated on the subnet so egress reaches the private endpoints (depends on T012)
+- [x] T019 [US1] Create `modules/runtime/app.tf`: app Container App, external ingress, app image ref, env (`BASE_PATH`, `AUTH_BASE_URL`), runtime MI, scale 0→`app_max_replicas` (Constitution VIII; clarify Q5)
+- [x] T020 [US1] Create `modules/runtime/worker.tf`: worker Container App, no ingress, worker image ref, `worker_min_replicas` default 1
+- [x] T021 [US1] Create `modules/runtime/job.tf`: migration Container Apps Job, app image, run-to-completion (`restart=Never`) (FR-005)
+- [x] T022 [US1] Wire all modules in root `infra/azure/main.tf` (network → data/registry/secrets/observability/runtime)
+- [x] T023 [US1] Create `infra/azure/outputs.tf` per `contracts/outputs-contract.md` (FR-011)
+- [x] T024 [US1] Create `infra/azure/environments/dev.tfvars` with dev inputs
 
 **Checkpoint**: US1 done — a full environment can be planned/applied and exposes the app endpoint + operator outputs (MVP)
 

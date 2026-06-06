@@ -61,6 +61,59 @@ variable "custom_domain" {
   default     = ""
 }
 
+variable "registry_id" {
+  description = "Shared bootstrap Azure Container Registry resource id."
+  type        = string
+}
+
+variable "registry_login_server" {
+  description = "Shared bootstrap Azure Container Registry login server."
+  type        = string
+}
+
+variable "runtime_identity_id" {
+  description = "User-assigned managed identity resource id for this environment's runtimes."
+  type        = string
+}
+
+variable "runtime_identity_client_id" {
+  description = "User-assigned managed identity client id for this environment's runtimes."
+  type        = string
+}
+
+variable "runtime_identity_principal_id" {
+  description = "User-assigned managed identity principal id for this environment's runtimes."
+  type        = string
+}
+
+variable "deployment_identity_client_id" {
+  description = "GitHub OIDC deployment application client id."
+  type        = string
+}
+
+variable "deployment_identity_object_id" {
+  description = "GitHub OIDC deployment service principal object id."
+  type        = string
+}
+
+variable "app_image_repository" {
+  description = "ACR repository name for the app image."
+  type        = string
+  default     = "app"
+}
+
+variable "worker_image_repository" {
+  description = "ACR repository name for the worker image."
+  type        = string
+  default     = "worker"
+}
+
+variable "migration_image_repository" {
+  description = "ACR repository name for the migration image. Empty means reuse app_image_repository."
+  type        = string
+  default     = ""
+}
+
 variable "postgres_sku" {
   description = "Azure Database for PostgreSQL Flexible Server SKU."
   type        = string
@@ -123,6 +176,17 @@ variable "enable_teams" {
   default     = false
 }
 
+variable "secret_expiration_date" {
+  description = "RFC3339 expiration date applied to generated Key Vault secrets; rotate before this date."
+  type        = string
+  default     = "2027-12-31T23:59:59Z"
+
+  validation {
+    condition     = can(formatdate("YYYY-MM-DD'T'hh:mm:ss'Z'", var.secret_expiration_date))
+    error_message = "secret_expiration_date must be an RFC3339 timestamp such as 2027-12-31T23:59:59Z."
+  }
+}
+
 variable "allow_destroy_persistent" {
   description = "Explicit opt-in for destructive changes to persistent data resources."
   type        = bool
@@ -138,13 +202,25 @@ variable "vnet_address_space" {
 variable "container_apps_subnet_address_prefix" {
   description = "Subnet address prefix delegated to Azure Container Apps."
   type        = string
-  default     = "10.42.0.0/23"
+  default     = "10.42.0.0/21"
 }
 
 variable "postgres_subnet_address_prefix" {
   description = "Subnet address prefix delegated to Azure Database for PostgreSQL Flexible Server."
   type        = string
-  default     = "10.42.2.0/24"
+  default     = "10.42.8.0/24"
+}
+
+variable "private_endpoints_subnet_address_prefix" {
+  description = "Subnet address prefix for private endpoints."
+  type        = string
+  default     = "10.42.9.0/24"
+}
+
+variable "initial_admin_email" {
+  description = "Initial seeded admin email for the migration job."
+  type        = string
+  default     = "admin@example.com"
 }
 
 variable "tags" {

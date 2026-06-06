@@ -28,6 +28,11 @@ variable "postgres_subnet_address_prefix" {
   type        = string
 }
 
+variable "private_endpoints_subnet_address_prefix" {
+  description = "Subnet address prefix for private endpoints."
+  type        = string
+}
+
 variable "tags" {
   description = "Tags applied to supported network resources."
   type        = map(string)

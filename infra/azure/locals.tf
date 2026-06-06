@@ -22,6 +22,15 @@ locals {
     var.app_image_tag,
   )
 
+  migration_image_repository = coalesce(
+    length(trimspace(var.migration_image_repository)) > 0 ? trimspace(var.migration_image_repository) : null,
+    var.app_image_repository,
+  )
+
+  app_image_ref       = "${var.registry_login_server}/${var.app_image_repository}:${var.app_image_tag}"
+  worker_image_ref    = "${var.registry_login_server}/${var.worker_image_repository}:${var.worker_image_tag}"
+  migration_image_ref = "${var.registry_login_server}/${local.migration_image_repository}:${local.migration_image_tag}"
+
   standard_tags = {
     environment = var.environment
     project     = var.project
