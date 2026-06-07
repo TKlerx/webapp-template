@@ -132,13 +132,13 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 ### Tests for User Story 4
 
-- [ ] T035 [P] [US4] Add an observability smoke checklist asserting app logs, worker logs, migration Job result, and revision health are queryable in Log Analytics (SC-006) — `tests/infra/observability-smoke.md`
+- [x] T035 [P] [US4] Add an observability smoke checklist asserting app logs, worker logs, migration Job result, and revision health are queryable in Log Analytics (SC-006) — `tests/infra/observability-smoke.md`
 
 ### Implementation for User Story 4
 
-- [ ] T036 [US4] In `modules/runtime/environment.tf`: set the Container Apps Environment log destination to the Log Analytics workspace
-- [ ] T037 [US4] In `modules/observability`: add diagnostic settings and wire Application Insights connection into the app container env (FR-012)
-- [ ] T038 [US4] Ensure `outputs.tf` surfaces `log_analytics_workspace_id` and the `sensitive` `app_insights_connection_string` (FR-011)
+- [x] T036 [US4] In `modules/runtime/environment.tf`: set the Container Apps Environment log destination to the Log Analytics workspace
+- [x] T037 [US4] Add diagnostic settings for app/worker metrics and wire Application Insights connection into the app container env (FR-012)
+- [x] T038 [US4] Ensure `outputs.tf` surfaces `log_analytics_workspace_id` and the `sensitive` `app_insights_connection_string` (FR-011)
 
 **Checkpoint**: Operational visibility for app, worker, and migration
 

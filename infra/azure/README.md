@@ -21,6 +21,7 @@ Validation:
 - `tofu -chdir=infra/azure fmt -check -recursive`
 - `tofu -chdir=infra/azure validate`
 - `node scripts/infra-plan-check.mjs`
+- `node scripts/infra-observability-check.mjs`
 
 The plan check uses `infra/azure/environments/dev.tfvars` with placeholder bootstrap outputs and `-refresh=false`; it proves the environment graph includes the app, worker, migration job, PostgreSQL, Key Vault, private endpoints, observability, and role assignments without applying resources.
 
@@ -36,6 +37,13 @@ Secret exposure:
 - Worker runtime: `worker-database-url`; Graph mail secrets only when `enable_mail=true`; Teams worker secrets only when `enable_teams=true`.
 - Migration job: `migration-database-url`, `initial-admin-*`, plus `admin-database-url`, `app-database-url`, and `worker-database-url` for the one-time PostgreSQL role bootstrap path.
 - Optional mail and Teams secrets are not created or bound when their `enable_*` flag is false.
+
+Observability:
+
+- The Container Apps environment sends console/system logs to Log Analytics.
+- App and worker Container Apps export `AllMetrics` diagnostic settings to the same workspace for revision and replica health.
+- The app container receives `APPLICATIONINSIGHTS_CONNECTION_STRING`; the root output is marked sensitive.
+- Use [`../../tests/infra/observability-smoke.md`](../../tests/infra/observability-smoke.md) after a staged apply to confirm app, worker, migration, and health queries.
 
 Deployment workflow:
 

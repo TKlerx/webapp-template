@@ -1,19 +1,19 @@
 # Continue
 
-<!-- continuity:fingerprint=f5b2919887abba50b9b4eea6333452cbf6ab056e0bcd65a64b9bdfebd3c1fcbf -->
+<!-- continuity:fingerprint=858a577507703179f4ff145ef25a46f20a7f775f1b5bef6de2076cd8249e5534 -->
 
 ## Current Snapshot
 
-- Updated: 2026-06-07 23:41:08
+- Updated: 2026-06-07 23:57:01
 - Branch: `018-opentofu-azure-infra`
 
 ## Recent Non-Continuity Commits
 
+- 23dbb9b feat(018): enforce Azure runtime secret exposure
 - fd54d10 feat(018): add Azure deploy workflow
 - 6065722 feat(018): add Azure runtime modules
 - 83148ed feat(018): scaffold Azure OpenTofu foundation
 - 0b1b390 @ docs(018): apply analyze remediation
-- 8cb2c85 @ docs(018): generate implementation tasks
 
 ## Git Status
 
@@ -29,21 +29,11 @@
 - M docs/theme-design.md
 - M eslint.config.mjs
 - M infra/azure/README.md
-- M infra/azure/main.tf
-- M infra/azure/modules/runtime/app.tf
-- M infra/azure/modules/runtime/locals.tf
-- M infra/azure/modules/runtime/variables.tf
-- M infra/azure/modules/runtime/worker.tf
-- M infra/azure/modules/secrets/main.tf
-- M infra/azure/modules/secrets/outputs.tf
-- M infra/azure/modules/secrets/variables.tf
-- M infra/azure/variables.tf
 - M package.json
 - M pnpm-workspace.yaml
 - M prisma/seed-utils.ts
 - M public/openapi.yaml
 - M scripts/docker-compose.mjs
-- M scripts/infra-plan-check.mjs
 - M scripts/prisma-predeploy-check.js
 - M scripts/prisma-run-lib.js
 - M scripts/prisma-run.js
@@ -75,7 +65,6 @@
 - M specs/017-deepsec-remediation/research.md
 - M specs/017-deepsec-remediation/spec.md
 - M specs/017-deepsec-remediation/tasks.md
-- M specs/018-opentofu-azure-infra/contracts/variables-contract.md
 - M specs/018-opentofu-azure-infra/tasks.md
 - M specs/base/runtime-and-ops.md
 - M src/app/(dashboard)/background-jobs/page.tsx
@@ -150,8 +139,9 @@
 - M tests/unit/teams-consent.test.ts
 - M tests/unit/teams-service.test.ts
 - M tests/unit/token-service.test.ts
-- ?? scripts/infra-plan-lib.mjs
-- ?? scripts/infra-secret-exposure-check.mjs
+- ?? infra/azure/modules/runtime/diagnostics.tf
+- ?? scripts/infra-observability-check.mjs
+- ?? tests/infra/
 
 ## Active Specs
 
@@ -162,8 +152,8 @@
 
 ## Next Recommended Actions
 
-1. 018-opentofu-azure-infra: T035 [P] [US4] Add an observability smoke checklist asserting app logs, worker logs, migration Job result, and revision health are queryable in Log Analytics (SC-006) — `tests/infra/observability-smoke.md`
-2. 018-opentofu-azure-infra: T036 [US4] In `modules/runtime/environment.tf`: set the Container Apps Environment log destination to the Log Analytics workspace
-3. 018-opentofu-azure-infra: T037 [US4] In `modules/observability`: add diagnostic settings and wire Application Insights connection into the app container env (FR-012)
-4. 018-opentofu-azure-infra: T038 [US4] Ensure `outputs.tf` surfaces `log_analytics_workspace_id` and the `sensitive` `app_insights_connection_string` (FR-011)
-5. 018-opentofu-azure-infra: T039 [P] [US5] Create `scripts/infra-env-isolation.mjs`: plan `dev` and `staging` as JSON, assert no shared resource/database/secret/endpoint names except explicitly shared bootstrap resources (state account, shared ACR) (SC-007)
+1. 018-opentofu-azure-infra: T039 [P] [US5] Create `scripts/infra-env-isolation.mjs`: plan `dev` and `staging` as JSON, assert no shared resource/database/secret/endpoint names except explicitly shared bootstrap resources (state account, shared ACR) (SC-007)
+2. 018-opentofu-azure-infra: T040 [P] [US5] Create `infra/azure/environments/staging.tfvars`
+3. 018-opentofu-azure-infra: T041 [P] [US5] Create `infra/azure/environments/prod.tfvars` (sized-up `postgres_sku`, replica limits)
+4. 018-opentofu-azure-infra: T042 [US5] Add environment-name validation + a guard rejecting production secrets in non-production environments (US5 scenario 2)
+5. 018-opentofu-azure-infra: T043 [US5] Add `allow_destroy_persistent` handling so `prevent_destroy` overrides are explicit and opt-in; document teardown order in `quickstart.md` (FR-013, US5 scenario 3)

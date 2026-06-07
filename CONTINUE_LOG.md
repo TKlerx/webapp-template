@@ -1299,3 +1299,10 @@
 - Latest non-continuity commit: fd54d10 feat(018): add Azure deploy workflow.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T035.
+
+## 2026-06-07 23:57:01
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: 23dbb9b feat(018): enforce Azure runtime secret exposure.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: 018-opentofu-azure-infra: T039.
