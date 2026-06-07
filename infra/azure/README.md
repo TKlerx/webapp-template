@@ -30,4 +30,10 @@ Database access:
 - The data module emits distinct app, worker, and migration database URLs so runtime bindings stay separated.
 - The migration Container Apps Job receives the admin URL only for `scripts/postgres-provision-roles.mjs`, which creates or updates the app, worker, and migration roles before Prisma migrations run.
 
+Deployment workflow:
+
+- `.github/workflows/deploy-azure.yml` uses GitHub OIDC (`id-token: write`) and Azure login without a client secret.
+- Configure each GitHub Environment (`dev`, `staging`, `prod`) with variables for `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, bootstrap state outputs, shared ACR outputs, deployment identity ids, runtime identity ids, `PROJECT`, and `AZURE_LOCATION`.
+- The workflow validates requested ACR tags, reconciles OpenTofu infrastructure, runs the migration Container Apps Job with the migration image, and only then updates the app and worker images.
+
 Do not commit state, local variable files, or secrets.

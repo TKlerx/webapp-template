@@ -1,19 +1,19 @@
 # Continue
 
-<!-- continuity:fingerprint=69fb9bc4535d05569dea0c663972df2aba0b0fc3f3dfc3a8a0a8e6ad8bbd7862 -->
+<!-- continuity:fingerprint=681cd041fa79a83d97685bb8777c328686219f288aa80cb3f4b9e9c910e25200 -->
 
 ## Current Snapshot
 
-- Updated: 2026-06-06 02:05:50
+- Updated: 2026-06-07 13:56:08
 - Branch: `018-opentofu-azure-infra`
 
 ## Recent Non-Continuity Commits
 
+- 6065722 feat(018): add Azure runtime modules
 - 83148ed feat(018): scaffold Azure OpenTofu foundation
 - 0b1b390 @ docs(018): apply analyze remediation
 - 8cb2c85 @ docs(018): generate implementation tasks
 - 56721f7 @ docs(018): plan OpenTofu Azure infrastructure
-- 42be50c @ fix(017): make E2E credential literals env-overridable
 
 ## Git Status
 
@@ -29,18 +29,6 @@
 - M docs/theme-design.md
 - M eslint.config.mjs
 - M infra/azure/README.md
-- M infra/azure/locals.tf
-- M infra/azure/main.tf
-- D infra/azure/modules/data/.gitkeep
-- M infra/azure/modules/network/main.tf
-- M infra/azure/modules/network/outputs.tf
-- M infra/azure/modules/network/variables.tf
-- D infra/azure/modules/observability/.gitkeep
-- D infra/azure/modules/registry/.gitkeep
-- D infra/azure/modules/runtime/.gitkeep
-- D infra/azure/modules/secrets/.gitkeep
-- M infra/azure/outputs.tf
-- M infra/azure/variables.tf
 - M package.json
 - M pnpm-workspace.yaml
 - M prisma/seed-utils.ts
@@ -77,8 +65,8 @@
 - M specs/017-deepsec-remediation/research.md
 - M specs/017-deepsec-remediation/spec.md
 - M specs/017-deepsec-remediation/tasks.md
+- M specs/018-opentofu-azure-infra/contracts/deploy-workflow-contract.md
 - M specs/018-opentofu-azure-infra/tasks.md
-- M specs/OVERVIEW.md
 - M specs/base/runtime-and-ops.md
 - M src/app/(dashboard)/background-jobs/page.tsx
 - M src/app/api/audit/export/route.ts
@@ -152,28 +140,8 @@
 - M tests/unit/teams-consent.test.ts
 - M tests/unit/teams-service.test.ts
 - M tests/unit/token-service.test.ts
-- ?? infra/azure/environments/dev.tfvars
-- ?? infra/azure/modules/data/main.tf
-- ?? infra/azure/modules/data/outputs.tf
-- ?? infra/azure/modules/data/variables.tf
-- ?? infra/azure/modules/observability/main.tf
-- ?? infra/azure/modules/observability/outputs.tf
-- ?? infra/azure/modules/observability/variables.tf
-- ?? infra/azure/modules/registry/main.tf
-- ?? infra/azure/modules/registry/outputs.tf
-- ?? infra/azure/modules/registry/variables.tf
-- ?? infra/azure/modules/runtime/app.tf
-- ?? infra/azure/modules/runtime/environment.tf
-- ?? infra/azure/modules/runtime/job.tf
-- ?? infra/azure/modules/runtime/locals.tf
-- ?? infra/azure/modules/runtime/outputs.tf
-- ?? infra/azure/modules/runtime/variables.tf
-- ?? infra/azure/modules/runtime/worker.tf
-- ?? infra/azure/modules/secrets/main.tf
-- ?? infra/azure/modules/secrets/outputs.tf
-- ?? infra/azure/modules/secrets/variables.tf
-- ?? scripts/infra-plan-check.mjs
-- ?? scripts/postgres-provision-roles.mjs
+- ?? .github/workflows/deploy-azure.yml
+- ?? tests/unit/security/deploy-workflow.test.ts
 
 ## Active Specs
 
@@ -184,8 +152,8 @@
 
 ## Next Recommended Actions
 
-1. 018-opentofu-azure-infra: T025 [P] [US2] Add a deploy-ordering check asserting contract guarantees G1 (migrate-before-promote) and G2 (failed migration blocks promotion) from `contracts/deploy-workflow-contract.md` — `tests/infra/deploy-order.md` or a workflow dry-run job
-2. 018-opentofu-azure-infra: T026 [US2] Create `.github/workflows/deploy-azure.yml`: OIDC login (`permissions: id-token: write`), inputs `environment`/`app_image_tag`/`worker_image_tag`/optional `migration_image_tag` (FR-015)
-3. 018-opentofu-azure-infra: T027 [US2] Add validate step: required inputs, environment-name validity, and image tag presence in ACR before any promotion (FR-017)
-4. 018-opentofu-azure-infra: T028 [US2] Add provision step: `tofu init` (OIDC backend) → `plan` → `apply` for the selected environment with the new image tags
-5. 018-opentofu-azure-infra: T029 [US2] Add migrate step: trigger the migration Container Apps Job with `migration_image_tag` and wait for completion (FR-005)
+1. 018-opentofu-azure-infra: T031 [P] [US3] Add a secret-exposure check asserting the app runtime references no worker-only or migration-only secrets (SC-005) — `tests/infra/secret-exposure.md` or plan-inspection script
+2. 018-opentofu-azure-infra: T032 [US3] In `modules/secrets`: define Key Vault secrets `app-database-url`, `worker-database-url`, `migration-database-url`, `betterauth-secret`, and optional mail/Teams secrets gated by `enable_mail`/`enable_teams` (edge case: unused integrations not required)
+3. 018-opentofu-azure-infra: T033 [US3] In `modules/runtime`: bind per-runtime Key Vault secret references via MI — app gets the app set, worker the worker set, migration Job only `migration-database-url` (FR-007, FR-009)
+4. 018-opentofu-azure-infra: T034 [US3] Document intentionally shared secrets and any exceptions in `infra/azure/README.md` (FR-009)
+5. 018-opentofu-azure-infra: T035 [P] [US4] Add an observability smoke checklist asserting app logs, worker logs, migration Job result, and revision health are queryable in Log Analytics (SC-006) — `tests/infra/observability-smoke.md`

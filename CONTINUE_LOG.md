@@ -1285,3 +1285,10 @@
 - Latest non-continuity commit: 83148ed feat(018): scaffold Azure OpenTofu foundation.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T025.
+
+## 2026-06-07 13:56:08
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: 6065722 feat(018): add Azure runtime modules.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: 018-opentofu-azure-infra: T031.

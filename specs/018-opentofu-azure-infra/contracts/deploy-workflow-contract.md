@@ -20,10 +20,10 @@ Satisfies FR-004, FR-005, FR-006, FR-015, FR-017. Defines the required deploymen
 ## Required sequence (ordering is the contract)
 
 1. **Validate** (FR-017): check required inputs, environment name validity, and that `app_image_tag` / `worker_image_tag` (and migration tag) exist in ACR. Fail fast if missing.
-2. **Provision / reconcile**: `tofu init` (OIDC backend) → `tofu plan` → `tofu apply` for the selected environment. (On a pure redeploy this is a no-op infra change; image tags update revision config.)
+2. **Provision / reconcile**: `tofu init` (OIDC backend) → `tofu plan` → `tofu apply` for the selected environment. The apply reconciles infrastructure and emits resource names; requested app/worker image tags are not promoted here so Terraform cannot route traffic before migration succeeds.
 3. **Migrate**: trigger the migration Container Apps **Job** with `migration_image_tag` and wait for completion.
 4. **Gate**:
-   - If the migration Job **succeeds** → promote the new app and worker revisions to receive traffic.
+   - If the migration Job **succeeds** → update/promote the new app and worker revisions with the requested image tags.
    - If the migration Job **fails** → do **NOT** promote app/worker; mark the workflow failed; surface the migration failure reason in the run output (FR-006). Existing revisions keep serving.
 5. **Report**: emit the deployed revision identifiers and the migration result.
 

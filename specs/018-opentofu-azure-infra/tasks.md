@@ -90,15 +90,15 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Add a deploy-ordering check asserting contract guarantees G1 (migrate-before-promote) and G2 (failed migration blocks promotion) from `contracts/deploy-workflow-contract.md` — `tests/infra/deploy-order.md` or a workflow dry-run job
+- [x] T025 [P] [US2] Add a deploy-ordering check asserting contract guarantees G1 (migrate-before-promote) and G2 (failed migration blocks promotion) from `contracts/deploy-workflow-contract.md` — `tests/infra/deploy-order.md` or a workflow dry-run job
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Create `.github/workflows/deploy-azure.yml`: OIDC login (`permissions: id-token: write`), inputs `environment`/`app_image_tag`/`worker_image_tag`/optional `migration_image_tag` (FR-015)
-- [ ] T027 [US2] Add validate step: required inputs, environment-name validity, and image tag presence in ACR before any promotion (FR-017)
-- [ ] T028 [US2] Add provision step: `tofu init` (OIDC backend) → `plan` → `apply` for the selected environment with the new image tags
-- [ ] T029 [US2] Add migrate step: trigger the migration Container Apps Job with `migration_image_tag` and wait for completion (FR-005)
-- [ ] T030 [US2] Add gate + report: on success promote app + worker revisions; on migration failure do NOT promote, fail the run, surface the failure reason, emit deployed revision ids (FR-004, FR-006)
+- [x] T026 [US2] Create `.github/workflows/deploy-azure.yml`: OIDC login (`permissions: id-token: write`), inputs `environment`/`app_image_tag`/`worker_image_tag`/optional `migration_image_tag` (FR-015)
+- [x] T027 [US2] Add validate step: required inputs, environment-name validity, and image tag presence in ACR before any promotion (FR-017)
+- [x] T028 [US2] Add provision step: `tofu init` (OIDC backend) → `plan` → `apply` for the selected environment, then reserve requested image tags for the post-migration promotion step so Terraform does not route traffic before the gate
+- [x] T029 [US2] Add migrate step: trigger the migration Container Apps Job with `migration_image_tag` and wait for completion (FR-005)
+- [x] T030 [US2] Add gate + report: on success promote app + worker revisions; on migration failure do NOT promote, fail the run, surface the failure reason, emit deployed revision ids (FR-004, FR-006)
 
 **Checkpoint**: US1 + US2 work — safe, repeatable deploys with migration gating
 
