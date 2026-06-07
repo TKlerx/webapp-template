@@ -17,6 +17,8 @@ locals {
 
   resource_group_name = "${local.name_prefix}-rg"
 
+  effective_secret_environment = length(trimspace(var.secret_environment)) > 0 ? trimspace(var.secret_environment) : var.environment
+
   migration_image_tag = coalesce(
     length(trimspace(var.migration_image_tag)) > 0 ? trimspace(var.migration_image_tag) : null,
     var.app_image_tag,

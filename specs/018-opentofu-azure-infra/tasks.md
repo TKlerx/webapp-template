@@ -152,14 +152,14 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 ### Tests for User Story 5
 
-- [ ] T039 [P] [US5] Create `scripts/infra-env-isolation.mjs`: plan `dev` and `staging` as JSON, assert no shared resource/database/secret/endpoint names except explicitly shared bootstrap resources (state account, shared ACR) (SC-007)
+- [x] T039 [P] [US5] Create `scripts/infra-env-isolation.mjs`: plan `dev` and `staging` as JSON, assert no shared resource/database/secret/endpoint names except explicitly shared bootstrap resources (state account, shared ACR) (SC-007)
 
 ### Implementation for User Story 5
 
-- [ ] T040 [P] [US5] Create `infra/azure/environments/staging.tfvars`
-- [ ] T041 [P] [US5] Create `infra/azure/environments/prod.tfvars` (sized-up `postgres_sku`, replica limits)
-- [ ] T042 [US5] Add environment-name validation + a guard rejecting production secrets in non-production environments (US5 scenario 2)
-- [ ] T043 [US5] Add `allow_destroy_persistent` handling so `prevent_destroy` overrides are explicit and opt-in; document teardown order in `quickstart.md` (FR-013, US5 scenario 3)
+- [x] T040 [P] [US5] Create `infra/azure/environments/staging.tfvars`
+- [x] T041 [P] [US5] Create `infra/azure/environments/prod.tfvars` (sized-up `postgres_sku`, replica limits)
+- [x] T042 [US5] Add environment-name validation + a guard rejecting production secrets in non-production environments (US5 scenario 2)
+- [x] T043 [US5] Add `allow_destroy_persistent` handling so `prevent_destroy` overrides are explicit and opt-in; document teardown order in `quickstart.md` (FR-013, US5 scenario 3)
 
 **Checkpoint**: All five stories independently functional
 

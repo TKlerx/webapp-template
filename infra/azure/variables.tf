@@ -18,6 +18,17 @@ variable "environment" {
   }
 }
 
+variable "secret_environment" {
+  description = "Environment label for operator-supplied secrets. Empty defaults to environment and must match the target environment."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.secret_environment == "" || contains(["dev", "staging", "prod"], var.secret_environment)
+    error_message = "secret_environment must be empty or one of: dev, staging, prod."
+  }
+}
+
 variable "location" {
   description = "Azure region for environment resources."
   type        = string
@@ -251,7 +262,7 @@ variable "secret_expiration_date" {
 }
 
 variable "allow_destroy_persistent" {
-  description = "Explicit opt-in for destructive changes to persistent data resources."
+  description = "Explicit operator intent for destructive changes to persistent data resources; lifecycle prevent_destroy still requires a deliberate override."
   type        = bool
   default     = false
 }

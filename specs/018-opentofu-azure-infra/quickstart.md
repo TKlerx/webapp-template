@@ -71,9 +71,26 @@ From the outputs, open the Log Analytics workspace / Application Insights to see
 
 Repeat Step 2 with `environments/staging.tfvars` / `prod.tfvars`. Each gets its own resource group, names, secrets, database, and endpoints (FR-002 / SC-007). Production `.tfvars` typically sizes up `postgres_sku` and replica limits.
 
+Each environment file sets `secret_environment` to the same value as `environment`. Leave it empty to default to the target environment. Do not set it to `prod` for dev/staging: the plan fails before provisioning so production-sourced secrets cannot be wired into non-production infrastructure.
+
+Validate isolation before applying:
+
+```bash
+node scripts/infra-env-isolation.mjs
+```
+
 ## Teardown (careful — FR-013)
 
-Persistent data resources (database, Key Vault, Log Analytics) have `prevent_destroy`. Removing them requires setting `allow_destroy_persistent = true` explicitly and is opt-in, so a routine `apply` never drops data.
+Persistent data resources (PostgreSQL, Key Vault, Log Analytics, Application Insights) use static `prevent_destroy` lifecycle guards. `allow_destroy_persistent = true` records explicit operator intent, but OpenTofu lifecycle settings cannot be switched by variables; an actual deletion still needs a deliberate temporary override or manual teardown procedure.
+
+Recommended teardown order:
+
+1. Disable the GitHub deployment environment or workflow triggers for the target environment.
+2. Back up PostgreSQL data, export any required Key Vault secrets, and confirm observability retention requirements.
+3. Create a local, uncommitted teardown var file for the target environment with `allow_destroy_persistent = true`.
+4. Run `tofu plan -destroy -var-file=<env>.tfvars -var-file=<local-teardown>.tfvars` and review the resources blocked by `prevent_destroy`.
+5. For each approved persistent resource, temporarily relax the matching lifecycle guard or delete it manually after removing it from state. Keep this change scoped to the teardown branch/session and do not commit broad destroy overrides.
+6. Destroy runtime/network resources after persistent data decisions are complete.
 
 ## Custom domain (later, FR-016)
 

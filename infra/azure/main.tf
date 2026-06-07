@@ -4,6 +4,13 @@ resource "azurerm_resource_group" "environment" {
   name     = local.resource_group_name
   location = var.location
   tags     = local.tags
+
+  lifecycle {
+    precondition {
+      condition     = local.effective_secret_environment == var.environment
+      error_message = "secret_environment must match environment so production secrets cannot be planned into non-production deployments."
+    }
+  }
 }
 
 module "network" {

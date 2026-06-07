@@ -19,6 +19,7 @@ The main configuration (`infra/azure/`) accepts these inputs, normally supplied 
 | `migration_image_tag`                  | string      | `= app_image_tag`       | migration Job image (app image reused)                        |
 | `base_path`                            | string      | `/app-starter`          | app `BASE_PATH` (Constitution VIII)                           |
 | `custom_domain`                        | string      | `""` (use default FQDN) | FR-016 / clarify Q5 — empty = default Container Apps FQDN     |
+| `secret_environment`                   | string      | `""` (= environment)    | guardrail for operator-supplied secret provenance             |
 | `postgres_sku`                         | string      | `B1ms` (burstable)      | DB sizing (FR-016)                                            |
 | `postgres_storage_gb`                  | number      | `32`                    | DB sizing                                                     |
 | `app_min_replicas`                     | number      | `0` (scale-to-zero)     | cost                                                          |
@@ -42,10 +43,12 @@ The main configuration (`infra/azure/`) accepts these inputs, normally supplied 
 ## Validation rules (FR-017)
 
 - `environment` ∈ {dev, staging, prod}; otherwise plan errors.
+- `secret_environment` is empty or ∈ {dev, staging, prod}; the effective value must equal `environment`, so production-sourced secrets are rejected for non-production plans.
 - `app_image_tag` / `worker_image_tag` must be non-empty; CI additionally verifies the tag exists in ACR before promotion.
 - Derived globally-unique names (Storage, ACR, Key Vault) must satisfy Azure length limits after combining `project` + `environment` + suffix → a deterministic short `name_suffix` is generated.
 - Integration secrets (mail/Teams) are only created and bound when the corresponding `enable_*` flag is true — a downstream app that disables them is not forced to supply unused secrets.
 - Runtime secret exposure must stay least-privilege: app gets app DB + auth secrets, worker gets worker DB + worker integrations, and migration gets migration/initial-admin secrets plus the documented admin/app/worker DB URL role-bootstrap exception.
+- `allow_destroy_persistent` is an explicit operator-intent marker. Persistent resources still use static `prevent_destroy`, so actual teardown requires the documented deliberate override/manual deletion flow.
 
 ## Backend (set by bootstrap, not a tfvar)
 

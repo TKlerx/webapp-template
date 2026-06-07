@@ -2,6 +2,8 @@ project     = "webapp"
 environment = "dev"
 location    = "westeurope"
 
+secret_environment = "dev"
+
 app_image_tag    = "dev"
 worker_image_tag = "dev"
 

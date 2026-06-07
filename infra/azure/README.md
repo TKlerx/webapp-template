@@ -22,6 +22,7 @@ Validation:
 - `tofu -chdir=infra/azure validate`
 - `node scripts/infra-plan-check.mjs`
 - `node scripts/infra-observability-check.mjs`
+- `node scripts/infra-env-isolation.mjs`
 
 The plan check uses `infra/azure/environments/dev.tfvars` with placeholder bootstrap outputs and `-refresh=false`; it proves the environment graph includes the app, worker, migration job, PostgreSQL, Key Vault, private endpoints, observability, and role assignments without applying resources.
 
@@ -37,6 +38,7 @@ Secret exposure:
 - Worker runtime: `worker-database-url`; Graph mail secrets only when `enable_mail=true`; Teams worker secrets only when `enable_teams=true`.
 - Migration job: `migration-database-url`, `initial-admin-*`, plus `admin-database-url`, `app-database-url`, and `worker-database-url` for the one-time PostgreSQL role bootstrap path.
 - Optional mail and Teams secrets are not created or bound when their `enable_*` flag is false.
+- `secret_environment` must match `environment`, preventing production-labeled operator secrets from being planned into dev or staging.
 
 Observability:
 
@@ -52,3 +54,9 @@ Deployment workflow:
 - The workflow validates requested ACR tags, reconciles OpenTofu infrastructure, runs the migration Container Apps Job with the migration image, and only then updates the app and worker images.
 
 Do not commit state, local variable files, or secrets.
+
+Persistent teardown:
+
+- PostgreSQL, Key Vault, Log Analytics, and Application Insights use static `prevent_destroy` guards.
+- `allow_destroy_persistent=true` records explicit teardown intent; it does not bypass lifecycle guards by itself.
+- Follow the teardown order in the quickstart and keep any lifecycle override local to the approved teardown session.

@@ -14,9 +14,10 @@ A named deployment target (dev / staging / production).
 | `resource_group_name` | derived                           | `<project>-<environment>-rg`                                                  |
 | `name_suffix`         | derived                           | Deterministic short suffix for globally-unique names (length-limit edge case) |
 | `tags`                | map(string)                       | Includes `environment`, `project`, `managed-by=opentofu`                      |
+| `secret_environment`  | string                            | Empty defaults to `environment`; must match target environment                |
 
 - **Relationships**: contains exactly one of each: Network, Database, Registry (or references shared), Key Vault, Observability workspace, Runtime set.
-- **Validation**: `environment` must be one of the allowed values; names must satisfy per-service Azure length/character limits.
+- **Validation**: `environment` must be one of the allowed values; `secret_environment` must match the target environment so production-sourced secrets are rejected in non-production plans; names must satisfy per-service Azure length/character limits.
 - **Lifecycle**: created on first `apply`; teardown is explicit and gated for persistent data (FR-013).
 
 ## Entity: Infrastructure State Store (bootstrap)
@@ -97,14 +98,14 @@ Hosted execution unit (app / worker / migration) (spec Key Entity).
 
 ## Entity: Database (Persistent Data Resource)
 
-| Field                   | Type       | Notes                                               |
-| ----------------------- | ---------- | --------------------------------------------------- |
-| `server_name`           | string     | PostgreSQL Flexible Server                          |
-| `sku`                   | string     | Burstable default; sized per env via `.tfvars`      |
-| `databases`             | list       | Application database(s)                             |
-| `roles`                 | list       | Distinct app/worker/migration access paths (FR-007) |
-| `public_network_access` | bool=false | VNet-only (FR-021)                                  |
-| `prevent_destroy`       | lifecycle  | Destructive ops opt-in (FR-013)                     |
+| Field                   | Type       | Notes                                                                                       |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------------------- |
+| `server_name`           | string     | PostgreSQL Flexible Server                                                                  |
+| `sku`                   | string     | Burstable default; sized per env via `.tfvars`                                              |
+| `databases`             | list       | Application database(s)                                                                     |
+| `roles`                 | list       | Distinct app/worker/migration access paths (FR-007)                                         |
+| `public_network_access` | bool=false | VNet-only (FR-021)                                                                          |
+| `prevent_destroy`       | lifecycle  | Static guard; destructive ops require explicit teardown intent and manual override (FR-013) |
 
 ## Entity: Container Registry (shared bootstrap resource)
 
@@ -119,11 +120,11 @@ Single shared ACR created in `bootstrap/` and reused by all environments (same i
 
 ## Entity: Observability Workspace (Persistent Data Resource)
 
-| Field                        | Type      | Notes                                   |
-| ---------------------------- | --------- | --------------------------------------- |
-| `log_analytics_workspace_id` | string    | Container Apps log destination          |
-| `app_insights_id`            | string    | App telemetry                           |
-| `prevent_destroy`            | lifecycle | Operational history loss guard (FR-013) |
+| Field                        | Type      | Notes                                                                          |
+| ---------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `log_analytics_workspace_id` | string    | Container Apps log destination                                                 |
+| `app_insights_id`            | string    | App telemetry                                                                  |
+| `prevent_destroy`            | lifecycle | Operational history loss guard; manual override required for deletion (FR-013) |
 
 ## Entity: Environment Output (FR-011)
 
@@ -141,4 +142,4 @@ Values produced by provisioning for operators/CI.
 
 ## Cross-cutting validation inputs (FR-017)
 
-The validation path checks before deploy: required inputs present (project, environment, location, image tags), missing required secrets in Key Vault, image tag existence per runtime, and environment-name validity.
+The validation path checks before deploy: required inputs present (project, environment, location, image tags), missing required secrets in Key Vault, image tag existence per runtime, environment-name validity, and secret-environment alignment.

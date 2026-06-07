@@ -7,10 +7,7 @@ export function createInfraPlanJson(varFile = "environments/dev.tfvars") {
   const tempDir = mkdtempSync(join(tmpdir(), "webapp-template-infra-plan-"));
   const workDir = join(tempDir, "azure");
   const planPath = join(tempDir, "tfplan");
-  const tofuEnv = {
-    ...process.env,
-    TF_DATA_DIR: join(tempDir, ".terraform"),
-  };
+  const tofuEnv = { ...process.env };
 
   try {
     cpSync("infra/azure", workDir, { recursive: true });
