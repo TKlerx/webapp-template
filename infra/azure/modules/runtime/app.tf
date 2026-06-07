@@ -28,6 +28,16 @@ resource "azurerm_container_app" "app" {
     identity            = var.runtime_identity_id
   }
 
+  dynamic "secret" {
+    for_each = local.app_optional_secret_ids
+
+    content {
+      name                = secret.key
+      key_vault_secret_id = secret.value
+      identity            = var.runtime_identity_id
+    }
+  }
+
   ingress {
     external_enabled           = true
     target_port                = 3270
@@ -83,6 +93,25 @@ resource "azurerm_container_app" "app" {
       env {
         name        = "BETTER_AUTH_SECRET"
         secret_name = "betterauth-secret"
+      }
+
+      dynamic "env" {
+        for_each = var.enable_teams ? {
+          AZURE_AD_CLIENT_ID                   = "azure-ad-client-id"
+          AZURE_AD_CLIENT_SECRET               = "azure-ad-client-secret"
+          AZURE_AD_TENANT_ID                   = "azure-ad-tenant-id"
+          TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY = "teams-delegated-grant-encryption-key"
+        } : {}
+
+        content {
+          name        = env.key
+          secret_name = env.value
+        }
+      }
+
+      env {
+        name  = "TEAMS_ENABLED"
+        value = var.enable_teams ? "true" : "false"
       }
 
       env {

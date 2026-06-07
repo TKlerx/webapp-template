@@ -14,27 +14,38 @@ The main configuration (`infra/azure/`) accepts these inputs, normally supplied 
 
 ## Optional (with defaults)
 
-| Variable                   | Type        | Default                 | Maps to                                                   |
-| -------------------------- | ----------- | ----------------------- | --------------------------------------------------------- |
-| `migration_image_tag`      | string      | `= app_image_tag`       | migration Job image (app image reused)                    |
-| `base_path`                | string      | `/app-starter`          | app `BASE_PATH` (Constitution VIII)                       |
-| `custom_domain`            | string      | `""` (use default FQDN) | FR-016 / clarify Q5 — empty = default Container Apps FQDN |
-| `postgres_sku`             | string      | `B1ms` (burstable)      | DB sizing (FR-016)                                        |
-| `postgres_storage_gb`      | number      | `32`                    | DB sizing                                                 |
-| `app_min_replicas`         | number      | `0` (scale-to-zero)     | cost                                                      |
-| `app_max_replicas`         | number      | `2`                     | scale limit (FR-016)                                      |
-| `worker_min_replicas`      | number      | `1` (always warm)       | worker poller                                             |
-| `enable_mail`              | bool        | `false`                 | optional integration secrets (edge case)                  |
-| `enable_teams`             | bool        | `false`                 | optional integration secrets (edge case)                  |
-| `allow_destroy_persistent` | bool        | `false`                 | FR-013 destructive opt-in                                 |
-| `tags`                     | map(string) | `{}`                    | merged into standard tags                                 |
+| Variable                               | Type        | Default                 | Maps to                                                       |
+| -------------------------------------- | ----------- | ----------------------- | ------------------------------------------------------------- |
+| `migration_image_tag`                  | string      | `= app_image_tag`       | migration Job image (app image reused)                        |
+| `base_path`                            | string      | `/app-starter`          | app `BASE_PATH` (Constitution VIII)                           |
+| `custom_domain`                        | string      | `""` (use default FQDN) | FR-016 / clarify Q5 — empty = default Container Apps FQDN     |
+| `postgres_sku`                         | string      | `B1ms` (burstable)      | DB sizing (FR-016)                                            |
+| `postgres_storage_gb`                  | number      | `32`                    | DB sizing                                                     |
+| `app_min_replicas`                     | number      | `0` (scale-to-zero)     | cost                                                          |
+| `app_max_replicas`                     | number      | `2`                     | scale limit (FR-016)                                          |
+| `worker_min_replicas`                  | number      | `1` (always warm)       | worker poller                                                 |
+| `enable_mail`                          | bool        | `false`                 | optional integration secrets (edge case)                      |
+| `enable_teams`                         | bool        | `false`                 | optional integration secrets (edge case)                      |
+| `mail_provider`                        | string      | `graph`                 | worker mail provider secret when `enable_mail=true`           |
+| `mail_default_mailbox`                 | string      | `""`                    | worker Graph mailbox secret when `enable_mail=true`           |
+| `graph_client_id`                      | string      | `""`                    | worker Graph client id secret when `enable_mail=true`         |
+| `graph_client_secret`                  | string      | `""`                    | worker Graph client secret when `enable_mail=true`            |
+| `graph_tenant_id`                      | string      | `""`                    | worker Graph tenant id secret when `enable_mail=true`         |
+| `azure_ad_client_id`                   | string      | `""`                    | app/worker Teams client id when `enable_teams=true`           |
+| `azure_ad_client_secret`               | string      | `""`                    | app/worker Teams client secret when `enable_teams=true`       |
+| `azure_ad_tenant_id`                   | string      | `""`                    | app/worker Teams tenant id when `enable_teams=true`           |
+| `teams_delegated_grant_encryption_key` | string      | `""`                    | app/worker Teams delegated grant key when `enable_teams=true` |
+| `teams_poll_interval_seconds`          | number      | `60`                    | worker Teams poll interval when `enable_teams=true`           |
+| `allow_destroy_persistent`             | bool        | `false`                 | FR-013 destructive opt-in                                     |
+| `tags`                                 | map(string) | `{}`                    | merged into standard tags                                     |
 
 ## Validation rules (FR-017)
 
 - `environment` ∈ {dev, staging, prod}; otherwise plan errors.
 - `app_image_tag` / `worker_image_tag` must be non-empty; CI additionally verifies the tag exists in ACR before promotion.
 - Derived globally-unique names (Storage, ACR, Key Vault) must satisfy Azure length limits after combining `project` + `environment` + suffix → a deterministic short `name_suffix` is generated.
-- Integration secrets (mail/Teams) are only required when the corresponding `enable_*` flag is true — a downstream app that disables them is not forced to supply unused secrets.
+- Integration secrets (mail/Teams) are only created and bound when the corresponding `enable_*` flag is true — a downstream app that disables them is not forced to supply unused secrets.
+- Runtime secret exposure must stay least-privilege: app gets app DB + auth secrets, worker gets worker DB + worker integrations, and migration gets migration/initial-admin secrets plus the documented admin/app/worker DB URL role-bootstrap exception.
 
 ## Backend (set by bootstrap, not a tfvar)
 

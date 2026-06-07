@@ -79,6 +79,21 @@ variable "custom_domain" {
   type        = string
 }
 
+variable "enable_mail" {
+  description = "Whether mail integration is enabled."
+  type        = bool
+}
+
+variable "enable_teams" {
+  description = "Whether Teams integration is enabled."
+  type        = bool
+}
+
+variable "teams_poll_interval_seconds" {
+  description = "Worker Teams polling interval in seconds."
+  type        = number
+}
+
 variable "admin_database_url_secret_id" {
   description = "Key Vault secret id for admin database URL, scoped to the migration job."
   type        = string
@@ -112,6 +127,60 @@ variable "initial_admin_email_secret_id" {
 variable "initial_admin_password_secret_id" {
   description = "Key Vault secret id for the initial admin password."
   type        = string
+}
+
+variable "mail_provider_secret_id" {
+  description = "Key Vault secret id for MAIL_PROVIDER when mail is enabled."
+  type        = string
+  nullable    = true
+}
+
+variable "mail_default_mailbox_secret_id" {
+  description = "Key Vault secret id for MAIL_DEFAULT_MAILBOX when mail is enabled."
+  type        = string
+  nullable    = true
+}
+
+variable "graph_client_id_secret_id" {
+  description = "Key Vault secret id for GRAPH_CLIENT_ID when mail is enabled."
+  type        = string
+  nullable    = true
+}
+
+variable "graph_client_secret_secret_id" {
+  description = "Key Vault secret id for GRAPH_CLIENT_SECRET when mail is enabled."
+  type        = string
+  nullable    = true
+}
+
+variable "graph_tenant_id_secret_id" {
+  description = "Key Vault secret id for GRAPH_TENANT_ID when mail is enabled."
+  type        = string
+  nullable    = true
+}
+
+variable "azure_ad_client_id_secret_id" {
+  description = "Key Vault secret id for AZURE_AD_CLIENT_ID when Teams is enabled."
+  type        = string
+  nullable    = true
+}
+
+variable "azure_ad_client_secret_secret_id" {
+  description = "Key Vault secret id for AZURE_AD_CLIENT_SECRET when Teams is enabled."
+  type        = string
+  nullable    = true
+}
+
+variable "azure_ad_tenant_id_secret_id" {
+  description = "Key Vault secret id for AZURE_AD_TENANT_ID when Teams is enabled."
+  type        = string
+  nullable    = true
+}
+
+variable "teams_delegated_grant_key_secret_id" {
+  description = "Key Vault secret id for TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY when Teams is enabled."
+  type        = string
+  nullable    = true
 }
 
 variable "tags" {

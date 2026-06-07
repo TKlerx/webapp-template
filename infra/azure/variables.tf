@@ -170,10 +170,73 @@ variable "enable_mail" {
   default     = false
 }
 
+variable "mail_provider" {
+  description = "Mail provider name stored when enable_mail is true."
+  type        = string
+  default     = "graph"
+}
+
+variable "mail_default_mailbox" {
+  description = "Default Graph mailbox stored when enable_mail is true."
+  type        = string
+  default     = ""
+}
+
+variable "graph_client_id" {
+  description = "Graph mail client id stored when enable_mail is true."
+  type        = string
+  default     = ""
+}
+
+variable "graph_client_secret" {
+  description = "Graph mail client secret stored when enable_mail is true."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "graph_tenant_id" {
+  description = "Graph mail tenant id stored when enable_mail is true."
+  type        = string
+  default     = ""
+}
+
 variable "enable_teams" {
   description = "Whether Teams integration secrets are required."
   type        = bool
   default     = false
+}
+
+variable "azure_ad_client_id" {
+  description = "Azure AD client id stored when enable_teams is true."
+  type        = string
+  default     = ""
+}
+
+variable "azure_ad_client_secret" {
+  description = "Azure AD client secret stored when enable_teams is true."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "azure_ad_tenant_id" {
+  description = "Azure AD tenant id stored when enable_teams is true."
+  type        = string
+  default     = ""
+}
+
+variable "teams_delegated_grant_encryption_key" {
+  description = "Optional Teams delegated grant encryption key stored when enable_teams is true."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "teams_poll_interval_seconds" {
+  description = "Teams worker poll interval used when enable_teams is true."
+  type        = number
+  default     = 60
 }
 
 variable "secret_expiration_date" {

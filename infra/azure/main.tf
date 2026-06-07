@@ -66,7 +66,16 @@ module "secrets" {
   secret_expiration_date        = var.secret_expiration_date
   initial_admin_email           = var.initial_admin_email
   enable_mail                   = var.enable_mail
+  mail_provider                 = var.mail_provider
+  mail_default_mailbox          = var.mail_default_mailbox
+  graph_client_id               = var.graph_client_id
+  graph_client_secret           = var.graph_client_secret
+  graph_tenant_id               = var.graph_tenant_id
   enable_teams                  = var.enable_teams
+  azure_ad_client_id            = var.azure_ad_client_id
+  azure_ad_client_secret        = var.azure_ad_client_secret
+  azure_ad_tenant_id            = var.azure_ad_tenant_id
+  teams_delegated_grant_key     = var.teams_delegated_grant_encryption_key
   tags                          = local.tags
 }
 
@@ -83,30 +92,42 @@ module "observability" {
 module "runtime" {
   source = "./modules/runtime"
 
-  name_prefix                      = local.name_prefix
-  resource_group_name              = azurerm_resource_group.environment.name
-  location                         = azurerm_resource_group.environment.location
-  container_apps_subnet_id         = module.network.container_apps_subnet_id
-  log_analytics_workspace_id       = module.observability.log_analytics_workspace_id
-  app_insights_connection_string   = module.observability.app_insights_connection_string
-  registry_login_server            = var.registry_login_server
-  runtime_identity_id              = var.runtime_identity_id
-  app_image_ref                    = local.app_image_ref
-  worker_image_ref                 = local.worker_image_ref
-  migration_image_ref              = local.migration_image_ref
-  app_min_replicas                 = var.app_min_replicas
-  app_max_replicas                 = var.app_max_replicas
-  worker_min_replicas              = var.worker_min_replicas
-  base_path                        = var.base_path
-  custom_domain                    = var.custom_domain
-  admin_database_url_secret_id     = module.secrets.admin_database_url_secret_id
-  app_database_url_secret_id       = module.secrets.app_database_url_secret_id
-  worker_database_url_secret_id    = module.secrets.worker_database_url_secret_id
-  migration_database_url_secret_id = module.secrets.migration_database_url_secret_id
-  better_auth_secret_id            = module.secrets.better_auth_secret_id
-  initial_admin_email_secret_id    = module.secrets.initial_admin_email_secret_id
-  initial_admin_password_secret_id = module.secrets.initial_admin_password_secret_id
-  tags                             = local.tags
+  name_prefix                         = local.name_prefix
+  resource_group_name                 = azurerm_resource_group.environment.name
+  location                            = azurerm_resource_group.environment.location
+  container_apps_subnet_id            = module.network.container_apps_subnet_id
+  log_analytics_workspace_id          = module.observability.log_analytics_workspace_id
+  app_insights_connection_string      = module.observability.app_insights_connection_string
+  registry_login_server               = var.registry_login_server
+  runtime_identity_id                 = var.runtime_identity_id
+  app_image_ref                       = local.app_image_ref
+  worker_image_ref                    = local.worker_image_ref
+  migration_image_ref                 = local.migration_image_ref
+  app_min_replicas                    = var.app_min_replicas
+  app_max_replicas                    = var.app_max_replicas
+  worker_min_replicas                 = var.worker_min_replicas
+  base_path                           = var.base_path
+  custom_domain                       = var.custom_domain
+  enable_mail                         = var.enable_mail
+  enable_teams                        = var.enable_teams
+  teams_poll_interval_seconds         = var.teams_poll_interval_seconds
+  admin_database_url_secret_id        = module.secrets.admin_database_url_secret_id
+  app_database_url_secret_id          = module.secrets.app_database_url_secret_id
+  worker_database_url_secret_id       = module.secrets.worker_database_url_secret_id
+  migration_database_url_secret_id    = module.secrets.migration_database_url_secret_id
+  better_auth_secret_id               = module.secrets.better_auth_secret_id
+  initial_admin_email_secret_id       = module.secrets.initial_admin_email_secret_id
+  initial_admin_password_secret_id    = module.secrets.initial_admin_password_secret_id
+  mail_provider_secret_id             = module.secrets.mail_provider_secret_id
+  mail_default_mailbox_secret_id      = module.secrets.mail_default_mailbox_secret_id
+  graph_client_id_secret_id           = module.secrets.graph_client_id_secret_id
+  graph_client_secret_secret_id       = module.secrets.graph_client_secret_secret_id
+  graph_tenant_id_secret_id           = module.secrets.graph_tenant_id_secret_id
+  azure_ad_client_id_secret_id        = module.secrets.azure_ad_client_id_secret_id
+  azure_ad_client_secret_secret_id    = module.secrets.azure_ad_client_secret_secret_id
+  azure_ad_tenant_id_secret_id        = module.secrets.azure_ad_tenant_id_secret_id
+  teams_delegated_grant_key_secret_id = module.secrets.teams_delegated_grant_key_secret_id
+  tags                                = local.tags
 
   depends_on = [
     module.registry,

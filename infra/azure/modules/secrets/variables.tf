@@ -78,13 +78,61 @@ variable "initial_admin_email" {
 }
 
 variable "enable_mail" {
-  description = "Reserved flag for optional mail secrets."
+  description = "Whether optional mail secrets are created."
   type        = bool
 }
 
+variable "mail_provider" {
+  description = "Mail provider stored when enable_mail is true."
+  type        = string
+}
+
+variable "mail_default_mailbox" {
+  description = "Default mail mailbox stored when enable_mail is true."
+  type        = string
+}
+
+variable "graph_client_id" {
+  description = "Graph mail client id stored when enable_mail is true."
+  type        = string
+}
+
+variable "graph_client_secret" {
+  description = "Graph mail client secret stored when enable_mail is true."
+  type        = string
+  sensitive   = true
+}
+
+variable "graph_tenant_id" {
+  description = "Graph mail tenant id stored when enable_mail is true."
+  type        = string
+}
+
 variable "enable_teams" {
-  description = "Reserved flag for optional Teams secrets."
+  description = "Whether optional Teams secrets are created."
   type        = bool
+}
+
+variable "azure_ad_client_id" {
+  description = "Azure AD client id stored when enable_teams is true."
+  type        = string
+}
+
+variable "azure_ad_client_secret" {
+  description = "Azure AD client secret stored when enable_teams is true."
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_ad_tenant_id" {
+  description = "Azure AD tenant id stored when enable_teams is true."
+  type        = string
+}
+
+variable "teams_delegated_grant_key" {
+  description = "Teams delegated grant encryption key stored when enable_teams is true."
+  type        = string
+  sensitive   = true
 }
 
 variable "tags" {

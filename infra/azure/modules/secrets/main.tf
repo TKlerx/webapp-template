@@ -12,7 +12,7 @@ resource "random_password" "initial_admin" {
 locals {
   key_vault_name = substr(replace("${var.name_prefix}-${var.name_suffix}-kv", "-", ""), 0, 24)
 
-  secret_values = {
+  required_secret_values = {
     admin-database-url     = var.admin_database_url
     app-database-url       = var.app_database_url
     worker-database-url    = var.worker_database_url
@@ -21,6 +21,27 @@ locals {
     initial-admin-email    = var.initial_admin_email
     initial-admin-password = random_password.initial_admin.result
   }
+
+  mail_secret_values = var.enable_mail ? {
+    mail-provider        = var.mail_provider
+    mail-default-mailbox = var.mail_default_mailbox
+    graph-client-id      = var.graph_client_id
+    graph-client-secret  = var.graph_client_secret
+    graph-tenant-id      = var.graph_tenant_id
+  } : {}
+
+  teams_secret_values = var.enable_teams ? {
+    azure-ad-client-id                   = var.azure_ad_client_id
+    azure-ad-client-secret               = var.azure_ad_client_secret
+    azure-ad-tenant-id                   = var.azure_ad_tenant_id
+    teams-delegated-grant-encryption-key = var.teams_delegated_grant_key
+  } : {}
+
+  secret_values = merge(
+    local.required_secret_values,
+    local.mail_secret_values,
+    local.teams_secret_values,
+  )
 }
 
 resource "azurerm_key_vault" "environment" {

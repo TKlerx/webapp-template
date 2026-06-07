@@ -22,6 +22,16 @@ resource "azurerm_container_app" "worker" {
     identity            = var.runtime_identity_id
   }
 
+  dynamic "secret" {
+    for_each = local.worker_optional_secret_ids
+
+    content {
+      name                = secret.key
+      key_vault_secret_id = secret.value
+      identity            = var.runtime_identity_id
+    }
+  }
+
   template {
     min_replicas = var.worker_min_replicas
     max_replicas = max(var.worker_min_replicas, 1)
@@ -47,9 +57,43 @@ resource "azurerm_container_app" "worker" {
         secret_name = "worker-database-url"
       }
 
+      dynamic "env" {
+        for_each = var.enable_mail ? {
+          MAIL_PROVIDER        = "mail-provider"
+          MAIL_DEFAULT_MAILBOX = "mail-default-mailbox"
+          GRAPH_CLIENT_ID      = "graph-client-id"
+          GRAPH_CLIENT_SECRET  = "graph-client-secret"
+          GRAPH_TENANT_ID      = "graph-tenant-id"
+        } : {}
+
+        content {
+          name        = env.key
+          secret_name = env.value
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.enable_teams ? {
+          AZURE_AD_CLIENT_ID                   = "azure-ad-client-id"
+          AZURE_AD_CLIENT_SECRET               = "azure-ad-client-secret"
+          AZURE_AD_TENANT_ID                   = "azure-ad-tenant-id"
+          TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY = "teams-delegated-grant-encryption-key"
+        } : {}
+
+        content {
+          name        = env.key
+          secret_name = env.value
+        }
+      }
+
       env {
         name  = "TEAMS_ENABLED"
-        value = "false"
+        value = var.enable_teams ? "true" : "false"
+      }
+
+      env {
+        name  = "TEAMS_POLL_INTERVAL_SECONDS"
+        value = tostring(var.teams_poll_interval_seconds)
       }
     }
   }

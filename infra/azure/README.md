@@ -30,6 +30,13 @@ Database access:
 - The data module emits distinct app, worker, and migration database URLs so runtime bindings stay separated.
 - The migration Container Apps Job receives the admin URL only for `scripts/postgres-provision-roles.mjs`, which creates or updates the app, worker, and migration roles before Prisma migrations run.
 
+Secret exposure:
+
+- App runtime: `app-database-url`, `betterauth-secret`; Teams secrets only when `enable_teams=true`.
+- Worker runtime: `worker-database-url`; Graph mail secrets only when `enable_mail=true`; Teams worker secrets only when `enable_teams=true`.
+- Migration job: `migration-database-url`, `initial-admin-*`, plus `admin-database-url`, `app-database-url`, and `worker-database-url` for the one-time PostgreSQL role bootstrap path.
+- Optional mail and Teams secrets are not created or bound when their `enable_*` flag is false.
+
 Deployment workflow:
 
 - `.github/workflows/deploy-azure.yml` uses GitHub OIDC (`id-token: write`) and Azure login without a client secret.

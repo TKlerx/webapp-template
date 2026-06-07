@@ -112,13 +112,13 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 ### Tests for User Story 3
 
-- [ ] T031 [P] [US3] Add a secret-exposure check asserting the app runtime references no worker-only or migration-only secrets (SC-005) — `tests/infra/secret-exposure.md` or plan-inspection script
+- [x] T031 [P] [US3] Add a secret-exposure check asserting the app runtime references no worker-only or migration-only secrets (SC-005) — `tests/infra/secret-exposure.md` or plan-inspection script
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] In `modules/secrets`: define Key Vault secrets `app-database-url`, `worker-database-url`, `migration-database-url`, `betterauth-secret`, and optional mail/Teams secrets gated by `enable_mail`/`enable_teams` (edge case: unused integrations not required)
-- [ ] T033 [US3] In `modules/runtime`: bind per-runtime Key Vault secret references via MI — app gets the app set, worker the worker set, migration Job only `migration-database-url` (FR-007, FR-009)
-- [ ] T034 [US3] Document intentionally shared secrets and any exceptions in `infra/azure/README.md` (FR-009)
+- [x] T032 [US3] In `modules/secrets`: define Key Vault secrets `app-database-url`, `worker-database-url`, `migration-database-url`, `betterauth-secret`, and optional mail/Teams secrets gated by `enable_mail`/`enable_teams` (edge case: unused integrations not required)
+- [x] T033 [US3] In `modules/runtime`: bind per-runtime Key Vault secret references via MI — app gets the app set, worker the worker set, migration Job gets `migration-database-url` plus documented admin/app/worker DB URL role-bootstrap exceptions required by `scripts/postgres-provision-roles.mjs` (FR-007, FR-009)
+- [x] T034 [US3] Document intentionally shared secrets and any exceptions in `infra/azure/README.md` (FR-009)
 
 **Checkpoint**: Least-privilege secret exposure enforced and documented
 
