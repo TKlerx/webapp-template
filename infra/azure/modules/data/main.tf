@@ -45,6 +45,7 @@ resource "azurerm_postgresql_flexible_server" "app" {
   administrator_password        = random_password.postgres_admin.result
   sku_name                      = var.postgres_sku
   storage_mb                    = local.storage_mb
+  zone                          = var.postgres_availability_zone
   backup_retention_days         = 7
   tags                          = var.tags
 

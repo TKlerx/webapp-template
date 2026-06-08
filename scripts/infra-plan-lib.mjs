@@ -11,6 +11,11 @@ export function createInfraPlanJson(varFile = "environments/dev.tfvars") {
 
   try {
     cpSync("infra/azure", workDir, { recursive: true });
+    const terraformDir = join(workDir, ".terraform");
+    if (existsSync(terraformDir)) {
+      rmSync(terraformDir, { recursive: true, force: true });
+    }
+
     const backendPath = join(workDir, "backend.tf");
     if (existsSync(backendPath)) {
       rmSync(backendPath);

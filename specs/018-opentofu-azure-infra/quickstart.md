@@ -11,7 +11,7 @@ Operator guide for provisioning and deploying an environment. Covers the bootstr
 
 ## Step 0 — Bootstrap (once per subscription)
 
-Creates the OpenTofu state Storage Account, the GitHub OIDC federated identity, and the **single shared Azure Container Registry** used by all environments. This must run before the main config because the main config stores its state in that account (clarify Q1) and pulls images from the shared ACR.
+Creates the OpenTofu state Storage Account, the GitHub OIDC federated identity, and the **single shared Azure Container Registry** used by all environments. The registry uses Premium SKU because Azure private endpoints and disabled public network access require Premium. This must run before the main config because the main config stores its state in that account (clarify Q1) and pulls images from the shared ACR.
 
 ```bash
 cd infra/azure/bootstrap
@@ -25,13 +25,15 @@ Record the outputs (state account name, container, app/client id, ACR login serv
 
 The shared ACR (from Step 0) must contain the images before any environment's runtimes can pull them.
 
-- Push the app and worker images:
+- Push the app, worker, and migration images. The migration image can use the app repository with a separate tag, or a separate repository via `migration_image_repository`.
 
 ```bash
 az acr login --name <acr-name>
 docker build -f Dockerfile.app   -t <acr-login-server>/app:<tag> .
+docker build -f Dockerfile.app --target migrate-runner -t <acr-login-server>/app:<migration-tag> .
 docker build -f Dockerfile.worker -t <acr-login-server>/worker:<tag> .
 docker push <acr-login-server>/app:<tag>
+docker push <acr-login-server>/app:<migration-tag>
 docker push <acr-login-server>/worker:<tag>
 ```
 
@@ -49,6 +51,8 @@ Provisions: VNet + subnet + private endpoints, PostgreSQL Flexible Server (VNet-
 ## Step 3 — Set secrets in Key Vault
 
 Populate required secrets (the app/worker/migration database URLs, `BETTERAUTH_SECRET`, and any enabled mail/Teams secrets). Nothing secret goes into source control (FR-008). Mail/Teams secrets are only required when `enable_mail` / `enable_teams` are true.
+
+The default module creates these generated/runtime secrets during OpenTofu apply. If the runner is not inside the VNet, Key Vault must remain publicly reachable for provisioning and locked down by RBAC; the runtime path still uses managed identity and the private endpoint.
 
 ## Step 4 — Deploy (app, worker, migration)
 

@@ -44,7 +44,7 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
 - [x] T007 Create `infra/azure/bootstrap/main.tf` + `variables.tf`: state resource group + Storage Account + blob container (`tfstate`), with `prevent_destroy` lifecycle (clarify Q1; data-model State Store)
-- [x] T008 Add to bootstrap: `azuread_application` + federated credential (GitHub OIDC, repo + environment scoped) + subscription/RG role assignments (Contributor, AcrPush, Key Vault Secrets Officer), a user-assigned managed identity for runtimes, and the **single shared Azure Container Registry** (Standard, public access disabled) used by all environments (data-model Deployment Identity + Registry; FR-015, FR-010, SC-007)
+- [x] T008 Add to bootstrap: `azuread_application` + federated credential (GitHub OIDC, repo + environment scoped) + subscription/RG role assignments (Contributor, AcrPush, Key Vault Secrets Officer), a user-assigned managed identity for runtimes, and the **single shared Azure Container Registry** (Premium, public access disabled) used by all environments (data-model Deployment Identity + Registry; FR-015, FR-010, SC-007)
 - [x] T009 Create `infra/azure/bootstrap/outputs.tf`: state account/container names, deploy client id, runtime MI ids, and shared ACR login server + id
 - [x] T010 Create `infra/azure/backend.tf`: `azurerm` backend using bootstrap outputs, per-environment `key = app/<environment>.tfstate`, `use_oidc = true`
 - [x] T011 Create `infra/azure/main.tf` root composition skeleton: provider config + one resource group per environment from locals
@@ -68,7 +68,7 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 - [x] T014 [P] [US1] Create `modules/data`: PostgreSQL Flexible Server (VNet-only, `public_network_access=false`), application database, distinct app/worker/migration roles, burstable SKU default, `prevent_destroy` (data-model Database; FR-007, FR-021, FR-013)
 - [x] T015 [P] [US1] Grant the environment's runtime MI `AcrPull` on the shared bootstrap ACR and wire the app/worker image references (login server from bootstrap output) into the runtime module (data-model Registry; FR-010, FR-021)
-- [x] T016 [P] [US1] Create `modules/secrets`: Key Vault (VNet-only) with RBAC for runtime MI (read) and deploy identity (write) (data-model Secret; FR-008)
+- [x] T016 [P] [US1] Create `modules/secrets`: Key Vault with RBAC for runtime MI (read), deploy/provisioning identity (write), and private endpoint for runtime access (data-model Secret; FR-008)
 - [x] T017 [P] [US1] Create `modules/observability`: Log Analytics workspace + Application Insights, `prevent_destroy` (data-model Observability; FR-012)
 - [x] T018 [US1] Create `modules/runtime/environment.tf`: Container Apps Environment (**workload-profiles type with a single Consumption profile**), VNet-integrated on the subnet so egress reaches the private endpoints (depends on T012)
 - [x] T019 [US1] Create `modules/runtime/app.tf`: app Container App, external ingress, app image ref, env (`BASE_PATH`, `AUTH_BASE_URL`), runtime MI, scale 0→`app_max_replicas` (Constitution VIII; clarify Q5)
@@ -169,7 +169,7 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 - [x] T044 [P] Finalize `infra/azure/README.md` linking contracts, variables, outputs, and quickstart
 - [x] T045 [P] Update `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` to reflect implementation progress/completion
-- [ ] T046 Run `quickstart.md` end-to-end against a throwaway environment and record evidence, including `tofu plan` wall-clock (SC-001 < 15 min) and confirmation that bootstrap ordering matches quickstart (FR-014) — non-destructive evidence recorded in `quickstart-evidence.md`; live apply pending approved throwaway backend outputs, image tags, and teardown window
+- [x] T046 Run `quickstart.md` end-to-end against a throwaway environment and record evidence, including `tofu plan` wall-clock (SC-001 < 15 min) and confirmation that bootstrap ordering matches quickstart (FR-014) — live staging apply and migration evidence recorded in `quickstart-evidence.md`
 - [x] T047 Confirm `pnpm run dev` and Docker Compose still work with no Azure credentials (FR-018, SC-008)
 - [x] T048 Ensure `tofu fmt -check` + `tofu validate` pass for the full `infra/azure` tree in CI
 

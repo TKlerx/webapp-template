@@ -1324,3 +1324,9 @@
 - Latest non-continuity commit: 06c1771 feat(018): add Azure environment isolation.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T046.
+## 2026-06-08 13:24:00
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: e3bf705 chore(018): finalize Azure infra validation.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: no next task.

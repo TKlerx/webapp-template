@@ -18,11 +18,6 @@ variable "registry_id" {
   type        = string
 }
 
-variable "runtime_identity_principal_id" {
-  description = "Runtime managed identity principal id."
-  type        = string
-}
-
 variable "private_endpoint_subnet_id" {
   description = "Private endpoint subnet resource id."
   type        = string

@@ -1,9 +1,3 @@
-resource "azurerm_role_assignment" "runtime_acr_pull" {
-  scope                = var.registry_id
-  role_definition_name = "AcrPull"
-  principal_id         = var.runtime_identity_principal_id
-}
-
 resource "azurerm_private_dns_zone" "acr" {
   name                = "privatelink.azurecr.io"
   resource_group_name = var.resource_group_name

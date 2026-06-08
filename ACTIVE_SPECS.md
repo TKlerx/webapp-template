@@ -7,8 +7,8 @@ when the spec is fully finished.
 ## Open Specs
 
 - 018 OpenTofu Azure Infrastructure
-  - Status: Implementation complete except live throwaway Azure apply evidence.
-  - Next required work: Run `specs/018-opentofu-azure-infra/quickstart.md` against an approved throwaway Azure environment once bootstrap backend outputs, pushed image tags, and teardown approval are available. Non-destructive evidence is recorded in `specs/018-opentofu-azure-infra/quickstart-evidence.md`.
+  - Status: Live throwaway staging apply completed in Azure; migration job succeeded.
+  - Next required work: Inspect or tear down throwaway Azure resource groups `wattest-bootstrap-rg`, `wattest-staging-rg`, and partial failed `wattest-dev-rg`. Follow up on the live app HTTP 404 observed from the reused prebuilt app image.
 
 ## Maintenance Rules
 

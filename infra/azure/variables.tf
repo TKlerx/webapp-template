@@ -142,6 +142,12 @@ variable "postgres_storage_gb" {
   }
 }
 
+variable "postgres_availability_zone" {
+  description = "Availability zone for PostgreSQL Flexible Server. Pinning avoids provider drift after Azure selects a zone."
+  type        = string
+  default     = "2"
+}
+
 variable "app_min_replicas" {
   description = "Minimum app replicas."
   type        = number

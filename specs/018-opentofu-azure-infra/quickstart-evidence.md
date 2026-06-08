@@ -2,7 +2,7 @@
 
 Date: 2026-06-08
 
-This file records the final non-destructive validation pass for `018-opentofu-azure-infra`.
+This file records the final validation pass for `018-opentofu-azure-infra`.
 
 ## Bootstrap Ordering
 
@@ -43,11 +43,43 @@ The local dev script now regenerates the SQLite Prisma client for `file:` databa
 
 ## Live Throwaway Apply
 
-Live Azure resource creation was not executed in this pass because `infra/azure/backend.tf` still contains placeholder backend values and no approved throwaway bootstrap output set, image tags, or teardown window was supplied. Running the bootstrap/apply flow would create persistent Azure resources, including resources with `prevent_destroy` guards.
+Live Azure resource creation was executed after operator approval.
 
-To complete the live apply evidence, provide or create:
+- Subscription: `Sponsorship (tyrael)`
+- Bootstrap project: `wattest`
+- Bootstrap location: `westeurope`
+- Shared ACR: `wattest7725mxacr.azurecr.io`
+- App/worker image tag: `live-20260608-0859`
+- Migration image tag: `live-20260608-0859-migrate`
+- Successful environment: `staging`
+- Successful environment location: `northeurope`
+- Successful resource group: `wattest-staging-rg`
+- App endpoint: `https://wattest-staging-app.purplewater-76fadf08.northeurope.azurecontainerapps.io/app-starter`
+- Migration execution: `wattest-staging-migration-om1l9ke`
 
-- Approved throwaway `project` and `environment` values.
-- Bootstrap outputs for state, deployment identity, runtime identities, and shared ACR.
-- Pushed app and worker image tags in the shared ACR.
-- Explicit teardown approval for persistent resources.
+Live timings:
+
+- Bootstrap apply: succeeded.
+- Initial `dev` plan in `westeurope`: 17.5 seconds.
+- Initial `dev` apply in `westeurope`: partially created foundation resources, then failed because Azure reported `ManagedEnvironmentCapacityHeavyUsageError` for Container Apps/AKS capacity in `westeurope`.
+- `staging` plan in `northeurope`: 29.7 seconds.
+- `staging` apply in `northeurope`: 848.0 seconds, under SC-001's 15 minute target.
+- Migration job image update: plan 65.2 seconds, apply 50.2 seconds.
+- Migration job execution: succeeded, 2026-06-08T10:45:14Z to 2026-06-08T10:45:49Z.
+
+Live validation observations:
+
+- Container Apps app and worker provisioned successfully and reached `Running`.
+- App pulled `wattest7725mxacr.azurecr.io/app:live-20260608-0859` through the private ACR path after ACR public network access was restored to `Disabled`.
+- ACR final state: Premium SKU, public network access `Disabled`, default firewall action `Deny`.
+- Key Vault secret creation from a local/GitHub-style runner requires public data-plane reachability during provisioning unless the runner is inside the VNet. The implementation now keeps Key Vault RBAC-protected and creates the private endpoint for runtime access, but does not disable public network access by default.
+- PostgreSQL Flexible Server needed a pinned availability zone to avoid drift after Azure selected zone `2`.
+- The live app HTTP smoke returned `404` for `/`, `/app-starter`, and health paths even though the container was running. Logs showed Next.js ready; this appears to be an app image/base-path behavior in the reused prebuilt image rather than an infrastructure provisioning failure.
+
+Live resources remain in Azure for manual inspection:
+
+- `wattest-bootstrap-rg`
+- `wattest-staging-rg`
+- Partial failed `wattest-dev-rg` from the `westeurope` capacity attempt
+
+Teardown should remove these throwaway resource groups after inspection. Persistent resources have `prevent_destroy` guards, so follow the quickstart teardown procedure or delete the throwaway resource groups manually after confirming no data is needed.

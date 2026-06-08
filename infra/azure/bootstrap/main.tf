@@ -79,7 +79,7 @@ resource "azurerm_container_registry" "shared" {
   name                          = local.registry_name
   resource_group_name           = azurerm_resource_group.bootstrap.name
   location                      = azurerm_resource_group.bootstrap.location
-  sku                           = "Standard"
+  sku                           = "Premium"
   admin_enabled                 = false
   public_network_access_enabled = false
   tags                          = local.tags

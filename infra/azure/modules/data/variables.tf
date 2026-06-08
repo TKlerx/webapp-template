@@ -38,6 +38,11 @@ variable "postgres_storage_gb" {
   type        = number
 }
 
+variable "postgres_availability_zone" {
+  description = "PostgreSQL Flexible Server availability zone."
+  type        = string
+}
+
 variable "allow_destroy_persistent" {
   description = "Reserved explicit opt-in for destructive persistent-resource operations."
   type        = bool

@@ -50,7 +50,7 @@ All NEEDS CLARIFICATION items from the spec were resolved during `/speckit.clari
 
 ## D7. Container registry
 
-- **Decision**: A **single shared** Azure Container Registry (Standard SKU) provisioned in `bootstrap/`, public network access disabled (VNet-only via private endpoint), pulled by each environment's runtime managed identity (`AcrPull` role). No registry passwords in source (FR-010).
+- **Decision**: A **single shared** Azure Container Registry (Premium SKU) provisioned in `bootstrap/`, public network access disabled (VNet-only via private endpoint), pulled by each environment's runtime managed identity (`AcrPull` role). Premium is required for private endpoint support with disabled public access. No registry passwords in source (FR-010).
 - **Rationale**: clarify Q2 data-plane-private; managed-identity pull avoids embedded credentials. The deploy flow promotes the **same image tag** dev→staging→prod, so one registry matches the workflow, avoids per-env rebuild/retag, and saves cost. SC-007 explicitly permits shared bootstrap resources. Two repositories: the app image (also used by the migration Job) and the worker image.
 - **Bootstrap ordering (FR-014)**: the shared ACR must exist and images must be pushed before any environment's runtimes can pull. Bootstrap creates the ACR before first image publish and before environment provisioning; documented in quickstart.
 

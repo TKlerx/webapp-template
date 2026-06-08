@@ -114,7 +114,7 @@ Single shared ACR created in `bootstrap/` and reused by all environments (same i
 | Field                   | Type                     | Notes                                                            |
 | ----------------------- | ------------------------ | ---------------------------------------------------------------- |
 | `name`                  | string (globally unique) | ACR (one, in bootstrap)                                          |
-| `sku`                   | string                   | Standard                                                         |
+| `sku`                   | string                   | Premium (required for private endpoint + disabled public access) |
 | `public_network_access` | bool=false               | VNet-only pull via private endpoint (FR-021)                     |
 | `pull_principals`       | list                     | Each environment's runtime managed identity (`AcrPull`) (FR-010) |
 

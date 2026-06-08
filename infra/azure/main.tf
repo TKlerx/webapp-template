@@ -29,29 +29,29 @@ module "network" {
 module "data" {
   source = "./modules/data"
 
-  name_prefix              = local.name_prefix
-  name_suffix              = local.name_suffix
-  resource_group_name      = azurerm_resource_group.environment.name
-  location                 = azurerm_resource_group.environment.location
-  delegated_subnet_id      = module.network.postgres_subnet_id
-  private_dns_zone_id      = module.network.postgres_private_dns_zone_id
-  postgres_sku             = var.postgres_sku
-  postgres_storage_gb      = var.postgres_storage_gb
-  allow_destroy_persistent = var.allow_destroy_persistent
-  tags                     = local.tags
+  name_prefix                = local.name_prefix
+  name_suffix                = local.name_suffix
+  resource_group_name        = azurerm_resource_group.environment.name
+  location                   = azurerm_resource_group.environment.location
+  delegated_subnet_id        = module.network.postgres_subnet_id
+  private_dns_zone_id        = module.network.postgres_private_dns_zone_id
+  postgres_sku               = var.postgres_sku
+  postgres_storage_gb        = var.postgres_storage_gb
+  postgres_availability_zone = var.postgres_availability_zone
+  allow_destroy_persistent   = var.allow_destroy_persistent
+  tags                       = local.tags
 }
 
 module "registry" {
   source = "./modules/registry"
 
-  name_prefix                   = local.name_prefix
-  resource_group_name           = azurerm_resource_group.environment.name
-  location                      = azurerm_resource_group.environment.location
-  registry_id                   = var.registry_id
-  runtime_identity_principal_id = var.runtime_identity_principal_id
-  private_endpoint_subnet_id    = module.network.private_endpoints_subnet_id
-  virtual_network_id            = module.network.virtual_network_id
-  tags                          = local.tags
+  name_prefix                = local.name_prefix
+  resource_group_name        = azurerm_resource_group.environment.name
+  location                   = azurerm_resource_group.environment.location
+  registry_id                = var.registry_id
+  private_endpoint_subnet_id = module.network.private_endpoints_subnet_id
+  virtual_network_id         = module.network.virtual_network_id
+  tags                       = local.tags
 }
 
 module "secrets" {
