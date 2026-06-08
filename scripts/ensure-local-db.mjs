@@ -10,6 +10,8 @@ if (!databaseUrl.startsWith("file:")) {
   process.exit(0);
 }
 
+runStep("Generate local SQLite Prisma client", "pnpm exec prisma generate");
+
 const databasePath = path.resolve(
   process.cwd(),
   databaseUrl.slice("file:".length),

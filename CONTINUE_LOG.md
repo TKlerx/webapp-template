@@ -1312,3 +1312,15 @@
 - Latest non-continuity commit: 56ff722 feat(018): add Azure observability checks.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T044.
+## 2026-06-08 08:58:31
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: 06c1771 feat(018): add Azure environment isolation.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: 018-opentofu-azure-infra: T045.
+## 2026-06-08 08:58:58
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: 06c1771 feat(018): add Azure environment isolation.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: 018-opentofu-azure-infra: T046.

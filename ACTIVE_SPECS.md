@@ -7,8 +7,8 @@ when the spec is fully finished.
 ## Open Specs
 
 - 018 OpenTofu Azure Infrastructure
-  - Status: In Progress (spec clarified; plan + tasks generated)
-  - Next required work: Implement tasks (48 across 8 phases) via `/speckit.implement`, starting with US1 MVP (provision a complete environment).
+  - Status: Implementation complete except live throwaway Azure apply evidence.
+  - Next required work: Run `specs/018-opentofu-azure-infra/quickstart.md` against an approved throwaway Azure environment once bootstrap backend outputs, pushed image tags, and teardown approval are available. Non-destructive evidence is recorded in `specs/018-opentofu-azure-infra/quickstart-evidence.md`.
 
 ## Maintenance Rules
 

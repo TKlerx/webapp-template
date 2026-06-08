@@ -167,11 +167,11 @@ Infrastructure-as-code module set, additive to the existing app. Root config: `i
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T044 [P] Finalize `infra/azure/README.md` linking contracts, variables, outputs, and quickstart
-- [ ] T045 [P] Update `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` to reflect implementation progress/completion
-- [ ] T046 Run `quickstart.md` end-to-end against a throwaway environment and record evidence, including `tofu plan` wall-clock (SC-001 < 15 min) and confirmation that bootstrap ordering matches quickstart (FR-014)
-- [ ] T047 Confirm `pnpm run dev` and Docker Compose still work with no Azure credentials (FR-018, SC-008)
-- [ ] T048 Ensure `tofu fmt -check` + `tofu validate` pass for the full `infra/azure` tree in CI
+- [x] T044 [P] Finalize `infra/azure/README.md` linking contracts, variables, outputs, and quickstart
+- [x] T045 [P] Update `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` to reflect implementation progress/completion
+- [ ] T046 Run `quickstart.md` end-to-end against a throwaway environment and record evidence, including `tofu plan` wall-clock (SC-001 < 15 min) and confirmation that bootstrap ordering matches quickstart (FR-014) — non-destructive evidence recorded in `quickstart-evidence.md`; live apply pending approved throwaway backend outputs, image tags, and teardown window
+- [x] T047 Confirm `pnpm run dev` and Docker Compose still work with no Azure credentials (FR-018, SC-008)
+- [x] T048 Ensure `tofu fmt -check` + `tofu validate` pass for the full `infra/azure` tree in CI
 
 ---
 

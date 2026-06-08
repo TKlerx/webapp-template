@@ -2,7 +2,7 @@
 
 This directory contains the OpenTofu configuration for spec `018-opentofu-azure-infra`.
 
-Start with the operator guide in [`../../specs/018-opentofu-azure-infra/quickstart.md`](../../specs/018-opentofu-azure-infra/quickstart.md).
+Start with the operator guide in [`../../specs/018-opentofu-azure-infra/quickstart.md`](../../specs/018-opentofu-azure-infra/quickstart.md). The latest non-destructive quickstart evidence is recorded in [`../../specs/018-opentofu-azure-infra/quickstart-evidence.md`](../../specs/018-opentofu-azure-infra/quickstart-evidence.md).
 
 Contracts:
 
@@ -13,16 +13,20 @@ Contracts:
 Current structure:
 
 - `bootstrap/`: one-time state, identity, and shared registry setup
-- `environments/`: per-environment inputs
-- `modules/`: reusable Azure resource groups for network, data, registry, secrets, observability, and runtime
+- `environments/`: per-environment inputs:
+  - [`environments/dev.tfvars`](environments/dev.tfvars)
+  - [`environments/staging.tfvars`](environments/staging.tfvars)
+  - [`environments/prod.tfvars`](environments/prod.tfvars)
+- `modules/`: reusable Azure resource groups for [`network`](modules/network), [`data`](modules/data), [`secrets`](modules/secrets), [`observability`](modules/observability), and [`runtime`](modules/runtime)
 
 Validation:
 
 - `tofu -chdir=infra/azure fmt -check -recursive`
 - `tofu -chdir=infra/azure validate`
-- `node scripts/infra-plan-check.mjs`
-- `node scripts/infra-observability-check.mjs`
-- `node scripts/infra-env-isolation.mjs`
+- [`node scripts/infra-plan-check.mjs`](../../scripts/infra-plan-check.mjs)
+- [`node scripts/infra-secret-exposure-check.mjs`](../../scripts/infra-secret-exposure-check.mjs)
+- [`node scripts/infra-observability-check.mjs`](../../scripts/infra-observability-check.mjs)
+- [`node scripts/infra-env-isolation.mjs`](../../scripts/infra-env-isolation.mjs)
 
 The plan check uses `infra/azure/environments/dev.tfvars` with placeholder bootstrap outputs and `-refresh=false`; it proves the environment graph includes the app, worker, migration job, PostgreSQL, Key Vault, private endpoints, observability, and role assignments without applying resources.
 

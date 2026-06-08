@@ -1,19 +1,19 @@
 # Continue
 
-<!-- continuity:fingerprint=106acd6e43fd70c850178fe2ce162e6c72edbb2e4fdc9dab1480ba10b6440dff -->
+<!-- continuity:fingerprint=10e303011a4bfa850b1bcd5540dffd8fb281d3de860a0ac645ca4191e1257fea -->
 
 ## Current Snapshot
 
-- Updated: 2026-06-08 00:22:20
+- Updated: 2026-06-08 08:58:58
 - Branch: `018-opentofu-azure-infra`
 
 ## Recent Non-Continuity Commits
 
+- 06c1771 feat(018): add Azure environment isolation
 - 56ff722 feat(018): add Azure observability checks
 - 23dbb9b feat(018): enforce Azure runtime secret exposure
 - fd54d10 feat(018): add Azure deploy workflow
 - 6065722 feat(018): add Azure runtime modules
-- 83148ed feat(018): scaffold Azure OpenTofu foundation
 
 ## Git Status
 
@@ -29,16 +29,13 @@
 -  M docs/theme-design.md
 -  M eslint.config.mjs
 -  M infra/azure/README.md
--  M infra/azure/environments/dev.tfvars
--  M infra/azure/locals.tf
--  M infra/azure/main.tf
--  M infra/azure/variables.tf
+-  M next-env.d.ts
 -  M package.json
 -  M pnpm-workspace.yaml
 -  M prisma/seed-utils.ts
 -  M public/openapi.yaml
 -  M scripts/docker-compose.mjs
--  M scripts/infra-plan-lib.mjs
+-  M scripts/ensure-local-db.mjs
 -  M scripts/prisma-predeploy-check.js
 -  M scripts/prisma-run-lib.js
 -  M scripts/prisma-run.js
@@ -70,10 +67,8 @@
 -  M specs/017-deepsec-remediation/research.md
 -  M specs/017-deepsec-remediation/spec.md
 -  M specs/017-deepsec-remediation/tasks.md
--  M specs/018-opentofu-azure-infra/contracts/variables-contract.md
--  M specs/018-opentofu-azure-infra/data-model.md
--  M specs/018-opentofu-azure-infra/quickstart.md
 -  M specs/018-opentofu-azure-infra/tasks.md
+-  M specs/OVERVIEW.md
 -  M specs/base/runtime-and-ops.md
 -  M src/app/(dashboard)/background-jobs/page.tsx
 -  M src/app/api/audit/export/route.ts
@@ -147,9 +142,7 @@
 -  M tests/unit/teams-consent.test.ts
 -  M tests/unit/teams-service.test.ts
 -  M tests/unit/token-service.test.ts
-- ?? infra/azure/environments/prod.tfvars
-- ?? infra/azure/environments/staging.tfvars
-- ?? scripts/infra-env-isolation.mjs
+- ?? specs/018-opentofu-azure-infra/quickstart-evidence.md
 
 ## Active Specs
 
@@ -160,8 +153,4 @@
 
 ## Next Recommended Actions
 
-1. 018-opentofu-azure-infra: T044 [P] Finalize `infra/azure/README.md` linking contracts, variables, outputs, and quickstart
-2. 018-opentofu-azure-infra: T045 [P] Update `CONTINUE.md`, `CONTINUE_LOG.md`, and `ACTIVE_SPECS.md` to reflect implementation progress/completion
-3. 018-opentofu-azure-infra: T046 Run `quickstart.md` end-to-end against a throwaway environment and record evidence, including `tofu plan` wall-clock (SC-001 < 15 min) and confirmation that bootstrap ordering matches quickstart (FR-014)
-4. 018-opentofu-azure-infra: T047 Confirm `pnpm run dev` and Docker Compose still work with no Azure credentials (FR-018, SC-008)
-5. 018-opentofu-azure-infra: T048 Ensure `tofu fmt -check` + `tofu validate` pass for the full `infra/azure` tree in CI
+1. 018-opentofu-azure-infra: T046 Run `quickstart.md` end-to-end against a throwaway environment and record evidence, including `tofu plan` wall-clock (SC-001 < 15 min) and confirmation that bootstrap ordering matches quickstart (FR-014) — non-destructive evidence recorded in `quickstart-evidence.md`; live apply pending approved throwaway backend outputs, image tags, and teardown window
