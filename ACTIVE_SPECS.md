@@ -8,7 +8,7 @@ when the spec is fully finished.
 
 - 018 OpenTofu Azure Infrastructure
   - Status: Live throwaway staging apply completed in Azure; migration job succeeded.
-  - Next required work: Inspect or tear down throwaway Azure resource groups `wattest-bootstrap-rg`, `wattest-staging-rg`, and partial failed `wattest-dev-rg`. Follow up on the live app HTTP 404 observed from the reused prebuilt app image.
+  - Next required work: Inspect or tear down throwaway Azure resource groups `wattest-bootstrap-rg`, `wattest-staging-rg`, `wattest-staging-aca-infra-rg`, and partial failed `wattest-dev-rg`. The live app 404 was fixed by rebuilding the app image with `BASE_PATH=/app-starter`.
 
 ## Maintenance Rules
 

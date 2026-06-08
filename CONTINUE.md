@@ -1,19 +1,19 @@
 # Continue
 
-<!-- continuity:fingerprint=e69a6eac9526d82e66fd94d925537e0f633dbd8852fa1014ef97209bddfd3c50 -->
+<!-- continuity:fingerprint=313565fab374128b39a10f20c286b2fe7e18a1fde43e0c065372ece3518cc794 -->
 
 ## Current Snapshot
 
-- Updated: 2026-06-08 13:24:00
+- Updated: 2026-06-08 14:01:09
 - Branch: `018-opentofu-azure-infra`
 
 ## Recent Non-Continuity Commits
 
+- 1ae68f5 fix(018): capture Azure live validation fixes
 - e3bf705 chore(018): finalize Azure infra validation
 - 06c1771 feat(018): add Azure environment isolation
 - 56ff722 feat(018): add Azure observability checks
 - 23dbb9b feat(018): enforce Azure runtime secret exposure
-- fd54d10 feat(018): add Azure deploy workflow
 
 ## Git Status
 
@@ -28,22 +28,12 @@
 -  M docs/security/followups.md
 -  M docs/theme-design.md
 -  M eslint.config.mjs
--  M infra/azure/README.md
--  M infra/azure/bootstrap/main.tf
--  M infra/azure/main.tf
--  M infra/azure/modules/data/main.tf
--  M infra/azure/modules/data/variables.tf
--  M infra/azure/modules/registry/main.tf
--  M infra/azure/modules/registry/variables.tf
--  M infra/azure/modules/secrets/main.tf
--  M infra/azure/variables.tf
 -  M next-env.d.ts
 -  M package.json
 -  M pnpm-workspace.yaml
 -  M prisma/seed-utils.ts
 -  M public/openapi.yaml
 -  M scripts/docker-compose.mjs
--  M scripts/infra-plan-lib.mjs
 -  M scripts/prisma-predeploy-check.js
 -  M scripts/prisma-run-lib.js
 -  M scripts/prisma-run.js
@@ -75,12 +65,7 @@
 -  M specs/017-deepsec-remediation/research.md
 -  M specs/017-deepsec-remediation/spec.md
 -  M specs/017-deepsec-remediation/tasks.md
--  M specs/018-opentofu-azure-infra/contracts/variables-contract.md
--  M specs/018-opentofu-azure-infra/data-model.md
 -  M specs/018-opentofu-azure-infra/quickstart-evidence.md
--  M specs/018-opentofu-azure-infra/quickstart.md
--  M specs/018-opentofu-azure-infra/research.md
--  M specs/018-opentofu-azure-infra/tasks.md
 -  M specs/base/runtime-and-ops.md
 -  M src/app/(dashboard)/background-jobs/page.tsx
 -  M src/app/api/audit/export/route.ts

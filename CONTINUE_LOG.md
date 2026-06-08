@@ -1330,3 +1330,9 @@
 - Latest non-continuity commit: e3bf705 chore(018): finalize Azure infra validation.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: no next task.
+## 2026-06-08 14:01:09
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: 1ae68f5 fix(018): capture Azure live validation fixes.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: no next task.

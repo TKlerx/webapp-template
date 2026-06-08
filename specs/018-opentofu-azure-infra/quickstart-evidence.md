@@ -55,6 +55,7 @@ Live Azure resource creation was executed after operator approval.
 - Successful environment location: `northeurope`
 - Successful resource group: `wattest-staging-rg`
 - App endpoint: `https://wattest-staging-app.purplewater-76fadf08.northeurope.azurecontainerapps.io/app-starter`
+- Corrected app image tag: `live-20260608-0859-appfix`
 - Migration execution: `wattest-staging-migration-om1l9ke`
 
 Live timings:
@@ -74,7 +75,10 @@ Live validation observations:
 - ACR final state: Premium SKU, public network access `Disabled`, default firewall action `Deny`.
 - Key Vault secret creation from a local/GitHub-style runner requires public data-plane reachability during provisioning unless the runner is inside the VNet. The implementation now keeps Key Vault RBAC-protected and creates the private endpoint for runtime access, but does not disable public network access by default.
 - PostgreSQL Flexible Server needed a pinned availability zone to avoid drift after Azure selected zone `2`.
-- The live app HTTP smoke returned `404` for `/`, `/app-starter`, and health paths even though the container was running. Logs showed Next.js ready; this appears to be an app image/base-path behavior in the reused prebuilt image rather than an infrastructure provisioning failure.
+- The first live app HTTP smoke returned `404` because the reused prebuilt app image had been built with `BASE_PATH=/webapp-template` while Azure configured `/app-starter`. A fresh ACR-built app image with `BASE_PATH=/app-starter` fixed the smoke:
+  - `/app-starter/api/health`: `200`, database check `ok`
+  - `/app-starter`: `200`
+  - `/`: `404`, expected for a base-path build
 
 Live resources remain in Azure for manual inspection:
 
