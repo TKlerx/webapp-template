@@ -1336,3 +1336,10 @@
 - Latest non-continuity commit: 1ae68f5 fix(018): capture Azure live validation fixes.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: no next task.
+## 2026-06-08 17:06:53
+
+- Added staged `.gitattributes` LF-only policy to prevent CRLF status noise.
+- Set local repo Git config to `core.autocrlf=false` and `core.eol=lf`.
+- Cleared prior line-ending index noise; staged diff only includes `.gitattributes` and continuity updates.
+- Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
+- Next focus: commit/push LF policy cleanup if desired.
