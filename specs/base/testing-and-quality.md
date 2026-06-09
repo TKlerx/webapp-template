@@ -61,6 +61,7 @@ flowchart TD
     Semgrep[Semgrep]
     Utf8[UTF-8 Check]
     Cooldown[Dependency Cooldown Check]
+    Trivy[Trivy Supply-Chain Audit]
     Unit[Vitest]
     E2E[Playwright]
     Continuity[Continuity]
@@ -71,7 +72,8 @@ flowchart TD
     Duplication --> Semgrep
     Semgrep --> Utf8
     Utf8 --> Cooldown
-    Cooldown --> Unit
+    Cooldown --> Trivy
+    Trivy --> Unit
     Unit --> E2E
     Unit --> Continuity
 ```
@@ -95,6 +97,7 @@ Fast default validation:
 Heavier validation:
 
 - everything in `all`
+- Trivy supply-chain audit for app, migration, worker, Docker/Compose, and OpenTofu artifacts
 - Playwright E2E tests
 - production dependency audit
 
@@ -119,6 +122,14 @@ Heavier validation:
 
 - must support `--exclude-newer`
 - worker config requires `exclude-newer = "1 week"`
+
+### Trivy
+
+- scanner image must be pinned by `sha256` digest
+- scanner image release timestamp must be at least 7 days old
+- app, migration, and worker runtime image scans block on fixable High/Critical findings
+- runtime image scans ignore unfixed distro findings until an upstream fix exists
+- Azure OpenTofu, Dockerfile, and Compose config scans block on High/Critical findings
 
 ## Quality Expectations
 

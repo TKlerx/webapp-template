@@ -27,6 +27,7 @@ Validation:
 - [`node scripts/infra-secret-exposure-check.mjs`](../../scripts/infra-secret-exposure-check.mjs)
 - [`node scripts/infra-observability-check.mjs`](../../scripts/infra-observability-check.mjs)
 - [`node scripts/infra-env-isolation.mjs`](../../scripts/infra-env-isolation.mjs)
+- `pwsh -NoProfile -File ../../scripts/supply-chain-audit.ps1 -Artifact infra -SkipBuild -SkipImageScans`
 
 The plan check uses `infra/azure/environments/dev.tfvars` with placeholder bootstrap outputs and `-refresh=false`; it proves the environment graph includes the app, worker, migration job, PostgreSQL, Key Vault, private endpoints, observability, and role assignments without applying resources.
 
@@ -59,6 +60,10 @@ Deployment workflow:
 - Configure each GitHub Environment (`dev`, `staging`, `prod`) with variables for `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, bootstrap state outputs, shared ACR outputs, deployment identity ids, runtime identity ids, `PROJECT`, and `AZURE_LOCATION`.
 - The workflow validates requested ACR tags, reconciles OpenTofu infrastructure, runs the migration Container Apps Job with the migration image, and only then updates the app and worker images.
 - The shared ACR uses Premium SKU so private endpoints and disabled public network access are supported.
+
+The bootstrap state storage account has default-deny network rules. Set
+`state_storage_allowed_ip_rules` to the operator or CI public IPv4/CIDR ranges
+that need OpenTofu backend data-plane access.
 
 Do not commit state, local variable files, or secrets.
 

@@ -1343,3 +1343,9 @@
 - Cleared prior line-ending index noise; staged diff only includes `.gitattributes` and continuity updates.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: commit/push LF policy cleanup if desired.
+## 2026-06-09 15:48:51
+
+- Branch snapshot refreshed for `018-opentofu-azure-infra`.
+- Latest non-continuity commit: b261f11 chore: enforce LF line endings.
+- Active specs: 018-opentofu-azure-infra, base.
+- Next focus: no next task.

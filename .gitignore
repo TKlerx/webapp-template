@@ -23,6 +23,7 @@ __pycache__/
 *.db-wal
 data/documents/
 test-results/
+.artifacts/
 *.tsbuildinfo
 .terraform/
 *.tfstate

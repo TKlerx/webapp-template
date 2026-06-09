@@ -7,13 +7,13 @@
     Usage: ./validate.ps1 [phase]
     Phases:
       all      - typecheck + TS/Python/CLI quality + semgrep + test (default, pre-commit)
-      full     - all quality checks + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
+      full     - all quality checks + Trivy supply-chain audit + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
       continuity - check whether CONTINUE.md / CONTINUE_LOG.md need a refresh
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
       quality  - TS/Python/CLI quality + semgrep
-      commit   - validate all + blocking shipped-deps audit + continuity, then git add + commit + push
+      commit   - validate all + blocking Trivy supply-chain audit + shipped-deps audit + continuity, then git add + commit + push
 
     Set QUALITY_THRESHOLDS_BYPASS=1 to make configured quality thresholds
     advisory while keeping formatting, lint correctness, tests, and security
@@ -596,6 +596,29 @@ function Test-OpenTofuInfrastructure {
         Write-Fail "OpenTofu infrastructure check failed"
         Write-Host $_ -ForegroundColor Red
         $script:failures += "opentofu"
+    }
+}
+
+function Test-SupplyChainAudit {
+    Write-Step "Supply-chain audit (Trivy High/Critical blocking)"
+    try {
+        if (-not (Test-Path "scripts\supply-chain-audit.ps1" -PathType Leaf)) {
+            throw "scripts/supply-chain-audit.ps1 is missing"
+        }
+
+        $reportPath = ".artifacts\supply-chain-audit\validate-$Phase.json"
+        $result = Invoke-NativeCommandCaptured "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/supply-chain-audit.ps1 -ReportPath ""$reportPath"""
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "supply-chain audit failed"
+        }
+
+        $result.Output | Out-Host
+        Write-Pass "supply-chain audit passed"
+    } catch {
+        Write-Fail "supply-chain audit failed"
+        Write-Host $_.Exception.Message -ForegroundColor Yellow
+        $script:failures += "supply-chain-audit"
     }
 }
 
@@ -1221,6 +1244,10 @@ if ($Phase -in "all", "full", "test", "commit") {
 
 if ($Phase -in "continuity", "commit") {
     Test-ContinuityFreshness
+}
+
+if ($Phase -in "full", "commit") {
+    Test-SupplyChainAudit
 }
 
 if ($Phase -in "full", "commit") {

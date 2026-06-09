@@ -81,6 +81,8 @@ resetting the database between runs.
 
 `all` includes TypeScript, Python, and CLI quality checks plus dependency cooldown
 validation for pnpm and uv support.
+`full` also runs the Trivy supply-chain audit gate before production dependency
+audits and E2E tests.
 
 Quality checks can also be run independently:
 
@@ -158,6 +160,19 @@ That guide covers:
 - pnpm is configured with a 7-day package release delay through `.npmrc`
 - uv worker resolution is configured with `exclude-newer = "1 week"`
 - `validate.ps1` fails if the installed pnpm or uv version does not support those controls
+- Trivy runs from a repo-pinned digest image and must satisfy the same 7-day
+  scanner release cooldown. Override only with
+  `-AllowTrivyCooldownOverride` for an approved emergency.
+- Trivy runtime image scans block fixable High/Critical vulnerabilities; unfixed
+  distro findings are ignored by the gate until an upstream fix exists.
+
+Run the Trivy gate directly when you only need image/IaC supply-chain checks:
+
+```powershell
+pnpm run supply-chain:audit
+```
+
+Reports are written under `.artifacts/supply-chain-audit/`.
 
 ## Suggested Next Step
 

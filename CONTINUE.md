@@ -1,30 +1,38 @@
 # Continue
 
-<!-- continuity:fingerprint=313565fab374128b39a10f20c286b2fe7e18a1fde43e0c065372ece3518cc794 -->
+<!-- continuity:fingerprint=2eac38dad6f047b06e5905c42a3c1acb55d4755d12e11991b3ef688be1c809f3 -->
 
 ## Current Snapshot
 
-- Updated: 2026-06-08 17:06:53
+- Updated: 2026-06-09 15:48:51
 - Branch: `018-opentofu-azure-infra`
 
 ## Recent Non-Continuity Commits
 
+- b261f11 chore: enforce LF line endings
 - f0a0876 docs(018): record Azure app smoke fix
 - 1ae68f5 fix(018): capture Azure live validation fixes
 - e3bf705 chore(018): finalize Azure infra validation
 - 06c1771 feat(018): add Azure environment isolation
-- 56ff722 feat(018): add Azure observability checks
 
 ## Git Status
 
-- Staged: `.gitattributes` LF-only policy (`* text=auto eol=lf` plus binary exclusions).
-- Local repo Git config set to `core.autocrlf=false` and `core.eol=lf`.
-- Prior line-ending status noise cleared from the index with `git add -u -- .`; staged diff only includes `.gitattributes`.
+- M .dockerignore
+-  M .gitignore
+-  M Dockerfile.app
+-  M Dockerfile.worker
+-  M README.md
+-  M infra/azure/README.md
+-  M infra/azure/bootstrap/main.tf
+-  M infra/azure/bootstrap/variables.tf
+-  M package.json
+-  M specs/base/runtime-and-ops.md
+-  M specs/base/testing-and-quality.md
+-  M validate.ps1
+- ?? scripts/supply-chain-audit.ps1
 
 ## Active Specs
 
-- 016-runtime-credential-separation
-- 017-deepsec-remediation
 - 018-opentofu-azure-infra
 - base
 

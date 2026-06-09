@@ -49,3 +49,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "state_storage_allowed_ip_rules" {
+  description = "Public IPv4/CIDR ranges allowed to access the OpenTofu state storage account data plane."
+  type        = list(string)
+  default     = []
+}
