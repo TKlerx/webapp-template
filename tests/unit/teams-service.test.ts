@@ -19,7 +19,10 @@ vi.mock("@/lib/teams/client", () => ({
 }));
 
 import { getOrCreateTeamsConfig } from "@/services/teams/admin";
-import { queueTeamsMessages } from "@/services/teams/service";
+import {
+  queueTeamsMessages,
+  safeQueueTeamsMessages,
+} from "@/services/teams/service";
 import { processTeamsIntakePoll } from "@/services/teams/intake";
 
 describe("teams service", () => {
@@ -167,5 +170,31 @@ describe("teams service", () => {
         }),
       }),
     );
+  });
+
+  it("logs queue failures as structured operational events", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (
+      getOrCreateTeamsConfig as unknown as ReturnType<typeof vi.fn>
+    ).mockRejectedValue(new Error("db unavailable"));
+
+    await safeQueueTeamsMessages({
+      actorId: "admin-1",
+      eventType: NotificationEventType.USER_CREATED,
+      eventId: "event-1",
+      payload: { userEmail: "user@example.com" },
+    });
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    const raw = String(errorSpy.mock.calls[0][0]);
+    const payload = JSON.parse(raw);
+    expect(payload).toMatchObject({
+      event: "teams.queue_failed",
+      component: "teams",
+      actorId: "admin-1",
+      eventType: NotificationEventType.USER_CREATED,
+      eventId: "event-1",
+    });
+    expect(raw).not.toContain("user@example.com");
   });
 });

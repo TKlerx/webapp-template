@@ -5,6 +5,7 @@ node_modules/
 .deepsec/
 .git/
 .next/
+.artifacts/
 coverage/
 dist/
 build/
@@ -20,6 +21,11 @@ uploads/
 dev.db
 e2e.db
 *.tsbuildinfo
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars.local
 Dockerfile*
 .dockerignore
 

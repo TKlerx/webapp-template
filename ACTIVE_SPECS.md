@@ -6,9 +6,12 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- 017 DeepSec Remediation
-  - Status: In Progress
-  - Next required work: Prepare final closure/PR summary; only unresolved DeepSec export item is the accepted-risk `playwright.config.ts` E2E credentials finding.
+- 018 OpenTofu Azure Infrastructure
+  - Status: Live throwaway staging apply completed in Azure; migration job succeeded.
+  - Next required work: Inspect or tear down throwaway Azure resource groups `wattest-bootstrap-rg`, `wattest-staging-rg`, `wattest-staging-aca-infra-rg`, and partial failed `wattest-dev-rg`. The live app 404 was fixed by rebuilding the app image with `BASE_PATH=/app-starter`.
+- 019 Logging Standardization
+  - Status: Implementation complete; `.\validate.ps1 all` passed.
+  - Next required work: Review, commit, and push the completed logging standardization changes.
 
 ## Maintenance Rules
 

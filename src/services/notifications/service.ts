@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import {
   renderNotificationTemplate,
   type NotificationTemplateAudience,
@@ -17,6 +18,7 @@ import {
 } from "../../../generated/prisma/enums";
 
 const NOTIFICATION_JOB_TYPE = "notification_delivery";
+const notificationLogger = logger.child({ component: "notifications" });
 
 type NotificationUser = {
   id: string;
@@ -65,7 +67,12 @@ export async function safeQueueUserCreatedNotifications(input: {
   try {
     await queueUserCreatedNotifications(input);
   } catch (error) {
-    console.error("notifications.queue_user_created_failed", error);
+    notificationLogger.error("notifications.queue_user_created_failed", {
+      error,
+      actorId: input.actorId,
+      affectedUserId: input.user.id,
+      eventType: NotificationEventType.USER_CREATED,
+    });
   }
 }
 
@@ -78,7 +85,14 @@ export async function safeQueueRoleChangedNotifications(input: {
   try {
     await queueRoleChangedNotifications(input);
   } catch (error) {
-    console.error("notifications.queue_role_changed_failed", error);
+    notificationLogger.error("notifications.queue_role_changed_failed", {
+      error,
+      actorId: input.actorId,
+      affectedUserId: input.user.id,
+      eventType: NotificationEventType.ROLE_CHANGED,
+      previousRole: input.previousRole,
+      nextRole: input.nextRole,
+    });
   }
 }
 
@@ -91,7 +105,14 @@ export async function safeQueueUserStatusChangedNotifications(input: {
   try {
     await queueUserStatusChangedNotifications(input);
   } catch (error) {
-    console.error("notifications.queue_status_changed_failed", error);
+    notificationLogger.error("notifications.queue_status_changed_failed", {
+      error,
+      actorId: input.actorId,
+      affectedUserId: input.user.id,
+      eventType: NotificationEventType.USER_STATUS_CHANGED,
+      previousStatus: input.previousStatus,
+      nextStatus: input.nextStatus,
+    });
   }
 }
 

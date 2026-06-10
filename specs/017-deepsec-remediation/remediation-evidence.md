@@ -355,3 +355,17 @@ Remaining unresolved findings after the 2026-06-01 closure pass were explicitly 
   - `pnpm run lint` -> pass.
   - `pnpm exec prettier --check playwright.config.ts scripts/ensure-e2e-db.mjs tests/e2e/global.setup.ts tests/e2e/global.teardown.ts tests/e2e/helpers/db.ts src/lib/db.ts prisma/seed.ts` -> pass.
   - `pnpm exec prettier --check .` -> fail on broad pre-existing formatting debt outside this slice.
+
+## E2E Credentials Finding Remediation (2026-06-05)
+
+- Resolved the last open DeepSec accepted-risk: `playwright.config.ts` static E2E credentials.
+- Made the hardcoded secret literals env-overridable so credential-like values are no longer fixed in source-controlled config:
+  - `BETTERAUTH_SECRET`, `E2E_MOCK_SSO_SECRET`, `AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`, `AZURE_AD_TENANT_ID` now read `process.env.X ?? "<test-fallback>"`.
+- Documented the E2E-only override variables in `.env.example` (test fixtures, not production secrets). CI sets them explicitly; local zero-config runs use safe test fallbacks.
+- Rationale: values are test-only fixtures for an ephemeral E2E database and never touch production paths; moving them to env removes the standing finding and aligns with the "no secrets in source" constitution constraint.
+- Validation:
+  - `pnpm run typecheck` -> pass.
+
+| File                   | Severity | Disposition | Owner            | Date       | Notes                                                                                    |
+| ---------------------- | -------- | ----------- | ---------------- | ---------- | ---------------------------------------------------------------------------------------- |
+| `playwright.config.ts` | MEDIUM   | remediated  | tklerx@paiqo.com | 2026-06-05 | Secret literals made env-overridable; documented as E2E test fixtures in `.env.example`. |

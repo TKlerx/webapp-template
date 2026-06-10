@@ -81,6 +81,8 @@ resetting the database between runs.
 
 `all` includes TypeScript, Python, and CLI quality checks plus dependency cooldown
 validation for pnpm and uv support.
+`full` also runs the Trivy supply-chain audit gate before production dependency
+audits and E2E tests.
 
 Quality checks can also be run independently:
 
@@ -148,16 +150,29 @@ That guide covers:
 ## Monitoring And Logging
 
 - Request IDs are assigned in middleware and returned as the `x-request-id` response header.
-- Structured JSON logs are emitted through `src/lib/logger.ts` and redact common secrets automatically.
+- Structured JSON logs are emitted through `src/lib/logger.ts` and redact common secrets automatically. See [`docs/logging.md`](./docs/logging.md) for event naming, safe metadata, worker logging, and guardrail rules.
 - Runtime process failures are captured in `src/instrumentation.ts`.
 - Health checks are exposed at `/api/health` with process and database status.
-- `LOG_LEVEL` and `ENABLE_REQUEST_LOGGING` control verbosity and request logging behavior.
+- `LOG_LEVEL` controls severity filtering. `ENABLE_REQUEST_LOGGING=true` enables opt-in request completion logs.
 
 ## Dependency Safety
 
 - pnpm is configured with a 7-day package release delay through `.npmrc`
 - uv worker resolution is configured with `exclude-newer = "1 week"`
 - `validate.ps1` fails if the installed pnpm or uv version does not support those controls
+- Trivy runs from a repo-pinned digest image and must satisfy the same 7-day
+  scanner release cooldown. Override only with
+  `-AllowTrivyCooldownOverride` for an approved emergency.
+- Trivy runtime image scans block fixable High/Critical vulnerabilities; unfixed
+  distro findings are ignored by the gate until an upstream fix exists.
+
+Run the Trivy gate directly when you only need image/IaC supply-chain checks:
+
+```powershell
+pnpm run supply-chain:audit
+```
+
+Reports are written under `.artifacts/supply-chain-audit/`.
 
 ## Suggested Next Step
 

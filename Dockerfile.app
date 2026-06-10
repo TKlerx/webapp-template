@@ -1,7 +1,10 @@
 FROM node:24-bookworm-slim AS base
 WORKDIR /app
 ENV COREPACK_HOME=/corepack
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /corepack \
     && corepack enable \
     && corepack prepare pnpm@11.1.0 --activate

@@ -1,6 +1,6 @@
 # Business App Starter Specs Overview
 
-Last Updated: 2026-06-04
+Last Updated: 2026-06-10
 
 Purpose: Track the status of all planned features, their implementation progress, and next steps.
 
@@ -28,6 +28,8 @@ Purpose: Track the status of all planned features, their implementation progress
 | 015 | Teams Messaging Skeleton      | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
 | 016 | Runtime Credential Separation | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
 | 017 | DeepSec Remediation           | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
+| 018 | OpenTofu Azure Infrastructure | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
+| 019 | Logging Standardization       | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
 
 ## Implementation Roadmap
 
@@ -41,6 +43,8 @@ Purpose: Track the status of all planned features, their implementation progress
 - 015 Teams Messaging Skeleton: fully implemented
 - 016 Runtime Credential Separation: fully implemented
 - 017 DeepSec Remediation: fully implemented
+- 018 OpenTofu Azure Infrastructure: fully implemented
+- 019 Logging Standardization: fully implemented
 
 ### Begin Immediately
 

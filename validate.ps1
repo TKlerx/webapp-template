@@ -7,13 +7,13 @@
     Usage: ./validate.ps1 [phase]
     Phases:
       all      - typecheck + TS/Python/CLI quality + semgrep + test (default, pre-commit)
-      full     - all quality checks + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
+      full     - all quality checks + Trivy supply-chain audit + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
       continuity - check whether CONTINUE.md / CONTINUE_LOG.md need a refresh
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
       quality  - TS/Python/CLI quality + semgrep
-      commit   - validate all + blocking shipped-deps audit + continuity, then git add + commit + push
+      commit   - validate all + blocking Trivy supply-chain audit + shipped-deps audit + continuity, then git add + commit + push
 
     Set QUALITY_THRESHOLDS_BYPASS=1 to make configured quality thresholds
     advisory while keeping formatting, lint correctness, tests, and security
@@ -553,6 +553,100 @@ function Test-ContinuityFreshness {
     }
 }
 
+function Test-OpenTofuInfrastructure {
+    Write-Step "OpenTofu infrastructure"
+    $tempRoot = $null
+    try {
+        if (-not (Test-Path "infra\azure" -PathType Container)) {
+            Write-Pass "OpenTofu infrastructure check passed (infra/azure not present)"
+            return
+        }
+
+        $tofuVersion = Invoke-NativeCommandCaptured "tofu version"
+        if ($tofuVersion.ExitCode -ne 0) {
+            throw "OpenTofu CLI is required for infra validation"
+        }
+
+        $fmtExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure fmt -check -recursive"
+        if ($fmtExitCode -ne 0) {
+            throw "tofu fmt failed for infra/azure"
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("webapp-template-infra-validate-" + [System.Guid]::NewGuid().ToString("N"))
+        $infraWorkDir = Join-Path $tempRoot "azure"
+        Copy-Item -Path "infra\azure" -Destination $infraWorkDir -Recurse
+
+        $rootTerraformDir = Join-Path $infraWorkDir ".terraform"
+        if (Test-Path $rootTerraformDir) {
+            Remove-Item -LiteralPath $rootTerraformDir -Recurse -Force
+        }
+
+        $rootBackendPath = Join-Path $infraWorkDir "backend.tf"
+        if (Test-Path $rootBackendPath) {
+            Remove-Item -LiteralPath $rootBackendPath -Force
+        }
+
+        $bootstrapTerraformDir = Join-Path $infraWorkDir "bootstrap\.terraform"
+        if (Test-Path $bootstrapTerraformDir) {
+            Remove-Item -LiteralPath $bootstrapTerraformDir -Recurse -Force
+        }
+
+        $rootInitExitCode = Invoke-NativeCommand "tofu -chdir=""$infraWorkDir"" init -backend=false -input=false -reconfigure"
+        if ($rootInitExitCode -ne 0) {
+            throw "tofu init failed for infra/azure"
+        }
+
+        $rootValidateExitCode = Invoke-NativeCommand "tofu -chdir=""$infraWorkDir"" validate"
+        if ($rootValidateExitCode -ne 0) {
+            throw "tofu validate failed for infra/azure"
+        }
+
+        $bootstrapWorkDir = Join-Path $infraWorkDir "bootstrap"
+        $bootstrapInitExitCode = Invoke-NativeCommand "tofu -chdir=""$bootstrapWorkDir"" init -backend=false -input=false -reconfigure"
+        if ($bootstrapInitExitCode -ne 0) {
+            throw "tofu init failed for infra/azure/bootstrap"
+        }
+
+        $bootstrapValidateExitCode = Invoke-NativeCommand "tofu -chdir=""$bootstrapWorkDir"" validate"
+        if ($bootstrapValidateExitCode -ne 0) {
+            throw "tofu validate failed for infra/azure/bootstrap"
+        }
+
+        Write-Pass "OpenTofu infrastructure check passed"
+    } catch {
+        Write-Fail "OpenTofu infrastructure check failed"
+        Write-Host $_ -ForegroundColor Red
+        $script:failures += "opentofu"
+    } finally {
+        if ($tempRoot -and (Test-Path $tempRoot)) {
+            Remove-Item -LiteralPath $tempRoot -Recurse -Force
+        }
+    }
+}
+
+function Test-SupplyChainAudit {
+    Write-Step "Supply-chain audit (Trivy High/Critical blocking)"
+    try {
+        if (-not (Test-Path "scripts\supply-chain-audit.ps1" -PathType Leaf)) {
+            throw "scripts/supply-chain-audit.ps1 is missing"
+        }
+
+        $reportPath = ".artifacts\supply-chain-audit\validate-$Phase.json"
+        $result = Invoke-NativeCommandCaptured "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/supply-chain-audit.ps1 -ReportPath ""$reportPath"""
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "supply-chain audit failed"
+        }
+
+        $result.Output | Out-Host
+        Write-Pass "supply-chain audit passed"
+    } catch {
+        Write-Fail "supply-chain audit failed"
+        Write-Host $_.Exception.Message -ForegroundColor Yellow
+        $script:failures += "supply-chain-audit"
+    }
+}
+
 function Test-ProductionDependencyAudit([switch]$Blocking) {
     Write-Step "Production dependency audit (pnpm audit --prod --no-optional)"
     try {
@@ -1076,6 +1170,18 @@ if ($Phase -in "all", "full", "quality", "commit") {
 }
 
 if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "Logging guard"
+    try {
+        $exitCode = Invoke-NativeCommand "pnpm run logging:guard"
+        if ($exitCode -ne 0) { throw "logging guard failed" }
+        Write-Pass "logging guard passed"
+    } catch {
+        Write-Fail "logging guard failed"
+        $failures += "logging-guard"
+    }
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
     Test-Utf8Encoding
 }
 
@@ -1093,6 +1199,10 @@ if ($Phase -in "all", "full", "quality", "commit") {
 
 if ($Phase -in "all", "full", "quality", "commit") {
     Test-SpecWorkflowStages
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Test-OpenTofuInfrastructure
 }
 
 if ($Phase -in "all", "full", "test", "commit") {
@@ -1171,6 +1281,10 @@ if ($Phase -in "all", "full", "test", "commit") {
 
 if ($Phase -in "continuity", "commit") {
     Test-ContinuityFreshness
+}
+
+if ($Phase -in "full", "commit") {
+    Test-SupplyChainAudit
 }
 
 if ($Phase -in "full", "commit") {

@@ -156,8 +156,7 @@ def _get_access_token(client_id: str, client_secret: str, tenant_id: str) -> str
         with urllib.request.urlopen(token_request, timeout=30) as response:
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
-        details = error.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"Graph token request failed: {error.code} {details}") from error
+        raise RuntimeError(f"Graph token request failed: HTTP {error.code}") from error
     except urllib.error.URLError as error:
         raise RuntimeError(f"Graph token request failed: {error.reason}") from error
 
@@ -201,7 +200,6 @@ def _graph_request(
             body = response.read().decode("utf-8")
             return json.loads(body) if body else {}
     except urllib.error.HTTPError as error:
-        details = error.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"{error_prefix}: {error.code} {details}") from error
+        raise RuntimeError(f"{error_prefix}: HTTP {error.code}") from error
     except urllib.error.URLError as error:
         raise RuntimeError(f"{error_prefix}: {error.reason}") from error

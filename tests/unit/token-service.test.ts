@@ -19,6 +19,7 @@ import {
   getTokenDisplayPrefix,
   hashToken,
   listTokens,
+  touchTokenLastUsed,
   validateToken,
 } from "@/services/api/tokens";
 
@@ -187,5 +188,22 @@ describe("token service", () => {
 
     expect(recentOnly).toHaveLength(1);
     expect(allTokens).toHaveLength(2);
+  });
+
+  it("logs last-used update failures as structured operational events", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    prismaMock.personalAccessToken.update.mockRejectedValue(
+      new Error("db unavailable"),
+    );
+
+    await touchTokenLastUsed("token-1");
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse(String(errorSpy.mock.calls[0][0]));
+    expect(payload).toMatchObject({
+      event: "tokens.last_used_update_failed",
+      component: "tokens",
+      tokenId: "token-1",
+    });
   });
 });

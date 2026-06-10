@@ -86,6 +86,20 @@ sequenceDiagram
   - `exclude-newer = "1 week"`
 - validation fails if the local `uv` binary does not support `--exclude-newer`
 
+### Trivy
+
+- repo-local audit script: `scripts/supply-chain-audit.ps1`
+- default scanner image is pinned by digest
+- scanner image release timestamp must be at least 7 days old
+- runtime image scans use `--ignore-unfixed` so the gate blocks fixable
+  High/Critical CVEs and avoids permanent failure on distro findings without an
+  upstream fix
+- custom scanner images require both:
+  - `WEBAPP_TEMPLATE_TRIVY_IMAGE`
+  - `WEBAPP_TEMPLATE_TRIVY_IMAGE_RELEASED_AT`
+- emergency cooldown bypass requires explicit `-AllowTrivyCooldownOverride` or
+  `WEBAPP_TEMPLATE_ALLOW_TRIVY_COOLDOWN_OVERRIDE=1`
+
 ## Background Jobs Runtime
 
 - jobs are created via the Next.js API
