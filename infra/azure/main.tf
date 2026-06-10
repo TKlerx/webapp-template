@@ -66,6 +66,7 @@ module "secrets" {
   deployment_identity_object_id = var.deployment_identity_object_id
   private_endpoint_subnet_id    = module.network.private_endpoints_subnet_id
   virtual_network_id            = module.network.virtual_network_id
+  key_vault_allowed_ip_rules    = var.key_vault_allowed_ip_rules
   admin_database_url            = module.data.admin_database_url
   app_database_url              = module.data.app_database_url
   worker_database_url           = module.data.worker_database_url

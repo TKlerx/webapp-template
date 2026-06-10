@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { AuditAction } from "../../generated/prisma/enums";
+
+const auditLogger = logger.child({ component: "audit" });
 
 export type LogAuditInput = {
   action: AuditAction;
@@ -27,7 +30,14 @@ export async function safeLogAudit(input: LogAuditInput) {
   try {
     return await logAudit(input);
   } catch (error) {
-    console.error("audit.write_failed", error);
+    auditLogger.error("audit.write_failed", {
+      error,
+      actorId: input.actorId,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      scopeId: input.scopeId ?? null,
+      action: input.action,
+    });
     return null;
   }
 }

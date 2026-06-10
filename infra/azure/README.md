@@ -40,7 +40,11 @@ Database access:
 
 Secret exposure:
 
-- Key Vault is RBAC-protected and has a private endpoint for runtime access. Public network access remains enabled by default so local/GitHub-hosted OpenTofu runners can create the initial secrets; use a VNet-hosted runner before disabling it.
+- Key Vault is RBAC-protected, default-deny at the network ACL, and has a
+  private endpoint for runtime access. Public network access remains enabled so
+  deployment-time secret writes can be performed from explicitly allowed
+  operator or CI public IPv4/CIDR ranges in `key_vault_allowed_ip_rules`; keep
+  that list empty when OpenTofu runs from inside the VNet.
 - App runtime: `app-database-url`, `betterauth-secret`; Teams secrets only when `enable_teams=true`.
 - Worker runtime: `worker-database-url`; Graph mail secrets only when `enable_mail=true`; Teams worker secrets only when `enable_teams=true`.
 - Migration job: `migration-database-url`, `initial-admin-*`, plus `admin-database-url`, `app-database-url`, and `worker-database-url` for the one-time PostgreSQL role bootstrap path.

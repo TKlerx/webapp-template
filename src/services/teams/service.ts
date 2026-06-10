@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { NotificationEventType } from "../../../generated/prisma/enums";
 import { createGraphTeamsClient } from "@/lib/teams/client";
 import { getOrCreateTeamsConfig } from "@/services/teams/admin";
 
 const MAX_TEAMS_CONTENT_BYTES = 28 * 1024;
 const DELIVERY_JOB_TYPE = "teams_message_delivery";
+const teamsLogger = logger.child({ component: "teams" });
 
 type QueueTeamsInput = {
   actorId: string;
@@ -17,7 +19,12 @@ export async function safeQueueTeamsMessages(input: QueueTeamsInput) {
   try {
     await queueTeamsMessages(input);
   } catch (error) {
-    console.error("teams.queue_failed", error);
+    teamsLogger.error("teams.queue_failed", {
+      error,
+      actorId: input.actorId,
+      eventType: input.eventType,
+      eventId: input.eventId ?? null,
+    });
   }
 }
 

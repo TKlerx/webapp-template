@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
+import { logger } from "@/lib/logger";
 import { Prisma } from "../../../generated/prisma/client";
 import {
   TokenStatus,
@@ -15,6 +16,7 @@ const DEFAULT_PAT_LIMIT = 10;
 const RECENTLY_VISIBLE_WINDOW_DAYS = 90;
 const TOKEN_SEGMENT_LENGTH = 8;
 const SERIALIZABLE_RETRY_LIMIT = 3;
+const tokenLogger = logger.child({ component: "tokens" });
 
 function readPositiveInteger(value: string | undefined, fallback: number) {
   const parsed = Number.parseInt(value ?? "", 10);
@@ -483,6 +485,6 @@ export async function touchTokenLastUsed(tokenId: string) {
       },
     });
   } catch (error) {
-    console.error("tokens.last_used_update_failed", error);
+    tokenLogger.error("tokens.last_used_update_failed", { error, tokenId });
   }
 }

@@ -43,6 +43,12 @@ variable "virtual_network_id" {
   type        = string
 }
 
+variable "key_vault_allowed_ip_rules" {
+  description = "Public IPv4/CIDR ranges allowed to access the Key Vault data plane for deployment-time secret writes."
+  type        = list(string)
+  default     = []
+}
+
 variable "admin_database_url" {
   description = "Admin database URL stored in Key Vault for migration job role provisioning only."
   type        = string

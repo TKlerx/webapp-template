@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import os
 import re
@@ -11,14 +10,15 @@ from .config import load_config
 from .db import BackgroundJob, JobStore
 from .graph_mail import get_graph_mail_message, list_graph_mail_messages, send_graph_mail
 from .graph_teams import list_teams_channel_messages, send_teams_channel_message
+from .logging import create_worker_logger, sanitize_log_meta
 
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s",
+    format="%(message)s",
 )
 
-logger = logging.getLogger("starter-worker")
+worker_logger = create_worker_logger()
 
 NOTIFICATION_REFERENCE_PATTERN = re.compile(r"\[notification:([a-zA-Z0-9_-]+)\]", re.IGNORECASE)
 ENTITY_REFERENCE_PATTERN = re.compile(r"\[ref:([a-zA-Z0-9_.-]+):([^\]\s]+)\]", re.IGNORECASE)
@@ -418,23 +418,64 @@ def _truncate_text(content: str, limit_bytes: int) -> tuple[str, bool]:
     return marker, True
 
 
+def _log_worker_started(config: object) -> None:
+    worker_logger.info(
+        "worker.started",
+        workerId=getattr(config, "worker_id", None),
+        pollIntervalSeconds=getattr(config, "poll_interval_seconds", None),
+        maxAttempts=getattr(config, "max_attempts", None),
+        retryBackoffSeconds=getattr(config, "retry_backoff_seconds", None),
+        staleLockSeconds=getattr(config, "stale_lock_seconds", None),
+    )
+
+
+def _log_jobs_requeued_stale(count: int) -> None:
+    worker_logger.warning("jobs.requeued_stale", count=count)
+
+
+def _log_teams_poll_scheduled() -> None:
+    worker_logger.info("teams.poll_scheduled")
+
+
+def _log_job_claimed(job: BackgroundJob) -> None:
+    worker_logger.info(
+        "job.claimed",
+        jobId=job.id,
+        jobType=job.job_type,
+        attempt=job.attempt_count,
+    )
+
+
+def _log_job_completed(job: BackgroundJob, result: dict[str, object]) -> None:
+    worker_logger.info(
+        "job.completed",
+        jobId=job.id,
+        jobType=job.job_type,
+        status="completed",
+        result=sanitize_log_meta(result),
+    )
+
+
+def _log_job_failed(job: BackgroundJob, error: BaseException) -> None:
+    worker_logger.exception(
+        "job.failed",
+        error,
+        jobId=job.id,
+        jobType=job.job_type,
+        attempt=job.attempt_count,
+    )
+
+
 def main() -> None:
     config = load_config()
     store = JobStore(config)
-    logger.info(
-        "worker.started worker_id=%s poll_interval=%s max_attempts=%s retry_backoff=%s stale_lock=%s",
-        config.worker_id,
-        config.poll_interval_seconds,
-        config.max_attempts,
-        config.retry_backoff_seconds,
-        config.stale_lock_seconds,
-    )
+    _log_worker_started(config)
 
     next_teams_poll_at = 0.0
     while True:
         recovered_count = store.requeue_stale_jobs()
         if recovered_count:
-            logger.warning("jobs.requeued_stale count=%s", recovered_count)
+            _log_jobs_requeued_stale(recovered_count)
 
         if _is_teams_enabled():
             flags = store.get_teams_integration_flags()
@@ -442,14 +483,14 @@ def main() -> None:
                 created_poll_job = store.create_teams_intake_poll_job_if_missing()
                 next_teams_poll_at = time.time() + max(config.teams_poll_interval_seconds, 1)
                 if created_poll_job:
-                    logger.info("teams.poll_scheduled")
+                    _log_teams_poll_scheduled()
 
         job = store.claim_next_job()
         if job is None:
             time.sleep(config.poll_interval_seconds)
             continue
 
-        logger.info("job.claimed id=%s type=%s attempt=%s", job.id, job.job_type, job.attempt_count)
+        _log_job_claimed(job)
         try:
             notification_id = str(job.payload.get("notificationId") or "").strip()
             if job.job_type == "notification_delivery" and notification_id:
@@ -470,7 +511,7 @@ def main() -> None:
             if job.job_type == "teams_message_delivery" and teams_outbound_id:
                 graph_message_id = str(result.get("graphMessageId") or "").strip() or None
                 store.mark_teams_outbound_sent(teams_outbound_id, graph_message_id)
-            logger.info("job.completed id=%s result=%s", job.id, json.dumps(result))
+            _log_job_completed(job, result)
         except Exception as error:  # noqa: BLE001
             notification_id = str(job.payload.get("notificationId") or "").strip()
             if job.job_type == "notification_delivery" and notification_id:
@@ -489,7 +530,7 @@ def main() -> None:
                     will_retry=job.attempt_count < config.max_attempts,
                 )
             store.fail_job(job.id, str(error))
-            logger.exception("job.failed id=%s attempt=%s", job.id, job.attempt_count)
+            _log_job_failed(job, error)
 
 
 def _is_teams_enabled() -> bool:

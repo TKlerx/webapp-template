@@ -17,6 +17,7 @@ vi.mock("@/services/teams/service", () => ({
 import {
   queueRoleChangedNotifications,
   queueUserCreatedNotifications,
+  safeQueueUserCreatedNotifications,
 } from "@/services/notifications/service";
 
 describe("notification service", () => {
@@ -136,5 +137,34 @@ describe("notification service", () => {
         subject: expect.any(String),
       }),
     });
+  });
+
+  it("logs queue failures as structured operational events without raw identity values", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    prismaMock.user.findMany.mockRejectedValue(new Error("db unavailable"));
+
+    await safeQueueUserCreatedNotifications({
+      actorId: "admin-1",
+      user: {
+        id: "user-1",
+        email: "new.user@example.com",
+        name: "New User",
+        locale: "en",
+        role: Role.SCOPE_USER,
+        status: UserStatus.ACTIVE,
+      },
+    });
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    const raw = String(errorSpy.mock.calls[0][0]);
+    const payload = JSON.parse(raw);
+    expect(payload).toMatchObject({
+      event: "notifications.queue_user_created_failed",
+      component: "notifications",
+      actorId: "admin-1",
+      affectedUserId: "user-1",
+    });
+    expect(raw).not.toContain("new.user@example.com");
+    expect(raw).not.toContain("New User");
   });
 });

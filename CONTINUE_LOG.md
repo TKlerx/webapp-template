@@ -1306,36 +1306,42 @@
 - Latest non-continuity commit: 23dbb9b feat(018): enforce Azure runtime secret exposure.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T039.
+
 ## 2026-06-08 00:22:20
 
 - Branch snapshot refreshed for `018-opentofu-azure-infra`.
 - Latest non-continuity commit: 56ff722 feat(018): add Azure observability checks.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T044.
+
 ## 2026-06-08 08:58:31
 
 - Branch snapshot refreshed for `018-opentofu-azure-infra`.
 - Latest non-continuity commit: 06c1771 feat(018): add Azure environment isolation.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T045.
+
 ## 2026-06-08 08:58:58
 
 - Branch snapshot refreshed for `018-opentofu-azure-infra`.
 - Latest non-continuity commit: 06c1771 feat(018): add Azure environment isolation.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: 018-opentofu-azure-infra: T046.
+
 ## 2026-06-08 13:24:00
 
 - Branch snapshot refreshed for `018-opentofu-azure-infra`.
 - Latest non-continuity commit: e3bf705 chore(018): finalize Azure infra validation.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: no next task.
+
 ## 2026-06-08 14:01:09
 
 - Branch snapshot refreshed for `018-opentofu-azure-infra`.
 - Latest non-continuity commit: 1ae68f5 fix(018): capture Azure live validation fixes.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: no next task.
+
 ## 2026-06-08 17:06:53
 
 - Added staged `.gitattributes` LF-only policy to prevent CRLF status noise.
@@ -1343,9 +1349,77 @@
 - Cleared prior line-ending index noise; staged diff only includes `.gitattributes` and continuity updates.
 - Active specs: 016-runtime-credential-separation, 017-deepsec-remediation, 018-opentofu-azure-infra, base.
 - Next focus: commit/push LF policy cleanup if desired.
+
 ## 2026-06-09 15:48:51
 
 - Branch snapshot refreshed for `018-opentofu-azure-infra`.
 - Latest non-continuity commit: b261f11 chore: enforce LF line endings.
 - Active specs: 018-opentofu-azure-infra, base.
 - Next focus: no next task.
+
+## 2026-06-10 21:43:04
+
+- Branch snapshot refreshed for `019-logging-standardization`.
+- Latest non-continuity commit: b8b21ef feat: add trivy supply-chain audit.
+- Active specs: 019-logging-standardization.
+- Next focus: no next task.
+
+## 2026-06-10 23:12:42
+
+- Branch snapshot refreshed for `019-logging-standardization`.
+- Latest non-continuity commit: b8b21ef feat: add trivy supply-chain audit.
+- Active specs: 019-logging-standardization.
+- Next focus: no next task.
+
+## 2026-06-10 23:15:00
+
+- Generated implementation plan and design artifacts for `019-logging-standardization`.
+- Recorded overlap with unfinished `018-opentofu-azure-infra` in `ACTIVE_SPECS.md`.
+- Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
+- Next focus: run `/speckit.tasks` for 019, then `/speckit.analyze`.
+
+## 2026-06-10 23:18:36
+
+- Branch snapshot refreshed for `019-logging-standardization`.
+- Latest non-continuity commit: b8b21ef feat: add trivy supply-chain audit.
+- Active specs: 019-logging-standardization.
+- Next focus: 019-logging-standardization: T001.
+
+## 2026-06-10 23:19:00
+
+- Generated `tasks.md` and `clarify.md` for `019-logging-standardization`.
+- Refreshed spec overview and continuity after task generation.
+- Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
+- Next focus: run `/speckit.analyze` for 019 before implementation.
+
+## 2026-06-10 23:25:00
+
+- Applied analyze remediation edits for `019-logging-standardization`.
+- Resolved request-start/request-completion wording conflict, added process-level logging coverage, clarified proxy-visible request status, and tightened measurable redaction/docs tasks.
+- Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
+- Next focus: start implementation at T001 for 019.
+
+## 2026-06-11 00:00:00
+
+- Implemented `019-logging-standardization` app logger event shape, redaction hardening, opt-in request completion logs, app service/audit/instrumentation structured logs, worker JSON logging, logging guard validation, and logging docs.
+- Focused validation passed: logging Vitest suite, worker pytest suite, and `pnpm run logging:guard`.
+- `.\validate.ps1 all` passed typecheck, mypy, lint, prettier, architecture, duplication, Python/CLI quality, runtime credential validation, logging guard, UTF-8, dependency cooldown, template provenance, spec overview, workflow stage checks, pytest, and Vitest.
+- `.\validate.ps1 all` still failed on unrelated 018 Azure gates: Semgrep findings in `infra/azure/bootstrap/main.tf` and `infra/azure/modules/secrets/main.tf`; OpenTofu init failed because `wattest-bootstrap-rg` no longer exists.
+- Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
+- Next focus: decide whether to fix/defer Azure gates, then rerun `.\validate.ps1 all` and complete T040.
+
+## 2026-06-11 00:20:00
+
+- Fixed the two blocking Azure Semgrep findings: state storage now includes Azure service/logging/metrics bypass entries; Key Vault network ACLs now default-deny with configurable `key_vault_allowed_ip_rules`.
+- `pnpm run semgrep` passed with 0 findings.
+- `.\validate.ps1 all` now passes every gate except OpenTofu infrastructure init, which still fails because the deleted `wattest-bootstrap-rg` backend resource group is missing.
+- Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
+- Next focus: restore/reconfigure or explicitly defer the OpenTofu backend gate, then rerun `.\validate.ps1 all`.
+
+## 2026-06-11 00:30:00
+
+- Updated `validate.ps1` OpenTofu validation to use a temporary backend-disabled copy of `infra/azure`, removing `backend.tf` and stale `.terraform` metadata before `tofu init`.
+- `.\validate.ps1 all` passed completely, including Semgrep, OpenTofu infrastructure validation, Python pytest, and Vitest.
+- Marked 019 task T040 complete.
+- Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
+- Next focus: review, commit, and push the completed 019 changes.

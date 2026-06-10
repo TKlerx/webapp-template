@@ -1,5 +1,7 @@
 import { logger } from "@/lib/logger";
 
+const instrumentationLogger = logger.child({ component: "instrumentation" });
+
 declare global {
   var __businessAppStarterInstrumentationRegistered: boolean | undefined;
 }
@@ -14,15 +16,15 @@ export async function register() {
   const processRef = getNodeProcess();
   if (processRef) {
     processRef.on("uncaughtException", (error) => {
-      logger.error("process.uncaught_exception", { error });
+      instrumentationLogger.error("process.uncaught_exception", { error });
     });
 
     processRef.on("unhandledRejection", (reason) => {
-      logger.error("process.unhandled_rejection", { reason });
+      instrumentationLogger.error("process.unhandled_rejection", { reason });
     });
   }
 
-  logger.info("observability.initialized", {
+  instrumentationLogger.info("observability.initialized", {
     logLevel: process.env.LOG_LEVEL ?? "info",
   });
 }

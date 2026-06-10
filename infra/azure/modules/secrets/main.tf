@@ -58,7 +58,8 @@ resource "azurerm_key_vault" "environment" {
 
   network_acls {
     bypass         = "AzureServices"
-    default_action = "Allow"
+    default_action = "Deny"
+    ip_rules       = var.key_vault_allowed_ip_rules
   }
 
   lifecycle {

@@ -555,6 +555,7 @@ function Test-ContinuityFreshness {
 
 function Test-OpenTofuInfrastructure {
     Write-Step "OpenTofu infrastructure"
+    $tempRoot = $null
     try {
         if (-not (Test-Path "infra\azure" -PathType Container)) {
             Write-Pass "OpenTofu infrastructure check passed (infra/azure not present)"
@@ -571,22 +572,42 @@ function Test-OpenTofuInfrastructure {
             throw "tofu fmt failed for infra/azure"
         }
 
-        $rootInitExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure init -backend=false -input=false"
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("webapp-template-infra-validate-" + [System.Guid]::NewGuid().ToString("N"))
+        $infraWorkDir = Join-Path $tempRoot "azure"
+        Copy-Item -Path "infra\azure" -Destination $infraWorkDir -Recurse
+
+        $rootTerraformDir = Join-Path $infraWorkDir ".terraform"
+        if (Test-Path $rootTerraformDir) {
+            Remove-Item -LiteralPath $rootTerraformDir -Recurse -Force
+        }
+
+        $rootBackendPath = Join-Path $infraWorkDir "backend.tf"
+        if (Test-Path $rootBackendPath) {
+            Remove-Item -LiteralPath $rootBackendPath -Force
+        }
+
+        $bootstrapTerraformDir = Join-Path $infraWorkDir "bootstrap\.terraform"
+        if (Test-Path $bootstrapTerraformDir) {
+            Remove-Item -LiteralPath $bootstrapTerraformDir -Recurse -Force
+        }
+
+        $rootInitExitCode = Invoke-NativeCommand "tofu -chdir=""$infraWorkDir"" init -backend=false -input=false -reconfigure"
         if ($rootInitExitCode -ne 0) {
             throw "tofu init failed for infra/azure"
         }
 
-        $rootValidateExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure validate"
+        $rootValidateExitCode = Invoke-NativeCommand "tofu -chdir=""$infraWorkDir"" validate"
         if ($rootValidateExitCode -ne 0) {
             throw "tofu validate failed for infra/azure"
         }
 
-        $bootstrapInitExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure/bootstrap init -backend=false -input=false"
+        $bootstrapWorkDir = Join-Path $infraWorkDir "bootstrap"
+        $bootstrapInitExitCode = Invoke-NativeCommand "tofu -chdir=""$bootstrapWorkDir"" init -backend=false -input=false -reconfigure"
         if ($bootstrapInitExitCode -ne 0) {
             throw "tofu init failed for infra/azure/bootstrap"
         }
 
-        $bootstrapValidateExitCode = Invoke-NativeCommand "tofu -chdir=infra/azure/bootstrap validate"
+        $bootstrapValidateExitCode = Invoke-NativeCommand "tofu -chdir=""$bootstrapWorkDir"" validate"
         if ($bootstrapValidateExitCode -ne 0) {
             throw "tofu validate failed for infra/azure/bootstrap"
         }
@@ -596,6 +617,10 @@ function Test-OpenTofuInfrastructure {
         Write-Fail "OpenTofu infrastructure check failed"
         Write-Host $_ -ForegroundColor Red
         $script:failures += "opentofu"
+    } finally {
+        if ($tempRoot -and (Test-Path $tempRoot)) {
+            Remove-Item -LiteralPath $tempRoot -Recurse -Force
+        }
     }
 }
 
@@ -1141,6 +1166,18 @@ if ($Phase -in "all", "full", "quality", "commit") {
     } catch {
         Write-Fail "runtime credential validation failed"
         $failures += "runtime-credentials"
+    }
+}
+
+if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "Logging guard"
+    try {
+        $exitCode = Invoke-NativeCommand "pnpm run logging:guard"
+        if ($exitCode -ne 0) { throw "logging guard failed" }
+        Write-Pass "logging guard passed"
+    } catch {
+        Write-Fail "logging guard failed"
+        $failures += "logging-guard"
     }
 }
 

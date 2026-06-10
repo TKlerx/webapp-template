@@ -297,6 +297,12 @@ variable "private_endpoints_subnet_address_prefix" {
   default     = "10.42.9.0/24"
 }
 
+variable "key_vault_allowed_ip_rules" {
+  description = "Public IPv4/CIDR ranges allowed to access Key Vault data plane for deployment-time secret writes. Keep empty when running OpenTofu from inside the VNet."
+  type        = list(string)
+  default     = []
+}
+
 variable "initial_admin_email" {
   description = "Initial seeded admin email for the migration job."
   type        = string

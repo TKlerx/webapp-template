@@ -5,6 +5,7 @@ type LoggerConfig = {
   level?: LogLevel;
   baseMeta?: LogMeta;
 };
+type SanitizedQuery = Record<string, string | string[]>;
 
 const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   debug: 10,
@@ -29,10 +30,22 @@ const REDACTED_KEYS = new Set([
   "apiKey",
   "apiToken",
   "sessionToken",
+  "email",
+  "userEmail",
+  "recipientEmail",
+  "senderEmail",
+  "displayName",
+  "senderDisplayName",
+  "recipientName",
+  "userName",
 ]);
 const REDACTED_KEYS_NORMALIZED = new Set(
   Array.from(REDACTED_KEYS, (key) => normalizeKeyName(key)),
 );
+const MAX_LOG_DEPTH = 5;
+const MAX_STRING_LENGTH = 4096;
+const REDACTED_VALUE = "[REDACTED]";
+const TRUNCATED_VALUE = "[Truncated]";
 
 function normalizeKeyName(key: string) {
   return key.toLowerCase().replaceAll(/[^a-z0-9]/g, "");
@@ -61,12 +74,20 @@ function getConfiguredLevel(): LogLevel {
   return "info";
 }
 
+function sanitizeString(value: string) {
+  if (value.length <= MAX_STRING_LENGTH) {
+    return value;
+  }
+
+  return `${value.slice(0, MAX_STRING_LENGTH)}...[Truncated]`;
+}
+
 function sanitizeValue(value: unknown, depth = 0): unknown {
   if (value instanceof Error) {
     return {
       name: value.name,
-      message: value.message,
-      stack: value.stack,
+      message: sanitizeString(value.message),
+      stack: value.stack ? sanitizeString(value.stack) : value.stack,
     };
   }
 
@@ -74,19 +95,23 @@ function sanitizeValue(value: unknown, depth = 0): unknown {
     return value;
   }
 
-  if (depth >= 5) {
-    return "[Truncated]";
+  if (depth >= MAX_LOG_DEPTH) {
+    return TRUNCATED_VALUE;
   }
 
   if (Array.isArray(value)) {
     return value.map((item) => sanitizeValue(item, depth + 1));
   }
 
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
   if (typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>).map(
       ([key, entryValue]) => {
         if (isSensitiveKey(key)) {
-          return [key, "[REDACTED]"];
+          return [key, REDACTED_VALUE];
         }
 
         return [key, sanitizeValue(entryValue, depth + 1)];
@@ -96,10 +121,18 @@ function sanitizeValue(value: unknown, depth = 0): unknown {
     return Object.fromEntries(entries);
   }
 
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
+
+  if (typeof value === "string") {
+    return sanitizeString(value);
+  }
+
   return value;
 }
 
-function sanitizeMeta(meta: LogMeta) {
+export function sanitizeLogMeta(meta: LogMeta) {
   return sanitizeValue(meta) as LogMeta;
 }
 
@@ -118,6 +151,46 @@ function getConsoleMethod(level: LogLevel) {
     case "error":
       return console.error;
   }
+}
+
+function isRequestLoggingEnabled() {
+  const value = process.env.ENABLE_REQUEST_LOGGING?.trim().toLowerCase();
+  return value === "1" || value === "true" || value === "yes";
+}
+
+export function shouldEmitRequestLog(pathname: string) {
+  return (
+    isRequestLoggingEnabled() &&
+    !pathname.startsWith("/_next") &&
+    !pathname.startsWith("/favicon") &&
+    !pathname.includes(".")
+  );
+}
+
+export function sanitizeRequestPath(pathname: string) {
+  return pathname || "/";
+}
+
+export function sanitizeRequestQuery(
+  searchParams: URLSearchParams,
+  allowlist: readonly string[] = [],
+): SanitizedQuery | undefined {
+  const allowed = new Set(allowlist);
+  const sanitized: SanitizedQuery = {};
+
+  for (const key of allowed) {
+    const values = searchParams.getAll(key).filter((value) => value !== "");
+    if (values.length === 0) {
+      continue;
+    }
+
+    sanitized[key] =
+      values.length === 1
+        ? sanitizeString(values[0])
+        : values.map((value) => sanitizeString(value));
+  }
+
+  return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }
 
 export function createRequestId() {
@@ -140,7 +213,7 @@ export function createLogger(config: LoggerConfig = {}) {
   const configuredLevel = config.level ?? getConfiguredLevel();
   const baseMeta = config.baseMeta ?? {};
 
-  function log(level: LogLevel, message: string, meta: LogMeta = {}) {
+  function log(level: LogLevel, event: string, meta: LogMeta = {}) {
     if (!shouldLog(configuredLevel, level)) {
       return;
     }
@@ -148,12 +221,16 @@ export function createLogger(config: LoggerConfig = {}) {
     const entry = {
       timestamp: new Date().toISOString(),
       level,
-      message,
-      ...sanitizeMeta(baseMeta),
-      ...sanitizeMeta(meta),
+      event,
+      ...sanitizeLogMeta(baseMeta),
+      ...sanitizeLogMeta(meta),
     };
 
-    getConsoleMethod(level)(JSON.stringify(entry));
+    try {
+      getConsoleMethod(level)(JSON.stringify(entry));
+    } catch {
+      // Logging must not break the primary operation.
+    }
   }
 
   return {

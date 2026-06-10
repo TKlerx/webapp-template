@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getScopedCookiePath } from "@/lib/azure-auth";
 import { auth, getBetterAuthCookieNames } from "@/lib/better-auth";
-import { createRequestId, logger } from "@/lib/logger";
+import {
+  createRequestId,
+  logger,
+  sanitizeRequestPath,
+  sanitizeRequestQuery,
+  shouldEmitRequestLog,
+} from "@/lib/logger";
 import { AuthMethod, UserStatus } from "../generated/prisma/enums";
 
 const configuredBasePath =
@@ -17,6 +23,7 @@ const PUBLIC_PATHS = [
 ];
 const cookiePath = getScopedCookiePath();
 const proxyLogger = logger.child({ component: "proxy" });
+const REQUEST_QUERY_ALLOWLIST = ["page", "sort", "locale"] as const;
 
 function stripBasePath(pathname: string) {
   if (configuredBasePath && pathname.startsWith(configuredBasePath)) {
@@ -35,15 +42,8 @@ function deleteCookies(response: NextResponse, names: string[]) {
   return response;
 }
 
-function shouldSkipLogging(pathname: string) {
-  return (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.includes(".")
-  );
-}
-
 function buildNextResponse(request: NextRequest) {
+  const startedAt = performance.now();
   const requestId = request.headers.get("x-request-id") ?? createRequestId();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", requestId);
@@ -56,15 +56,17 @@ function buildNextResponse(request: NextRequest) {
 
   response.headers.set("x-request-id", requestId);
 
-  if (
-    !shouldSkipLogging(request.nextUrl.pathname) &&
-    process.env.ENABLE_REQUEST_LOGGING !== "false"
-  ) {
-    proxyLogger.info("http.request", {
+  if (shouldEmitRequestLog(request.nextUrl.pathname)) {
+    proxyLogger.info("http.request.completed", {
       requestId,
       method: request.method,
-      pathname: request.nextUrl.pathname,
-      userAgent: request.headers.get("user-agent"),
+      path: sanitizeRequestPath(request.nextUrl.pathname),
+      query: sanitizeRequestQuery(
+        request.nextUrl.searchParams,
+        REQUEST_QUERY_ALLOWLIST,
+      ),
+      status: response.status,
+      durationMs: Math.round(performance.now() - startedAt),
     });
   }
 
