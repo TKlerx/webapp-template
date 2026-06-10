@@ -1450,3 +1450,11 @@
 - Local worktree still has generated `next-env.d.ts` noise only outside the active-spec cleanup.
 - Active specs: none.
 - Next focus: commit/push active-spec cleanup on `main` and confirm the resulting main validation run.
+
+## 2026-06-11 01:40:00
+
+- Addressed the GitHub Actions Node 20 deprecation warning for OpenTofu setup.
+- Verified `opentofu/setup-opentofu` latest release is `v2.0.1` at commit `847eaa4afeb791b06daa46e8eafa8b1b68d7cfb4` and its action metadata uses `node24`.
+- Updated `.github/workflows/validate.yml` and `.github/workflows/deploy-azure.yml` from pinned `v1.0.8` to pinned `v2.0.1`.
+- Active specs: none.
+- Next focus: validate, commit, push, and confirm the main validation run.
