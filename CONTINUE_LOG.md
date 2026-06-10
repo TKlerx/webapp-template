@@ -1423,3 +1423,12 @@
 - Marked 019 task T040 complete.
 - Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
 - Next focus: review, commit, and push the completed 019 changes.
+
+## 2026-06-11 00:58:00
+
+- Created PR #2 for `019-logging-standardization` after commit `d0ff348`.
+- GitHub Actions validation failed only in the Trivy worker runtime image scan: Debian OpenSSL packages in `python:3.12-slim` were behind fixed `3.5.6-1~deb13u2`.
+- Updated `Dockerfile.worker` to run `apt-get update && apt-get upgrade` before installing Python tooling, matching the app image OS package refresh pattern.
+- Focused validation passed: `scripts/supply-chain-audit.ps1 -Artifact worker -ReportPath .artifacts/supply-chain-audit/worker-fix.json`.
+- Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
+- Next focus: commit/push the worker image fix and re-check PR #2 CI.
