@@ -1432,3 +1432,12 @@
 - Focused validation passed: `scripts/supply-chain-audit.ps1 -Artifact worker -ReportPath .artifacts/supply-chain-audit/worker-fix.json`.
 - Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
 - Next focus: commit/push the worker image fix and re-check PR #2 CI.
+
+## 2026-06-11 01:12:00
+
+- PR #2 GitHub Actions rerun cleared the worker image CVE but still failed because the first Trivy infra config scan was inconclusive: output was not parseable as pure JSON in fresh CI.
+- Hardened `scripts/supply-chain-audit.ps1` to parse Trivy JSON from command output even when wrapper text appears before/after the JSON payload.
+- Updated supply-chain audit Docker builds to use `docker build --pull --no-cache` so local audits do not reuse stale OS package layers.
+- Validation passed: `scripts/supply-chain-audit.ps1 -Artifact infra -ReportPath .artifacts/supply-chain-audit/infra-parser-fix.json` and full `scripts/supply-chain-audit.ps1 -ReportPath .artifacts/supply-chain-audit/full-ci-fix.json`.
+- Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
+- Next focus: commit/push the supply-chain audit hardening and re-check PR #2 CI.

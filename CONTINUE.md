@@ -4,20 +4,20 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-11 00:58:00
+- Updated: 2026-06-11 01:12:00
 - Branch: `019-logging-standardization`
 
 ## Recent Non-Continuity Commits
 
 - d0ff348 feat: standardize operational logging
+- 9dde606 fix: refresh worker image security packages
 - b8b21ef feat: add trivy supply-chain audit
 - b261f11 chore: enforce LF line endings
 - f0a0876 docs(018): record Azure app smoke fix
-- 1ae68f5 fix(018): capture Azure live validation fixes
 
 ## Git Status
 
-- M Dockerfile.worker
+- M scripts/supply-chain-audit.ps1
 - M next-env.d.ts
 
 ## Active Specs
@@ -27,6 +27,6 @@
 
 ## Next Recommended Actions
 
-1. Commit and push the `Dockerfile.worker` security refresh fix for PR #2.
+1. Commit and push the `scripts/supply-chain-audit.ps1` CI parser/cache hardening for PR #2.
 2. Re-check GitHub Actions validation for PR #2.
 3. Merge PR #2 if CI passes, then decide whether `019-logging-standardization` can be removed from `ACTIVE_SPECS.md`.

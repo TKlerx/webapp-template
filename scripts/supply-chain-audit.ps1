@@ -84,6 +84,30 @@ function Invoke-CapturedCommand([string]$CommandLine, [string]$WorkingDirectory 
     }
 }
 
+function ConvertFrom-TrivyJsonOutput([string]$Text) {
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return $null
+    }
+
+    $trimmed = $Text.Trim()
+    try {
+        return $trimmed | ConvertFrom-Json
+    } catch {
+        $start = $trimmed.IndexOf("{")
+        $end = $trimmed.LastIndexOf("}")
+        if ($start -lt 0 -or $end -le $start) {
+            return $null
+        }
+
+        $jsonSlice = $trimmed.Substring($start, $end - $start + 1)
+        try {
+            return $jsonSlice | ConvertFrom-Json
+        } catch {
+            return $null
+        }
+    }
+}
+
 function Get-RepoRoot {
     $root = (& git rev-parse --show-toplevel).Trim()
     if (-not $root) {
@@ -233,9 +257,9 @@ function Get-ImageReference([string]$ArtifactName) {
 
 function Build-Image([string]$ArtifactName, [string]$ImageReference) {
     $command = switch ($ArtifactName) {
-        "app" { "docker build --target runner -t `"$ImageReference`" -f Dockerfile.app ." }
-        "migrate" { "docker build --target migrate-runner -t `"$ImageReference`" -f Dockerfile.app ." }
-        "worker" { "docker build -t `"$ImageReference`" -f Dockerfile.worker ." }
+        "app" { "docker build --pull --no-cache --target runner -t `"$ImageReference`" -f Dockerfile.app ." }
+        "migrate" { "docker build --pull --no-cache --target migrate-runner -t `"$ImageReference`" -f Dockerfile.app ." }
+        "worker" { "docker build --pull --no-cache -t `"$ImageReference`" -f Dockerfile.worker ." }
         default { throw "Unknown artifact: $ArtifactName" }
     }
 
@@ -315,7 +339,7 @@ function Invoke-TrivyImageScan([string]$ArtifactName, [string]$ImageReference) {
 
     $trivy = $null
     if ($result.Text) {
-        try { $trivy = $result.Text | ConvertFrom-Json } catch { $trivy = $null }
+        $trivy = ConvertFrom-TrivyJsonOutput $result.Text
     }
     if (-not $trivy) {
         Add-InconclusiveResult $ArtifactName "runtime-image-scan" $command "Trivy did not produce parseable JSON."
@@ -351,7 +375,7 @@ function Invoke-TrivyConfigScan([string]$ArtifactName, [string]$ScanPath) {
 
     $trivy = $null
     if ($result.Text) {
-        try { $trivy = $result.Text | ConvertFrom-Json } catch { $trivy = $null }
+        $trivy = ConvertFrom-TrivyJsonOutput $result.Text
     }
     if (-not $trivy) {
         Add-InconclusiveResult $ArtifactName $sourceName $command "Trivy config scan did not produce parseable JSON."
