@@ -1441,3 +1441,12 @@
 - Validation passed: `scripts/supply-chain-audit.ps1 -Artifact infra -ReportPath .artifacts/supply-chain-audit/infra-parser-fix.json` and full `scripts/supply-chain-audit.ps1 -ReportPath .artifacts/supply-chain-audit/full-ci-fix.json`.
 - Active specs: 018-opentofu-azure-infra, 019-logging-standardization.
 - Next focus: commit/push the supply-chain audit hardening and re-check PR #2 CI.
+
+## 2026-06-11 01:25:00
+
+- PR #2 validation passed in GitHub Actions after commit `fad5f07`.
+- Merged PR #2 into `main` with merge commit `2d312c8`.
+- Removed completed specs 018 and 019 from `ACTIVE_SPECS.md`; `specs/OVERVIEW.md` already records both as fully implemented.
+- Local worktree still has generated `next-env.d.ts` noise only outside the active-spec cleanup.
+- Active specs: none.
+- Next focus: commit/push active-spec cleanup on `main` and confirm the resulting main validation run.

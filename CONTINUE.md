@@ -4,29 +4,30 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-11 01:12:00
-- Branch: `019-logging-standardization`
+- Updated: 2026-06-11 01:25:00
+- Branch: `main`
 
 ## Recent Non-Continuity Commits
 
+- 2d312c8 Merge pull request #2 from TKlerx/019-logging-standardization
+- fad5f07 fix: harden trivy audit output handling
 - d0ff348 feat: standardize operational logging
 - 9dde606 fix: refresh worker image security packages
 - b8b21ef feat: add trivy supply-chain audit
-- b261f11 chore: enforce LF line endings
-- f0a0876 docs(018): record Azure app smoke fix
 
 ## Git Status
 
-- M scripts/supply-chain-audit.ps1
+- M ACTIVE_SPECS.md
+- M CONTINUE.md
+- M CONTINUE_LOG.md
 - M next-env.d.ts
 
 ## Active Specs
 
-- 018-opentofu-azure-infra
-- 019-logging-standardization
+- None
 
 ## Next Recommended Actions
 
-1. Commit and push the `scripts/supply-chain-audit.ps1` CI parser/cache hardening for PR #2.
-2. Re-check GitHub Actions validation for PR #2.
-3. Merge PR #2 if CI passes, then decide whether `019-logging-standardization` can be removed from `ACTIVE_SPECS.md`.
+1. Commit and push the post-merge active-spec cleanup.
+2. Confirm the main branch validation run after the cleanup commit.
+3. Leave generated `next-env.d.ts` local noise unstaged unless intentionally regenerating Next.js route types.
