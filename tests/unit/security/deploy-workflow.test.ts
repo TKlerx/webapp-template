@@ -23,7 +23,7 @@ describe("Azure deploy workflow contract", () => {
       "actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd",
     );
     expect(workflow).toContain(
-      "opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f",
+      "opentofu/setup-opentofu@847eaa4afeb791b06daa46e8eafa8b1b68d7cfb4",
     );
     expect(workflow).toContain(
       "Azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8",

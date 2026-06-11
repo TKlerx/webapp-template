@@ -1458,3 +1458,12 @@
 - Updated `.github/workflows/validate.yml` and `.github/workflows/deploy-azure.yml` from pinned `v1.0.8` to pinned `v2.0.1`.
 - Active specs: none.
 - Next focus: validate, commit, push, and confirm the main validation run.
+
+## 2026-06-11 08:30:00
+
+- Main validation for `9b92cb5` confirmed the OpenTofu setup action warning was gone, but failed in `tests/unit/security/deploy-workflow.test.ts`.
+- Root cause: the deploy workflow contract test still asserted the old `opentofu/setup-opentofu` pinned `v1.0.8` SHA.
+- Updated the test to assert the new pinned `v2.0.1` SHA `847eaa4afeb791b06daa46e8eafa8b1b68d7cfb4`.
+- Validation passed: `pnpm vitest run tests/unit/security/deploy-workflow.test.ts`.
+- Active specs: none.
+- Next focus: run the full Vitest suite, commit/push the test update, and confirm main validation rerun.
