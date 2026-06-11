@@ -66,6 +66,30 @@ variable "base_path" {
   default     = "/app-starter"
 }
 
+variable "app_version" {
+  description = "Non-secret application version label displayed by the app and exposed by /api/version."
+  type        = string
+  default     = ""
+}
+
+variable "app_revision" {
+  description = "Non-secret source revision displayed by the app and exposed by /api/version."
+  type        = string
+  default     = ""
+}
+
+variable "app_build_id" {
+  description = "Non-secret CI/build identifier displayed by the app and exposed by /api/version."
+  type        = string
+  default     = ""
+}
+
+variable "app_built_at" {
+  description = "Non-secret build timestamp displayed by the app and exposed by /api/version."
+  type        = string
+  default     = ""
+}
+
 variable "custom_domain" {
   description = "Optional custom domain. Empty uses the default Container Apps FQDN."
   type        = string

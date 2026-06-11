@@ -82,6 +82,31 @@ resource "azurerm_container_app_job" "migration" {
       }
 
       env {
+        name  = "APP_ENVIRONMENT"
+        value = var.app_environment
+      }
+
+      env {
+        name  = "APP_VERSION"
+        value = var.app_version
+      }
+
+      env {
+        name  = "APP_REVISION"
+        value = var.app_revision
+      }
+
+      env {
+        name  = "APP_BUILD_ID"
+        value = var.app_build_id
+      }
+
+      env {
+        name  = "APP_BUILT_AT"
+        value = var.app_built_at
+      }
+
+      env {
         name        = "DATABASE_URL"
         secret_name = "migration-database-url"
       }

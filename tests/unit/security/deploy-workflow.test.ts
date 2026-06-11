@@ -69,6 +69,21 @@ describe("Azure deploy workflow contract", () => {
     expect(workflow).toContain("pnpm run smoke:azure");
   });
 
+  it("exports non-secret build metadata before provisioning", () => {
+    const workflow = fs.readFileSync(WORKFLOW_PATH, "utf8");
+
+    expect(workflow).toContain("Export build metadata");
+    expect(workflow.indexOf("Export build metadata")).toBeLessThan(
+      workflow.indexOf("id: provision"),
+    );
+    expect(workflow).toContain("TF_VAR_app_version=$app_version");
+    expect(workflow).toContain("TF_VAR_app_revision=$GITHUB_SHA");
+    expect(workflow).toContain(
+      "TF_VAR_app_build_id=$GITHUB_RUN_ID.$GITHUB_RUN_ATTEMPT",
+    );
+    expect(workflow).toContain("TF_VAR_app_built_at=$(date -u");
+  });
+
   it("blocks promotion when migration fails and reports non-promotion", () => {
     const workflow = fs.readFileSync(WORKFLOW_PATH, "utf8");
 

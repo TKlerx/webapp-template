@@ -29,9 +29,24 @@ The shared ACR (from Step 0) must contain the images before any environment's ru
 
 ```bash
 az acr login --name <acr-name>
-docker build -f Dockerfile.app   -t <acr-login-server>/app:<tag> .
-docker build -f Dockerfile.app --target migrate-runner -t <acr-login-server>/app:<migration-tag> .
-docker build -f Dockerfile.worker -t <acr-login-server>/worker:<tag> .
+docker build -f Dockerfile.app \
+  --build-arg APP_VERSION=<env-or-release-version> \
+  --build-arg APP_REVISION=<git-sha> \
+  --build-arg APP_BUILD_ID=<ci-run-id> \
+  --build-arg APP_BUILT_AT=<iso-timestamp> \
+  -t <acr-login-server>/app:<tag> .
+docker build -f Dockerfile.app --target migrate-runner \
+  --build-arg APP_VERSION=<env-or-release-version> \
+  --build-arg APP_REVISION=<git-sha> \
+  --build-arg APP_BUILD_ID=<ci-run-id> \
+  --build-arg APP_BUILT_AT=<iso-timestamp> \
+  -t <acr-login-server>/app:<migration-tag> .
+docker build -f Dockerfile.worker \
+  --build-arg APP_VERSION=<env-or-release-version> \
+  --build-arg APP_REVISION=<git-sha> \
+  --build-arg APP_BUILD_ID=<ci-run-id> \
+  --build-arg APP_BUILT_AT=<iso-timestamp> \
+  -t <acr-login-server>/worker:<tag> .
 docker push <acr-login-server>/app:<tag>
 docker push <acr-login-server>/app:<migration-tag>
 docker push <acr-login-server>/worker:<tag>

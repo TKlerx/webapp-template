@@ -6,6 +6,10 @@ x-app-image: &app-image
     target: runner
     args:
       BASE_PATH: ${BASE_PATH}
+      APP_VERSION: ${APP_VERSION:-local}
+      APP_REVISION: ${APP_REVISION:-unknown}
+      APP_BUILD_ID: ${APP_BUILD_ID:-docker-compose}
+      APP_BUILT_AT: ${APP_BUILT_AT:-unknown}
 
 x-migrate-image: &migrate-image
   image: ${MIGRATE_IMAGE_NAME:-business-app-starter-migrate}:latest
@@ -15,9 +19,18 @@ x-migrate-image: &migrate-image
     target: migrate-runner
     args:
       BASE_PATH: ${BASE_PATH}
+      APP_VERSION: ${APP_VERSION:-local}
+      APP_REVISION: ${APP_REVISION:-unknown}
+      APP_BUILD_ID: ${APP_BUILD_ID:-docker-compose}
+      APP_BUILT_AT: ${APP_BUILT_AT:-unknown}
 
 x-common-env: &common-env
   AUTH_BASE_URL: ${AUTH_BASE_URL:-http://localhost:3270}
+  APP_BUILD_ID: ${APP_BUILD_ID:-docker-compose}
+  APP_BUILT_AT: ${APP_BUILT_AT:-unknown}
+  APP_ENVIRONMENT: ${APP_ENVIRONMENT:-local}
+  APP_REVISION: ${APP_REVISION:-unknown}
+  APP_VERSION: ${APP_VERSION:-local}
   BASE_PATH: ${BASE_PATH:-}
   ENABLE_REQUEST_LOGGING: ${ENABLE_REQUEST_LOGGING:-true}
   LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -139,6 +152,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        APP_VERSION: ${APP_VERSION:-local}
+        APP_REVISION: ${APP_REVISION:-unknown}
+        APP_BUILD_ID: ${APP_BUILD_ID:-docker-compose}
+        APP_BUILT_AT: ${APP_BUILT_AT:-unknown}
     environment:
       <<: *worker-env
     networks: [internal]

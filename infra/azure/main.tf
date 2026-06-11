@@ -114,6 +114,11 @@ module "runtime" {
   app_min_replicas                    = var.app_min_replicas
   app_max_replicas                    = var.app_max_replicas
   worker_min_replicas                 = var.worker_min_replicas
+  app_environment                     = var.environment
+  app_version                         = var.app_version
+  app_revision                        = var.app_revision
+  app_build_id                        = var.app_build_id
+  app_built_at                        = var.app_built_at
   base_path                           = var.base_path
   custom_domain                       = var.custom_domain
   enable_mail                         = var.enable_mail

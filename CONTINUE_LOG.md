@@ -1509,3 +1509,11 @@
 - Validation passed: focused smoke/workflow tests and `.\validate.ps1 all`.
 - Active specs: none.
 - Next focus: commit/push the feature branch, open a PR, and confirm GitHub Actions validation.
+
+## 2026-06-11 14:46:32
+
+- Added env-driven build/deployment metadata for app version traceability without committing generated version files.
+- Added `/api/version`, updated the UI version badge, Docker image labels/build args, Docker Compose env, Azure runtime env, and deploy workflow metadata export.
+- Validation passed: focused version/workflow tests, `pnpm run typecheck`, and `.\validate.ps1 all`.
+- Active specs: none.
+- Next focus: review, commit, push, and optionally open a PR for the metadata changes.
