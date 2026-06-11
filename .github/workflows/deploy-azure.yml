@@ -52,6 +52,18 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install smoke dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Install OpenTofu
         uses: opentofu/setup-opentofu@847eaa4afeb791b06daa46e8eafa8b1b68d7cfb4 # v2.0.1
 
@@ -141,6 +153,7 @@ jobs:
 
           {
             echo "resource_group_name=$(tofu output -raw resource_group_name)"
+            echo "app_endpoint=$(tofu output -raw app_endpoint)"
             echo "app_container_app_name=$(tofu output -raw app_container_app_name)"
             echo "worker_container_app_name=$(tofu output -raw worker_container_app_name)"
             echo "migration_job_name=$(tofu output -raw migration_job_name)"
@@ -251,6 +264,41 @@ jobs:
             echo "worker_revision=$worker_revision"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Smoke verify deployment
+        id: smoke
+        if: ${{ steps.promote-app-worker.outcome == 'success' }}
+        shell: bash
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          APP_ENDPOINT: ${{ steps.provision.outputs.app_endpoint }}
+          RESOURCE_GROUP: ${{ steps.provision.outputs.resource_group_name }}
+          APP_CONTAINER_APP_NAME: ${{ steps.provision.outputs.app_container_app_name }}
+          WORKER_CONTAINER_APP_NAME: ${{ steps.provision.outputs.worker_container_app_name }}
+          MIGRATION_JOB_NAME: ${{ steps.provision.outputs.migration_job_name }}
+          MIGRATION_EXECUTION: ${{ steps.migrate.outputs.migration_execution }}
+        run: |
+          set +e
+          output="$(pnpm run smoke:azure -- \
+            --environment "$TARGET_ENVIRONMENT" \
+            --app-endpoint "$APP_ENDPOINT" \
+            --resource-group "$RESOURCE_GROUP" \
+            --app-name "$APP_CONTAINER_APP_NAME" \
+            --worker-name "$WORKER_CONTAINER_APP_NAME" \
+            --migration-job-name "$MIGRATION_JOB_NAME" \
+            --migration-execution "$MIGRATION_EXECUTION" 2>&1)"
+          status=$?
+          set -e
+
+          printf '%s\n' "$output"
+          {
+            echo "### Azure deployment smoke"
+            echo
+            echo '```text'
+            printf '%s\n' "$output"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+
       - name: Report deployment
         id: report
         if: ${{ always() }}
@@ -261,6 +309,7 @@ jobs:
           MIGRATION_EXECUTION: ${{ steps.migrate.outputs.migration_execution || 'n/a' }}
           APP_REVISION: ${{ steps.promote-app-worker.outputs.app_revision || 'not-promoted' }}
           WORKER_REVISION: ${{ steps.promote-app-worker.outputs.worker_revision || 'not-promoted' }}
+          SMOKE_RESULT: ${{ steps.smoke.outcome || 'not-run' }}
         run: |
           {
             echo "### Azure deployment"
@@ -270,4 +319,5 @@ jobs:
             echo "- Migration execution: $MIGRATION_EXECUTION"
             echo "- App revision: $APP_REVISION"
             echo "- Worker revision: $WORKER_REVISION"
+            echo "- Smoke result: $SMOKE_RESULT"
           } >> "$GITHUB_STEP_SUMMARY"

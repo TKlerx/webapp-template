@@ -1493,3 +1493,19 @@
 - OpenTofu infrastructure validation no longer emits the AzureRM queue properties deprecation warning.
 - Active specs: none.
 - Next focus: commit/push this maintenance cleanup and confirm main validation.
+
+## 2026-06-11 10:53:57
+
+- Branch snapshot refreshed for `020-deploy-smoke-verification`.
+- Latest non-continuity commit: 3d52264 fix: move state queue logging to dedicated resource.
+- Active specs: 018-opentofu-azure-infra, 020-deploy-smoke-verification.
+- Next focus: 020-deploy-smoke-verification: T020.
+
+## 2026-06-11 11:06:34
+
+- Implemented spec `020-deploy-smoke-verification` on branch `020-deploy-smoke-verification`.
+- Added `pnpm run smoke:azure` with a TypeScript smoke verifier for app health, migration execution, app revision health, and worker revision health.
+- Wired smoke verification into `.github/workflows/deploy-azure.yml` after app/worker revision promotion and added operator documentation.
+- Validation passed: focused smoke/workflow tests and `.\validate.ps1 all`.
+- Active specs: none.
+- Next focus: commit/push the feature branch, open a PR, and confirm GitHub Actions validation.

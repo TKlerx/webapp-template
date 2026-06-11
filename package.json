@@ -21,6 +21,7 @@
     "quality:python": "node scripts/check-python-quality.mjs",
     "quality:cli": "node scripts/check-cli-quality.mjs",
     "logging:guard": "node scripts/check-logging-guard.mjs",
+    "smoke:azure": "node scripts/run-azure-deploy-smoke.mjs",
     "supply-chain:audit": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/supply-chain-audit.ps1",
     "validate:runtime-credentials": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/validate-runtime-credentials.ps1 -SelfTest",
     "worker:lint": "cd worker && uv run ruff check src tests",

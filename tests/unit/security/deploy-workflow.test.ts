@@ -23,6 +23,9 @@ describe("Azure deploy workflow contract", () => {
       "actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd",
     );
     expect(workflow).toContain(
+      "actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444",
+    );
+    expect(workflow).toContain(
       "opentofu/setup-opentofu@847eaa4afeb791b06daa46e8eafa8b1b68d7cfb4",
     );
     expect(workflow).toContain(
@@ -52,14 +55,18 @@ describe("Azure deploy workflow contract", () => {
     const provision = stepIndex(workflow, "provision");
     const migrate = stepIndex(workflow, "migrate");
     const promote = stepIndex(workflow, "promote-app-worker");
+    const smoke = stepIndex(workflow, "smoke");
     const report = stepIndex(workflow, "report");
 
     expect(validate).toBeLessThan(provision);
     expect(provision).toBeLessThan(migrate);
     expect(migrate).toBeLessThan(promote);
+    expect(promote).toBeLessThan(smoke);
+    expect(smoke).toBeLessThan(report);
     expect(promote).toBeLessThan(report);
     expect(workflow).toContain("az acr repository show-tags");
     expect(workflow).toContain("az containerapp job start");
+    expect(workflow).toContain("pnpm run smoke:azure");
   });
 
   it("blocks promotion when migration fails and reports non-promotion", () => {
