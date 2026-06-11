@@ -19,7 +19,8 @@
     "tokens": "Tokens",
     "apiDocs": "API Docs",
     "adminTokens": "Admin Tokens",
-    "teamsIntegrations": "Teams"
+    "teamsIntegrations": "Teams",
+    "opsHealth": "Ops Health"
   },
   "auth": {
     "signIn": "Sign in",
@@ -136,6 +137,47 @@
       "payload": "Payload",
       "result": "Result",
       "error": "Error"
+    }
+  },
+  "opsHealth": {
+    "eyebrow": "Operations",
+    "title": "Ops Health",
+    "description": "Identify the running build, inspect health checks, and copy a safe diagnostic summary.",
+    "overall": "Overall status",
+    "capturedAt": "Captured: {value}",
+    "checkedAt": "Checked: {value}",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "refreshFailed": "Could not refresh the health snapshot.",
+    "status": {
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "unknown": "Unknown",
+      "unavailable": "Unavailable"
+    },
+    "environment": {
+      "title": "Environment identity",
+      "environment": "Environment",
+      "version": "Version",
+      "revision": "Revision",
+      "buildId": "Build ID",
+      "builtAt": "Built at"
+    },
+    "checks": {
+      "runtime": "Runtime",
+      "database": "Database",
+      "configuration": "Configuration",
+      "worker": "Worker",
+      "deploySmoke": "Deploy smoke"
+    },
+    "summary": {
+      "title": "Diagnostic summary",
+      "description": "Copy this non-secret text into issues or incident notes."
+    },
+    "copy": {
+      "button": "Copy summary",
+      "success": "Diagnostic summary copied",
+      "error": "Could not copy diagnostic summary"
     }
   },
   "tokens": {

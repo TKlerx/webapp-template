@@ -1,5 +1,11 @@
 # Continue Log
 
+## 2026-06-11 21:14:00
+
+- Implemented ops health dashboard feature slices for spec `021-ops-health-dashboard`.
+- Added admin `/admin/ops` page, `/api/admin/ops-health` snapshot API, shared ops health snapshot logic, localized UI, responsive e2e coverage, and safe copy diagnostics.
+- Focused Vitest and Playwright ops-health checks pass; final validation remains.
+
 ## 2026-06-11 18:05:00
 
 - Applied `/speckit.analyze` remediation edits for spec `021-ops-health-dashboard`.
@@ -1552,3 +1558,12 @@
 - Validation passed: focused version/workflow tests, `pnpm run typecheck`, and `.\validate.ps1 all`.
 - Active specs: none.
 - Next focus: review, commit, push, and optionally open a PR for the metadata changes.
+
+## 2026-06-11 22:53:35
+
+- Implemented spec `021-ops-health-dashboard` on branch `021-ops-health-dashboard`.
+- Added an administrator-only `/admin/ops` dashboard, `/api/admin/ops-health` snapshot route, reusable ops health snapshot/redaction logic, admin navigation, i18n copy, and focused unit/integration/e2e coverage.
+- Adjusted local validation so Vitest uses the standard PostgreSQL test URL when no database URL is configured, matching the generated PostgreSQL Prisma client.
+- Validation passed: focused ops unit/integration tests, focused ops Playwright tests, `.\validate.ps1 quality`, `.\validate.ps1 all`, and `.\validate.ps1 full` including Trivy/container scans and full Playwright E2E.
+- Active specs: `021-ops-health-dashboard` implemented and validated; PR cleanup remains.
+- Next focus: commit, push, open a PR, and confirm GitHub validation.

@@ -19,7 +19,8 @@
     "tokens": "Tokens",
     "apiDocs": "API Docs",
     "adminTokens": "Admin Tokens",
-    "teamsIntegrations": "Teams"
+    "teamsIntegrations": "Teams",
+    "opsHealth": "Ops Health"
   },
   "auth": {
     "signIn": "Anmelden",
@@ -136,6 +137,47 @@
       "payload": "Payload",
       "result": "Ergebnis",
       "error": "Fehler"
+    }
+  },
+  "opsHealth": {
+    "eyebrow": "Betrieb",
+    "title": "Ops Health",
+    "description": "Erkenne den laufenden Build, prüfe Health Checks und kopiere eine sichere Diagnosezusammenfassung.",
+    "overall": "Gesamtstatus",
+    "capturedAt": "Erfasst: {value}",
+    "checkedAt": "Geprüft: {value}",
+    "refresh": "Aktualisieren",
+    "refreshing": "Aktualisiere...",
+    "refreshFailed": "Der Health-Snapshot konnte nicht aktualisiert werden.",
+    "status": {
+      "healthy": "Gesund",
+      "degraded": "Beeinträchtigt",
+      "unknown": "Unbekannt",
+      "unavailable": "Nicht verfügbar"
+    },
+    "environment": {
+      "title": "Umgebungsidentität",
+      "environment": "Umgebung",
+      "version": "Version",
+      "revision": "Revision",
+      "buildId": "Build-ID",
+      "builtAt": "Build-Zeit"
+    },
+    "checks": {
+      "runtime": "Runtime",
+      "database": "Datenbank",
+      "configuration": "Konfiguration",
+      "worker": "Worker",
+      "deploySmoke": "Deploy-Smoke"
+    },
+    "summary": {
+      "title": "Diagnosezusammenfassung",
+      "description": "Kopiere diesen nicht geheimen Text in Issues oder Incident-Notizen."
+    },
+    "copy": {
+      "button": "Zusammenfassung kopieren",
+      "success": "Diagnosezusammenfassung kopiert",
+      "error": "Diagnosezusammenfassung konnte nicht kopiert werden"
     }
   },
   "tokens": {

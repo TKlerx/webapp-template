@@ -6,7 +6,7 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- `021-ops-health-dashboard`: tasked; next step is `/speckit.implement`.
+- `021-ops-health-dashboard`: implementation and validation complete; remaining work is commit, push, PR, and GitHub validation.
 
 ## Maintenance Rules
 

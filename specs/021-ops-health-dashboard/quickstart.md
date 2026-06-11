@@ -39,6 +39,8 @@
 
 7. Sign in as a non-admin user and confirm `/admin/ops` and `/api/admin/ops-health` are not accessible.
 
+8. Confirm the dashboard has no horizontal overflow at mobile, tablet, and desktop widths.
+
 ## Automated Validation
 
 Run focused tests for the implementation:
@@ -47,6 +49,8 @@ Run focused tests for the implementation:
 pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts
 pnpm test:e2e -- tests/e2e/ops-health/admin-ops-health.spec.ts
 ```
+
+The focused e2e spec covers admin access, non-admin denial, manual refresh, copy feedback, and responsive overflow checks.
 
 Run broader project validation before merge:
 

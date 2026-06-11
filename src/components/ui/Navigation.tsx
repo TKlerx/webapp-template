@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Gauge,
+  HeartPulse,
   KeyRound,
   ListChecks,
   RadioTower,
@@ -39,6 +40,11 @@ export function Navigation({ user }: { user: SessionUser }) {
       href: "/background-jobs",
       label: t("backgroundJobs"),
       icon: Activity,
+    });
+    links.push({
+      href: "/admin/ops",
+      label: t("opsHealth"),
+      icon: HeartPulse,
     });
     links.push({ href: "/users", label: t("users"), icon: UsersRound });
     links.push({

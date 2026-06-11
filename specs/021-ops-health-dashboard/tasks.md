@@ -18,13 +18,13 @@
 
 **Purpose**: Prepare shared files and test entry points for the ops dashboard feature.
 
-- [ ] T001 Create shared ops health module scaffold with exported placeholder types in `src/lib/ops-health.ts`
-- [ ] T002 [P] Create ops component directory scaffold with placeholder exports in `src/components/ops/index.ts`
-- [ ] T003 [P] Create admin ops route directory with placeholder page in `src/app/(dashboard)/admin/ops/page.tsx`
-- [ ] T004 [P] Create admin ops health API route scaffold in `src/app/api/admin/ops-health/route.ts`
-- [ ] T005 [P] Create focused unit test file scaffold in `tests/unit/ops-health.test.ts`
-- [ ] T006 [P] Create focused integration test file scaffold in `tests/integration/ops-health-api.test.ts`
-- [ ] T007 [P] Create focused e2e test file scaffold in `tests/e2e/ops-health/admin-ops-health.spec.ts`
+- [x] T001 Create shared ops health module scaffold with exported placeholder types in `src/lib/ops-health.ts`
+- [x] T002 [P] Create ops component directory scaffold with placeholder exports in `src/components/ops/index.ts`
+- [x] T003 [P] Create admin ops route directory with placeholder page in `src/app/(dashboard)/admin/ops/page.tsx`
+- [x] T004 [P] Create admin ops health API route scaffold in `src/app/api/admin/ops-health/route.ts`
+- [x] T005 [P] Create focused unit test file scaffold in `tests/unit/ops-health.test.ts`
+- [x] T006 [P] Create focused integration test file scaffold in `tests/integration/ops-health-api.test.ts`
+- [x] T007 [P] Create focused e2e test file scaffold in `tests/e2e/ops-health/admin-ops-health.spec.ts`
 
 ---
 
@@ -34,15 +34,15 @@
 
 **CRITICAL**: No user story implementation should begin until this phase is complete.
 
-- [ ] T008 Define `HealthStatus`, `HealthCheckKey`, `EnvironmentIdentity`, `HealthCheckResult`, `HealthSnapshot`, and `DiagnosticSummary` types in `src/lib/ops-health.ts`
-- [ ] T009 Implement status aggregation rules for required vs optional checks in `src/lib/ops-health.ts`
-- [ ] T010 Implement secret-safe redaction and allowlisted diagnostic summary formatting helpers in `src/lib/ops-health.ts`
-- [ ] T011 [P] Add ops health translation namespace and nav label to `src/i18n/messages/en.json`
-- [ ] T012 [P] Add ops health translation namespace and nav label to `src/i18n/messages/de.json`
-- [ ] T013 [P] Add ops health translation namespace and nav label to `src/i18n/messages/es.json`
-- [ ] T014 [P] Add ops health translation namespace and nav label to `src/i18n/messages/fr.json`
-- [ ] T015 [P] Add ops health translation namespace and nav label to `src/i18n/messages/pt.json`
-- [ ] T016 Add unit tests for status aggregation and diagnostic redaction helpers in `tests/unit/ops-health.test.ts`
+- [x] T008 Define `HealthStatus`, `HealthCheckKey`, `EnvironmentIdentity`, `HealthCheckResult`, `HealthSnapshot`, and `DiagnosticSummary` types in `src/lib/ops-health.ts`
+- [x] T009 Implement status aggregation rules for required vs optional checks in `src/lib/ops-health.ts`
+- [x] T010 Implement secret-safe redaction and allowlisted diagnostic summary formatting helpers in `src/lib/ops-health.ts`
+- [x] T011 [P] Add ops health translation namespace and nav label to `src/i18n/messages/en.json`
+- [x] T012 [P] Add ops health translation namespace and nav label to `src/i18n/messages/de.json`
+- [x] T013 [P] Add ops health translation namespace and nav label to `src/i18n/messages/es.json`
+- [x] T014 [P] Add ops health translation namespace and nav label to `src/i18n/messages/fr.json`
+- [x] T015 [P] Add ops health translation namespace and nav label to `src/i18n/messages/pt.json`
+- [x] T016 Add unit tests for status aggregation and diagnostic redaction helpers in `tests/unit/ops-health.test.ts`
 
 **Checkpoint**: Foundation ready. Shared snapshot types and safety helpers are test-covered.
 
@@ -56,19 +56,19 @@
 
 ### Tests for User Story 1
 
-- [ ] T017 [P] [US1] Add unit tests for environment identity mapping from app version metadata in `tests/unit/ops-health.test.ts`
-- [ ] T018 [P] [US1] Add integration tests for admin-only `/api/admin/ops-health` metadata response in `tests/integration/ops-health-api.test.ts`
-- [ ] T019 [P] [US1] Add e2e test for admin navigation to `/admin/ops` and visible build metadata in `tests/e2e/ops-health/admin-ops-health.spec.ts`
+- [x] T017 [P] [US1] Add unit tests for environment identity mapping from app version metadata in `tests/unit/ops-health.test.ts`
+- [x] T018 [P] [US1] Add integration tests for admin-only `/api/admin/ops-health` metadata response in `tests/integration/ops-health-api.test.ts`
+- [x] T019 [P] [US1] Add e2e test for admin navigation to `/admin/ops` and visible build metadata in `tests/e2e/ops-health/admin-ops-health.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] Implement environment identity assembly from `getAppVersionInfo()` in `src/lib/ops-health.ts`
-- [ ] T021 [US1] Implement `GET /api/admin/ops-health` admin authorization and metadata-only snapshot response in `src/app/api/admin/ops-health/route.ts`
-- [ ] T022 [US1] Add admin-only Ops Health navigation item with `nav.opsHealth` in `src/components/ui/Navigation.tsx`
-- [ ] T023 [P] [US1] Implement status badge component for healthy/degraded/unknown/unavailable display in `src/components/ops/HealthStatusBadge.tsx`
-- [ ] T024 [US1] Implement initial ops dashboard page shell and metadata panel in `src/app/(dashboard)/admin/ops/page.tsx`
-- [ ] T025 [US1] Ensure non-admin users are redirected or denied from `/admin/ops` in `src/app/(dashboard)/admin/ops/page.tsx`
-- [ ] T026 [US1] Run and record focused US1 validation with `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts` and relevant e2e command from `specs/021-ops-health-dashboard/quickstart.md`
+- [x] T020 [US1] Implement environment identity assembly from `getAppVersionInfo()` in `src/lib/ops-health.ts`
+- [x] T021 [US1] Implement `GET /api/admin/ops-health` admin authorization and metadata-only snapshot response in `src/app/api/admin/ops-health/route.ts`
+- [x] T022 [US1] Add admin-only Ops Health navigation item with `nav.opsHealth` in `src/components/ui/Navigation.tsx`
+- [x] T023 [P] [US1] Implement status badge component for healthy/degraded/unknown/unavailable display in `src/components/ops/HealthStatusBadge.tsx`
+- [x] T024 [US1] Implement initial ops dashboard page shell and metadata panel in `src/app/(dashboard)/admin/ops/page.tsx`
+- [x] T025 [US1] Ensure non-admin users are redirected or denied from `/admin/ops` in `src/app/(dashboard)/admin/ops/page.tsx`
+- [x] T026 [US1] Run and record focused US1 validation with `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts` and relevant e2e command from `specs/021-ops-health-dashboard/quickstart.md`
 
 **Checkpoint**: User Story 1 is independently functional and demonstrable.
 
@@ -82,22 +82,22 @@
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Add unit tests for runtime, database, configuration, worker, and deploy smoke health result assembly in `tests/unit/ops-health.test.ts`
-- [ ] T028 [P] [US2] Add integration tests for degraded database/configuration, optional unknown worker/smoke states, and safe fatal snapshot assembly errors in `tests/integration/ops-health-api.test.ts`
-- [ ] T029 [P] [US2] Add e2e test for manual refresh updating snapshot timestamp in `tests/e2e/ops-health/admin-ops-health.spec.ts`
+- [x] T027 [P] [US2] Add unit tests for runtime, database, configuration, worker, and deploy smoke health result assembly in `tests/unit/ops-health.test.ts`
+- [x] T028 [P] [US2] Add integration tests for degraded database/configuration, optional unknown worker/smoke states, and safe fatal snapshot assembly errors in `tests/integration/ops-health-api.test.ts`
+- [x] T029 [P] [US2] Add e2e test for manual refresh updating snapshot timestamp in `tests/e2e/ops-health/admin-ops-health.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T030 [US2] Implement runtime health check mapping from existing process health in `src/lib/ops-health.ts`
-- [ ] T031 [US2] Implement database health check mapping from existing database health in `src/lib/ops-health.ts`
-- [ ] T032 [US2] Implement configuration sanity check for authentication readiness, database URL ownership, runtime environment, and build metadata presence without exposing raw values in `src/lib/ops-health.ts`
-- [ ] T033 [US2] Implement recent worker evidence lookup from existing background jobs in `src/lib/ops-health.ts`
-- [ ] T034 [US2] Implement deploy smoke evidence as recorded-only unknown/unavailable status in `src/lib/ops-health.ts`
-- [ ] T035 [US2] Expand `/api/admin/ops-health` to return full health snapshot and degraded status details in `src/app/api/admin/ops-health/route.ts`
-- [ ] T036 [US2] Implement ops dashboard health check grid and overall status panel in `src/components/ops/OpsHealthDashboard.tsx`
-- [ ] T037 [US2] Add manual refresh behavior that fetches a new snapshot from `/api/admin/ops-health` in `src/components/ops/OpsHealthDashboard.tsx`
-- [ ] T038 [US2] Wire server-rendered initial snapshot into dashboard client refresh component in `src/app/(dashboard)/admin/ops/page.tsx`
-- [ ] T039 [US2] Run and record focused US2 validation with `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts` and the manual-refresh e2e slice from `specs/021-ops-health-dashboard/quickstart.md`
+- [x] T030 [US2] Implement runtime health check mapping from existing process health in `src/lib/ops-health.ts`
+- [x] T031 [US2] Implement database health check mapping from existing database health in `src/lib/ops-health.ts`
+- [x] T032 [US2] Implement configuration sanity check for authentication readiness, database URL ownership, runtime environment, and build metadata presence without exposing raw values in `src/lib/ops-health.ts`
+- [x] T033 [US2] Implement recent worker evidence lookup from existing background jobs in `src/lib/ops-health.ts`
+- [x] T034 [US2] Implement deploy smoke evidence as recorded-only unknown/unavailable status in `src/lib/ops-health.ts`
+- [x] T035 [US2] Expand `/api/admin/ops-health` to return full health snapshot and degraded status details in `src/app/api/admin/ops-health/route.ts`
+- [x] T036 [US2] Implement ops dashboard health check grid and overall status panel in `src/components/ops/OpsHealthDashboard.tsx`
+- [x] T037 [US2] Add manual refresh behavior that fetches a new snapshot from `/api/admin/ops-health` in `src/components/ops/OpsHealthDashboard.tsx`
+- [x] T038 [US2] Wire server-rendered initial snapshot into dashboard client refresh component in `src/app/(dashboard)/admin/ops/page.tsx`
+- [x] T039 [US2] Run and record focused US2 validation with `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts` and the manual-refresh e2e slice from `specs/021-ops-health-dashboard/quickstart.md`
 
 **Checkpoint**: User Stories 1 and 2 are independently functional and demonstrable.
 
@@ -111,17 +111,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T040 [P] [US3] Add unit tests for diagnostic summary allowlist and forbidden secret patterns in `tests/unit/ops-health.test.ts`
-- [ ] T041 [P] [US3] Add integration test asserting `/api/admin/ops-health` diagnostic summary contains no raw secret-like values in `tests/integration/ops-health-api.test.ts`
-- [ ] T042 [P] [US3] Add e2e test for copy diagnostic summary action and toast-style success feedback in `tests/e2e/ops-health/admin-ops-health.spec.ts`
+- [x] T040 [P] [US3] Add unit tests for diagnostic summary allowlist and forbidden secret patterns in `tests/unit/ops-health.test.ts`
+- [x] T041 [P] [US3] Add integration test asserting `/api/admin/ops-health` diagnostic summary contains no raw secret-like values in `tests/integration/ops-health-api.test.ts`
+- [x] T042 [P] [US3] Add e2e test for copy diagnostic summary action and toast-style success feedback in `tests/e2e/ops-health/admin-ops-health.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Finalize diagnostic summary text generation from `HealthSnapshot` in `src/lib/ops-health.ts`
-- [ ] T044 [US3] Implement copy-to-clipboard client component with localized toast-style success and failure feedback in `src/components/ops/DiagnosticSummaryCopy.tsx`
-- [ ] T045 [US3] Add diagnostic summary panel to `src/components/ops/OpsHealthDashboard.tsx`
-- [ ] T046 [US3] Ensure copied diagnostic summary is rebuilt after manual refresh in `src/components/ops/OpsHealthDashboard.tsx`
-- [ ] T047 [US3] Run and record focused US3 validation with `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts` and the copy e2e slice from `specs/021-ops-health-dashboard/quickstart.md`
+- [x] T043 [US3] Finalize diagnostic summary text generation from `HealthSnapshot` in `src/lib/ops-health.ts`
+- [x] T044 [US3] Implement copy-to-clipboard client component with localized toast-style success and failure feedback in `src/components/ops/DiagnosticSummaryCopy.tsx`
+- [x] T045 [US3] Add diagnostic summary panel to `src/components/ops/OpsHealthDashboard.tsx`
+- [x] T046 [US3] Ensure copied diagnostic summary is rebuilt after manual refresh in `src/components/ops/OpsHealthDashboard.tsx`
+- [x] T047 [US3] Run and record focused US3 validation with `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts` and the copy e2e slice from `specs/021-ops-health-dashboard/quickstart.md`
 
 **Checkpoint**: All user stories are independently functional and demonstrable.
 
@@ -131,15 +131,15 @@
 
 **Purpose**: Final quality, docs, continuity, and validation before PR.
 
-- [ ] T048 [P] Review responsive layout at mobile, tablet, and desktop widths using Playwright or browser screenshots for `/admin/ops`
-- [ ] T049 [P] Verify all new user-facing text uses next-intl keys across `src/app/(dashboard)/admin/ops/page.tsx` and `src/components/ops/`
-- [ ] T050 [P] Update `specs/021-ops-health-dashboard/quickstart.md` with any implementation-specific validation notes discovered during build
-- [ ] T051 Update `ACTIVE_SPECS.md` to show implementation progress for `021-ops-health-dashboard`
-- [ ] T052 Update `CONTINUE.md` and append `CONTINUE_LOG.md` with implementation status and next action
-- [ ] T053 Run `pnpm run specs:overview:update` and verify `pnpm run specs:overview:check`
-- [ ] T054 Run focused validation `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts`
-- [ ] T055 Run relevant e2e validation `pnpm test:e2e -- tests/e2e/ops-health/admin-ops-health.spec.ts`
-- [ ] T056 Run broader validation with `.\validate.ps1 quality` and full pre-merge validation with `.\validate.ps1 all`
+- [x] T048 [P] Review responsive layout at mobile, tablet, and desktop widths using Playwright or browser screenshots for `/admin/ops`
+- [x] T049 [P] Verify all new user-facing text uses next-intl keys across `src/app/(dashboard)/admin/ops/page.tsx` and `src/components/ops/`
+- [x] T050 [P] Update `specs/021-ops-health-dashboard/quickstart.md` with any implementation-specific validation notes discovered during build
+- [x] T051 Update `ACTIVE_SPECS.md` to show implementation progress for `021-ops-health-dashboard`
+- [x] T052 Update `CONTINUE.md` and append `CONTINUE_LOG.md` with implementation status and next action
+- [x] T053 Run `pnpm run specs:overview:update` and verify `pnpm run specs:overview:check`
+- [x] T054 Run focused validation `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts`
+- [x] T055 Run relevant e2e validation `pnpm test:e2e -- tests/e2e/ops-health/admin-ops-health.spec.ts`
+- [x] T056 Run broader validation with `.\validate.ps1 quality` and full pre-merge validation with `.\validate.ps1 all`
 
 ---
 
