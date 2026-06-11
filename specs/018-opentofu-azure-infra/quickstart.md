@@ -67,6 +67,22 @@ Trigger the GitHub Actions `deploy-azure.yml` workflow (or run the equivalent st
 
 From the outputs, open the Log Analytics workspace / Application Insights to see app logs, worker logs, migration Job results, and revision health (US4, SC-006).
 
+## Step 6 — Smoke verify the deployment
+
+Run the deploy smoke check after promotion to confirm the app endpoint, migration execution, app revision, and worker revision are all healthy. The GitHub `Deploy Azure` workflow runs this automatically after app and worker promotion. Operators can also run it locally:
+
+```bash
+pnpm run smoke:azure -- \
+  --environment dev \
+  --app-endpoint "$(tofu output -raw app_endpoint)" \
+  --resource-group "$(tofu output -raw resource_group_name)" \
+  --app-name "$(tofu output -raw app_container_app_name)" \
+  --worker-name "$(tofu output -raw worker_container_app_name)" \
+  --migration-job-name "$(tofu output -raw migration_job_name)"
+```
+
+See `docs/azure-deploy-smoke.md` for JSON output and failure troubleshooting.
+
 ## Outputs you get (FR-011)
 
 `app_endpoint`, `registry_login_server`, `database_host`, `key_vault_uri`, `log_analytics_workspace_id`, `app_insights_connection_string` (sensitive), `deployment_identity_client_id`, plus the Container App / Job names used for promotion. See outputs-contract.md.
