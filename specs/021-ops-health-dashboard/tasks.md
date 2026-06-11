@@ -83,14 +83,14 @@
 ### Tests for User Story 2
 
 - [ ] T027 [P] [US2] Add unit tests for runtime, database, configuration, worker, and deploy smoke health result assembly in `tests/unit/ops-health.test.ts`
-- [ ] T028 [P] [US2] Add integration tests for degraded database/configuration and optional unknown worker/smoke states in `tests/integration/ops-health-api.test.ts`
+- [ ] T028 [P] [US2] Add integration tests for degraded database/configuration, optional unknown worker/smoke states, and safe fatal snapshot assembly errors in `tests/integration/ops-health-api.test.ts`
 - [ ] T029 [P] [US2] Add e2e test for manual refresh updating snapshot timestamp in `tests/e2e/ops-health/admin-ops-health.spec.ts`
 
 ### Implementation for User Story 2
 
 - [ ] T030 [US2] Implement runtime health check mapping from existing process health in `src/lib/ops-health.ts`
 - [ ] T031 [US2] Implement database health check mapping from existing database health in `src/lib/ops-health.ts`
-- [ ] T032 [US2] Implement configuration sanity check without exposing raw values in `src/lib/ops-health.ts`
+- [ ] T032 [US2] Implement configuration sanity check for authentication readiness, database URL ownership, runtime environment, and build metadata presence without exposing raw values in `src/lib/ops-health.ts`
 - [ ] T033 [US2] Implement recent worker evidence lookup from existing background jobs in `src/lib/ops-health.ts`
 - [ ] T034 [US2] Implement deploy smoke evidence as recorded-only unknown/unavailable status in `src/lib/ops-health.ts`
 - [ ] T035 [US2] Expand `/api/admin/ops-health` to return full health snapshot and degraded status details in `src/app/api/admin/ops-health/route.ts`
@@ -113,12 +113,12 @@
 
 - [ ] T040 [P] [US3] Add unit tests for diagnostic summary allowlist and forbidden secret patterns in `tests/unit/ops-health.test.ts`
 - [ ] T041 [P] [US3] Add integration test asserting `/api/admin/ops-health` diagnostic summary contains no raw secret-like values in `tests/integration/ops-health-api.test.ts`
-- [ ] T042 [P] [US3] Add e2e test for copy diagnostic summary action and success feedback in `tests/e2e/ops-health/admin-ops-health.spec.ts`
+- [ ] T042 [P] [US3] Add e2e test for copy diagnostic summary action and toast-style success feedback in `tests/e2e/ops-health/admin-ops-health.spec.ts`
 
 ### Implementation for User Story 3
 
 - [ ] T043 [US3] Finalize diagnostic summary text generation from `HealthSnapshot` in `src/lib/ops-health.ts`
-- [ ] T044 [US3] Implement copy-to-clipboard client component with localized feedback in `src/components/ops/DiagnosticSummaryCopy.tsx`
+- [ ] T044 [US3] Implement copy-to-clipboard client component with localized toast-style success and failure feedback in `src/components/ops/DiagnosticSummaryCopy.tsx`
 - [ ] T045 [US3] Add diagnostic summary panel to `src/components/ops/OpsHealthDashboard.tsx`
 - [ ] T046 [US3] Ensure copied diagnostic summary is rebuilt after manual refresh in `src/components/ops/OpsHealthDashboard.tsx`
 - [ ] T047 [US3] Run and record focused US3 validation with `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts` and the copy e2e slice from `specs/021-ops-health-dashboard/quickstart.md`
@@ -139,7 +139,7 @@
 - [ ] T053 Run `pnpm run specs:overview:update` and verify `pnpm run specs:overview:check`
 - [ ] T054 Run focused validation `pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test.ts`
 - [ ] T055 Run relevant e2e validation `pnpm test:e2e -- tests/e2e/ops-health/admin-ops-health.spec.ts`
-- [ ] T056 Run broader validation `.\validate.ps1 quality`
+- [ ] T056 Run broader validation with `.\validate.ps1 quality` and full pre-merge validation with `.\validate.ps1 all`
 
 ---
 
@@ -195,7 +195,7 @@ Task: "T029 [US2] Add e2e test for manual refresh updating snapshot timestamp in
 
 ```text
 Task: "T040 [US3] Add unit tests for diagnostic summary allowlist and forbidden secret patterns in tests/unit/ops-health.test.ts"
-Task: "T044 [US3] Implement copy-to-clipboard client component with localized feedback in src/components/ops/DiagnosticSummaryCopy.tsx"
+Task: "T044 [US3] Implement copy-to-clipboard client component with localized toast-style success and failure feedback in src/components/ops/DiagnosticSummaryCopy.tsx"
 Task: "T041 [US3] Add integration test asserting /api/admin/ops-health diagnostic summary contains no raw secret-like values in tests/integration/ops-health-api.test.ts"
 ```
 
@@ -221,8 +221,8 @@ Task: "T041 [US3] Add integration test asserting /api/admin/ops-health diagnosti
 
 - Run focused tests after each story slice.
 - Run `pnpm run specs:overview:check` after spec/task updates.
-- Run `.\validate.ps1 quality` before PR.
-- Run broader validation if implementation changes reach shared auth, Prisma, or dashboard shell behavior.
+- Run `.\validate.ps1 quality` during polish and `.\validate.ps1 all` before PR/merge.
+- Run additional broader validation if implementation changes reach shared auth, Prisma, or dashboard shell behavior.
 
 ## Notes
 

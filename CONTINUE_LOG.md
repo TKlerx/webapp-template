@@ -1,5 +1,10 @@
 # Continue Log
 
+## 2026-06-11 18:05:00
+
+- Applied `/speckit.analyze` remediation edits for spec `021-ops-health-dashboard`.
+- Tightened config sanity scope, copy toast feedback, safe fatal-error testing, and full pre-merge validation tasks.
+
 ## 2026-06-11 17:55:00
 
 - Generated task list for spec `021-ops-health-dashboard`.

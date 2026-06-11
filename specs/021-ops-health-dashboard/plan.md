@@ -18,7 +18,7 @@ Add an administrator-only Ops Health Dashboard inside the existing dashboard/adm
 **Target Platform**: Web application running locally, in Docker, and on Azure Container Apps  
 **Project Type**: Next.js web application with server-rendered dashboard pages and API routes  
 **Performance Goals**: Healthy snapshot visible within 5 seconds; health checks bounded so one slow/degraded area does not make the dashboard unusable  
-**Constraints**: Admin-only access; no raw secrets, tokens, passwords, private keys, or full connection strings in UI/API/copy output; all user-facing text via next-intl; responsive layout; configurable base path respected  
+**Constraints**: Admin-only access; no raw secrets, tokens, passwords, private keys, or full connection strings in UI/API/copy output; configuration sanity checks report presence/readiness only for authentication, database URL ownership, runtime environment, and build metadata; all user-facing text via next-intl; responsive layout; configurable base path respected; user-triggered copy actions provide toast-style feedback  
 **Scale/Scope**: Small-team operational page for roughly 10 users and single-instance deployments
 
 ## Constitution Check
@@ -33,6 +33,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - **Continuity And Handoff**: PASS. `CONTINUE.md` was reviewed and will be updated with planning state.
 - **Azure OpenAI Integration**: PASS. No LLM functionality is introduced.
 - **Web Application Standards**: PASS. Dashboard remains under the existing app shell and base-path-aware routing.
+- **Web Application Standards**: PASS. Dashboard remains under the existing app shell and base-path-aware routing, and copy actions require toast-style feedback.
 - **Internationalization**: PASS. New labels, statuses, messages, and copy feedback require keys for en/de/es/fr/pt.
 - **Responsive Design**: PASS. Plan requires mobile/tablet/desktop layout verification.
 

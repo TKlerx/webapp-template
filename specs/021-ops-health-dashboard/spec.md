@@ -95,6 +95,7 @@ An administrator copies or shares the dashboard's non-secret diagnostic summary 
 - **FR-014**: System MUST make the dashboard reachable from the existing admin or ops navigation.
 - **FR-015**: System MUST show worker and deployment smoke status only from recent recorded results when those results are available; otherwise these areas MUST be marked unknown or unavailable.
 - **FR-016**: System MUST provide a copy action for a non-secret diagnostic summary in the first version.
+- **FR-017**: System MUST provide toast-style feedback for successful or failed diagnostic summary copy actions.
 
 ### Key Entities
 
@@ -122,3 +123,4 @@ An administrator copies or shares the dashboard's non-secret diagnostic summary 
 - The first version does not require live background updates; administrators can manually refresh when they need a new snapshot.
 - The dashboard belongs inside the existing administrative experience rather than as a standalone public diagnostics page.
 - The first version includes copyable diagnostic text, not a downloadable diagnostic file.
+- The v1 configuration sanity check covers presence/readiness only for authentication, database URL ownership, runtime environment, and build metadata; it must never display raw values.

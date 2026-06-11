@@ -31,10 +31,11 @@
    - Overall status
    - Runtime, database, configuration, worker, and deploy smoke health areas
    - Unknown/unavailable states where optional evidence is absent
+   - Configuration readiness as presence/readiness only, without raw environment values
 
 5. Use the manual refresh action and confirm the snapshot timestamp changes.
 
-6. Use the copy action and confirm the copied text contains no raw secrets, tokens, passwords, private keys, auth headers, cookies, or full connection strings.
+6. Use the copy action and confirm a toast-style success message appears, then confirm the copied text contains no raw secrets, tokens, passwords, private keys, auth headers, cookies, or full connection strings.
 
 7. Sign in as a non-admin user and confirm `/admin/ops` and `/api/admin/ops-health` are not accessible.
 
