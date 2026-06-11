@@ -1475,3 +1475,12 @@
 - Validation passed: `pnpm run specs:overview:check`.
 - Active specs: none.
 - Next focus: commit/push overview refresh and confirm main validation rerun.
+
+## 2026-06-11 09:05:00
+
+- Confirmed latest `main` validation passed after `25306fd`.
+- Restored generated `next-env.d.ts` local noise.
+- Deleted merged local branch `018-opentofu-azure-infra`.
+- Pruned stale remote-tracking branch `origin/019-logging-standardization`.
+- Active specs: none.
+- Next focus: choose the next feature/spec; recommended candidate is OpenTofu AzureRM v5 compatibility cleanup.
