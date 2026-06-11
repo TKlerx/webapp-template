@@ -38,7 +38,7 @@ resource "azurerm_resource_group" "bootstrap" {
   tags     = local.tags
 }
 
-resource "azurerm_storage_account" "state" {
+resource "azurerm_storage_account" "state" { # nosemgrep: terraform.azure.security.storage.storage-queue-services-logging.storage-queue-services-logging -- queue logging is configured by azurerm_storage_account_queue_properties.state for AzureRM v5 compatibility.
   name                            = local.storage_account_name
   resource_group_name             = azurerm_resource_group.bootstrap.name
   location                        = azurerm_resource_group.bootstrap.location
@@ -50,16 +50,6 @@ resource "azurerm_storage_account" "state" {
   public_network_access_enabled   = true
   tags                            = local.tags
 
-  queue_properties {
-    logging {
-      delete                = true
-      read                  = true
-      version               = "1.0"
-      write                 = true
-      retention_policy_days = 7
-    }
-  }
-
   network_rules {
     default_action = "Deny"
     bypass         = ["AzureServices", "Logging", "Metrics"]
@@ -68,6 +58,18 @@ resource "azurerm_storage_account" "state" {
 
   lifecycle {
     prevent_destroy = true
+  }
+}
+
+resource "azurerm_storage_account_queue_properties" "state" {
+  storage_account_id = azurerm_storage_account.state.id
+
+  logging {
+    delete                = true
+    read                  = true
+    version               = "1.0"
+    write                 = true
+    retention_policy_days = 7
   }
 }
 

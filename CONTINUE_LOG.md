@@ -1484,3 +1484,12 @@
 - Pruned stale remote-tracking branch `origin/019-logging-standardization`.
 - Active specs: none.
 - Next focus: choose the next feature/spec; recommended candidate is OpenTofu AzureRM v5 compatibility cleanup.
+
+## 2026-06-11 09:27:00
+
+- Replaced deprecated inline `queue_properties` on bootstrap state storage account with `azurerm_storage_account_queue_properties.state`.
+- Added a narrow Semgrep suppression on the storage account because the community rule does not recognize the dedicated queue properties resource.
+- Validation passed: `pnpm run semgrep` and `.\validate.ps1 quality`.
+- OpenTofu infrastructure validation no longer emits the AzureRM queue properties deprecation warning.
+- Active specs: none.
+- Next focus: commit/push this maintenance cleanup and confirm main validation.
