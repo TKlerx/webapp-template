@@ -23,10 +23,10 @@
 
 ## Active Specs
 
-- `021-ops-health-dashboard`: Plan/design artifacts created; ready for task generation
+- `021-ops-health-dashboard`: Tasks generated; ready for implementation
 
 ## Next Recommended Actions
 
-1. Run `/speckit.tasks` for `021-ops-health-dashboard`.
+1. Run `/speckit.implement` for `021-ops-health-dashboard`.
 2. Keep the feature focused on safe, non-secret operational visibility for administrators.
 3. Include `CONTINUE.md` and `CONTINUE_LOG.md` housekeeping changes in the next PR.

@@ -1,5 +1,11 @@
 # Continue Log
 
+## 2026-06-11 17:55:00
+
+- Generated task list for spec `021-ops-health-dashboard`.
+- Tasks cover setup, shared snapshot foundation, three independently testable user stories, and polish/validation.
+- Next action: run `/speckit.implement`.
+
 ## 2026-06-11 17:40:00
 
 - Planned spec `021-ops-health-dashboard`.
