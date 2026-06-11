@@ -1,5 +1,11 @@
 # Continue Log
 
+## 2026-06-11 17:24:00
+
+- Clarified spec `021-ops-health-dashboard`.
+- Decisions: admin-only access, admin/ops navigation, point-in-time snapshot with manual refresh, recent recorded worker/smoke status only, and copyable non-secret diagnostic summary.
+- Next action: run `/speckit.plan`.
+
 ## 2026-06-11 17:09:00
 
 - Created spec `021-ops-health-dashboard` on branch `021-ops-health-dashboard`.

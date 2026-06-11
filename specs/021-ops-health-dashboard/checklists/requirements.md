@@ -31,4 +31,5 @@
 
 ## Notes
 
-- Specification is ready for `/speckit.clarify`; no known clarification markers remain.
+- Clarification pass completed on 2026-06-11 with five accepted answers covering access, refresh model, navigation, worker/smoke evidence, and copyable diagnostics.
+- Specification is ready for `/speckit.plan`.
