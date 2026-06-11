@@ -153,6 +153,7 @@ That guide covers:
 - Structured JSON logs are emitted through `src/lib/logger.ts` and redact common secrets automatically. See [`docs/logging.md`](./docs/logging.md) for event naming, safe metadata, worker logging, and guardrail rules.
 - Runtime process failures are captured in `src/instrumentation.ts`.
 - Health checks are exposed at `/api/health` with process and database status.
+- Build metadata is exposed at `/api/version` and shown in the app badge from `APP_ENVIRONMENT`, `APP_VERSION`, `APP_REVISION`, `APP_BUILD_ID`, and `APP_BUILT_AT`; CI/deploys should set these from the commit, run id, and release/tag instead of committing generated version files.
 - `LOG_LEVEL` controls severity filtering. `ENABLE_REQUEST_LOGGING=true` enables opt-in request completion logs.
 
 ## Dependency Safety

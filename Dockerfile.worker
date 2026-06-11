@@ -1,6 +1,18 @@
 FROM python:3.12-slim
 
 WORKDIR /worker
+ARG APP_VERSION
+ARG APP_REVISION
+ARG APP_BUILD_ID
+ARG APP_BUILT_AT
+LABEL org.opencontainers.image.version=$APP_VERSION
+LABEL org.opencontainers.image.revision=$APP_REVISION
+LABEL org.opencontainers.image.created=$APP_BUILT_AT
+LABEL org.opencontainers.image.source="https://github.com/TKlerx/webapp-template"
+ENV APP_VERSION=$APP_VERSION
+ENV APP_REVISION=$APP_REVISION
+ENV APP_BUILD_ID=$APP_BUILD_ID
+ENV APP_BUILT_AT=$APP_BUILT_AT
 
 RUN apt-get update -y \
     && apt-get upgrade -y \

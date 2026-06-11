@@ -4,33 +4,39 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-11 11:06:34
-- Branch: `020-deploy-smoke-verification`
+- Updated: 2026-06-11 14:46:32
+- Branch: `main`
 
 ## Recent Non-Continuity Commits
 
+- 6c81729 feat: add azure deployment smoke verification (#3)
 - 3d52264 fix: move state queue logging to dedicated resource
 - 25306fd chore: refresh specs overview
 - dd226de test: update opentofu action pin assertion
 - 9b92cb5 ci: update opentofu setup action
-- fdf3418 chore: close completed active specs
 
 ## Git Status
 
+- M .env.docker.example
+- M .env.example
 - M .github/workflows/deploy-azure.yml
-- M .specify/feature.json
-- M ACTIVE_SPECS.md
-- M AGENTS.md
-- M package.json
+- M Dockerfile.app
+- M Dockerfile.worker
+- M README.md
+- M docker-compose.yml
+- M infra/azure/main.tf
+- M infra/azure/modules/runtime/app.tf
+- M infra/azure/modules/runtime/job.tf
+- M infra/azure/modules/runtime/variables.tf
+- M infra/azure/modules/runtime/worker.tf
+- M infra/azure/variables.tf
 - M specs/018-opentofu-azure-infra/quickstart.md
-- M specs/OVERVIEW.md
+- M src/components/ui/AppVersionBadge.tsx
+- M src/lib/app-version.ts
 - M tests/unit/security/deploy-workflow.test.ts
-- ?? docs/azure-deploy-smoke.md
-- ?? scripts/azure-deploy-smoke.ts
-- ?? scripts/run-azure-deploy-smoke.mjs
-- ?? specs/020-deploy-smoke-verification/
-- ?? tests/integration/azure-deploy-smoke-cli.test.ts
-- ?? tests/unit/azure-deploy-smoke.test.ts
+- ?? src/app/api/version/
+- ?? tests/unit/app-version.test.ts
+- ?? tests/unit/version-route.test.ts
 
 ## Active Specs
 
@@ -38,6 +44,6 @@
 
 ## Next Recommended Actions
 
-1. Commit and push `020-deploy-smoke-verification`.
-2. Open a pull request for the deployment smoke verification feature.
-3. Confirm GitHub Actions validation, then merge if green.
+1. Review, commit, and push the runtime build metadata changes.
+2. Optionally open a PR and confirm GitHub Actions validation.
+3. Use `APP_ENVIRONMENT`, `APP_VERSION`, `APP_REVISION`, `APP_BUILD_ID`, and `APP_BUILT_AT` for dev/staging traceability instead of generated version files.

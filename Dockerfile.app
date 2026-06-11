@@ -22,7 +22,15 @@ RUN pnpm install --prod
 FROM base AS builder
 WORKDIR /app
 ARG BASE_PATH
+ARG APP_VERSION
+ARG APP_REVISION
+ARG APP_BUILD_ID
+ARG APP_BUILT_AT
 ENV BASE_PATH=$BASE_PATH
+ENV APP_VERSION=$APP_VERSION
+ENV APP_REVISION=$APP_REVISION
+ENV APP_BUILD_ID=$APP_BUILD_ID
+ENV APP_BUILT_AT=$APP_BUILT_AT
 ENV AUTH_BASE_URL=http://localhost:3270
 ENV BETTER_AUTH_SECRET=docker-build-secret-change-me-at-least-32-characters
 ENV APP_DATABASE_URL=postgresql://starter:starter@localhost:5432/business_app_starter
@@ -33,6 +41,14 @@ RUN pnpm exec prisma generate --config prisma.config.postgres.ts && pnpm run bui
 
 FROM base AS migrate-runner
 WORKDIR /app
+ARG APP_VERSION
+ARG APP_REVISION
+ARG APP_BUILD_ID
+ARG APP_BUILT_AT
+LABEL org.opencontainers.image.version=$APP_VERSION
+LABEL org.opencontainers.image.revision=$APP_REVISION
+LABEL org.opencontainers.image.created=$APP_BUILT_AT
+LABEL org.opencontainers.image.source="https://github.com/TKlerx/webapp-template"
 COPY --from=migrate-deps /migrate-runtime/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/prisma ./prisma
@@ -42,9 +58,21 @@ COPY --from=builder /app/scripts ./scripts
 
 FROM base AS runner
 WORKDIR /app
+ARG APP_VERSION
+ARG APP_REVISION
+ARG APP_BUILD_ID
+ARG APP_BUILT_AT
+LABEL org.opencontainers.image.version=$APP_VERSION
+LABEL org.opencontainers.image.revision=$APP_REVISION
+LABEL org.opencontainers.image.created=$APP_BUILT_AT
+LABEL org.opencontainers.image.source="https://github.com/TKlerx/webapp-template"
 ENV NODE_ENV=production
 ENV PORT=3270
 ENV HOSTNAME=0.0.0.0
+ENV APP_VERSION=$APP_VERSION
+ENV APP_REVISION=$APP_REVISION
+ENV APP_BUILD_ID=$APP_BUILD_ID
+ENV APP_BUILT_AT=$APP_BUILT_AT
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/generated ./generated

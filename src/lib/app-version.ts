@@ -1,38 +1,81 @@
-import { execFileSync } from "node:child_process";
 import packageInfo from "../../package.json";
 
-let cachedVersionLabel: string | null = null;
+export type AppVersionInfo = {
+  environment: string;
+  version: string;
+  revision: string;
+  shortRevision: string;
+  buildId: string;
+  builtAt: string;
+  label: string;
+};
 
-function getShortGitHash() {
-  try {
-    return execFileSync("git", ["rev-parse", "--short", "HEAD"], {
-      cwd: process.cwd(),
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-  } catch {
-    return "";
+const UNKNOWN = "unknown";
+const LOCAL_ENVIRONMENT = "local";
+
+let cachedVersionInfo: AppVersionInfo | null = null;
+
+export function getAppVersionInfo() {
+  if (cachedVersionInfo) {
+    return cachedVersionInfo;
   }
+
+  const environment = readMetadata("APP_ENVIRONMENT") || LOCAL_ENVIRONMENT;
+  const version = readMetadata("APP_VERSION") || `v${packageInfo.version}`;
+  const revision =
+    readMetadata("APP_REVISION") || readMetadata("APP_GIT_SHA") || UNKNOWN;
+  const shortRevision = revision === UNKNOWN ? UNKNOWN : revision.slice(0, 12);
+  const buildId = readMetadata("APP_BUILD_ID") || UNKNOWN;
+  const builtAt = readMetadata("APP_BUILT_AT") || UNKNOWN;
+
+  cachedVersionInfo = {
+    environment,
+    version,
+    revision,
+    shortRevision,
+    buildId,
+    builtAt,
+    label: formatAppVersionLabel({
+      environment,
+      version,
+      shortRevision,
+      buildId,
+    }),
+  };
+
+  return cachedVersionInfo;
 }
 
 export function getAppVersionLabel() {
-  if (cachedVersionLabel) {
-    return cachedVersionLabel;
+  return getAppVersionInfo().label;
+}
+
+export function resetAppVersionInfoForTests() {
+  cachedVersionInfo = null;
+}
+
+function readMetadata(name: string) {
+  return process.env[name]?.trim() ?? "";
+}
+
+function formatAppVersionLabel({
+  environment,
+  version,
+  shortRevision,
+  buildId,
+}: Pick<
+  AppVersionInfo,
+  "environment" | "version" | "shortRevision" | "buildId"
+>) {
+  const parts = [environment, version];
+
+  if (shortRevision !== UNKNOWN) {
+    parts.push(shortRevision);
   }
 
-  const baseVersion = `v${packageInfo.version}`;
-  const configuredHash = process.env.APP_GIT_SHA?.trim();
-
-  if (process.env.NODE_ENV !== "production") {
-    const gitHash = configuredHash || getShortGitHash();
-    cachedVersionLabel = gitHash
-      ? `${baseVersion}+${gitHash}-dev`
-      : `${baseVersion}-dev`;
-    return cachedVersionLabel;
+  if (buildId !== UNKNOWN) {
+    parts.push(`run ${buildId}`);
   }
 
-  cachedVersionLabel = configuredHash
-    ? `${baseVersion}+${configuredHash}`
-    : baseVersion;
-  return cachedVersionLabel;
+  return parts.join(" | ");
 }

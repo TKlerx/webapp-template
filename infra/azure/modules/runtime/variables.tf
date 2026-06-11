@@ -69,6 +69,31 @@ variable "worker_min_replicas" {
   type        = number
 }
 
+variable "app_environment" {
+  description = "Non-secret application environment label."
+  type        = string
+}
+
+variable "app_version" {
+  description = "Non-secret application version label."
+  type        = string
+}
+
+variable "app_revision" {
+  description = "Non-secret source revision."
+  type        = string
+}
+
+variable "app_build_id" {
+  description = "Non-secret CI/build identifier."
+  type        = string
+}
+
+variable "app_built_at" {
+  description = "Non-secret build timestamp."
+  type        = string
+}
+
 variable "base_path" {
   description = "Application base path."
   type        = string
