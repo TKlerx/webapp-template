@@ -1,5 +1,17 @@
 # Continue Log
 
+## 2026-06-11 17:09:00
+
+- Created spec `021-ops-health-dashboard` on branch `021-ops-health-dashboard`.
+- Added requirement checklist and refreshed `specs/OVERVIEW.md` plus `.specify/feature.json`.
+- Kept prior continuity housekeeping changes for inclusion in the next PR, per user request.
+
+## 2026-06-11 16:59:10
+
+- Corrected continuity snapshot after PR #4 merge.
+- Current state: clean `main`, runtime build metadata feature merged, local and GitHub validation green.
+- Next recommendation: select the next user-visible feature area rather than adding more deployment plumbing immediately.
+
 ## 2026-05-28 09:15:49 +02:00
 
 - Implemented spec `016-runtime-credential-separation` end to end.
