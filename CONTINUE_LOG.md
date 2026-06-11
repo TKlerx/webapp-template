@@ -1,5 +1,11 @@
 # Continue Log
 
+## 2026-06-11 17:40:00
+
+- Planned spec `021-ops-health-dashboard`.
+- Added `plan.md`, `research.md`, `data-model.md`, `contracts/ops-health-dashboard.md`, and `quickstart.md`.
+- Updated `ACTIVE_SPECS.md` and Codex agent context. Next action: run `/speckit.tasks`.
+
 ## 2026-06-11 17:24:00
 
 - Clarified spec `021-ops-health-dashboard`.

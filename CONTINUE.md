@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-11 17:24:00
+- Updated: 2026-06-11 17:40:00
 - Branch: `021-ops-health-dashboard`
 
 ## Recent Non-Continuity Commits
@@ -23,10 +23,10 @@
 
 ## Active Specs
 
-- `021-ops-health-dashboard`: Clarified spec ready for planning
+- `021-ops-health-dashboard`: Plan/design artifacts created; ready for task generation
 
 ## Next Recommended Actions
 
-1. Run `/speckit.plan` for `021-ops-health-dashboard`.
+1. Run `/speckit.tasks` for `021-ops-health-dashboard`.
 2. Keep the feature focused on safe, non-secret operational visibility for administrators.
 3. Include `CONTINUE.md` and `CONTINUE_LOG.md` housekeeping changes in the next PR.

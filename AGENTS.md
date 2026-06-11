@@ -10,6 +10,9 @@ Auto-generated from all feature plans. Last updated: 2026-06-11
 
 ## Active Technologies
 
+- TypeScript 5.9, Next.js 16 App Router, React 19 + Existing Next.js server components/API routes, Prisma 7, Better Auth role/session helpers, next-intl, lucide-react, existing monitoring and app-version helpers (021-ops-health-dashboard)
+- Existing Prisma database only; no new tables planned. Use existing background job records for worker evidence and existing deployment/runtime metadata when available. (021-ops-health-dashboard)
+
 - TypeScript 5.9 on Node.js via the existing `tsx` dev dependency + Node built-ins, existing `tsx`, Azure CLI available in deployment runners (020-deploy-smoke-verification)
 - No new storage; smoke evidence remains command output and GitHub step summary (020-deploy-smoke-verification)
 
@@ -41,11 +44,11 @@ TypeScript 5.9 on Next.js 16 App Router (React 19): Follow standard conventions
 
 ## Recent Changes
 
+- 021-ops-health-dashboard: Added TypeScript 5.9, Next.js 16 App Router, React 19 + Existing Next.js server components/API routes, Prisma 7, Better Auth role/session helpers, next-intl, lucide-react, existing monitoring and app-version helpers
+
 - 020-deploy-smoke-verification: Added TypeScript 5.9 on Node.js via the existing `tsx` dev dependency + Node built-ins, existing `tsx`, Azure CLI available in deployment runners
 
 - 019-logging-standardization: Added TypeScript 5.9 on Next.js 16 App Router with React 19; Python 3.12 worker; PowerShell/Node validation scripts + Existing `src/lib/logger.ts`, `src/proxy.ts`, `src/instrumentation.ts`, Prisma-backed services, Python stdlib `logging`/`json`, Vitest, Playwright, existing validation scripts
-
-- 017-deepsec-remediation: Added TypeScript 5.9 on Next.js 16 App Router, React 19, Python 3.12 worker where affected, PowerShell validation scripts + Prisma 7, Better Auth, Zod, Vitest, Playwright, GitHub Actions, GoReleaser, DeepSec 2.0.12
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

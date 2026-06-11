@@ -6,7 +6,7 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- No open specs.
+- `021-ops-health-dashboard`: planning in progress; next step is `/speckit.tasks` after plan validation.
 
 ## Maintenance Rules
 
