@@ -19,7 +19,8 @@
     "tokens": "Tokens",
     "apiDocs": "API Docs",
     "adminTokens": "Admin Tokens",
-    "teamsIntegrations": "Teams"
+    "teamsIntegrations": "Teams",
+    "opsHealth": "Salud Ops"
   },
   "auth": {
     "signIn": "Iniciar sesion",
@@ -136,6 +137,47 @@
       "payload": "Payload",
       "result": "Resultado",
       "error": "Error"
+    }
+  },
+  "opsHealth": {
+    "eyebrow": "Operaciones",
+    "title": "Salud Ops",
+    "description": "Identifica la compilación en ejecución, revisa los controles de salud y copia un resumen diagnóstico seguro.",
+    "overall": "Estado general",
+    "capturedAt": "Capturado: {value}",
+    "checkedAt": "Comprobado: {value}",
+    "refresh": "Actualizar",
+    "refreshing": "Actualizando...",
+    "refreshFailed": "No se pudo actualizar la instantánea de salud.",
+    "status": {
+      "healthy": "Correcto",
+      "degraded": "Degradado",
+      "unknown": "Desconocido",
+      "unavailable": "No disponible"
+    },
+    "environment": {
+      "title": "Identidad del entorno",
+      "environment": "Entorno",
+      "version": "Versión",
+      "revision": "Revisión",
+      "buildId": "ID de build",
+      "builtAt": "Compilado"
+    },
+    "checks": {
+      "runtime": "Runtime",
+      "database": "Base de datos",
+      "configuration": "Configuración",
+      "worker": "Worker",
+      "deploySmoke": "Smoke de despliegue"
+    },
+    "summary": {
+      "title": "Resumen diagnóstico",
+      "description": "Copia este texto sin secretos en issues o notas de incidente."
+    },
+    "copy": {
+      "button": "Copiar resumen",
+      "success": "Resumen diagnóstico copiado",
+      "error": "No se pudo copiar el resumen diagnóstico"
     }
   },
   "tokens": {

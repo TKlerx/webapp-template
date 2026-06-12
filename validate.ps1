@@ -1240,7 +1240,26 @@ if ($Phase -in "all", "full", "test", "commit") {
 if ($Phase -in "all", "full", "test", "commit") {
     Write-Step "Tests (vitest)"
     try {
+        $previousDatabaseUrl = $env:DATABASE_URL
+        if ([string]::IsNullOrWhiteSpace($env:APP_DATABASE_URL) -and [string]::IsNullOrWhiteSpace($env:DATABASE_URL)) {
+            $env:DATABASE_URL = "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e_test"
+        }
+
+        $effectiveDatabaseUrl = if (-not [string]::IsNullOrWhiteSpace($env:APP_DATABASE_URL)) { $env:APP_DATABASE_URL } else { $env:DATABASE_URL }
+        $generateCommand = if ($effectiveDatabaseUrl -like "file:*") { "pnpm run prisma:generate" } else { "pnpm run prisma:generate:postgres" }
+        $generateResult = Invoke-NativeCommandCaptured $generateCommand
+        if ($generateResult.ExitCode -ne 0) {
+            $generateResult.Output | Out-Host
+            throw "prisma generate failed"
+        }
+
         $result = Invoke-NativeCommandCaptured "pnpm test"
+        if ($null -eq $previousDatabaseUrl) {
+            Remove-Item Env:\DATABASE_URL -ErrorAction SilentlyContinue
+        } else {
+            $env:DATABASE_URL = $previousDatabaseUrl
+        }
+
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "tests failed"
@@ -1274,6 +1293,12 @@ if ($Phase -in "all", "full", "test", "commit") {
             Write-Pass "tests passed"
         }
     } catch {
+        if ($null -eq $previousDatabaseUrl) {
+            Remove-Item Env:\DATABASE_URL -ErrorAction SilentlyContinue
+        } else {
+            $env:DATABASE_URL = $previousDatabaseUrl
+        }
+
         Write-Fail "tests failed"
         $failures += "tests"
     }

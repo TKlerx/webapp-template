@@ -1,5 +1,46 @@
 # Continue Log
 
+## 2026-06-11 21:14:00
+
+- Implemented ops health dashboard feature slices for spec `021-ops-health-dashboard`.
+- Added admin `/admin/ops` page, `/api/admin/ops-health` snapshot API, shared ops health snapshot logic, localized UI, responsive e2e coverage, and safe copy diagnostics.
+- Focused Vitest and Playwright ops-health checks pass; final validation remains.
+
+## 2026-06-11 18:05:00
+
+- Applied `/speckit.analyze` remediation edits for spec `021-ops-health-dashboard`.
+- Tightened config sanity scope, copy toast feedback, safe fatal-error testing, and full pre-merge validation tasks.
+
+## 2026-06-11 17:55:00
+
+- Generated task list for spec `021-ops-health-dashboard`.
+- Tasks cover setup, shared snapshot foundation, three independently testable user stories, and polish/validation.
+- Next action: run `/speckit.implement`.
+
+## 2026-06-11 17:40:00
+
+- Planned spec `021-ops-health-dashboard`.
+- Added `plan.md`, `research.md`, `data-model.md`, `contracts/ops-health-dashboard.md`, and `quickstart.md`.
+- Updated `ACTIVE_SPECS.md` and Codex agent context. Next action: run `/speckit.tasks`.
+
+## 2026-06-11 17:24:00
+
+- Clarified spec `021-ops-health-dashboard`.
+- Decisions: admin-only access, admin/ops navigation, point-in-time snapshot with manual refresh, recent recorded worker/smoke status only, and copyable non-secret diagnostic summary.
+- Next action: run `/speckit.plan`.
+
+## 2026-06-11 17:09:00
+
+- Created spec `021-ops-health-dashboard` on branch `021-ops-health-dashboard`.
+- Added requirement checklist and refreshed `specs/OVERVIEW.md` plus `.specify/feature.json`.
+- Kept prior continuity housekeeping changes for inclusion in the next PR, per user request.
+
+## 2026-06-11 16:59:10
+
+- Corrected continuity snapshot after PR #4 merge.
+- Current state: clean `main`, runtime build metadata feature merged, local and GitHub validation green.
+- Next recommendation: select the next user-visible feature area rather than adding more deployment plumbing immediately.
+
 ## 2026-05-28 09:15:49 +02:00
 
 - Implemented spec `016-runtime-credential-separation` end to end.
@@ -1517,3 +1558,12 @@
 - Validation passed: focused version/workflow tests, `pnpm run typecheck`, and `.\validate.ps1 all`.
 - Active specs: none.
 - Next focus: review, commit, push, and optionally open a PR for the metadata changes.
+
+## 2026-06-11 22:53:35
+
+- Implemented spec `021-ops-health-dashboard` on branch `021-ops-health-dashboard`.
+- Added an administrator-only `/admin/ops` dashboard, `/api/admin/ops-health` snapshot route, reusable ops health snapshot/redaction logic, admin navigation, i18n copy, and focused unit/integration/e2e coverage.
+- Adjusted local validation so Vitest uses the standard PostgreSQL test URL when no database URL is configured, matching the generated PostgreSQL Prisma client.
+- Validation passed: focused ops unit/integration tests, focused ops Playwright tests, `.\validate.ps1 quality`, `.\validate.ps1 all`, and `.\validate.ps1 full` including Trivy/container scans and full Playwright E2E.
+- Active specs: `021-ops-health-dashboard` implemented and validated; PR cleanup remains.
+- Next focus: commit, push, open a PR, and confirm GitHub validation.

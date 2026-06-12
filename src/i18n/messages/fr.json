@@ -19,7 +19,8 @@
     "tokens": "Tokens",
     "apiDocs": "API Docs",
     "adminTokens": "Admin Tokens",
-    "teamsIntegrations": "Teams"
+    "teamsIntegrations": "Teams",
+    "opsHealth": "Santé Ops"
   },
   "auth": {
     "signIn": "Se connecter",
@@ -136,6 +137,47 @@
       "payload": "Payload",
       "result": "Resultat",
       "error": "Erreur"
+    }
+  },
+  "opsHealth": {
+    "eyebrow": "Opérations",
+    "title": "Santé Ops",
+    "description": "Identifiez le build en cours, inspectez les contrôles de santé et copiez un résumé de diagnostic sûr.",
+    "overall": "État global",
+    "capturedAt": "Capturé : {value}",
+    "checkedAt": "Vérifié : {value}",
+    "refresh": "Actualiser",
+    "refreshing": "Actualisation...",
+    "refreshFailed": "Impossible d’actualiser l’instantané de santé.",
+    "status": {
+      "healthy": "Sain",
+      "degraded": "Dégradé",
+      "unknown": "Inconnu",
+      "unavailable": "Indisponible"
+    },
+    "environment": {
+      "title": "Identité de l’environnement",
+      "environment": "Environnement",
+      "version": "Version",
+      "revision": "Révision",
+      "buildId": "ID de build",
+      "builtAt": "Build créé"
+    },
+    "checks": {
+      "runtime": "Runtime",
+      "database": "Base de données",
+      "configuration": "Configuration",
+      "worker": "Worker",
+      "deploySmoke": "Smoke de déploiement"
+    },
+    "summary": {
+      "title": "Résumé de diagnostic",
+      "description": "Copiez ce texte sans secret dans des tickets ou notes d’incident."
+    },
+    "copy": {
+      "button": "Copier le résumé",
+      "success": "Résumé de diagnostic copié",
+      "error": "Impossible de copier le résumé de diagnostic"
     }
   },
   "tokens": {

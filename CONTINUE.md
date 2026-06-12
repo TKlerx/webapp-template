@@ -4,46 +4,30 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-11 14:46:32
-- Branch: `main`
+- Updated: 2026-06-11 22:53:35
+- Branch: `021-ops-health-dashboard`
 
 ## Recent Non-Continuity Commits
 
+- 8047615 feat: expose runtime build metadata (#4)
 - 6c81729 feat: add azure deployment smoke verification (#3)
 - 3d52264 fix: move state queue logging to dedicated resource
+- 34de987 chore: record clean handoff
 - 25306fd chore: refresh specs overview
-- dd226de test: update opentofu action pin assertion
-- 9b92cb5 ci: update opentofu setup action
 
 ## Git Status
 
-- M .env.docker.example
-- M .env.example
-- M .github/workflows/deploy-azure.yml
-- M Dockerfile.app
-- M Dockerfile.worker
-- M README.md
-- M docker-compose.yml
-- M infra/azure/main.tf
-- M infra/azure/modules/runtime/app.tf
-- M infra/azure/modules/runtime/job.tf
-- M infra/azure/modules/runtime/variables.tf
-- M infra/azure/modules/runtime/worker.tf
-- M infra/azure/variables.tf
-- M specs/018-opentofu-azure-infra/quickstart.md
-- M src/components/ui/AppVersionBadge.tsx
-- M src/lib/app-version.ts
-- M tests/unit/security/deploy-workflow.test.ts
-- ?? src/app/api/version/
-- ?? tests/unit/app-version.test.ts
-- ?? tests/unit/version-route.test.ts
+- Existing handoff edits retained for inclusion in the next PR
+- Active spec implementation completed under `specs/021-ops-health-dashboard/`
+- `.specify/feature.json` now points at `specs/021-ops-health-dashboard`
+- Full validation passed locally, including Trivy/container scans and Playwright E2E
 
 ## Active Specs
 
-- None
+- `021-ops-health-dashboard`: Implementation and validation complete; PR cleanup remains
 
 ## Next Recommended Actions
 
-1. Review, commit, and push the runtime build metadata changes.
-2. Optionally open a PR and confirm GitHub Actions validation.
-3. Use `APP_ENVIRONMENT`, `APP_VERSION`, `APP_REVISION`, `APP_BUILD_ID`, and `APP_BUILT_AT` for dev/staging traceability instead of generated version files.
+1. Commit and push `021-ops-health-dashboard`.
+2. Open a PR and watch GitHub validation.
+3. Include `CONTINUE.md` and `CONTINUE_LOG.md` housekeeping changes in the PR.
