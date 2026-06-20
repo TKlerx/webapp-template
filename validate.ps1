@@ -625,7 +625,7 @@ function Test-OpenTofuInfrastructure {
 }
 
 function Test-SupplyChainAudit {
-    Write-Step "Supply-chain audit (Trivy High/Critical blocking)"
+    Write-Step "Supply-chain audit (Trivy + dependency High/Critical blocking)"
     try {
         if (-not (Test-Path "scripts\supply-chain-audit.ps1" -PathType Leaf)) {
             throw "scripts/supply-chain-audit.ps1 is missing"

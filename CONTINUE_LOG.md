@@ -1,5 +1,17 @@
 # Continue Log
 
+## 2026-06-20 09:45:41 +02:00
+
+- Ported rag-agent-style supply-chain audit coverage into `webapp-template`.
+- Added app and worker `dependency-audit` Docker targets for image-context `pnpm audit` and `uv audit` execution.
+- Extended `scripts/supply-chain-audit.ps1` to combine existing pinned-Trivy runtime/config scans with app host/image dependency audits, worker image dependency audits, strict High/Critical blocking, and narrow exception matching from `supply-chain-audit-exceptions.json`.
+- Documented audit exception records in `docs/security/audit-exceptions.md` and worker audit usage in `worker/README.md`.
+- Validation passed:
+  - `scripts/supply-chain-audit.ps1 -SkipBuild -SkipImageScans -SkipConfigScans -SkipDependencyAudits`
+  - host `pnpm audit --prod --no-optional --json` parsing reports the existing moderate PostCSS advisory as non-blocking
+  - `uv audit --no-dev` from `worker/`
+- Docker-backed image-context audit validation was blocked locally because the Docker daemon is unavailable; rerun `pnpm run supply-chain:audit` when Docker is available.
+
 ## 2026-06-11 21:14:00
 
 - Implemented ops health dashboard feature slices for spec `021-ops-health-dashboard`.

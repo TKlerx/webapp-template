@@ -1,12 +1,14 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Runs Trivy supply-chain audits for deployable template artifacts.
+    Runs supply-chain audits for deployable template artifacts.
 
 .DESCRIPTION
     Builds and scans the app, migration, and worker runtime images with Trivy,
     scans Azure OpenTofu and Docker/Compose configuration with Trivy config,
-    and blocks on High/Critical findings or inconclusive scan results.
+    and runs production dependency audits in host/image contexts. High and
+    Critical findings block unless a narrow active exception matches finding id,
+    artifact, and package.
 
     The Trivy scanner itself runs from a repo-pinned digest image and must be
     older than the 7-day cooldown window unless an emergency override is used.
@@ -22,10 +24,12 @@ param(
     [string]$TrivyImage = "",
     [string]$TrivyImageReleasedAt = "",
     [string]$ReportPath = ".artifacts/supply-chain-audit/report.json",
+    [string]$ExceptionFile = "supply-chain-audit-exceptions.json",
 
     [switch]$SkipBuild,
     [switch]$SkipImageScans,
     [switch]$SkipConfigScans,
+    [switch]$SkipDependencyAudits,
     [switch]$AllowTrivyCooldownOverride
 )
 
@@ -36,6 +40,8 @@ $TrivyCooldown = [TimeSpan]::FromDays(7)
 $DefaultTrivyImage = "aquasec/trivy:0.71.0@sha256:016eae51fdcf989332a5404af7e8f625cd5d95d7c0907a221d080a996f556500"
 $DefaultTrivyImageReleasedAt = [DateTimeOffset]::Parse("2026-06-01T00:00:00Z", [System.Globalization.CultureInfo]::InvariantCulture)
 $ReportResults = @()
+$ExceptionRecords = @()
+$InvalidExceptions = @()
 $ResolvedTrivyImage = $null
 
 function Write-Step([string]$Message) {
@@ -99,9 +105,8 @@ function ConvertFrom-TrivyJsonOutput([string]$Text) {
             return $null
         }
 
-        $jsonSlice = $trimmed.Substring($start, $end - $start + 1)
         try {
-            return $jsonSlice | ConvertFrom-Json
+            return $trimmed.Substring($start, $end - $start + 1) | ConvertFrom-Json
         } catch {
             return $null
         }
@@ -130,6 +135,141 @@ function ConvertTo-RepoRelativePath([string]$Path) {
 
 function ConvertTo-JsonDepth([object]$Value) {
     return $Value | ConvertTo-Json -Depth 16
+}
+
+function Read-JsonFile([string]$Path) {
+    $resolved = Resolve-RepoPath $Path
+    if (-not (Test-Path $resolved -PathType Leaf)) {
+        throw "Required file is missing: $(ConvertTo-RepoRelativePath $resolved)"
+    }
+
+    $raw = Get-Content -Path $resolved -Raw
+    if ([string]::IsNullOrWhiteSpace($raw)) {
+        throw "JSON file is empty: $(ConvertTo-RepoRelativePath $resolved)"
+    }
+
+    return $raw | ConvertFrom-Json
+}
+
+function Test-RequiredFile([string]$Path, [string]$ArtifactName, [string]$SourceName) {
+    $resolved = Resolve-RepoPath $Path
+    if (Test-Path $resolved -PathType Leaf) {
+        return $true
+    }
+
+    Add-InconclusiveResult `
+        -ArtifactName $ArtifactName `
+        -SourceName $SourceName `
+        -Command "metadata check" `
+        -Message "Required metadata file is missing: $(ConvertTo-RepoRelativePath $resolved)"
+    return $false
+}
+
+function Get-DateValue([object]$Value) {
+    if ($null -eq $Value -or [string]::IsNullOrWhiteSpace([string]$Value)) {
+        return $null
+    }
+
+    try {
+        return [DateTimeOffset]::Parse([string]$Value)
+    } catch {
+        return $null
+    }
+}
+
+function Add-InvalidException([string]$Id, [string]$Reason) {
+    $script:InvalidExceptions += [pscustomobject]@{
+        id = if ([string]::IsNullOrWhiteSpace($Id)) { "<missing>" } else { $Id }
+        reason = $Reason
+    }
+}
+
+function Read-AuditExceptions {
+    $data = Read-JsonFile $ExceptionFile
+    $records = @()
+
+    if ($data -is [array]) {
+        $records = @($data)
+    } elseif ($data.PSObject.Properties.Name -contains "exceptions") {
+        $records = @($data.exceptions)
+    } else {
+        Add-InvalidException "<root>" "Exception file must be an array or an object with an exceptions array."
+        return @()
+    }
+
+    $validatedRecords = @()
+    foreach ($record in $records) {
+        $id = [string]$record.id
+        $requiredTextFields = @("id", "finding_id", "artifact", "package_name", "owner", "reason", "approved_at", "review_by", "status")
+        foreach ($field in $requiredTextFields) {
+            if ([string]::IsNullOrWhiteSpace([string]$record.$field)) {
+                Add-InvalidException $id "Missing required field: $field."
+            }
+        }
+
+        if ([string]$record.finding_id -in @("*", "ALL", "HIGH", "CRITICAL") -or
+            [string]$record.artifact -in @("*", "all") -or
+            [string]$record.package_name -in @("*", "all")) {
+            Add-InvalidException $id "Broad exception scope is not allowed."
+        }
+
+        if ([string]$record.status -notin @("active", "expired", "revoked")) {
+            Add-InvalidException $id "status must be active, expired, or revoked."
+        }
+
+        $approvedAt = Get-DateValue $record.approved_at
+        $reviewBy = Get-DateValue $record.review_by
+        $expiresAt = Get-DateValue $record.expires_at
+
+        if ($null -eq $approvedAt) {
+            Add-InvalidException $id "approved_at must be a valid date."
+        }
+        if ($null -eq $reviewBy) {
+            Add-InvalidException $id "review_by must be a valid date."
+        }
+        if ($approvedAt -and $reviewBy -and $reviewBy -gt $approvedAt.AddDays(30)) {
+            Add-InvalidException $id "review_by must be no later than 30 days after approved_at."
+        }
+        if ($reviewBy -and $reviewBy.Date -lt $Now.Date) {
+            Add-InvalidException $id "review_by is in the past."
+        }
+        if ($expiresAt -and $expiresAt.Date -lt $Now.Date) {
+            Add-InvalidException $id "expires_at is in the past."
+        }
+
+        $validatedRecords += $record
+    }
+
+    return @($validatedRecords)
+}
+
+function Find-ActiveException([object]$Finding) {
+    foreach ($exception in $ExceptionRecords) {
+        if ([string]$exception.status -ne "active") {
+            continue
+        }
+
+        $approvedAt = Get-DateValue $exception.approved_at
+        $reviewBy = Get-DateValue $exception.review_by
+        $expiresAt = Get-DateValue $exception.expires_at
+        if ($null -eq $approvedAt -or $null -eq $reviewBy) {
+            continue
+        }
+        if ($reviewBy -gt $approvedAt.AddDays(30) -or $reviewBy.Date -lt $Now.Date) {
+            continue
+        }
+        if ($expiresAt -and $expiresAt.Date -lt $Now.Date) {
+            continue
+        }
+
+        if ([string]$exception.finding_id -eq [string]$Finding.id -and
+            [string]$exception.artifact -eq [string]$Finding.artifact -and
+            [string]$exception.package_name -eq [string]$Finding.package_name) {
+            return $exception
+        }
+    }
+
+    return $null
 }
 
 function Resolve-TrivyImage {
@@ -184,7 +324,7 @@ function New-Finding(
     [string]$FixedVersion
 ) {
     $normalizedSeverity = if ([string]::IsNullOrWhiteSpace($Severity)) { "UNKNOWN" } else { $Severity.ToUpperInvariant() }
-    return [pscustomobject]@{
+    $finding = [pscustomobject]@{
         id = if ([string]::IsNullOrWhiteSpace($Id)) { "UNKNOWN" } else { $Id }
         artifact = $ArtifactName
         source = $SourceName
@@ -192,8 +332,20 @@ function New-Finding(
         installed_version = if ([string]::IsNullOrWhiteSpace($InstalledVersion)) { "unknown" } else { $InstalledVersion }
         severity = $normalizedSeverity
         fixed_version = if ([string]::IsNullOrWhiteSpace($FixedVersion)) { $null } else { $FixedVersion }
-        blocking = $BlockingSeverities -contains $normalizedSeverity
+        exception_id = $null
+        blocking = $false
     }
+
+    if ($BlockingSeverities -contains $normalizedSeverity) {
+        $exception = Find-ActiveException $finding
+        if ($exception) {
+            $finding.exception_id = [string]$exception.id
+        } else {
+            $finding.blocking = $true
+        }
+    }
+
+    return $finding
 }
 
 function Add-AuditResult(
@@ -272,6 +424,195 @@ function Build-Image([string]$ArtifactName, [string]$ImageReference) {
 
     Write-Host "  [OK] built $ImageReference" -ForegroundColor Green
     return $true
+}
+
+function Build-AuditImage([string]$ArtifactName, [string]$ImageReference) {
+    $command = switch ($ArtifactName) {
+        "app" { "docker build --target dependency-audit -t `"$ImageReference`" -f Dockerfile.app ." }
+        "worker" { "docker build --target dependency-audit -t `"$ImageReference`" -f Dockerfile.worker ." }
+        default { throw "Dependency audit image is not defined for artifact: $ArtifactName" }
+    }
+
+    $result = Invoke-CapturedCommand $command $RepoRoot
+    if ($result.ExitCode -ne 0) {
+        Add-InconclusiveResult $ArtifactName "$ArtifactName-image-dependency-audit" $command "Audit image build failed: $($result.Text)"
+        return $false
+    }
+
+    return $true
+}
+
+function ConvertFrom-PnpmAudit([object]$Audit, [string]$ArtifactName, [string]$SourceName) {
+    $findings = @()
+    if (-not $Audit) {
+        return @()
+    }
+
+    if ($Audit.vulnerabilities) {
+        foreach ($property in $Audit.vulnerabilities.PSObject.Properties) {
+            $packageName = $property.Name
+            $vulnerability = $property.Value
+            $severity = [string]$vulnerability.severity
+            $installed = if ($vulnerability.range) { [string]$vulnerability.range } else { "unknown" }
+            $fixedVersion = $null
+            if ($vulnerability.fixAvailable -and $vulnerability.fixAvailable -isnot [bool]) {
+                $fixedVersion = [string]$vulnerability.fixAvailable.version
+            }
+
+            foreach ($via in @($vulnerability.via)) {
+                if ($via -is [string]) {
+                    continue
+                }
+
+                $id = if ($via.source) { [string]$via.source } elseif ($via.url) { [string]$via.url } else { "$packageName-advisory" }
+                $findingSeverity = if ($via.severity) { [string]$via.severity } else { $severity }
+                $findings += New-Finding `
+                    -Id $id `
+                    -ArtifactName $ArtifactName `
+                    -SourceName $SourceName `
+                    -PackageName $packageName `
+                    -InstalledVersion $installed `
+                    -Severity $findingSeverity `
+                    -FixedVersion $fixedVersion
+            }
+        }
+    }
+
+    if ($Audit.advisories) {
+        foreach ($property in $Audit.advisories.PSObject.Properties) {
+            $advisory = $property.Value
+            $packageName = if ($advisory.module_name) { [string]$advisory.module_name } else { $property.Name }
+            $id = if ($advisory.github_advisory_id) { [string]$advisory.github_advisory_id } elseif ($advisory.id) { [string]$advisory.id } else { "$packageName-advisory" }
+            $installedVersions = @($advisory.findings | ForEach-Object { [string]$_.version } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
+            $installed = if ($installedVersions.Count -gt 0) { $installedVersions -join ", " } else { "unknown" }
+            $findings += New-Finding `
+                -Id $id `
+                -ArtifactName $ArtifactName `
+                -SourceName $SourceName `
+                -PackageName $packageName `
+                -InstalledVersion $installed `
+                -Severity ([string]$advisory.severity) `
+                -FixedVersion ([string]$advisory.patched_versions)
+        }
+    }
+
+    return @($findings)
+}
+
+function Invoke-HostAppAudit {
+    if (-not (Test-RequiredFile "package.json" "app" "app-host-dependency-audit")) { return }
+    if (-not (Test-RequiredFile "pnpm-lock.yaml" "app" "app-host-dependency-audit")) { return }
+
+    Write-Step "App host production dependency audit"
+    $command = "pnpm audit --prod --no-optional --json"
+    $result = Invoke-CapturedCommand $command $RepoRoot
+    $audit = $null
+    if ($result.Text) {
+        $audit = ConvertFrom-TrivyJsonOutput $result.Text
+    }
+
+    if (-not $audit) {
+        Add-InconclusiveResult "app" "app-host-dependency-audit" $command "pnpm audit did not produce parseable JSON."
+        return
+    }
+
+    $findings = @(ConvertFrom-PnpmAudit $audit "app" "app-host-dependency-audit")
+    $status = if (@($findings | Where-Object { $_.blocking }).Count -gt 0) { "fail" } else { "pass" }
+    Add-AuditResult "app" "app-host-dependency-audit" $command "pnpm" $status $findings $audit.metadata
+}
+
+function Invoke-AppImageDependencyAudit {
+    if (-not (Test-RequiredFile "package.json" "app" "app-image-dependency-audit")) { return }
+    if (-not (Test-RequiredFile "pnpm-lock.yaml" "app" "app-image-dependency-audit")) { return }
+
+    Write-Step "App image-context production dependency audit"
+    $auditImage = "business-app-starter-dependency-audit:latest"
+    if (-not (Build-AuditImage "app" $auditImage)) { return }
+
+    $command = "docker run --rm `"$auditImage`""
+    $result = Invoke-CapturedCommand $command $RepoRoot
+    $audit = $null
+    if ($result.Text) {
+        $audit = ConvertFrom-TrivyJsonOutput $result.Text
+    }
+
+    if (-not $audit) {
+        Add-InconclusiveResult "app" "app-image-dependency-audit" $command "Image-context pnpm audit did not produce parseable JSON."
+        return
+    }
+
+    $findings = @(ConvertFrom-PnpmAudit $audit "app" "app-image-dependency-audit")
+    $status = if (@($findings | Where-Object { $_.blocking }).Count -gt 0) { "fail" } else { "pass" }
+    Add-AuditResult "app" "app-image-dependency-audit" $command "pnpm" $status $findings $audit.metadata
+}
+
+function ConvertFrom-UvAuditText([string]$Text, [string]$ArtifactName, [string]$SourceName) {
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return @()
+    }
+
+    if ($Text -match '(?i)no vulnerabilities|audited .* no known vulnerabilities|found 0') {
+        return @()
+    }
+
+    $findings = @()
+    $ids = [regex]::Matches($Text, '(CVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}|PYSEC-\d{4}-\d+)') |
+        ForEach-Object { $_.Value } |
+        Sort-Object -Unique
+
+    foreach ($id in $ids) {
+        $findings += New-Finding `
+            -Id $id `
+            -ArtifactName $ArtifactName `
+            -SourceName $SourceName `
+            -PackageName "unknown" `
+            -InstalledVersion "unknown" `
+            -Severity "HIGH" `
+            -FixedVersion $null
+    }
+
+    if ($findings.Count -eq 0) {
+        $findings += New-Finding `
+            -Id "uv-audit-finding" `
+            -ArtifactName $ArtifactName `
+            -SourceName $SourceName `
+            -PackageName "unknown" `
+            -InstalledVersion "unknown" `
+            -Severity "HIGH" `
+            -FixedVersion $null
+    }
+
+    return @($findings)
+}
+
+function Invoke-WorkerImageDependencyAudit {
+    if (-not (Test-RequiredFile "worker/pyproject.toml" "worker" "worker-image-dependency-audit")) { return }
+    if (-not (Test-RequiredFile "worker/uv.lock" "worker" "worker-image-dependency-audit")) { return }
+
+    Write-Step "Worker image-context production dependency audit"
+    $auditImage = "business-app-starter-worker-dependency-audit:latest"
+    if (-not (Build-AuditImage "worker" $auditImage)) { return }
+
+    $command = "docker run --rm `"$auditImage`""
+    $result = Invoke-CapturedCommand $command $RepoRoot
+    if ($result.ExitCode -eq 0) {
+        Add-AuditResult "worker" "worker-image-dependency-audit" "uv audit --frozen --no-dev" "uv" "pass" @() ([pscustomobject]@{ output = $result.Text })
+        return
+    }
+
+    $findings = @(ConvertFrom-UvAuditText $result.Text "worker" "worker-image-dependency-audit")
+    $status = if ($findings.Count -gt 0) { "fail" } else { "inconclusive" }
+    Add-AuditResult "worker" "worker-image-dependency-audit" "uv audit --frozen --no-dev" "uv" $status $findings ([pscustomobject]@{ output = $result.Text })
+}
+
+function Invoke-SelectedDependencyAudits {
+    if ($Artifact -in @("all", "app")) {
+        Invoke-HostAppAudit
+        Invoke-AppImageDependencyAudit
+    }
+    if ($Artifact -in @("all", "worker")) {
+        Invoke-WorkerImageDependencyAudit
+    }
 }
 
 function ConvertFrom-TrivyResult([object]$Trivy, [string]$ArtifactName, [string]$SourceName) {
@@ -409,10 +750,22 @@ function Invoke-SelectedConfigScans {
 }
 
 $RepoRoot = Get-RepoRoot
+$ExceptionRecords = @(Read-AuditExceptions)
+if ($InvalidExceptions.Count -gt 0) {
+    foreach ($invalid in $InvalidExceptions) {
+        Write-Host ("Invalid exception {0}: {1}" -f $invalid.id, $invalid.reason) -ForegroundColor Red
+    }
+    throw "Supply-chain audit exception file contains invalid records."
+}
+
 $selectedArtifacts = @(Get-SelectedArtifacts)
 
 if (-not $SkipConfigScans) {
     Invoke-SelectedConfigScans
+}
+
+if (-not $SkipDependencyAudits) {
+    Invoke-SelectedDependencyAudits
 }
 
 foreach ($selectedArtifact in $selectedArtifacts) {
@@ -433,6 +786,7 @@ $report = [pscustomobject]@{
         blocking_severities = $BlockingSeverities
         inconclusive_blocks = $true
         image_scans_ignore_unfixed = $true
+        exception_file = ConvertTo-RepoRelativePath $ExceptionFile
         trivy_image = Resolve-TrivyImage
         trivy_cooldown_days = [int]$TrivyCooldown.TotalDays
     }

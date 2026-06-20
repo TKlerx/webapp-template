@@ -13,6 +13,11 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
+FROM base AS dependency-audit
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+RUN pnpm install --prod --frozen-lockfile
+CMD ["pnpm", "audit", "--prod", "--no-optional", "--json"]
+
 FROM base AS migrate-deps
 WORKDIR /migrate-runtime
 COPY docker/migrate/package.json ./package.json
@@ -55,6 +60,8 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/prisma.config.postgres.ts ./prisma.config.postgres.ts
 COPY --from=builder /app/scripts ./scripts
+RUN rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx \
+    && rm -rf /usr/local/lib/node_modules/npm /corepack
 
 FROM base AS runner
 WORKDIR /app
@@ -77,10 +84,12 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/generated ./generated
 COPY --from=builder /app/package.json ./package.json
-RUN groupadd --system --gid 1001 nodejs \
+RUN rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx \
+    && rm -rf /usr/local/lib/node_modules/npm /corepack \
+    && groupadd --system --gid 1001 nodejs \
     && useradd --system --uid 1001 --gid nodejs nextjs \
     && mkdir -p /app/uploads /data \
-    && chown -R nextjs:nodejs /app /data /corepack
+    && chown -R nextjs:nodejs /app /data
 USER nextjs
 EXPOSE 3270
 CMD ["node", "server.js"]
