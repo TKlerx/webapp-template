@@ -5,6 +5,7 @@ const thresholdSeverity =
   process.env.QUALITY_THRESHOLDS_BYPASS === "1" ? "warn" : "error";
 const maxCyclomaticComplexity = 56;
 const maxCognitiveComplexity = 24;
+const maxFunctionLines = 520;
 
 const config = [
   {
@@ -30,6 +31,15 @@ const config = [
     },
     rules: {
       complexity: [thresholdSeverity, { max: maxCyclomaticComplexity }],
+      "max-lines-per-function": [
+        thresholdSeverity,
+        {
+          max: maxFunctionLines,
+          skipBlankLines: true,
+          skipComments: true,
+          IIFEs: true,
+        },
+      ],
       "sonarjs/cognitive-complexity": [
         thresholdSeverity,
         maxCognitiveComplexity,

@@ -6,9 +6,11 @@
 .DESCRIPTION
     Usage: ./validate.ps1 [phase]
     Phases:
-      all      - typecheck + TS/Python/CLI quality + semgrep + test (default, pre-commit)
+      all      - typecheck + TS/Python/CLI quality + semgrep + test (default)
       full     - all quality checks + Trivy supply-chain audit + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
       continuity - check whether CONTINUE.md / CONTINUE_LOG.md need a refresh
+      precommit - fast local sanity: TS typecheck + architecture + duplication
+      prepush  - medium local gate: ESLint ratchets + Python quality/complexity
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
@@ -21,7 +23,7 @@
 #>
 
 param(
-    [ValidateSet("all", "full", "continuity", "quick", "test", "e2e", "quality", "commit")]
+    [ValidateSet("all", "full", "continuity", "precommit", "prepush", "quick", "test", "e2e", "quality", "commit")]
     [string]$Phase = "all"
 )
 
@@ -902,7 +904,7 @@ function Get-AuditPackageStatuses($audit) {
 
 $failures = @()
 
-if ($Phase -in "all", "full", "quick", "commit") {
+if ($Phase -in "all", "full", "precommit", "quick", "commit") {
     Write-Step "Typecheck (tsc --noEmit)"
     try {
         $exitCode = Invoke-NativeCommand "pnpm run typecheck"
@@ -934,7 +936,7 @@ if ($Phase -in "all", "full", "quick", "commit") {
     }
 }
 
-if ($Phase -in "all", "full", "quality", "commit") {
+if ($Phase -in "all", "full", "prepush", "quality", "commit") {
     Write-Step "Lint (eslint)"
     try {
         $result = Invoke-NativeCommandCaptured "pnpm run lint"
@@ -1005,7 +1007,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
     }
 }
 
-if ($Phase -in "all", "full", "quality", "commit") {
+if ($Phase -in "all", "full", "precommit", "quality", "commit") {
     Write-Step "Architecture (dependency-cruiser)"
     try {
         $result = Invoke-NativeCommandCaptured "pnpm run architecture"
@@ -1032,7 +1034,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
     }
 }
 
-if ($Phase -in "all", "full", "quality", "commit") {
+if ($Phase -in "all", "full", "precommit", "quality", "commit") {
     Write-Step "Duplication (jscpd)"
     try {
         $threshold = Get-DuplicationThreshold
@@ -1067,7 +1069,7 @@ if ($Phase -in "all", "full", "quality", "commit") {
     }
 }
 
-if ($Phase -in "all", "full", "quality", "commit") {
+if ($Phase -in "all", "full", "prepush", "quality", "commit") {
     Write-Step "Python quality (ruff, xenon, radon, complexipy)"
     try {
         $result = Invoke-NativeCommandCaptured "pnpm run quality:python"
