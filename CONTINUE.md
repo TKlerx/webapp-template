@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-21 20:15:38
+- Updated: 2026-06-21 20:34:43
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
@@ -17,17 +17,16 @@
 
 ## Git Status
 
-- M .githooks/pre-commit
--  M .githooks/pre-merge-commit
--  M .githooks/pre-push
--  M .prettierrc
--  M AGENTS.md
--  M README.md
--  M eslint.config.mjs
--  M package.json
--  M validate.ps1
-- ?? .editorconfig
-- ?? scripts/check-text-conventions.mjs
+- M .githooks/pre-merge-commit
+- M .githooks/pre-push
+- M CONTINUE.md
+- M CONTINUE_LOG.md
+- M README.md
+- M eslint.config.mjs
+- M package.json
+- M scripts/check-text-conventions.mjs
+- M specs/OVERVIEW.md
+- M validate.ps1
 
 ## Active Specs
 
@@ -35,5 +34,5 @@
 
 ## Next Recommended Actions
 
-1. Review and commit repository UTF-8/LF convention and pre-commit check updates.
+1. Commit and push CI fixes for PR #6 (`prettier`, `spec-overview`).
 2. No unchecked tasks detected in the active specs.

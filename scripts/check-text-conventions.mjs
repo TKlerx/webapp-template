@@ -17,10 +17,7 @@ function getStagedFiles() {
     { encoding: "buffer" },
   );
 
-  return output
-    .toString("utf8")
-    .split("\0")
-    .filter(Boolean);
+  return output.toString("utf8").split("\0").filter(Boolean);
 }
 
 function getStagedBlob(path) {
@@ -74,7 +71,9 @@ for (const path of getStagedFiles()) {
 }
 
 if (failures.length > 0) {
-  console.error("Text convention check failed. Use UTF-8 without BOM and LF line endings.");
+  console.error(
+    "Text convention check failed. Use UTF-8 without BOM and LF line endings.",
+  );
   for (const failure of failures) {
     console.error(`- ${failure}`);
   }
