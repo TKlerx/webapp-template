@@ -20,6 +20,7 @@
     "quality:ts": "pnpm run lint && pnpm run architecture && pnpm run duplication",
     "quality:python": "node scripts/check-python-quality.mjs",
     "quality:cli": "node scripts/check-cli-quality.mjs",
+    "check:text": "node scripts/check-text-conventions.mjs",
     "logging:guard": "node scripts/check-logging-guard.mjs",
     "smoke:azure": "node scripts/run-azure-deploy-smoke.mjs",
     "supply-chain:audit": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/supply-chain-audit.ps1",

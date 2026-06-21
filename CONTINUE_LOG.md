@@ -1579,3 +1579,27 @@
 - Validation passed: focused ops unit/integration tests, focused ops Playwright tests, `.\validate.ps1 quality`, `.\validate.ps1 all`, and `.\validate.ps1 full` including Trivy/container scans and full Playwright E2E.
 - Active specs: `021-ops-health-dashboard` implemented and validated; PR cleanup remains.
 - Next focus: commit, push, open a PR, and confirm GitHub validation.
+## 2026-06-21 18:00:22
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 115543e feat: add exception-aware supply-chain audit.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-06-21 18:21:00
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 115543e feat: add exception-aware supply-chain audit.
+- Active specs: none.
+- Next focus: no next task.
+## 2026-06-21 20:13:32
+
+- Added repository-wide UTF-8/LF guidance in `AGENTS.md`.
+- Added `.editorconfig` defaults for UTF-8, LF, and final newlines.
+- Set Prettier `endOfLine` to `lf`; existing `.gitattributes` already normalizes text files to LF.
+- Verified touched convention files have no BOM and no CRLF line endings.
+## 2026-06-21 20:15:38
+
+- Added `scripts/check-text-conventions.mjs` to validate staged text files for UTF-8 without BOM and LF line endings.
+- Wired the text convention check into `.githooks/pre-commit` before validation.
+- Added `pnpm run check:text` for manual invocation.
+- Verification passed: `pnpm run check:text` and `node --check scripts/check-text-conventions.mjs`.
