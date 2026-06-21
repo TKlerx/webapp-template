@@ -40,7 +40,7 @@ pnpm test; pnpm run lint
 
 TypeScript 5.9 on Next.js 16 App Router (React 19): Follow standard conventions
 
-- Repository text files use UTF-8 encoding (UTF-8 with or without BOM)
+- Repository text files use UTF-8 encoding without BOM and LF (`\n`) line endings
 
 ## Recent Changes
 

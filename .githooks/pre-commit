@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
-"$(dirname "$0")/require-continuity.sh"
+hook_dir=${0%/*}
 
-exec "$(dirname "$0")/run-validate.sh" all
+"$hook_dir/require-continuity.sh"
+node "$hook_dir/../scripts/check-text-conventions.mjs"
+
+exec "$hook_dir/run-validate.sh" precommit

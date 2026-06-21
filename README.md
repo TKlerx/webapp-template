@@ -64,6 +64,8 @@ Guidelines:
 ## Validation
 
 ```powershell
+.\validate.ps1 precommit
+.\validate.ps1 prepush
 .\validate.ps1 all
 .\validate.ps1 e2e
 .\validate.ps1 full
@@ -79,6 +81,11 @@ testing. Set an explicit `DATABASE_URL=file:./e2e.db` only when you intentionall
 need the legacy SQLite E2E path. Set `E2E_REUSE_SERVER=1` only when you are not
 resetting the database between runs.
 
+`precommit` is the fast local hook phase: TypeScript typecheck,
+dependency-cruiser architecture, and jscpd duplication.
+`prepush` is the medium local hook phase: ESLint complexity/function-size
+ratchets plus Python quality/complexity checks. Set
+`RUN_FULL_VALIDATION_ON_PUSH=1` to run `full` before pushing instead.
 `all` includes TypeScript, Python, and CLI quality checks plus dependency cooldown
 validation for pnpm and uv support.
 `full` also runs the Trivy supply-chain audit gate before production dependency
@@ -92,8 +99,9 @@ pnpm run quality:python
 pnpm run quality:cli
 ```
 
-`quality:ts` runs blocking ESLint complexity, SonarJS cognitive-complexity, and
-jscpd duplication thresholds plus dependency-cruiser import-cycle analysis.
+`quality:ts` runs blocking ESLint complexity, SonarJS cognitive-complexity,
+function-size, and jscpd duplication thresholds plus dependency-cruiser
+import-cycle analysis.
 `quality:python` runs Ruff plus blocking Xenon and complexipy complexity
 thresholds with Radon reporting for the worker package.
 `quality:cli` runs Go formatting checks, `go vet`, Staticcheck, a blocking
@@ -104,6 +112,7 @@ regressions by default:
 
 - TypeScript cyclomatic complexity: 56
 - TypeScript cognitive complexity: 24
+- TypeScript function size: 520 nonblank, non-comment lines
 - Python Xenon: max absolute F, max module C, max average B
 - Python Radon cyclomatic complexity: 44
 - Python complexipy cognitive complexity: 46
