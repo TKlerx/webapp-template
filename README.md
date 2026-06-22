@@ -138,6 +138,20 @@ That guide covers:
 - manual cross-platform builds
 - GoReleaser snapshot packaging
 
+Create local GoReleaser archives with:
+
+```powershell
+pnpm run cli:dist
+```
+
+Install downloaded or locally built CLI release archives into the deployment
+artifact folder with:
+
+```powershell
+$env:CLI_RELEASES_SOURCE_DIR='.\cli\dist'
+pnpm run cli:install-releases
+```
+
 ## Docker Deployment
 
 - Local `pnpm run dev` uses SQLite via `DATABASE_URL=file:./dev.db`.
@@ -147,6 +161,9 @@ That guide covers:
 - `pnpm docker build app migrate worker` builds the production app, migration, and worker images.
 - `pnpm docker up -d worker` starts the Python background worker against the same Postgres database.
 - Review [`docs/runtime-credentials.md`](./docs/runtime-credentials.md) before adding secrets to app, worker, or migration environments.
+- `sh ./scripts/deploy.sh` now performs a pre-deploy PostgreSQL dump, applies migrations, and restarts the app and worker. Set `CLI_RELEASES_BUILD_DURING_DEPLOY=docker` to build `starterctl` release archives in a GoReleaser container, `CLI_RELEASES_BUILD_DURING_DEPLOY=true` to build with host tools, or `CLI_RELEASES_SOURCE_DIR=/path/to/artifacts` to install prebuilt archives.
+- Manual PostgreSQL backup: `sh ./scripts/backup-postgres.sh`. Dumps are written to `./backups/postgres/business-app-starter-<UTC-timestamp>.dump` and validated with `pg_restore -l`.
+- Guarded PostgreSQL restore: `RESTORE_CONFIRM=restore BACKUP_FILE=./backups/postgres/business-app-starter-<timestamp>.dump sh ./scripts/restore-postgres.sh`. The restore script validates the dump, takes a safety backup unless `SKIP_PRE_RESTORE_BACKUP=true`, restores with `pg_restore --clean --if-exists`, reruns Prisma migration/seed steps, and restarts runtime services by default.
 
 ## Mail Integration
 

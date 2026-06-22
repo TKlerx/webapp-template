@@ -22,6 +22,8 @@ __pycache__/
 *.db-shm
 *.db-wal
 data/documents/
+data/cli-releases/
+backups/
 test-results/
 .artifacts/
 *.tsbuildinfo
