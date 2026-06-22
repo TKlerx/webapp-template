@@ -1614,3 +1614,12 @@
 - Ran Prettier on `CONTINUE.md`, `CONTINUE_LOG.md`, and `scripts/check-text-conventions.mjs`.
 - Regenerated `specs/OVERVIEW.md` with `pnpm run specs:overview:update`.
 - Focused verification passed: `pnpm run check:text` and Prettier check for the affected files.
+
+## 2026-06-22 08:30:16
+
+- Compared `C:\dev\resource-planning-codex` operational tooling with this template.
+- Added Dockerized GoReleaser helper tooling for `starterctl` snapshots and release artifact installation scripts for POSIX and PowerShell.
+- Added guarded PostgreSQL backup and restore scripts adapted to this repo's Compose defaults and Prisma PostgreSQL config.
+- Updated `scripts/deploy.sh` to derive build metadata, take a pre-deploy PostgreSQL backup, optionally install CLI release artifacts, and restart app plus worker.
+- Updated README and `.gitignore` for CLI release artifacts and PostgreSQL dump storage.
+- Verification passed: `package.json` parse, PowerShell CLI release installer smoke test, and source-name scan for copied product strings. POSIX shell syntax checks could not run locally because this Windows host's `bash.exe` points at a broken WSL installation.

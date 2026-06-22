@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-21 20:34:43
+- Updated: 2026-06-22 08:30:16
 - Branch: `main`
 
 ## Recent Non-Continuity Commits
@@ -17,16 +17,23 @@
 
 ## Git Status
 
+- M .gitignore
 - M .githooks/pre-merge-commit
 - M .githooks/pre-push
 - M CONTINUE.md
 - M CONTINUE_LOG.md
 - M README.md
-- M eslint.config.mjs
 - M package.json
+- M scripts/deploy.sh
+- M eslint.config.mjs
 - M scripts/check-text-conventions.mjs
 - M specs/OVERVIEW.md
 - M validate.ps1
+- ?? Dockerfile.cli-builder
+- ?? scripts/backup-postgres.sh
+- ?? scripts/install-cli-releases.ps1
+- ?? scripts/install-cli-releases.sh
+- ?? scripts/restore-postgres.sh
 
 ## Active Specs
 
@@ -34,5 +41,6 @@
 
 ## Next Recommended Actions
 
-1. Commit and push CI fixes for PR #6 (`prettier`, `spec-overview`).
-2. No unchecked tasks detected in the active specs.
+1. Review and commit the imported operational tooling: Dockerized CLI release artifacts plus guarded PostgreSQL backup/restore scripts.
+2. Commit and push CI fixes for PR #6 (`prettier`, `spec-overview`).
+3. No unchecked tasks detected in the active specs.
