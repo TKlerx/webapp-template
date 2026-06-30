@@ -1641,3 +1641,13 @@
 - Tried `eslint` 10, but reverted it because `eslint-plugin-react@7.37.5` does not support ESLint 10 and `pnpm run lint` crashed in `react/display-name`.
 - Kept `@types/node` on 25 because Node 24 is the LTS runtime and Node 26 types should wait for a Node 26 runtime move.
 - Verification passed: `pnpm peers check`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run quality:ts`, `pnpm run quality:python`, `pnpm run quality:cli`, `pnpm run test`, `pnpm run check:text`, and Prettier check for touched config/manifests.
+
+## 2026-06-30 23:50:06
+
+- Created branch `codex/ui-shell-theme-revamp` after committing compatible major tooling updates.
+- Ported generic UI revamp pieces from `D:\dev\pg`: blue global palette, dark default theme, and Tailwind v4 `@theme inline` color mappings for shadcn utilities.
+- Replaced the dashboard header/nav strip with a full-bleed dashboard wrapper and fixed top-right `UserMenu`.
+- Added `src/components/ui/UserMenu.tsx` with template navigation links only: Dashboard first, Tokens, API Docs, and admin links for Users, Audit Trail, Background Jobs, Ops Health, Notifications, Teams, and Admin Tokens.
+- Moved language switching into a dropdown submenu and removed the old `Navigation` and `LocaleSwitcher` components.
+- Explicitly excluded IC Drafter routes, `.ic-app` palette tokens, IC branding, login/landing redirects, mockup/proxy edits, and local database/env changes.
+- Verification passed: `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, and `pnpm run check:text`.
