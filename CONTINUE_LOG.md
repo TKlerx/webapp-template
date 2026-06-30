@@ -1631,3 +1631,13 @@
 - Left major upgrades for a separate decision: `typescript` 6, `eslint` 10, `jscpd` 5, `dependency-cruiser` 18, `@types/node` 26, and worker `mypy` 2.
 - Verification passed: `pnpm run typecheck`, `pnpm run test`, `pnpm run lint`, `pnpm run quality:cli`, `pnpm run quality:python`, `pnpm run check:text`, and Prettier check for touched package manifests.
 - `pnpm audit --prod --no-optional` still reports the known moderate `postcss` advisory through Next's nested `postcss@8.4.31`; direct `postcss` is updated to `8.5.16` and the repo's validation flow already has allowlist/cooldown handling for this class.
+
+## 2026-06-30 23:04:09
+
+- Created branch `codex/try-major-dependency-bumps` from local `main` after the non-major dependency commit.
+- Successfully bumped `dependency-cruiser` to 18, `jscpd` to 5, worker `mypy` to 2, and root plus Docker migrate `typescript` to 6.
+- Updated `scripts/check-duplication.mjs` for `jscpd` 5's new `run-jscpd.js` entrypoint.
+- Added `ignoreDeprecations: "6.0"` to `tsconfig.json` because TypeScript 6 reports the existing `baseUrl` path-alias setting as deprecated for TypeScript 7.
+- Tried `eslint` 10, but reverted it because `eslint-plugin-react@7.37.5` does not support ESLint 10 and `pnpm run lint` crashed in `react/display-name`.
+- Kept `@types/node` on 25 because Node 24 is the LTS runtime and Node 26 types should wait for a Node 26 runtime move.
+- Verification passed: `pnpm peers check`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run quality:ts`, `pnpm run quality:python`, `pnpm run quality:cli`, `pnpm run test`, `pnpm run check:text`, and Prettier check for touched config/manifests.

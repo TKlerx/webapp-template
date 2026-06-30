@@ -4,30 +4,28 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-30 22:41:00
-- Branch: `main`
+- Updated: 2026-06-30 23:04:09
+- Branch: `codex/try-major-dependency-bumps`
 
 ## Recent Non-Continuity Commits
 
+- a06b699 chore: update non-major dependencies
 - b15235a Add release and Postgres ops tooling (#7)
 - a20b568 chore: enforce text conventions and split validation hooks (#6)
 - 115543e feat: add exception-aware supply-chain audit
 - 5f786d8 chore: refresh specs overview
-- 8492b6b feat: add ops health dashboard (#5)
 
 ## Git Status
 
-- M cli/go.mod
-- M cli/go.sum
 - M CONTINUE.md
 - M CONTINUE_LOG.md
 - M docker/migrate/package.json
 - M next-env.d.ts
 - M package.json
 - M pnpm-lock.yaml
-- M src/app/globals.css
+- M scripts/check-duplication.mjs
+- M tsconfig.json
 - M worker/uv.lock
-- ?? src/app/mockup/
 
 ## Active Specs
 
@@ -35,6 +33,6 @@
 
 ## Next Recommended Actions
 
-1. Review and commit dependency update changes separately from the existing UI/mockup work.
-2. Decide whether to pursue major dependency upgrades (`typescript` 6, `eslint` 10, `jscpd` 5, `dependency-cruiser` 18, `@types/node` 26, worker `mypy` 2).
+1. Review and commit successful major dependency bumps on branch `codex/try-major-dependency-bumps`; keep unrelated `next-env.d.ts` out of the commit unless intentionally accepted.
+2. Leave `@types/node` 26 for a future Node 26 runtime move; leave `eslint` 10 until `eslint-plugin-react` and related plugins support it.
 3. No unchecked tasks detected in the active specs.
