@@ -1,8 +1,23 @@
 "use client";
 
-import { Check, Globe, LogOut } from "lucide-react";
+import {
+  Activity,
+  Bell,
+  BookOpen,
+  Check,
+  Globe,
+  HeartPulse,
+  KeyRound,
+  ListChecks,
+  LogOut,
+  RadioTower,
+  ShieldCheck,
+  UsersRound,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useTransition } from "react";
+import { Role } from "../../../generated/prisma/enums";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +60,7 @@ export function UserMenu({
   user: SessionUser;
   locale: string;
 }) {
+  const t = useTranslations("nav");
   const common = useTranslations("common");
   const [, startLocaleTransition] = useTransition();
 
@@ -61,6 +77,36 @@ export function UserMenu({
       }
     });
   }
+
+  const links = [
+    { href: "/settings/tokens", label: t("tokens"), icon: KeyRound },
+    { href: "/docs/api", label: t("apiDocs"), icon: BookOpen },
+  ];
+
+  const adminLinks =
+    user.role === Role.PLATFORM_ADMIN
+      ? [
+          { href: "/users", label: t("users"), icon: UsersRound },
+          { href: "/audit-trail", label: t("auditTrail"), icon: ListChecks },
+          {
+            href: "/background-jobs",
+            label: t("backgroundJobs"),
+            icon: Activity,
+          },
+          { href: "/admin/ops", label: t("opsHealth"), icon: HeartPulse },
+          {
+            href: "/admin/notifications",
+            label: t("notifications"),
+            icon: Bell,
+          },
+          {
+            href: "/admin/integrations/teams",
+            label: t("teamsIntegrations"),
+            icon: RadioTower,
+          },
+          { href: "/admin/tokens", label: t("adminTokens"), icon: ShieldCheck },
+        ]
+      : [];
 
   return (
     <DropdownMenu>
@@ -83,6 +129,28 @@ export function UserMenu({
             {user.email}
           </p>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {links.map(({ href, label, icon: Icon }) => (
+          <DropdownMenuItem key={href} asChild>
+            <Link className="cursor-pointer gap-2" href={href}>
+              <Icon aria-hidden="true" className="size-4" />
+              {label}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+        {adminLinks.length > 0 ? (
+          <>
+            <DropdownMenuSeparator />
+            {adminLinks.map(({ href, label, icon: Icon }) => (
+              <DropdownMenuItem key={href} asChild>
+                <Link className="cursor-pointer gap-2" href={href}>
+                  <Icon aria-hidden="true" className="size-4" />
+                  {label}
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </>
+        ) : null}
         <DropdownMenuSeparator />
         <div className="px-2 py-1.5">
           <ThemeToggle user={user} />

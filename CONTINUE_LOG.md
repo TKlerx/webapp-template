@@ -1658,3 +1658,9 @@
 - Added `src/components/ui/DashboardSidebar.tsx` with Dashboard first, followed by Tokens, API Docs, and platform-admin links.
 - Kept the top-right `UserMenu` focused on account, theme, language, and sign-out actions.
 - Verification passed: `pnpm run typecheck` and `pnpm run lint`.
+
+## 2026-06-30 23:59:03
+
+- Adjusted the dashboard shell per clarification: the left sidebar is intentionally sparse and contains only the Dashboard link.
+- Restored Tokens, API Docs, and platform-admin route links to the top-right avatar `UserMenu`.
+- Verification passed: `pnpm run typecheck` and `pnpm run lint`.

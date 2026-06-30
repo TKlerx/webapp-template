@@ -13,7 +13,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="relative min-h-[100dvh] md:pl-64">
-      <DashboardSidebar user={user} />
+      <DashboardSidebar />
       <div className="fixed right-4 top-3 z-50">
         <UserMenu user={user} locale={locale} />
       </div>

@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-30 23:56:15
+- Updated: 2026-06-30 23:59:03
 - Branch: `codex/ui-shell-theme-revamp`
 
 ## Recent Non-Continuity Commits
@@ -19,9 +19,8 @@
 
 - M next-env.d.ts
 - M src/app/(dashboard)/layout.tsx
+- M src/components/ui/DashboardSidebar.tsx
 - M src/components/ui/UserMenu.tsx
-- ?? src/components/ui/DashboardSidebar.tsx
-- ?? src/components/ui/UserMenu.tsx
 
 ## Active Specs
 
@@ -29,6 +28,6 @@
 
 ## Next Recommended Actions
 
-1. Commit the left dashboard sidebar correction on branch `codex/ui-shell-theme-revamp`; keep unrelated `next-env.d.ts` out of the commit unless intentionally accepted.
+1. Commit the sparse left dashboard sidebar correction on branch `codex/ui-shell-theme-revamp`; keep unrelated `next-env.d.ts` out of the commit unless intentionally accepted.
 2. Optionally run a local browser smoke test for an authenticated dashboard session.
 3. No unchecked tasks detected in the active specs.
