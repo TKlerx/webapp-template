@@ -1623,3 +1623,11 @@
 - Updated `scripts/deploy.sh` to derive build metadata, take a pre-deploy PostgreSQL backup, optionally install CLI release artifacts, and restart app plus worker.
 - Updated README and `.gitignore` for CLI release artifacts and PostgreSQL dump storage.
 - Verification passed: `package.json` parse, PowerShell CLI release installer smoke test, and source-name scan for copied product strings. POSIX shell syntax checks could not run locally because this Windows host's `bash.exe` points at a broken WSL installation.
+
+## 2026-06-30 22:41:00
+
+- Used the dependency-updater skill to scan Node/pnpm, Docker migrate, Go CLI, and uv worker dependencies.
+- Applied non-major dependency updates to root `package.json`/`pnpm-lock.yaml`, `docker/migrate/package.json`, `cli/go.mod`/`cli/go.sum`, and `worker/uv.lock`.
+- Left major upgrades for a separate decision: `typescript` 6, `eslint` 10, `jscpd` 5, `dependency-cruiser` 18, `@types/node` 26, and worker `mypy` 2.
+- Verification passed: `pnpm run typecheck`, `pnpm run test`, `pnpm run lint`, `pnpm run quality:cli`, `pnpm run quality:python`, `pnpm run check:text`, and Prettier check for touched package manifests.
+- `pnpm audit --prod --no-optional` still reports the known moderate `postcss` advisory through Next's nested `postcss@8.4.31`; direct `postcss` is updated to `8.5.16` and the repo's validation flow already has allowlist/cooldown handling for this class.
