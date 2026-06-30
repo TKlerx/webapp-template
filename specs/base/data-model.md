@@ -138,6 +138,8 @@ erDiagram
 - `LIGHT`
 - `DARK`
 
+If a user has no saved theme preference, the application should present the dark theme by default. A saved `ThemePreference` overrides that default for the user's authenticated sessions.
+
 ### AuditAction
 
 Includes key user-admin and auth events, such as:

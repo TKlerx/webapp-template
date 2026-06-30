@@ -7,7 +7,7 @@
 
 ## Summary
 
-Add an administrator-only Ops Health Dashboard inside the existing dashboard/admin navigation. The first version presents a read-only point-in-time health snapshot gathered on page load or manual refresh, combining existing build metadata, runtime/database checks, configuration sanity, recent worker evidence, and recent deployment smoke evidence where available. It also provides a copyable non-secret diagnostic summary. The implementation should reuse existing health/version/background-job patterns, avoid new persistent storage unless a recorded smoke/job signal already exists, and keep all diagnostic output secret-safe.
+Add an administrator-only Ops Health Dashboard inside the existing dashboard/admin experience, reachable from avatar admin navigation. The first version presents a read-only point-in-time health snapshot gathered on page load or manual refresh, combining existing build metadata, runtime/database checks, configuration sanity, recent worker evidence, and recent deployment smoke evidence where available. It also provides a copyable non-secret diagnostic summary. The implementation should reuse existing health/version/background-job patterns, avoid new persistent storage unless a recorded smoke/job signal already exists, and keep all diagnostic output secret-safe.
 
 ## Technical Context
 
@@ -25,7 +25,7 @@ Add an administrator-only Ops Health Dashboard inside the existing dashboard/adm
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-- **Simplicity First**: PASS. Reuse existing app-version, monitoring, role auth, background job, navigation, and i18n patterns. No new dependency or persistence layer.
+- **Simplicity First**: PASS. Reuse existing app-version, monitoring, role auth, background job, avatar admin navigation, and i18n patterns. No new dependency or persistence layer.
 - **Test Coverage**: PASS. Plan includes unit tests for snapshot/sanitization/status aggregation, route/page auth tests, and e2e coverage for the admin flow.
 - **Duplication Control**: PASS. Shared status/snapshot formatting should live in a small service/module rather than duplicating logic between route, page, and copy summary.
 - **Incremental Delivery**: PASS. User Story 1 can ship first with metadata and admin navigation; User Story 2 adds health checks; User Story 3 adds copyable diagnostics.

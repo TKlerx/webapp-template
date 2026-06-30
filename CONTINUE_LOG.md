@@ -1664,3 +1664,9 @@
 - Adjusted the dashboard shell per clarification: the left sidebar is intentionally sparse and contains only the Dashboard link.
 - Restored Tokens, API Docs, and platform-admin route links to the top-right avatar `UserMenu`.
 - Verification passed: `pnpm run typecheck` and `pnpm run lint`.
+
+## 2026-07-01 00:08:58
+
+- Aligned existing specs with the dashboard shell/theme revamp instead of creating a new dark-mode spec.
+- Updated base architecture/data/testing/API/RBAC docs for dark-by-default behavior, blue theme tokens, sparse Dashboard rail, and avatar menu navigation.
+- Updated PAT, notifications, Teams, and Ops Health spec/task references so feature navigation points to the avatar or avatar admin menu rather than the deleted `Navigation.tsx` component.

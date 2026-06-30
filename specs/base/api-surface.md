@@ -39,7 +39,7 @@ Responsibilities:
 - create local users
 - manage user lifecycle
 - update roles
-- update theme preferences
+- update theme preferences used by the authenticated app shell
 
 ### Audit
 
@@ -69,7 +69,7 @@ Responsibilities:
 Responsibilities:
 
 - health reporting
-- locale preference updates
+- locale preference updates used by the authenticated app shell and avatar language submenu
 
 ## API Access Model
 

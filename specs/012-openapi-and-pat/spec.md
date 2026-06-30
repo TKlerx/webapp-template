@@ -13,7 +13,7 @@
 
 - Q: What token format structure should be used? â†’ A: Prefixed format (`<PREFIX>_<random>`), with the prefix configurable via `.env`.
 - Q: How should revoked/expired tokens be handled over time? â†’ A: Auto-hide in the UI after 90 days, with a "show all" toggle. Never auto-delete from the database (audit trail preserved).
-- Q: Where should PAT management live in the UI? â†’ A: Under the user's profile/account settings page (new section or tab). Admin token management is a separate view in the admin panel.
+- Q: Where should PAT management live in the UI? â†’ A: Under the user's profile/account settings page, reachable from the avatar navigation. Admin token management is a separate admin view, reachable from the avatar admin navigation.
 - Q: Who can access the API documentation page? â†’ A: Any authenticated user regardless of role (not public, not role-restricted).
 - Q: How is the CLI browser login flow protected against CSRF? â†’ A: CLI generates a random `state` parameter, includes it in the authorization request, and validates it on callback (standard OAuth2 pattern).
 
@@ -21,7 +21,7 @@
 
 ### User Story 1 - Create and Use a Personal Access Token (Priority: P1)
 
-A user who wants to automate tasks (e.g., via scripts or a CLI tool) navigates to their account settings, creates a new personal access token with a descriptive name, and receives the token value once. They copy it and use it in an `Authorization: Bearer <token>` header to call any API endpoint they have permission to access. The token inherits their current role and permissions.
+A user who wants to automate tasks (e.g., via scripts or a CLI tool) opens account settings from the avatar navigation, creates a new personal access token with a descriptive name, and receives the token value once. They copy it and use it in an `Authorization: Bearer <token>` header to call any API endpoint they have permission to access. The token inherits their current role and permissions.
 
 **Why this priority**: Without PATs, there is no programmatic access to the API. This is the foundational capability that enables all automation and CLI usage.
 
@@ -29,7 +29,7 @@ A user who wants to automate tasks (e.g., via scripts or a CLI tool) navigates t
 
 **Acceptance Scenarios**:
 
-1. **Given** an active user is logged in, **When** they navigate to the PAT management section in their profile/account settings and create a new token with name "my-script", **Then** the system displays the full token value exactly once, and the token appears in their token list (with masked value).
+1. **Given** an active user is logged in, **When** they navigate from the avatar menu to the PAT management section in their profile/account settings and create a new token with name "my-script", **Then** the system displays the full token value exactly once, and the token appears in their token list (with masked value).
 2. **Given** a user has a valid PAT, **When** they send a request to `/api/users` with `Authorization: Bearer <token>`, **Then** they receive the same response as if they were logged in via session, consistent with their role.
 3. **Given** a user has a valid PAT, **When** they send a request to an admin-only endpoint and they are not an admin, **Then** they receive a 403 Forbidden response.
 4. **Given** a user creates a PAT, **When** the creation is complete, **Then** the token value is never retrievable again from the system (only shown once at creation time).
@@ -61,11 +61,11 @@ A developer or integrator accesses a documentation page that displays all availa
 
 **Why this priority**: API documentation is critical for adoption of the programmatic API, but the API itself (via PATs) must work first.
 
-**Independent Test**: Can be tested by navigating to the documentation page and verifying all known endpoints are listed with correct methods and descriptions.
+**Independent Test**: Can be tested by navigating to the documentation page from the avatar menu and verifying all known endpoints are listed with correct methods and descriptions.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user navigates to the API documentation page, **When** the page loads, **Then** all API endpoint groups (auth, users, audit, background-jobs, health, locale) are listed with their methods and descriptions.
+1. **Given** a user navigates from the avatar menu to the API documentation page, **When** the page loads, **Then** all API endpoint groups (auth, users, audit, background-jobs, health, locale) are listed with their methods and descriptions.
 2. **Given** the API documentation page is loaded, **When** a user expands an endpoint, **Then** they see request parameters, request body schema, response schemas, and authentication requirements.
 3. **Given** the OpenAPI specification has been updated to include a new endpoint, **When** the documentation page is accessed, **Then** the new endpoint appears with correct method, parameters, and schemas.
 
@@ -116,7 +116,7 @@ A platform admin can view all tokens (active, revoked, expired) across all users
 
 **Acceptance Scenarios**:
 
-1. **Given** a platform admin navigates to the admin token management page, **When** the page loads, **Then** they see all tokens across all users with owner names, creation dates, last-used dates, and status (active/revoked/expired).
+1. **Given** a platform admin navigates from the avatar admin navigation to the admin token management page, **When** the page loads, **Then** they see all tokens across all users with owner names, creation dates, last-used dates, and status (active/revoked/expired).
 2. **Given** a platform admin revokes another user's token, **When** the affected user attempts to use that token, **Then** they receive a 401 Unauthorized response. The token remains visible with status "revoked".
 3. **Given** a platform admin deletes another user's token, **When** the affected user views their token list, **Then** the token is no longer listed.
 4. **Given** a user's account is deactivated, **When** any of their tokens are used in an API call, **Then** all requests are rejected with 401 Unauthorized.

@@ -56,7 +56,7 @@
 - [x] T016 [US1] Create `src/components/tokens/token-value-display.tsx` — displays the one-time token value with copy-to-clipboard button and warning that it won't be shown again, uses i18n keys
 - [x] T017 [US1] Create `src/components/tokens/token-list.tsx` — table showing name, prefix, type, status, expiration, last used, creation date; responsive (mobile-friendly); uses i18n keys; supports dark mode
 - [x] T018 [US1] Create PAT management page at `src/app/(app)/settings/tokens/page.tsx` — server component, requires session auth, renders token-list and create-token-dialog, uses i18n
-- [x] T019 [US1] Add navigation link to token management page in user settings/profile area
+- [x] T019 [US1] Add avatar navigation link to token management page in user settings/profile area
 - [x] T019a [US1] Create unit tests in `tests/unit/token-service.test.ts` — test generateToken, hashToken, createToken, validateToken, listTokens, countActiveTokens. Cover: valid creation, duplicate name rejection, token limit enforcement, expired token rejection, inactive user rejection.
 - [x] T019b [US1] Create integration tests in `tests/integration/token-api.test.ts` — test POST /api/tokens (valid, duplicate name, limit reached), GET /api/tokens (list, showAll filter), Bearer auth on existing endpoints (valid token, expired, revoked, wrong role).
 
@@ -96,7 +96,7 @@
 - [x] T027 [US3] Create `GET /api/openapi` route in `src/app/api/openapi/route.ts` — any authenticated user, read `openapi.yaml`, inject configured base path into `servers` section, serve with `Content-Type: application/yaml`
 - [x] T028 [US3] Create API documentation page at `src/app/(app)/docs/api/page.tsx` — server component, requires session auth, embeds Swagger UI loading the OpenAPI spec from `/api/openapi`, uses i18n for page title
 - [x] T029 [P] [US3] Add i18n translation keys for API docs page to all 5 locale files — namespace `apiDocs` with keys for page title, description
-- [x] T030 [US3] Add navigation link to API docs page in the app navigation
+- [x] T030 [US3] Add avatar navigation link to API docs page in the app navigation
 - [x] T030a [US3] Create integration test in `tests/integration/openapi.test.ts` — test GET /api/openapi returns valid YAML with correct Content-Type, base path injected, all endpoint groups present.
 - [x] T030b [US3] Create E2E test in `tests/e2e/api-docs.spec.ts` — verify docs page loads, Swagger UI renders, endpoint groups visible.
 
@@ -152,7 +152,7 @@
 - [x] T040 [US6] Create `DELETE /api/admin/tokens/[id]` route in `src/app/api/admin/tokens/[id]/route.ts` — requires PLATFORM_ADMIN, delete any user's token, add audit entry
 - [x] T041 [P] [US6] Add i18n translation keys for admin token management to all 5 locale files — namespace `adminTokens` with keys for page title, user column, filter by user
 - [x] T042 [US6] Create admin token management page at `src/app/(app)/admin/tokens/page.tsx` — requires PLATFORM_ADMIN, shows all tokens with owner info, revoke/delete actions, user filter, show-all toggle, uses i18n
-- [x] T043 [US6] Add navigation link to admin token management in admin area navigation
+- [x] T043 [US6] Add avatar admin navigation link to admin token management
 - [x] T043a [US6] Add integration tests to `tests/integration/token-api.test.ts` — test admin GET /api/admin/tokens (lists all users' tokens, userId filter), admin POST revoke (other user's token), admin DELETE (other user's token), non-admin rejected with 403.
 
 **Checkpoint**: Admin can see all users' tokens, revoke/delete them, and revoked tokens immediately stop authenticating
@@ -227,7 +227,7 @@ T013 GET /api/tokens route
 T016 token-value-display component
 T017 token-list component
 T018 settings/tokens page
-T019 navigation link
+T019 avatar navigation link
 ```
 
 ---
