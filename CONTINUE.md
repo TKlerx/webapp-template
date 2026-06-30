@@ -4,7 +4,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-30 23:50:06
+- Updated: 2026-06-30 23:56:15
 - Branch: `codex/ui-shell-theme-revamp`
 
 ## Recent Non-Continuity Commits
@@ -17,14 +17,10 @@
 
 ## Git Status
 
-- M CONTINUE.md
-- M CONTINUE_LOG.md
 - M next-env.d.ts
 - M src/app/(dashboard)/layout.tsx
-- M src/app/globals.css
-- M src/app/layout.tsx
-- D src/components/ui/LocaleSwitcher.tsx
-- D src/components/ui/Navigation.tsx
+- M src/components/ui/UserMenu.tsx
+- ?? src/components/ui/DashboardSidebar.tsx
 - ?? src/components/ui/UserMenu.tsx
 
 ## Active Specs
@@ -33,6 +29,6 @@
 
 ## Next Recommended Actions
 
-1. Review and commit the generic UI shell/theme revamp on branch `codex/ui-shell-theme-revamp`; keep unrelated `next-env.d.ts` out of the commit unless intentionally accepted.
-2. Optionally run a local browser smoke test for the authenticated dashboard user menu.
+1. Commit the left dashboard sidebar correction on branch `codex/ui-shell-theme-revamp`; keep unrelated `next-env.d.ts` out of the commit unless intentionally accepted.
+2. Optionally run a local browser smoke test for an authenticated dashboard session.
 3. No unchecked tasks detected in the active specs.

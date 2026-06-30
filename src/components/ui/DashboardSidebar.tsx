@@ -1,0 +1,116 @@
+"use client";
+
+import {
+  Activity,
+  Bell,
+  BookOpen,
+  Gauge,
+  HeartPulse,
+  KeyRound,
+  ListChecks,
+  RadioTower,
+  ShieldCheck,
+  UsersRound,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Role } from "../../../generated/prisma/enums";
+import type { SessionUser } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+
+const iconClassName = "size-4 shrink-0";
+
+export function DashboardSidebar({ user }: { user: SessionUser }) {
+  const common = useTranslations("common");
+  const t = useTranslations("nav");
+  const pathname = usePathname();
+
+  const links = [
+    { href: "/dashboard", label: t("dashboard"), icon: Gauge },
+    { href: "/settings/tokens", label: t("tokens"), icon: KeyRound },
+    { href: "/docs/api", label: t("apiDocs"), icon: BookOpen },
+  ];
+
+  const adminLinks =
+    user.role === Role.PLATFORM_ADMIN
+      ? [
+          { href: "/users", label: t("users"), icon: UsersRound },
+          { href: "/audit-trail", label: t("auditTrail"), icon: ListChecks },
+          {
+            href: "/background-jobs",
+            label: t("backgroundJobs"),
+            icon: Activity,
+          },
+          { href: "/admin/ops", label: t("opsHealth"), icon: HeartPulse },
+          {
+            href: "/admin/notifications",
+            label: t("notifications"),
+            icon: Bell,
+          },
+          {
+            href: "/admin/integrations/teams",
+            label: t("teamsIntegrations"),
+            icon: RadioTower,
+          },
+          { href: "/admin/tokens", label: t("adminTokens"), icon: ShieldCheck },
+        ]
+      : [];
+
+  function isActive(href: string) {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  return (
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-[var(--border)] bg-[var(--panel)] text-[var(--foreground)] shadow-sm md:flex md:flex-col">
+      <div className="flex h-16 items-center border-b border-[var(--border)] px-5">
+        <Link
+          className="truncate text-sm font-semibold tracking-normal text-[var(--foreground)]"
+          href="/dashboard"
+        >
+          {common("appName")}
+        </Link>
+      </div>
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 py-4 text-sm">
+        {links.map(({ href, label, icon: Icon }) => (
+          <Link
+            key={href}
+            aria-current={isActive(href) ? "page" : undefined}
+            className={cn(
+              "inline-flex min-h-10 items-center gap-3 rounded-md px-3 py-2 font-medium text-[var(--muted-foreground)] transition duration-200 hover:bg-[var(--secondary)] hover:text-[var(--foreground)] active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--panel)]",
+              isActive(href) &&
+                "bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]",
+            )}
+            href={href}
+          >
+            <Icon aria-hidden="true" className={iconClassName} />
+            <span className="truncate">{label}</span>
+          </Link>
+        ))}
+
+        {adminLinks.length > 0 ? (
+          <>
+            <div className="mt-4 px-3 pb-1 text-xs font-semibold uppercase text-[var(--muted-foreground)]">
+              Admin
+            </div>
+            {adminLinks.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                aria-current={isActive(href) ? "page" : undefined}
+                className={cn(
+                  "inline-flex min-h-10 items-center gap-3 rounded-md px-3 py-2 font-medium text-[var(--muted-foreground)] transition duration-200 hover:bg-[var(--secondary)] hover:text-[var(--foreground)] active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--panel)]",
+                  isActive(href) &&
+                    "bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]",
+                )}
+                href={href}
+              >
+                <Icon aria-hidden="true" className={iconClassName} />
+                <span className="truncate">{label}</span>
+              </Link>
+            ))}
+          </>
+        ) : null}
+      </nav>
+    </aside>
+  );
+}

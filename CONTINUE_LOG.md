@@ -1651,3 +1651,10 @@
 - Moved language switching into a dropdown submenu and removed the old `Navigation` and `LocaleSwitcher` components.
 - Explicitly excluded IC Drafter routes, `.ic-app` palette tokens, IC branding, login/landing redirects, mockup/proxy edits, and local database/env changes.
 - Verification passed: `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, and `pnpm run check:text`.
+
+## 2026-06-30 23:56:15
+
+- Corrected the dashboard shell to include a persistent left sidebar navigation instead of relying on the avatar menu for nav.
+- Added `src/components/ui/DashboardSidebar.tsx` with Dashboard first, followed by Tokens, API Docs, and platform-admin links.
+- Kept the top-right `UserMenu` focused on account, theme, language, and sign-out actions.
+- Verification passed: `pnpm run typecheck` and `pnpm run lint`.
