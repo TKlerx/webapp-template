@@ -1670,3 +1670,9 @@
 - Aligned existing specs with the dashboard shell/theme revamp instead of creating a new dark-mode spec.
 - Updated base architecture/data/testing/API/RBAC docs for dark-by-default behavior, blue theme tokens, sparse Dashboard rail, and avatar menu navigation.
 - Updated PAT, notifications, Teams, and Ops Health spec/task references so feature navigation points to the avatar or avatar admin menu rather than the deleted `Navigation.tsx` component.
+
+## 2026-07-01 13:27:52
+
+- Investigated PR #8 CI failure: E2E tests still expected old always-visible header controls after the shell moved sign-out, theme, locale, and admin links into the avatar menu.
+- Updated affected E2E tests to open the avatar user menu before interacting with those controls.
+- Verification passed: `pnpm run typecheck`, `pnpm run lint`, `pnpm run check:text`, and `pnpm run specs:overview:check`. Local E2E could not run because Docker was not available.
