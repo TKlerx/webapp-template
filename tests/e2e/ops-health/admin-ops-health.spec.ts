@@ -38,7 +38,7 @@ test("platform admin can inspect and copy ops health diagnostics", async ({
     await expectOnDashboard(page);
 
     await openUserMenu(page);
-    await page.getByRole("link", { name: "Ops Health" }).click();
+    await page.getByRole("menuitem", { name: "Ops Health" }).click();
     await expect(page).toHaveURL(new RegExp(`${appBasePath}/admin/ops$`));
     await expect(
       page.getByRole("heading", { name: "Ops Health" }),

@@ -1676,3 +1676,8 @@
 - Investigated PR #8 CI failure: E2E tests still expected old always-visible header controls after the shell moved sign-out, theme, locale, and admin links into the avatar menu.
 - Updated affected E2E tests to open the avatar user menu before interacting with those controls.
 - Verification passed: `pnpm run typecheck`, `pnpm run lint`, `pnpm run check:text`, and `pnpm run specs:overview:check`. Local E2E could not run because Docker was not available.
+
+## 2026-07-01 15:40:08
+
+- Fixed the remaining shell-menu E2E failures: reused an already-open user menu, selected Ops Health by `menuitem`, and drove the language submenu with keyboard navigation.
+- Verification passed locally: `pnpm test:e2e -- tests/e2e/locale-switcher.spec.ts` ran the E2E suite with 19 passed and 1 skipped; `pnpm run typecheck` and `pnpm run lint` also passed.

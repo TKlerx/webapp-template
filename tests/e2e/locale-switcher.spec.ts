@@ -31,8 +31,10 @@ test("locale switcher reloads the app with the selected language", async ({
   await expectOnDashboard(page);
 
   await openUserMenu(page);
-  await page.getByRole("menuitem", { name: /English/ }).click();
-  await page.getByRole("menuitem", { name: "Deutsch" }).click();
+  await page.getByRole("menuitem", { name: /English/ }).focus();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
 
   await expect(
     page.getByRole("heading", { name: /Willkommen zuruck/i }),
