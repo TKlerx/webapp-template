@@ -46,6 +46,7 @@ x-app-env: &app-env
   AZURE_AD_TENANT_ID: ${AZURE_AD_TENANT_ID:-}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env.docker or .env}
   CLI_TOKEN_DEFAULT_EXPIRY_DAYS: ${CLI_TOKEN_DEFAULT_EXPIRY_DAYS:-30}
+  CLI_RELEASES_DIR: ${CLI_RELEASES_DIR:-/app/cli-releases}
   PAT_DEFAULT_EXPIRY_DAYS: ${PAT_DEFAULT_EXPIRY_DAYS:-90}
   PAT_MAX_ACTIVE_PER_USER: ${PAT_MAX_ACTIVE_PER_USER:-10}
   PAT_TOKEN_PREFIX: ${PAT_TOKEN_PREFIX:-starter_pat}
@@ -107,6 +108,7 @@ services:
     networks: [internal]
     volumes:
       - uploads_data:/app/uploads
+      - ${CLI_RELEASES_HOST_DIR:-./data/cli-releases}:${CLI_RELEASES_DIR:-/app/cli-releases}:ro
     command: >
       sh -c "case \"$$MIGRATION_DATABASE_URL\" in
       file:*) echo 'Docker Compose requires a PostgreSQL MIGRATION_DATABASE_URL in .env.docker or .env. SQLite file URLs are not allowed here.' >&2; exit 1 ;;

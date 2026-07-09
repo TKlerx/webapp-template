@@ -4,36 +4,23 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-22 08:30:16
-- Branch: `main`
+- Updated: 2026-07-09 21:06:39
+- Branch: `codex/cli-downloads`
 
 ## Recent Non-Continuity Commits
 
+- b15235a Add release and Postgres ops tooling (#7)
+- a20b568 chore: enforce text conventions and split validation hooks (#6)
 - 115543e feat: add exception-aware supply-chain audit
 - 5f786d8 chore: refresh specs overview
 - 8492b6b feat: add ops health dashboard (#5)
-- 8047615 feat: expose runtime build metadata (#4)
-- 6c81729 feat: add azure deployment smoke verification (#3)
 
 ## Git Status
 
-- M .gitignore
-- M .githooks/pre-merge-commit
-- M .githooks/pre-push
+- M AGENTS.md
 - M CONTINUE.md
 - M CONTINUE_LOG.md
-- M README.md
-- M package.json
-- M scripts/deploy.sh
-- M eslint.config.mjs
-- M scripts/check-text-conventions.mjs
-- M specs/OVERVIEW.md
-- M validate.ps1
-- ?? Dockerfile.cli-builder
-- ?? scripts/backup-postgres.sh
-- ?? scripts/install-cli-releases.ps1
-- ?? scripts/install-cli-releases.sh
-- ?? scripts/restore-postgres.sh
+- ?? AI_TESTING.md
 
 ## Active Specs
 
@@ -41,6 +28,6 @@
 
 ## Next Recommended Actions
 
-1. Review and commit the imported operational tooling: Dockerized CLI release artifacts plus guarded PostgreSQL backup/restore scripts.
-2. Commit and push CI fixes for PR #6 (`prettier`, `spec-overview`).
-3. No unchecked tasks detected in the active specs.
+1. Amend and push the AI testing guidance into PR #9.
+2. Watch PR #9 CI.
+3. Deploy with `CLI_RELEASES_BUILD_DURING_DEPLOY=docker` or `true`, or provide `CLI_RELEASES_SOURCE_DIR`, so `data/cli-releases` is populated.
