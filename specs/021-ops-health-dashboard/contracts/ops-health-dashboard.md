@@ -8,7 +8,7 @@
 
 **Behavior**:
 
-- Renders inside the existing dashboard shell and navigation.
+- Renders inside the existing dashboard shell.
 - Shows environment/build metadata.
 - Shows overall status and individual health areas.
 - Shows a timestamp for the current snapshot.
@@ -86,7 +86,7 @@ Uses the existing unauthorized response/redirect behavior for API routes.
 
 ## Navigation Contract
 
-Add an admin-only navigation item:
+Add an admin-only avatar navigation item:
 
 - Label key: `nav.opsHealth`
 - Target: `/admin/ops`

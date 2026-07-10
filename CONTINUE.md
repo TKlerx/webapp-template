@@ -9,18 +9,15 @@
 
 ## Recent Non-Continuity Commits
 
+- e359910 Revamp dashboard shell and tooling updates (#8)
 - b15235a Add release and Postgres ops tooling (#7)
 - a20b568 chore: enforce text conventions and split validation hooks (#6)
 - 115543e feat: add exception-aware supply-chain audit
 - 5f786d8 chore: refresh specs overview
-- 8492b6b feat: add ops health dashboard (#5)
 
 ## Git Status
 
-- M AGENTS.md
-- M CONTINUE.md
-- M CONTINUE_LOG.md
-- ?? AI_TESTING.md
+- Merged PR #8 into `main`; resolving PR #9 conflicts before merge.
 
 ## Active Specs
 
@@ -28,6 +25,6 @@
 
 ## Next Recommended Actions
 
-1. Amend and push the AI testing guidance into PR #9.
-2. Watch PR #9 CI.
+1. Push PR #9 after conflict resolution.
+2. Merge PR #9.
 3. Deploy with `CLI_RELEASES_BUILD_DURING_DEPLOY=docker` or `true`, or provide `CLI_RELEASES_SOURCE_DIR`, so `data/cli-releases` is populated.

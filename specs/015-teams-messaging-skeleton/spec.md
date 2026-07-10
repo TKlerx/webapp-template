@@ -17,7 +17,7 @@ A platform administrator can configure a Teams destination and send outbound ope
 
 **Independent Test**: Can be fully tested by configuring one Teams destination, triggering one supported event, and confirming the expected message appears in the configured Teams destination with a delivery record.
 
-**UI Location**: Settings → Integrations → Teams
+**UI Location**: Settings -> Integrations -> Teams, reachable from the avatar admin navigation.
 
 **Acceptance Scenarios**:
 
@@ -119,7 +119,7 @@ A platform administrator can view Teams integration status, delivery outcomes, a
 - Q: Which integration mechanism for Teams connectivity? → A: Microsoft Graph API with application permissions (app identity), wrapped in a thin TeamsClient abstraction layer to allow future migration to Bot Framework.
 - Q: How should inbound Teams messages be received? → A: Polling — background job periodically fetches new messages from approved conversations via Graph API. No public endpoint needed.
 - Q: Retry behavior on failed outbound delivery? → A: Up to 3 attempts at fixed interval, then permanent fail surfaced to admin. No exponential backoff for skeleton scope.
-- Q: Where does Teams configuration UI live? → A: Dedicated subsection under Settings → Integrations → Teams.
+- Q: Where does Teams configuration UI live? → A: Dedicated subsection under Settings -> Integrations -> Teams, reachable from the avatar admin navigation.
 - Q: How are Graph API credentials stored? → A: Environment variables — reuse existing Azure AD app registration credentials already configured for SSO.
 
 ### Session 2026-04-27

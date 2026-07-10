@@ -90,6 +90,7 @@ stateDiagram-v2
 - admin-only pages must enforce role checks on the server
 - admin-only API routes must enforce role checks in handlers
 - navigation can hide links, but hidden links are not the authorization mechanism
+- dashboard and avatar navigation should reflect role visibility for convenience only
 - route and server guard checks remain the source of truth
 
 ## Baseline Auth Flows

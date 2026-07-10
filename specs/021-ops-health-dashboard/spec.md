@@ -13,7 +13,7 @@
 
 - Q: Who can access the ops dashboard in the first version? -> A: Admin-only access; developers use admin accounts in dev/staging when needed.
 - Q: Should health data update live or use point-in-time checks? -> A: Read-only snapshot taken when the dashboard is opened or manually refreshed.
-- Q: Where should administrators access the ops dashboard? -> A: Place it in the existing admin/ops area navigation.
+- Q: Where should administrators access the ops dashboard? -> A: Place it in the existing admin/ops route and make it reachable from the avatar admin navigation.
 - Q: How should worker and deploy smoke status be represented? -> A: Display recent recorded worker/smoke status when available; otherwise unknown/unavailable.
 - Q: Should the first version include shareable diagnostic context? -> A: Include a copyable non-secret summary in the first version.
 
@@ -21,7 +21,7 @@
 
 ### User Story 1 - Identify Running Environment (Priority: P1)
 
-An administrator opens the ops dashboard from the existing admin or ops navigation in a dev, staging, or production-like environment and immediately sees which environment and build they are inspecting. Developers use administrator accounts in dev and staging when they need this operational view.
+An administrator opens the ops dashboard from the avatar admin navigation in a dev, staging, or production-like environment and immediately sees which environment and build they are inspecting. Developers use administrator accounts in dev and staging when they need this operational view.
 
 **Why this priority**: Fast fault triage requires knowing the exact deployed version before looking at logs or reproducing a bug.
 
@@ -31,7 +31,7 @@ An administrator opens the ops dashboard from the existing admin or ops navigati
 
 1. **Given** a running deployment with complete build metadata, **When** an authorized operator opens the dashboard, **Then** the dashboard shows environment, version, revision, build id, and build time in a copyable or easily transcribed form.
 2. **Given** a local or manually started environment with partial metadata, **When** an authorized operator opens the dashboard, **Then** the dashboard shows available metadata and clearly labels missing values as unknown instead of inventing values.
-3. **Given** an administrator is using the existing admin or ops area, **When** they navigate through operational tools, **Then** the ops dashboard is available through the same navigation model.
+3. **Given** an administrator is using the existing admin or ops area, **When** they navigate through operational tools from the avatar admin navigation, **Then** the ops dashboard is available through the same navigation model.
 
 ---
 
@@ -92,7 +92,7 @@ An administrator copies or shares the dashboard's non-secret diagnostic summary 
 - **FR-011**: System MUST be clear enough to use in local development, staging, and production-like deployments.
 - **FR-012**: System MUST make access to operational diagnostics available only to administrators.
 - **FR-013**: System MUST present health results as a read-only point-in-time snapshot captured when the dashboard opens or when an administrator manually refreshes it.
-- **FR-014**: System MUST make the dashboard reachable from the existing admin or ops navigation.
+- **FR-014**: System MUST make the dashboard reachable from the avatar admin navigation.
 - **FR-015**: System MUST show worker and deployment smoke status only from recent recorded results when those results are available; otherwise these areas MUST be marked unknown or unavailable.
 - **FR-016**: System MUST provide a copy action for a non-secret diagnostic summary in the first version.
 - **FR-017**: System MUST provide toast-style feedback for successful or failed diagnostic summary copy actions.
@@ -121,6 +121,6 @@ An administrator copies or shares the dashboard's non-secret diagnostic summary 
 - Worker and deployment smoke details may be unavailable in some environments, and the dashboard should not actively invent or execute deployment smoke checks to fill that gap.
 - The dashboard should reuse existing build metadata and operational validation concepts already present in the project.
 - The first version does not require live background updates; administrators can manually refresh when they need a new snapshot.
-- The dashboard belongs inside the existing administrative experience rather than as a standalone public diagnostics page.
+- The dashboard belongs inside the existing administrative experience rather than as a standalone public diagnostics page, and should be reachable through avatar admin navigation.
 - The first version includes copyable diagnostic text, not a downloadable diagnostic file.
 - The v1 configuration sanity check covers presence/readiness only for authentication, database URL ownership, runtime environment, and build metadata; it must never display raw values.

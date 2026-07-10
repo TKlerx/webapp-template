@@ -35,6 +35,9 @@ Coverage focus:
 - SSO login behavior
 - revoked access handling
 - theme persistence
+- default dark theme for users without a saved preference
+- dashboard shell navigation and avatar menu reachability
+- opaque dropdown, popover, and language submenu rendering in light and dark themes
 - user management flow
 - RBAC enforcement
 - background jobs admin dashboard
@@ -138,6 +141,7 @@ Heavier validation:
 - no blocking semgrep findings
 - no invalid UTF-8 in tracked/untracked text candidates
 - no unsupported dependency-tooling environment
+- shared app shell changes should be validated at mobile, tablet, and desktop widths when they affect navigation, dropdowns, or theme tokens
 
 ## Residual Risks
 
