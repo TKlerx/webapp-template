@@ -1624,6 +1624,18 @@
 - Updated README and `.gitignore` for CLI release artifacts and PostgreSQL dump storage.
 - Verification passed: `package.json` parse, PowerShell CLI release installer smoke test, and source-name scan for copied product strings. POSIX shell syntax checks could not run locally because this Windows host's `bash.exe` points at a broken WSL installation.
 
+## 2026-07-09 16:06:10
+
+- Compared `C:\dev\resource-planning-codex` CLI distribution with this template.
+- Added authenticated `/api/downloads/cli`, `/api/downloads/cli/[target]`, and `/api/downloads/cli/checksums` routes backed by mounted `starterctl_*` release artifacts.
+- Added CLI download controls to Settings > Tokens and wired Docker Compose to mount `CLI_RELEASES_HOST_DIR` at `CLI_RELEASES_DIR`.
+- Added `test:mutation:critical` for CLI release lookup mutants.
+- Verification passed: `pnpm vitest run tests/unit/cli-release-service.test.ts`, `pnpm run test:mutation:critical`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run check:text`, and `git diff --check`.
+
+## 2026-07-09 21:06:39
+
+- Included `AI_TESTING.md` in PR #9 and referenced it from `AGENTS.md`.
+
 ## 2026-06-30 22:41:00
 
 - Used the dependency-updater skill to scan Node/pnpm, Docker migrate, Go CLI, and uv worker dependencies.
