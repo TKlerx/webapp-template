@@ -1623,3 +1623,61 @@
 - Updated `scripts/deploy.sh` to derive build metadata, take a pre-deploy PostgreSQL backup, optionally install CLI release artifacts, and restart app plus worker.
 - Updated README and `.gitignore` for CLI release artifacts and PostgreSQL dump storage.
 - Verification passed: `package.json` parse, PowerShell CLI release installer smoke test, and source-name scan for copied product strings. POSIX shell syntax checks could not run locally because this Windows host's `bash.exe` points at a broken WSL installation.
+
+## 2026-06-30 22:41:00
+
+- Used the dependency-updater skill to scan Node/pnpm, Docker migrate, Go CLI, and uv worker dependencies.
+- Applied non-major dependency updates to root `package.json`/`pnpm-lock.yaml`, `docker/migrate/package.json`, `cli/go.mod`/`cli/go.sum`, and `worker/uv.lock`.
+- Left major upgrades for a separate decision: `typescript` 6, `eslint` 10, `jscpd` 5, `dependency-cruiser` 18, `@types/node` 26, and worker `mypy` 2.
+- Verification passed: `pnpm run typecheck`, `pnpm run test`, `pnpm run lint`, `pnpm run quality:cli`, `pnpm run quality:python`, `pnpm run check:text`, and Prettier check for touched package manifests.
+- `pnpm audit --prod --no-optional` still reports the known moderate `postcss` advisory through Next's nested `postcss@8.4.31`; direct `postcss` is updated to `8.5.16` and the repo's validation flow already has allowlist/cooldown handling for this class.
+
+## 2026-06-30 23:04:09
+
+- Created branch `codex/try-major-dependency-bumps` from local `main` after the non-major dependency commit.
+- Successfully bumped `dependency-cruiser` to 18, `jscpd` to 5, worker `mypy` to 2, and root plus Docker migrate `typescript` to 6.
+- Updated `scripts/check-duplication.mjs` for `jscpd` 5's new `run-jscpd.js` entrypoint.
+- Added `ignoreDeprecations: "6.0"` to `tsconfig.json` because TypeScript 6 reports the existing `baseUrl` path-alias setting as deprecated for TypeScript 7.
+- Tried `eslint` 10, but reverted it because `eslint-plugin-react@7.37.5` does not support ESLint 10 and `pnpm run lint` crashed in `react/display-name`.
+- Kept `@types/node` on 25 because Node 24 is the LTS runtime and Node 26 types should wait for a Node 26 runtime move.
+- Verification passed: `pnpm peers check`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run quality:ts`, `pnpm run quality:python`, `pnpm run quality:cli`, `pnpm run test`, `pnpm run check:text`, and Prettier check for touched config/manifests.
+
+## 2026-06-30 23:50:06
+
+- Created branch `codex/ui-shell-theme-revamp` after committing compatible major tooling updates.
+- Ported generic UI revamp pieces from `D:\dev\pg`: blue global palette, dark default theme, and Tailwind v4 `@theme inline` color mappings for shadcn utilities.
+- Replaced the dashboard header/nav strip with a full-bleed dashboard wrapper and fixed top-right `UserMenu`.
+- Added `src/components/ui/UserMenu.tsx` with template navigation links only: Dashboard first, Tokens, API Docs, and admin links for Users, Audit Trail, Background Jobs, Ops Health, Notifications, Teams, and Admin Tokens.
+- Moved language switching into a dropdown submenu and removed the old `Navigation` and `LocaleSwitcher` components.
+- Explicitly excluded IC Drafter routes, `.ic-app` palette tokens, IC branding, login/landing redirects, mockup/proxy edits, and local database/env changes.
+- Verification passed: `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, and `pnpm run check:text`.
+
+## 2026-06-30 23:56:15
+
+- Corrected the dashboard shell to include a persistent left sidebar navigation instead of relying on the avatar menu for nav.
+- Added `src/components/ui/DashboardSidebar.tsx` with Dashboard first, followed by Tokens, API Docs, and platform-admin links.
+- Kept the top-right `UserMenu` focused on account, theme, language, and sign-out actions.
+- Verification passed: `pnpm run typecheck` and `pnpm run lint`.
+
+## 2026-06-30 23:59:03
+
+- Adjusted the dashboard shell per clarification: the left sidebar is intentionally sparse and contains only the Dashboard link.
+- Restored Tokens, API Docs, and platform-admin route links to the top-right avatar `UserMenu`.
+- Verification passed: `pnpm run typecheck` and `pnpm run lint`.
+
+## 2026-07-01 00:08:58
+
+- Aligned existing specs with the dashboard shell/theme revamp instead of creating a new dark-mode spec.
+- Updated base architecture/data/testing/API/RBAC docs for dark-by-default behavior, blue theme tokens, sparse Dashboard rail, and avatar menu navigation.
+- Updated PAT, notifications, Teams, and Ops Health spec/task references so feature navigation points to the avatar or avatar admin menu rather than the deleted `Navigation.tsx` component.
+
+## 2026-07-01 13:27:52
+
+- Investigated PR #8 CI failure: E2E tests still expected old always-visible header controls after the shell moved sign-out, theme, locale, and admin links into the avatar menu.
+- Updated affected E2E tests to open the avatar user menu before interacting with those controls.
+- Verification passed: `pnpm run typecheck`, `pnpm run lint`, `pnpm run check:text`, and `pnpm run specs:overview:check`. Local E2E could not run because Docker was not available.
+
+## 2026-07-01 15:40:08
+
+- Fixed the remaining shell-menu E2E failures: reused an already-open user menu, selected Ops Health by `menuitem`, and drove the language submenu with keyboard navigation.
+- Verification passed locally: `pnpm test:e2e -- tests/e2e/locale-switcher.spec.ts` ran the E2E suite with 19 passed and 1 skipped; `pnpm run typecheck` and `pnpm run lint` also passed.

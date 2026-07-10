@@ -46,6 +46,14 @@ flowchart LR
   - background job creation
   - audit export and operational endpoints
 
+### Dashboard Shell And Theme
+
+- The authenticated application shell defaults to dark mode when a user has no saved theme preference.
+- The baseline visual system uses blue accent tokens and CSS variables shared by app pages, shadcn primitives, dropdowns, and popovers.
+- The dashboard shell keeps a sparse left navigation rail for the primary Dashboard destination.
+- Secondary user-facing destinations, administrator destinations, theme switching, language switching, and sign-out live in the user avatar menu.
+- Dropdown and submenu surfaces must render with an opaque panel background in both light and dark themes.
+
 ### Authentication
 
 - Primary library: Better Auth

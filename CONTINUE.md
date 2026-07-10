@@ -4,36 +4,24 @@
 
 ## Current Snapshot
 
-- Updated: 2026-06-22 08:30:16
-- Branch: `main`
+- Updated: 2026-07-01 15:40:08
+- Branch: `codex/ui-shell-theme-revamp`
 
 ## Recent Non-Continuity Commits
 
-- 115543e feat: add exception-aware supply-chain audit
-- 5f786d8 chore: refresh specs overview
-- 8492b6b feat: add ops health dashboard (#5)
-- 8047615 feat: expose runtime build metadata (#4)
-- 6c81729 feat: add azure deployment smoke verification (#3)
+- 202cb1e docs: align specs with shell revamp
+- 64a2728 fix: keep secondary nav in user menu
+- b1502af fix: add dashboard sidebar navigation
+- 26976a7 feat: revamp dashboard shell theme
+- ca28932 chore: update compatible major tooling
 
 ## Git Status
 
-- M .gitignore
-- M .githooks/pre-merge-commit
-- M .githooks/pre-push
 - M CONTINUE.md
 - M CONTINUE_LOG.md
-- M README.md
-- M package.json
-- M scripts/deploy.sh
-- M eslint.config.mjs
-- M scripts/check-text-conventions.mjs
-- M specs/OVERVIEW.md
-- M validate.ps1
-- ?? Dockerfile.cli-builder
-- ?? scripts/backup-postgres.sh
-- ?? scripts/install-cli-releases.ps1
-- ?? scripts/install-cli-releases.sh
-- ?? scripts/restore-postgres.sh
+- M tests/e2e/helpers/auth.ts
+- M tests/e2e/locale-switcher.spec.ts
+- M tests/e2e/ops-health/admin-ops-health.spec.ts
 
 ## Active Specs
 
@@ -41,6 +29,6 @@
 
 ## Next Recommended Actions
 
-1. Review and commit the imported operational tooling: Dockerized CLI release artifacts plus guarded PostgreSQL backup/restore scripts.
-2. Commit and push CI fixes for PR #6 (`prettier`, `spec-overview`).
+1. Commit and push the remaining E2E shell-menu test fix for PR #8.
+2. Watch PR #8 CI after the push.
 3. No unchecked tasks detected in the active specs.

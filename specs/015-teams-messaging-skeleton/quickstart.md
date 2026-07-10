@@ -28,7 +28,7 @@
 3. Run `pnpm run prisma:generate` to update Prisma client
 4. Start dev server: `pnpm run dev`
 5. Start worker: `cd worker && uv run python -m starter_worker.main`
-6. Navigate to Settings → Integrations → Teams
+6. Open the avatar admin navigation and navigate to Settings -> Integrations -> Teams
 7. Enable Teams integration (send toggle)
 8. Add a delivery target (paste team ID + channel ID)
 9. Trigger a notification event (e.g., create a user) → message appears in Teams channel

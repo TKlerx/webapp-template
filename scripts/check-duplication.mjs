@@ -6,9 +6,7 @@ const jscpdBin = path.join(
   process.cwd(),
   "node_modules",
   "jscpd",
-  "dist",
-  "bin",
-  "jscpd.js",
+  "run-jscpd.js",
 );
 const args = [
   "src/",

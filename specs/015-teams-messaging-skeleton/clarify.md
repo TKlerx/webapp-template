@@ -5,7 +5,7 @@
 - Integration mechanism: Microsoft Graph API with application permissions (app identity), behind a thin `TeamsClient` abstraction.
 - Inbound receive mode: polling via background jobs (no webhook endpoint in skeleton scope).
 - Outbound retries: fixed-interval retries up to 3 attempts, then permanent failure surfaced in admin status.
-- Admin UI location: Settings -> Integrations -> Teams.
+- Admin UI location: Settings -> Integrations -> Teams, reachable from avatar admin navigation.
 - Credential source: environment variables, reusing the existing Azure AD app registration setup.
 
 ## Session 2026-04-27

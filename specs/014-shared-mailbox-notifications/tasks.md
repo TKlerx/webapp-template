@@ -86,7 +86,7 @@
 - [x] T020 [US2] Add notification type configuration persistence and services under `prisma/` and `src/services/notifications/`
 - [x] T021 [US2] Add admin notification log and settings routes under `src/app/api/notifications/`
 - [x] T022 [US2] Add notification settings and log UI under `src/app/(dashboard)/` and supporting components under `src/components/`
-- [x] T023 [US2] Add RBAC-aware navigation and i18n strings for notification management in `src/components/ui/Navigation.tsx` and `src/i18n/messages/*.json`
+- [x] T023 [US2] Add RBAC-aware avatar admin navigation and i18n strings for notification management in `src/components/ui/UserMenu.tsx` and `src/i18n/messages/*.json`
 
 **Checkpoint**: PLATFORM_ADMIN users can manage notification behavior and inspect delivery history, with scoped visibility rules applied where required.
 

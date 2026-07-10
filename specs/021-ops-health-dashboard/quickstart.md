@@ -22,7 +22,7 @@
 
 2. Sign in as a platform administrator.
 
-3. Open `/admin/ops` through the dashboard navigation.
+3. Open `/admin/ops` through the avatar admin navigation.
 
 4. Confirm the page shows:
    - Environment name

@@ -34,7 +34,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 | V. Spec Sequencing              | PASS   | Specs 010–014 fully implemented. 015 is next in sequence.                                                                                         |
 | VI. Continuity And Handoff      | PASS   | CONTINUE.md reviewed. Will update after planning.                                                                                                 |
 | VII. Azure OpenAI Integration   | N/A    | No AI features in this spec.                                                                                                                      |
-| VIII. Web Application Standards | PASS   | UI under Settings → Integrations → Teams. Base path respected. Toast feedback for actions.                                                        |
+| VIII. Web Application Standards | PASS   | UI under Settings -> Integrations -> Teams, reachable from avatar admin navigation. Base path respected. Toast feedback for actions.              |
 | IX. Internationalization        | PASS   | All UI text via next-intl translation keys. 5 locales.                                                                                            |
 | X. Responsive Design            | PASS   | Admin settings page follows existing responsive patterns.                                                                                         |
 

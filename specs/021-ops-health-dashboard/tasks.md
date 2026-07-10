@@ -50,7 +50,7 @@
 
 ## Phase 3: User Story 1 - Identify Running Environment (Priority: P1) MVP
 
-**Goal**: An administrator can open the dashboard from admin navigation and identify the running environment/build within 15 seconds.
+**Goal**: An administrator can open the dashboard from avatar admin navigation and identify the running environment/build within 15 seconds.
 
 **Independent Test**: Sign in as a platform administrator, navigate to `/admin/ops`, and verify the page shows environment, version, revision, build id, build time, and snapshot timestamp with unknown labels for missing metadata.
 
@@ -64,7 +64,7 @@
 
 - [x] T020 [US1] Implement environment identity assembly from `getAppVersionInfo()` in `src/lib/ops-health.ts`
 - [x] T021 [US1] Implement `GET /api/admin/ops-health` admin authorization and metadata-only snapshot response in `src/app/api/admin/ops-health/route.ts`
-- [x] T022 [US1] Add admin-only Ops Health navigation item with `nav.opsHealth` in `src/components/ui/Navigation.tsx`
+- [x] T022 [US1] Add admin-only Ops Health navigation item with `nav.opsHealth` in `src/components/ui/UserMenu.tsx`
 - [x] T023 [P] [US1] Implement status badge component for healthy/degraded/unknown/unavailable display in `src/components/ops/HealthStatusBadge.tsx`
 - [x] T024 [US1] Implement initial ops dashboard page shell and metadata panel in `src/app/(dashboard)/admin/ops/page.tsx`
 - [x] T025 [US1] Ensure non-admin users are redirected or denied from `/admin/ops` in `src/app/(dashboard)/admin/ops/page.tsx`
@@ -206,13 +206,13 @@ Task: "T041 [US3] Add integration test asserting /api/admin/ops-health diagnosti
 1. Complete Phase 1: Setup.
 2. Complete Phase 2: Foundational.
 3. Complete Phase 3: User Story 1.
-4. Stop and validate: unit/integration tests plus admin navigation e2e for metadata.
+4. Stop and validate: unit/integration tests plus avatar admin navigation e2e for metadata.
 5. Demo `/admin/ops` with build metadata and admin-only access.
 
 ### Incremental Delivery
 
 1. Foundation ready.
-2. Add US1 metadata/admin navigation MVP.
+2. Add US1 metadata/avatar admin navigation MVP.
 3. Add US2 health snapshot and manual refresh.
 4. Add US3 copyable safe diagnostics.
 5. Complete polish, responsive review, and validation.
