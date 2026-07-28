@@ -1,23 +1,23 @@
 # Continue
 
-<!-- continuity:fingerprint=bce7c5190f15dcacfdb95670101b8335064447a6c5e1d221d6cdb932887410b1 -->
+<!-- continuity:fingerprint=ea4a43fcfbcfaa6d95706b1942595680972ea3bf804b3720dd767412203c7226 -->
 
 ## Current Snapshot
 
-- Updated: 2026-07-09 21:06:39
-- Branch: `codex/cli-downloads`
+- Updated: 2026-07-28 17:00:21
+- Branch: `codex/dependabot-updates`
 
 ## Recent Non-Continuity Commits
 
+- 7f3bfb5 Fix dependency audit findings (#10)
+- 4c69c43 Expose hosted CLI downloads (#9)
 - e359910 Revamp dashboard shell and tooling updates (#8)
 - b15235a Add release and Postgres ops tooling (#7)
 - a20b568 chore: enforce text conventions and split validation hooks (#6)
-- 115543e feat: add exception-aware supply-chain audit
-- 5f786d8 chore: refresh specs overview
 
 ## Git Status
 
-- Merged PR #8 into `main`; resolving PR #9 conflicts before merge.
+- ?? .github/dependabot.yml
 
 ## Active Specs
 
@@ -25,6 +25,4 @@
 
 ## Next Recommended Actions
 
-1. Push PR #9 after conflict resolution.
-2. Merge PR #9.
-3. Deploy with `CLI_RELEASES_BUILD_DURING_DEPLOY=docker` or `true`, or provide `CLI_RELEASES_SOURCE_DIR`, so `data/cli-releases` is populated.
+1. No unchecked tasks detected in the active specs.
