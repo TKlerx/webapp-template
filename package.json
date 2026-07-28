@@ -68,7 +68,7 @@
   },
   "optionalDependencies": {
     "@prisma/adapter-better-sqlite3": "^7.9.1",
-    "better-sqlite3": "^12.11.1"
+    "better-sqlite3": "^13.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
