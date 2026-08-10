@@ -8,8 +8,7 @@ import type {
 
 export type RouteErrorResult = { error: Response };
 export type RouteUserResult<TUser = SessionUser> =
-  | RouteErrorResult
-  | { user: TUser; request?: Request };
+  RouteErrorResult | { user: TUser; request?: Request };
 
 export type RouteParamsWithId = Promise<{ id: string }>;
 
@@ -25,8 +24,7 @@ export type AuthorizeRouteOptions = {
   scopeRestricted?: boolean;
   scopeId?: string | null;
   resolveScopeId?:
-    | ((request: Request) => Promise<string | null> | string | null)
-    | null;
+    ((request: Request) => Promise<string | null> | string | null) | null;
 };
 
 export type ManagedUserStatusUpdateOptions = {

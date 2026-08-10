@@ -6,11 +6,7 @@ import { checkDatabaseHealth, getProcessHealth } from "@/lib/monitoring";
 export type HealthStatus = "healthy" | "degraded" | "unknown" | "unavailable";
 
 export type HealthCheckKey =
-  | "runtime"
-  | "database"
-  | "configuration"
-  | "worker"
-  | "deploySmoke";
+  "runtime" | "database" | "configuration" | "worker" | "deploySmoke";
 
 export type EnvironmentIdentity = {
   environment: string;

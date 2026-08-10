@@ -3,9 +3,7 @@ import { Role, UserStatus } from "../../../../generated/prisma/enums";
 export type NotificationTemplateAudience = "affected_user" | "platform_admin";
 
 export type NotificationTemplateKind =
-  | "USER_CREATED"
-  | "ROLE_CHANGED"
-  | "USER_STATUS_CHANGED";
+  "USER_CREATED" | "ROLE_CHANGED" | "USER_STATUS_CHANGED";
 
 export type NotificationTemplateInput = {
   locale?: string | null;
