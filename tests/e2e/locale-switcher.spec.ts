@@ -31,13 +31,15 @@ test("locale switcher reloads the app with the selected language", async ({
   await expectOnDashboard(page);
 
   await openUserMenu(page);
-  await page.getByRole("menuitem", { name: /English/ }).hover();
+  const languageMenu = page.getByRole("menuitem", { name: /English/ });
+  await languageMenu.focus();
+  await languageMenu.press("ArrowRight");
   const localeResponse = page.waitForResponse(
     (response) =>
       response.url().endsWith("/api/locale") &&
       response.request().method() === "POST",
   );
-  await page.getByRole("menuitem", { name: "Deutsch" }).click();
+  await page.getByRole("menuitem", { name: "Deutsch" }).press("Enter");
   expect((await localeResponse).ok()).toBe(true);
 
   await expect(page.locator("html")).toHaveAttribute("lang", "de");

@@ -1,40 +1,34 @@
 # Continue
 
-<!-- continuity:fingerprint=3cf3b6b9193fd9c3e3af9947ab12b38327187d767ad1287e3090b3d350466ced -->
+<!-- continuity:fingerprint=6954c5be885a7ac957cb176720ed9596344982e8c35142837014d5a1aebb7182 -->
 
 ## Current Snapshot
 
-- Updated: 2026-08-10 14:04:40
+- Updated: 2026-08-10 14:25:33
 - Branch: `codex/fix-validation-baseline`
 
 ## Recent Non-Continuity Commits
 
+- 1033407 fix: restore validation baseline
 - 824bf8e Configure Dependabot version updates (#16)
 - 7f3bfb5 Fix dependency audit findings (#10)
 - 4c69c43 Expose hosted CLI downloads (#9)
 - e359910 Revamp dashboard shell and tooling updates (#8)
-- b15235a Add release and Postgres ops tooling (#7)
 
 ## Git Status
 
+- M .deepsec/package.json
+- M .deepsec/pnpm-lock.yaml
 - M .deepsec/pnpm-workspace.yaml
-- M .github/dependabot.yml
-- M AGENTS.md
-- M AI_TESTING.md
-- M scripts/run-critical-mutation-tests.mjs
-- M specs/017-deepsec-remediation/phase-2-findings.md
-- M specs/OVERVIEW.md
-- M src/components/tokens/cli-downloads.tsx
-- M src/lib/mail/templates/notifications.ts
-- M src/lib/ops-health.ts
-- M src/services/api/cli-release-service.ts
-- M src/services/api/types.ts
+- M package.json
+- M pnpm-lock.yaml
+- M pnpm-workspace.yaml
 - M tests/e2e/locale-switcher.spec.ts
-- M tests/unit/cli-release-service.test.ts
+- M worker/uv.lock
 
 ## Active Specs
 
-- 017-deepsec-remediation
+- No active spec folders detected.
 
 ## Next Recommended Actions
 
