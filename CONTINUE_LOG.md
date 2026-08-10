@@ -1720,3 +1720,12 @@
 - Consolidated the safe Dependabot updates across the app, worker, and DeepSec workspace; added patched transitive overrides for `fast-uri`, `nanoid`, `undici`, and `@hono/node-server`.
 - Kept ESLint 9 and better-sqlite3 12 because the installed Next.js lint plugins and Better Auth reject their proposed new majors.
 - Verification passed: peer checks, typecheck, lint, Prettier, 215 app tests, 16 worker tests, critical mutation tests, root production audit, DeepSec audit, and DeepSec CLI smoke test.
+
+## 2026-08-10 14:45:00
+
+- Branch snapshot refreshed for `codex/fix-dev-audit-advisories`.
+- Latest non-continuity commit: 65696b3 Fix validation and consolidate safe dependency updates (#27).
+- Active specs: none.
+- Next focus: no next task.
+- Patched the newly disclosed development-toolchain advisories by overriding `brace-expansion` to 1.1.18/5.0.9 and `js-yaml` to 4.3.1; ESLint and better-sqlite3 remain on compatible majors.
+- Verification passed: full and production audits, peer checks, typecheck, lint, and 215 unit/integration tests.
