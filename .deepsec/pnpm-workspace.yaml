@@ -1,1 +1,7 @@
 packages: []
+blockExoticSubdeps: true
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade
+minimumReleaseAgeExclude:
+  - "@hono/node-server@2.0.10"
+  - undici@8.9.0

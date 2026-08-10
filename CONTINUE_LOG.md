@@ -1693,9 +1693,30 @@
 
 - Fixed the remaining shell-menu E2E failures: reused an already-open user menu, selected Ops Health by `menuitem`, and drove the language submenu with keyboard navigation.
 - Verification passed locally: `pnpm test:e2e -- tests/e2e/locale-switcher.spec.ts` ran the E2E suite with 19 passed and 1 skipped; `pnpm run typecheck` and `pnpm run lint` also passed.
+
 ## 2026-07-28 17:00:21
 
 - Branch snapshot refreshed for `codex/dependabot-updates`.
 - Latest non-continuity commit: 7f3bfb5 Fix dependency audit findings (#10).
 - Active specs: none.
 - Next focus: no next task.
+
+## 2026-08-10 14:04:40
+
+- Branch snapshot refreshed for `codex/fix-validation-baseline`.
+- Latest non-continuity commit: 824bf8e Configure Dependabot version updates (#16).
+- Active specs: 017-deepsec-remediation.
+- Next focus: no next task.
+- Repaired the shared validation baseline blocking Dependabot PRs: formatted tracked files, refreshed the specs overview, hardened pnpm and Dependabot update policy, and removed shell-based mutation-test execution.
+- Replaced flaky locale-menu keyboard choreography with an explicit submenu selection and asserted locale API response.
+- Verification passed: Prettier, specs overview, Semgrep, critical mutation tests, typecheck, lint, and 215 unit/integration tests. PostgreSQL E2E could not run locally because Docker Desktop was unavailable; CI remains the final E2E check.
+
+## 2026-08-10 14:25:33
+
+- Branch snapshot refreshed for `codex/fix-validation-baseline`.
+- Latest non-continuity commit: 1033407 fix: restore validation baseline.
+- Active specs: none.
+- Next focus: no next task.
+- Consolidated the safe Dependabot updates across the app, worker, and DeepSec workspace; added patched transitive overrides for `fast-uri`, `nanoid`, `undici`, and `@hono/node-server`.
+- Kept ESLint 9 and better-sqlite3 12 because the installed Next.js lint plugins and Better Auth reject their proposed new majors.
+- Verification passed: peer checks, typecheck, lint, Prettier, 215 app tests, 16 worker tests, critical mutation tests, root production audit, DeepSec audit, and DeepSec CLI smoke test.

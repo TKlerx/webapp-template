@@ -24,14 +24,21 @@ const mutants = [
   },
 ];
 
-const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const pnpmCli = process.env.npm_execpath;
 
-function runVitest(files, quiet = false) {
-  const result = spawnSync(`${pnpm} exec vitest run ${files.join(" ")}`, {
-    encoding: "utf8",
-    shell: true,
-    stdio: quiet ? "pipe" : "inherit",
-  });
+if (!pnpmCli) {
+  throw new Error("pnpm CLI path is unavailable.");
+}
+
+function runVitest(quiet = false) {
+  const result = spawnSync(
+    process.execPath,
+    [pnpmCli, "exec", "vitest", "run", ...testFiles],
+    {
+      encoding: "utf8",
+      stdio: quiet ? "pipe" : "inherit",
+    },
+  );
   if (result.error) {
     throw result.error;
   }
@@ -50,7 +57,7 @@ function replaceOnce(source, from, to, name) {
 }
 
 console.log("Baseline critical tests");
-if (runVitest(testFiles).status !== 0) {
+if (runVitest().status !== 0) {
   process.exit(1);
 }
 
@@ -64,7 +71,7 @@ for (const mutant of mutants) {
       replaceOnce(original, mutant.from, mutant.to, mutant.name),
     );
     console.log(`\nMutant: ${mutant.name}`);
-    const { status, output } = runVitest(testFiles, true);
+    const { status, output } = runVitest(true);
     if (status === 0) {
       survivors.push(mutant.name);
       console.error(`Survived: ${mutant.name}`);
