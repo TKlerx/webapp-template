@@ -1,24 +1,25 @@
 # Continue
 
-<!-- continuity:fingerprint=e71399ff80b47297e621adf7d1f60d488ee6c31d2a53a00a476534299584da89 -->
+<!-- continuity:fingerprint=0bb8686625a53b6785ab60e888154ad6b361905d182df7a244f52c2c3e0d21e1 -->
 
 ## Current Snapshot
 
-- Updated: 2026-08-10 14:45:00
-- Branch: `codex/fix-dev-audit-advisories`
+- Updated: 2026-08-12 12:40:39
+- Branch: `main`
 
 ## Recent Non-Continuity Commits
 
+- a15be2b chore: migrate to pnpm 11
+- 16addc0 fix: patch development dependency advisories (#29)
 - 65696b3 Fix validation and consolidate safe dependency updates (#27)
 - 824bf8e Configure Dependabot version updates (#16)
 - 7f3bfb5 Fix dependency audit findings (#10)
-- 4c69c43 Expose hosted CLI downloads (#9)
-- e359910 Revamp dashboard shell and tooling updates (#8)
 
 ## Git Status
 
-- M pnpm-lock.yaml
-- M pnpm-workspace.yaml
+- M  .dockerignore
+- M  Dockerfile.app
+- M  next.config.ts
 
 ## Active Specs
 

@@ -18,8 +18,15 @@ worker/.venv/
 data/documents/
 test-results/
 uploads/
+data/cli-releases/
+backups/
 dev.db
 e2e.db
+*.db
+*.db-*
+*.dump
+*.sqlite
+*.sqlite*
 *.tsbuildinfo
 **/.terraform/
 **/.terraform.lock.hcl
@@ -28,4 +35,3 @@ e2e.db
 *.tfvars.local
 Dockerfile*
 .dockerignore
-

@@ -82,10 +82,15 @@ ENV APP_BUILD_ID=$APP_BUILD_ID
 ENV APP_BUILT_AT=$APP_BUILT_AT
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/generated ./generated
 COPY --from=builder /app/package.json ./package.json
 RUN rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx \
     && rm -rf /usr/local/lib/node_modules/npm /corepack \
+    && rm -rf /app/node_modules/.pnpm/@prisma+adapter-better-sqlite3@* \
+        /app/node_modules/.pnpm/better-sqlite3@* \
+        /app/node_modules/@prisma/adapter-better-sqlite3 \
+        /app/node_modules/better-sqlite3 \
     && groupadd --system --gid 1001 nodejs \
     && useradd --system --uid 1001 --gid nodejs nextjs \
     && mkdir -p /app/uploads /data \

@@ -1701,6 +1701,20 @@
 - Active specs: none.
 - Next focus: no next task.
 
+## 2026-07-28 17:00:21
+
+- Branch snapshot refreshed for `codex/dependabot-updates`.
+- Latest non-continuity commit: 7f3bfb5 Fix dependency audit findings (#10).
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-07-28 21:50:38
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: 824bf8e Configure Dependabot version updates (#16).
+- Active specs: none.
+- Next focus: no next task.
+
 ## 2026-08-10 14:04:40
 
 - Branch snapshot refreshed for `codex/fix-validation-baseline`.
@@ -1729,3 +1743,9 @@
 - Next focus: no next task.
 - Patched the newly disclosed development-toolchain advisories by overriding `brace-expansion` to 1.1.18/5.0.9 and `js-yaml` to 4.3.1; ESLint and better-sqlite3 remain on compatible majors.
 - Verification passed: full and production audits, peer checks, typecheck, lint, and 215 unit/integration tests.
+## 2026-08-12 12:40:39
+
+- Branch snapshot refreshed for `main`.
+- Latest non-continuity commit: a15be2b chore: migrate to pnpm 11.
+- Active specs: none.
+- Next focus: no next task.

@@ -8,6 +8,14 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   basePath,
   output: "standalone",
+  outputFileTracingExcludes: {
+    "/*": [
+      "node_modules/.pnpm/@prisma+adapter-better-sqlite3@*/**/*",
+      "node_modules/.pnpm/better-sqlite3@*/**/*",
+      "node_modules/@prisma/adapter-better-sqlite3/**/*",
+      "node_modules/better-sqlite3/**/*",
+    ],
+  },
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
