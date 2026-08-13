@@ -17,9 +17,9 @@
 
 ## Git Status
 
-- M  .dockerignore
-- M  Dockerfile.app
-- M  next.config.ts
+- M .dockerignore
+- M Dockerfile.app
+- M next.config.ts
 
 ## Active Specs
 
