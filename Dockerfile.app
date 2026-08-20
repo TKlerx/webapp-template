@@ -10,11 +10,11 @@ RUN mkdir -p /corepack \
     && corepack prepare pnpm@11.21.0 --activate
 
 FROM base AS deps
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 FROM base AS dependency-audit
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 CMD ["pnpm", "audit", "--prod", "--no-optional", "--json"]
 
