@@ -8,11 +8,5 @@
   "packageManager": "pnpm@11.21.0",
   "dependencies": {
     "deepsec": "^2.0.12"
-  },
-  "pnpm": {
-    "overrides": {
-      "@hono/node-server": "2.0.10",
-      "undici": "8.9.0"
-    }
   }
 }

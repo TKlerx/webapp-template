@@ -118,8 +118,8 @@ Heavier validation:
 
 ### pnpm
 
-- must honor `min-release-age`
-- repo config requires `min-release-age=7`
+- must honor `minimumReleaseAge`
+- repo config requires `minimumReleaseAge: 4320`
 
 ### uv
 
