@@ -1743,9 +1743,50 @@
 - Next focus: no next task.
 - Patched the newly disclosed development-toolchain advisories by overriding `brace-expansion` to 1.1.18/5.0.9 and `js-yaml` to 4.3.1; ESLint and better-sqlite3 remain on compatible majors.
 - Verification passed: full and production audits, peer checks, typecheck, lint, and 215 unit/integration tests.
+
 ## 2026-08-12 12:40:39
 
 - Branch snapshot refreshed for `main`.
 - Latest non-continuity commit: a15be2b chore: migrate to pnpm 11.
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-09-03 09:21:38
+
+- Branch snapshot refreshed for `webapp-template/t_23475c82-update-libraries-dependencies`.
+- Latest non-continuity commit: 6bfc6ff fix: update Docker standalone build configuration.
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-09-03 09:48:41
+
+- Branch snapshot refreshed for `webapp-template/t_23475c82-update-libraries-dependencies`.
+- Latest non-continuity commit: 80b273d fix: update Next.js to 16.3.3 (#33).
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-09-03 10:22:20
+
+- Branch snapshot refreshed for `webapp-template/t_23475c82-update-libraries-dependencies`.
+- Latest non-continuity commit: 80b273d fix: update Next.js to 16.3.3 (#33).
+- Active specs: none.
+- Next focus: no next task.
+
+## 2026-09-03 Dependency compatibility decisions
+
+- Updated compatible Node, Python, Go, Prisma, and migration-image dependencies while retaining stable supported majors where proposed upgrades were incompatible or prerelease-only.
+- Kept Prisma 7 instead of Prisma 8 RC because the available 8.x release is prerelease and a major-version migration was not justified for this maintenance update.
+- Kept ESLint 9 instead of ESLint 10 because the installed Next.js ESLint plugins only declare support through ESLint 9.
+- Kept TypeScript 6 instead of TypeScript 7 because typescript-eslint currently requires TypeScript below 6.1.
+- Kept better-sqlite3 12 instead of better-sqlite3 13 because Better Auth requires the 12.x compatibility range.
+- Added transitive overrides for lodash 4.18.1, deepmerge-ts 8.0.2, mysql2 3.23.1, and fast-uri 3.1.6 to resolve published security advisories without forcing incompatible direct dependency majors.
+- Constrained Better Auth to exact version 1.6.30 after 1.7.2 changed credential identity to `(issuer, accountId)`, causing valid seeded users to fail password login as `User not found` against the repository's 1.6-era account schema and data.
+- Retained Prisma 7.10.0 because Better Auth 1.6.30 declares Prisma 7 support and the regression was isolated to Better Auth 1.7's required account-identity migration, not the Prisma update.
+- Documented the deferred Better Auth 1.7 schema/data migration in `docs/dependency-compatibility.md` and added a contract test that prevents accidental 1.7 adoption before that migration.
+
+## 2026-09-03 14:09:25
+
+- Branch snapshot refreshed for `webapp-template/t_23475c82-update-libraries-dependencies`.
+- Latest non-continuity commit: b394dff docs: record dependency compatibility decisions.
 - Active specs: none.
 - Next focus: no next task.

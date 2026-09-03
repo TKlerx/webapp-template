@@ -1,25 +1,27 @@
 # Continue
 
-<!-- continuity:fingerprint=0bb8686625a53b6785ab60e888154ad6b361905d182df7a244f52c2c3e0d21e1 -->
+<!-- continuity:fingerprint=c99c4c54b776cfa17b44fee4e87e8f4fd3dc2218c5b466df43ba03b72e44d281 -->
 
 ## Current Snapshot
 
-- Updated: 2026-08-12 12:40:39
-- Branch: `main`
+- Updated: 2026-09-03 14:09:25
+- Branch: `webapp-template/t_23475c82-update-libraries-dependencies`
 
 ## Recent Non-Continuity Commits
 
-- a15be2b chore: migrate to pnpm 11
-- 16addc0 fix: patch development dependency advisories (#29)
-- 65696b3 Fix validation and consolidate safe dependency updates (#27)
-- 824bf8e Configure Dependabot version updates (#16)
-- 7f3bfb5 Fix dependency audit findings (#10)
+- b394dff docs: record dependency compatibility decisions
+- a060782 chore: update project dependencies
+- 80b273d fix: update Next.js to 16.3.3 (#33)
+- db768ba chore: align dependency cooldown policy (#32)
+- 62b91b0 chore: update pnpm to 11.21.0 (#31)
 
 ## Git Status
 
-- M  .dockerignore
-- M  Dockerfile.app
-- M  next.config.ts
+- M CONTINUE_LOG.md
+- M package.json
+- M pnpm-lock.yaml
+- ?? docs/dependency-compatibility.md
+- ?? tests/unit/auth/better-auth-compatibility.test.ts
 
 ## Active Specs
 

@@ -1,7 +1,7 @@
 packages: []
 blockExoticSubdeps: true
-minimumReleaseAge: 10080
+minimumReleaseAge: 4320 # nosemgrep: package_managers.pnpm.pnpm-missing-minimum-release-age.pnpm-minimum-release-age
 trustPolicy: no-downgrade
-minimumReleaseAgeExclude:
-  - "@hono/node-server@2.0.10"
-  - undici@8.9.0
+overrides:
+  "@hono/node-server": 2.0.10
+  undici: 8.9.0
