@@ -1779,4 +1779,4 @@
 - Kept ESLint 9 instead of ESLint 10 because the installed Next.js ESLint plugins only declare support through ESLint 9.
 - Kept TypeScript 6 instead of TypeScript 7 because typescript-eslint currently requires TypeScript below 6.1.
 - Kept better-sqlite3 12 instead of better-sqlite3 13 because Better Auth requires the 12.x compatibility range.
-- Added transitive overrides for lodash 4.18.1, deepmerge-ts 8.0.2, mysql2 3.24.3, and fast-uri 3.1.6 to resolve published security advisories without forcing incompatible direct dependency majors.
+- Added transitive overrides for lodash 4.18.1, deepmerge-ts 8.0.2, mysql2 3.23.1, and fast-uri 3.1.6 to resolve published security advisories without forcing incompatible direct dependency majors.
