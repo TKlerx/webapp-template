@@ -1750,21 +1750,33 @@
 - Latest non-continuity commit: a15be2b chore: migrate to pnpm 11.
 - Active specs: none.
 - Next focus: no next task.
+
 ## 2026-09-03 09:21:38
 
 - Branch snapshot refreshed for `webapp-template/t_23475c82-update-libraries-dependencies`.
 - Latest non-continuity commit: 6bfc6ff fix: update Docker standalone build configuration.
 - Active specs: none.
 - Next focus: no next task.
+
 ## 2026-09-03 09:48:41
 
 - Branch snapshot refreshed for `webapp-template/t_23475c82-update-libraries-dependencies`.
 - Latest non-continuity commit: 80b273d fix: update Next.js to 16.3.3 (#33).
 - Active specs: none.
 - Next focus: no next task.
+
 ## 2026-09-03 10:22:20
 
 - Branch snapshot refreshed for `webapp-template/t_23475c82-update-libraries-dependencies`.
 - Latest non-continuity commit: 80b273d fix: update Next.js to 16.3.3 (#33).
 - Active specs: none.
 - Next focus: no next task.
+
+## 2026-09-03 Dependency compatibility decisions
+
+- Updated compatible Node, Python, Go, Prisma, and migration-image dependencies while retaining stable supported majors where proposed upgrades were incompatible or prerelease-only.
+- Kept Prisma 7 instead of Prisma 8 RC because the available 8.x release is prerelease and a major-version migration was not justified for this maintenance update.
+- Kept ESLint 9 instead of ESLint 10 because the installed Next.js ESLint plugins only declare support through ESLint 9.
+- Kept TypeScript 6 instead of TypeScript 7 because typescript-eslint currently requires TypeScript below 6.1.
+- Kept better-sqlite3 12 instead of better-sqlite3 13 because Better Auth requires the 12.x compatibility range.
+- Added transitive overrides for lodash 4.18.1, deepmerge-ts 8.0.2, mysql2 3.24.3, and fast-uri 3.1.6 to resolve published security advisories without forcing incompatible direct dependency majors.

@@ -19,13 +19,13 @@
 
 - MM Dockerfile.cli-builder
 - MM cli/go.mod
-- M  cli/go.sum
-- M  docker/migrate/package.json
-- M  next-env.d.ts
-- M  package.json
+- M cli/go.sum
+- M docker/migrate/package.json
+- M next-env.d.ts
+- M package.json
 - MM pnpm-lock.yaml
 - MM pnpm-workspace.yaml
-- M  worker/uv.lock
+- M worker/uv.lock
 
 ## Active Specs
 
