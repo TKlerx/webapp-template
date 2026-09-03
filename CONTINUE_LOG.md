@@ -1780,3 +1780,13 @@
 - Kept TypeScript 6 instead of TypeScript 7 because typescript-eslint currently requires TypeScript below 6.1.
 - Kept better-sqlite3 12 instead of better-sqlite3 13 because Better Auth requires the 12.x compatibility range.
 - Added transitive overrides for lodash 4.18.1, deepmerge-ts 8.0.2, mysql2 3.23.1, and fast-uri 3.1.6 to resolve published security advisories without forcing incompatible direct dependency majors.
+- Constrained Better Auth to exact version 1.6.30 after 1.7.2 changed credential identity to `(issuer, accountId)`, causing valid seeded users to fail password login as `User not found` against the repository's 1.6-era account schema and data.
+- Retained Prisma 7.10.0 because Better Auth 1.6.30 declares Prisma 7 support and the regression was isolated to Better Auth 1.7's required account-identity migration, not the Prisma update.
+- Documented the deferred Better Auth 1.7 schema/data migration in `docs/dependency-compatibility.md` and added a contract test that prevents accidental 1.7 adoption before that migration.
+
+## 2026-09-03 14:09:25
+
+- Branch snapshot refreshed for `webapp-template/t_23475c82-update-libraries-dependencies`.
+- Latest non-continuity commit: b394dff docs: record dependency compatibility decisions.
+- Active specs: none.
+- Next focus: no next task.
