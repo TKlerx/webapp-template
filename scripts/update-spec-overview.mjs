@@ -262,7 +262,9 @@ const nextOverview = await prettier.format(buildOverview(features), {
 const previousOverview = readIfExists(overviewPath);
 
 if (checkOnly) {
-  if (previousOverview !== nextOverview) {
+  const withoutDate = (text) =>
+    text.replace(/^Last Updated: \d{4}-\d{2}-\d{2}$/m, "Last Updated:");
+  if (withoutDate(previousOverview) !== withoutDate(nextOverview)) {
     console.error("specs/OVERVIEW.md");
     process.exitCode = 1;
   }
