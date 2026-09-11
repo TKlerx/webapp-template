@@ -4,6 +4,13 @@ import {
   updateTeamsConfig,
 } from "@/services/teams/admin";
 import { Role } from "../../../../../generated/prisma/enums";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
+
+const teamsConfigBodySchema = z.object({
+  sendEnabled: z.boolean().optional(),
+  intakeEnabled: z.boolean().optional(),
+});
 
 export async function GET(request: Request) {
   const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
@@ -21,26 +28,9 @@ export async function PUT(request: Request) {
     return auth.error;
   }
 
-  const body = (await request.json()) as {
-    sendEnabled?: boolean;
-    intakeEnabled?: boolean;
-  };
-
-  if (body.sendEnabled !== undefined && typeof body.sendEnabled !== "boolean") {
-    return Response.json(
-      { error: "sendEnabled must be a boolean" },
-      { status: 400 },
-    );
-  }
-  if (
-    body.intakeEnabled !== undefined &&
-    typeof body.intakeEnabled !== "boolean"
-  ) {
-    return Response.json(
-      { error: "intakeEnabled must be a boolean" },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseJsonBody(request, teamsConfigBodySchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
 
   await updateTeamsConfig({
     actorId: auth.user.id,

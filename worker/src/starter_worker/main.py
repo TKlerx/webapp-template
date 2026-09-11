@@ -7,6 +7,7 @@ import time
 from datetime import datetime, timezone
 
 from .config import load_config
+from .contracts import NotificationDeliveryPayload, TeamsMessageDeliveryPayload
 from .db import BackgroundJob, JobStore
 from .graph_mail import get_graph_mail_message, list_graph_mail_messages, send_graph_mail
 from .graph_teams import list_teams_channel_messages, send_teams_channel_message
@@ -43,25 +44,21 @@ def process_job(job: BackgroundJob) -> dict[str, object]:
         }
 
     if job.job_type == "notification_delivery":
-        notification_id = str(job.payload.get("notificationId") or "").strip()
-        if not notification_id:
-            raise ValueError("notification_delivery job payload is missing notificationId")
+        notification_payload = NotificationDeliveryPayload.model_validate(job.payload)
 
-        send_graph_mail(job.payload)
+        send_graph_mail(notification_payload.model_dump())
         return {
-            "notificationId": notification_id,
+            "notificationId": notification_payload.notificationId,
             "status": "sent",
             "processedAt": datetime.now(timezone.utc).isoformat(),
         }
 
     if job.job_type == "teams_message_delivery":
-        outbound_message_id = str(job.payload.get("teamsOutboundMessageId") or "").strip()
-        if not outbound_message_id:
-            raise ValueError("teams_message_delivery job payload is missing teamsOutboundMessageId")
+        teams_payload = TeamsMessageDeliveryPayload.model_validate(job.payload)
 
-        response = send_teams_channel_message(job.payload)
+        response = send_teams_channel_message(teams_payload.model_dump())
         return {
-            "teamsOutboundMessageId": outbound_message_id,
+            "teamsOutboundMessageId": teams_payload.teamsOutboundMessageId,
             "graphMessageId": str(response.get("id") or "").strip() or None,
             "status": "sent",
             "processedAt": datetime.now(timezone.utc).isoformat(),

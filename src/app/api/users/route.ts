@@ -5,6 +5,15 @@ import {
   parseUserStatusFilter,
 } from "@/services/api/user-admin";
 import { Role } from "../../../../generated/prisma/enums";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
+
+const createUserBodySchema = z.object({
+  email: z.string().trim().min(1),
+  name: z.string().trim().min(1),
+  role: z.enum(Role),
+  temporaryPassword: z.string().min(1),
+});
 
 export async function GET(request: Request) {
   const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
@@ -27,12 +36,9 @@ export async function POST(request: Request) {
   const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
   if ("error" in auth) return auth.error;
 
-  const body = (await request.json()) as {
-    email?: string;
-    name?: string;
-    role?: Role;
-    temporaryPassword?: string;
-  };
+  const parsed = await parseJsonBody(request, createUserBodySchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
 
   const result = await createLocalUser(auth.user.id, body);
   if ("error" in result) {

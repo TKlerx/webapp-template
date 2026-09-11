@@ -3,8 +3,13 @@ import { jsonError } from "@/lib/http";
 import { requireApiUser } from "@/lib/route-auth";
 import { renewToken } from "@/services/api/tokens";
 import { AuditAction } from "../../../../../../generated/prisma/enums";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
 
 const ALLOWED_EXPIRY_DAYS = [7, 30, 60, 90, 180, 365];
+const renewTokenBodySchema = z.object({
+  expiresInDays: z.number().int().optional(),
+});
 
 export async function POST(
   request: Request,
@@ -15,10 +20,9 @@ export async function POST(
     return auth.error;
   }
 
-  const body = (await request.json().catch(() => ({}))) as {
-    expiresInDays?: number;
-  };
-  const expiresInDays = body.expiresInDays ?? 90;
+  const parsed = await parseJsonBody(request, renewTokenBodySchema);
+  if ("error" in parsed) return parsed.error;
+  const { expiresInDays = 90 } = parsed.data;
   if (!ALLOWED_EXPIRY_DAYS.includes(expiresInDays)) {
     return jsonError(
       "Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365",

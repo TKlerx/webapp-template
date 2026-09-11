@@ -4,6 +4,12 @@ import {
   updateIntakeSubscription,
 } from "@/services/teams/admin";
 import { Role } from "../../../../../../../generated/prisma/enums";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
+
+const updateIntakeSubscriptionBodySchema = z.object({
+  active: z.boolean(),
+});
 
 export async function PUT(
   request: Request,
@@ -15,13 +21,12 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const body = (await request.json()) as { active?: boolean };
-  if (typeof body.active !== "boolean") {
-    return Response.json(
-      { error: "active must be a boolean" },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseJsonBody(
+    request,
+    updateIntakeSubscriptionBodySchema,
+  );
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
 
   const subscription = await updateIntakeSubscription(id, {
     active: body.active,
