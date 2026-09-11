@@ -4,4 +4,10 @@ minimumReleaseAge: 4320 # nosemgrep: package_managers.pnpm.pnpm-missing-minimum-
 trustPolicy: no-downgrade
 overrides:
   "@hono/node-server": 2.0.10
+  hono@<4.13.5: ^4.13.5
+  qs@>=2.2.5 <6.16.0: ^6.16.0
+  qs@>=6.14.2 <=6.15.3: ^6.15.4
   undici: 8.9.0
+minimumReleaseAgeExclude:
+  - qs@6.15.4 || 6.16.0
+  - hono@4.13.5
