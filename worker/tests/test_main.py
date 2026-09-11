@@ -51,6 +51,7 @@ class WorkerTests(unittest.TestCase):
                         "payload": {
                             "notificationId": "notification-1",
                             "recipientEmail": "user@example.com",
+                            "recipientName": "User",
                             "subject": "Test",
                             "bodyText": "Hello",
                         },
@@ -62,6 +63,19 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result["notificationId"], "notification-1")
         self.assertEqual(result["status"], "sent")
         self.assertIn("processedAt", result)
+
+    def test_process_job_rejects_invalid_notification_payload(self) -> None:
+        with self.assertRaises(ValueError):
+            process_job(
+                type(
+                    "Job",
+                    (),
+                    {
+                        "job_type": "notification_delivery",
+                        "payload": {"notificationId": "notification-1"},
+                    },
+                )()
+            )
 
     def test_process_job_teams_delivery_sends_message(self) -> None:
         with patch(

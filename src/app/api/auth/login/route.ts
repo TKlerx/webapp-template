@@ -6,6 +6,8 @@ import { prisma } from "@/lib/db";
 import { applySetCookieHeaders } from "@/lib/better-auth-http";
 import { jsonError } from "@/lib/http";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
 import {
   AuditAction,
   AuthMethod,
@@ -26,16 +28,18 @@ function getSafeRedirectTarget(redirectTo?: string) {
   return redirectTo;
 }
 
-export async function POST(request: Request) {
-  const body = (await request.json()) as {
-    email?: string;
-    password?: string;
-    redirectTo?: string;
-  };
+const loginBodySchema = z.object({
+  email: z.string().trim().min(1),
+  password: z.string().min(1),
+  redirectTo: z.string().optional(),
+});
 
-  if (!body.email || !body.password) {
-    return jsonError("Email and password are required", 400);
+export async function POST(request: Request) {
+  const parsed = await parseJsonBody(request, loginBodySchema);
+  if ("error" in parsed) {
+    return parsed.error;
   }
+  const body = parsed.data;
 
   const email = body.email.toLowerCase();
   const clientIp = getClientIp(request);

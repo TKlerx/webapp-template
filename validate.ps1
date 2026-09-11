@@ -936,6 +936,35 @@ if ($Phase -in "all", "full", "quick", "commit") {
     }
 }
 
+if ($Phase -in "all", "full", "quick", "commit") {
+    Write-Step "Runtime schemas (Zod)"
+    try {
+        $result = Invoke-NativeCommandCaptured 'pnpm exec node -e "const { z } = require(''zod''); if (typeof z.object !== ''function'') process.exit(1)"'
+        if ($result.ExitCode -ne 0) { throw "Zod is not available" }
+        Write-Pass "Zod runtime available"
+    } catch {
+        Write-Fail "Zod validation failed"
+        $failures += "zod"
+    }
+}
+
+if ($Phase -in "all", "full", "quick", "commit") {
+    Write-Step "Python runtime schemas (Pydantic v2)"
+    try {
+        Push-Location "worker"
+        try {
+            $result = Invoke-NativeCommandCaptured 'uv run python -c "import pydantic; print(pydantic.__version__)"'
+            if ($result.ExitCode -ne 0) { throw "Pydantic is not available" }
+            $version = ($result.Output -join "`n").Trim()
+            if ($version -notmatch '^2\.') { throw "Pydantic v2 is required (found $version)" }
+            Write-Pass "Pydantic v2 available ($version)"
+        } finally { Pop-Location }
+    } catch {
+        Write-Fail "Pydantic v2 validation failed"
+        $failures += "pydantic"
+    }
+}
+
 if ($Phase -in "all", "full", "prepush", "quality", "commit") {
     Write-Step "Lint (eslint)"
     try {

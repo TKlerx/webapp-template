@@ -3,8 +3,14 @@ import { jsonError } from "@/lib/http";
 import { requireApiUser } from "@/lib/route-auth";
 import { createToken, listTokens } from "@/services/api/tokens";
 import { AuditAction, TokenType } from "../../../../generated/prisma/enums";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
 
 const ALLOWED_EXPIRY_DAYS = [7, 30, 60, 90, 180, 365];
+const createTokenBodySchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  expiresInDays: z.number().int().optional(),
+});
 
 function parseShowAll(value: string | null) {
   return value === "1" || value === "true";
@@ -31,17 +37,12 @@ export async function POST(request: Request) {
     return auth.error;
   }
 
-  const body = (await request.json()) as {
-    name?: string;
-    expiresInDays?: number;
-  };
-
-  const name = body.name?.trim() ?? "";
-  if (!name || name.length > 100) {
-    return jsonError("Token name must be between 1 and 100 characters", 400);
+  const parsed = await parseJsonBody(request, createTokenBodySchema);
+  if ("error" in parsed) {
+    return parsed.error;
   }
+  const { name, expiresInDays = 90 } = parsed.data;
 
-  const expiresInDays = body.expiresInDays ?? 90;
   if (!ALLOWED_EXPIRY_DAYS.includes(expiresInDays)) {
     return jsonError(
       "Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365",

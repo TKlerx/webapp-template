@@ -1,6 +1,13 @@
 import { jsonError } from "@/lib/http";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { cleanupExpiredCodes, exchangeAuthCode } from "@/services/api/cli-auth";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
+
+const cliAuthTokenBodySchema = z.object({
+  code: z.string().min(1),
+  state: z.string().min(1),
+});
 
 function getTokenRateLimitKey(request: Request, code?: string, state?: string) {
   const clientIp = getClientIp(request);
@@ -20,10 +27,9 @@ function getTokenRateLimitKey(request: Request, code?: string, state?: string) {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as {
-    code?: string;
-    state?: string;
-  };
+  const parsed = await parseJsonBody(request, cliAuthTokenBodySchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
 
   const rateLimit = checkRateLimit(
     getTokenRateLimitKey(request, body.code, body.state),
@@ -39,10 +45,6 @@ export async function POST(request: Request) {
       Math.ceil(rateLimit.retryAfterMs / 1000).toString(),
     );
     return response;
-  }
-
-  if (!body.code || !body.state) {
-    return jsonError("code and state are required", 400);
   }
 
   await cleanupExpiredCodes();

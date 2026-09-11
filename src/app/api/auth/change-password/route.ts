@@ -2,6 +2,13 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { requireApiUser } from "@/lib/route-auth";
 import { jsonError } from "@/lib/http";
 import { changePasswordForUser } from "@/services/api/auth";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
+
+const changePasswordBodySchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(1),
+});
 
 export async function POST(request: Request) {
   const authResult = await requireApiUser();
@@ -24,9 +31,8 @@ export async function POST(request: Request) {
     return response;
   }
 
-  const body = (await request.json()) as {
-    currentPassword?: string;
-    newPassword?: string;
-  };
+  const parsed = await parseJsonBody(request, changePasswordBodySchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   return changePasswordForUser(request, user, body);
 }
