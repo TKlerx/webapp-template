@@ -1,27 +1,46 @@
 # Continue
 
-<!-- continuity:fingerprint=c99c4c54b776cfa17b44fee4e87e8f4fd3dc2218c5b466df43ba03b72e44d281 -->
+<!-- continuity:fingerprint=daaba3e84c5ca7ffdeb2470b6dfbda5d7850fcddbdece429e06785dd639cd3d7 -->
 
 ## Current Snapshot
 
-- Updated: 2026-09-03 14:09:25
-- Branch: `webapp-template/t_23475c82-update-libraries-dependencies`
+- Updated: 2026-09-17 11:16:08
+- Branch: `codex/add-zod-pydantic-validation`
 
 ## Recent Non-Continuity Commits
 
-- b394dff docs: record dependency compatibility decisions
-- a060782 chore: update project dependencies
-- 80b273d fix: update Next.js to 16.3.3 (#33)
-- db768ba chore: align dependency cooldown policy (#32)
-- 62b91b0 chore: update pnpm to 11.21.0 (#31)
+- fe6e7c9 feat: validate TypeScript and Python boundaries
+- 8ddc35e fix: apply security overrides (#37)
+- e2fea0b fix: patch fast-uri and stabilize spec overview validation (#36)
+- f476fff docs: add Hermes SDLC project rules (#35)
+- 1c1be81 chore: update project dependencies (#34)
 
 ## Git Status
 
-- M CONTINUE_LOG.md
-- M package.json
-- M pnpm-lock.yaml
-- ?? docs/dependency-compatibility.md
-- ?? tests/unit/auth/better-auth-compatibility.test.ts
+- M .github/workflows/cli-release.yml
+-  M .github/workflows/validate.yml
+-  M src/app/api/auth/change-password/route.ts
+-  M src/app/api/auth/login/route.ts
+-  M src/app/api/background-jobs/route.ts
+-  M src/app/api/cli-auth/token/route.ts
+-  M src/app/api/integrations/teams/route.ts
+-  M src/app/api/integrations/teams/subscriptions/[id]/route.ts
+-  M src/app/api/integrations/teams/subscriptions/route.ts
+-  M src/app/api/integrations/teams/targets/[id]/route.ts
+-  M src/app/api/integrations/teams/targets/route.ts
+-  M src/app/api/locale/route.ts
+-  M src/app/api/notifications/settings/[eventType]/route.ts
+-  M src/app/api/tokens/[id]/renew/route.ts
+-  M src/app/api/tokens/route.ts
+-  M src/app/api/users/[id]/role/route.ts
+-  M src/app/api/users/[id]/theme/route.ts
+-  M src/app/api/users/route.ts
+-  M src/lib/validation.ts
+-  M tests/integration/teams-api.test.ts
+-  M validate.ps1
+-  M worker/src/starter_worker/contracts.py
+-  M worker/tests/test_main.py
+- ?? .worktrees/
 
 ## Active Specs
 
@@ -30,7 +49,3 @@
 ## Next Recommended Actions
 
 1. No unchecked tasks detected in the active specs.
-
-## 2026-09-04 fast-uri security patch
-
-- Patched .deepsec/pnpm-lock.yaml to fast-uri 3.1.6 for GHSA-jqff-g426-hqxp. Targeted URI and AJV regression checks pass. Frozen installation remains blocked by existing trust-policy rejections for @vercel/cli-config 0.2.2, @vercel/cli-exec 1.0.1, and @vercel/oidc 3.8.2; no policy exception was added.

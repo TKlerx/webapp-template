@@ -1794,3 +1794,14 @@
 ## 2026-09-04 fast-uri security patch
 
 - Patched .deepsec/pnpm-lock.yaml to fast-uri 3.1.6 for GHSA-jqff-g426-hqxp. Targeted URI and AJV regression checks pass. Frozen installation remains blocked by existing trust-policy rejections for @vercel/cli-config 0.2.2, @vercel/cli-exec 1.0.1, and @vercel/oidc 3.8.2; no policy exception was added.
+## 2026-09-17 11:16:08
+
+- Branch snapshot refreshed for `codex/add-zod-pydantic-validation`.
+- Latest non-continuity commit: fe6e7c9 feat: validate TypeScript and Python boundaries.
+- Active specs: none.
+- Next focus: no next task.
+- Rebased PR #38 onto `origin/main` and regenerated `worker/uv.lock` to resolve its only merge conflict.
+- Made all new Zod and Pydantic request/job models reject unknown fields while preserving established endpoint validation messages.
+- Added blocking Trivy secret scanning to CI, pre-commit/pre-push/commit validation, and CLI release validation without adding another scanner.
+- Verification passed: Trivy secret phase, pre-commit validation, TypeScript typecheck, focused route tests, all worker tests, Python/CLI quality checks, PowerShell syntax parsing, focused ESLint/Prettier, and `git diff --check`.
+- The full TypeScript suite retains five existing Prisma SQLite/Postgres initialization failures; 56 files and 200 tests pass.

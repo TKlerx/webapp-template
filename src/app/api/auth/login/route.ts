@@ -28,14 +28,20 @@ function getSafeRedirectTarget(redirectTo?: string) {
   return redirectTo;
 }
 
-const loginBodySchema = z.object({
-  email: z.string().trim().min(1),
-  password: z.string().min(1),
-  redirectTo: z.string().optional(),
-});
+const loginBodySchema = z
+  .object({
+    email: z.string().trim().min(1),
+    password: z.string().min(1),
+    redirectTo: z.string().optional(),
+  })
+  .strict();
 
 export async function POST(request: Request) {
-  const parsed = await parseJsonBody(request, loginBodySchema);
+  const parsed = await parseJsonBody(
+    request,
+    loginBodySchema,
+    "Email and password are required",
+  );
   if ("error" in parsed) {
     return parsed.error;
   }

@@ -5,7 +5,9 @@ import { ThemePreference } from "../../../../../../generated/prisma/enums";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
-const themeBodySchema = z.object({ themePreference: z.enum(ThemePreference) });
+const themeBodySchema = z
+  .object({ themePreference: z.enum(ThemePreference) })
+  .strict();
 
 export async function PATCH(
   request: Request,
@@ -17,7 +19,14 @@ export async function PATCH(
   const { id } = await params;
   if (auth.user.id !== id) return jsonError("Not authorized", 403);
 
-  const parsed = await parseJsonBody(request, themeBodySchema);
+  const parsed = await parseJsonBody(
+    request,
+    themeBodySchema,
+    (_error, value) =>
+      typeof value === "object" && value !== null && "themePreference" in value
+        ? "Invalid theme preference"
+        : "Theme preference is required",
+  );
   if ("error" in parsed) return parsed.error;
   const body = parsed.data;
   const result = await updateOwnThemePreference(id, body);

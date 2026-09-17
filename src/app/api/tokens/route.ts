@@ -7,10 +7,12 @@ import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
 const ALLOWED_EXPIRY_DAYS = [7, 30, 60, 90, 180, 365];
-const createTokenBodySchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  expiresInDays: z.number().int().optional(),
-});
+const createTokenBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(100),
+    expiresInDays: z.number().int().optional(),
+  })
+  .strict();
 
 function parseShowAll(value: string | null) {
   return value === "1" || value === "true";
@@ -37,7 +39,11 @@ export async function POST(request: Request) {
     return auth.error;
   }
 
-  const parsed = await parseJsonBody(request, createTokenBodySchema);
+  const parsed = await parseJsonBody(request, createTokenBodySchema, (error) =>
+    error.issues[0]?.path[0] === "expiresInDays"
+      ? "Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365"
+      : "Token name must be between 1 and 100 characters",
+  );
   if ("error" in parsed) {
     return parsed.error;
   }

@@ -4,10 +4,12 @@ import { cleanupExpiredCodes, exchangeAuthCode } from "@/services/api/cli-auth";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
-const cliAuthTokenBodySchema = z.object({
-  code: z.string().min(1),
-  state: z.string().min(1),
-});
+const cliAuthTokenBodySchema = z
+  .object({
+    code: z.string().min(1),
+    state: z.string().min(1),
+  })
+  .strict();
 
 function getTokenRateLimitKey(request: Request, code?: string, state?: string) {
   const clientIp = getClientIp(request);
@@ -27,7 +29,11 @@ function getTokenRateLimitKey(request: Request, code?: string, state?: string) {
 }
 
 export async function POST(request: Request) {
-  const parsed = await parseJsonBody(request, cliAuthTokenBodySchema);
+  const parsed = await parseJsonBody(
+    request,
+    cliAuthTokenBodySchema,
+    "code and state are required",
+  );
   if ("error" in parsed) return parsed.error;
   const body = parsed.data;
 

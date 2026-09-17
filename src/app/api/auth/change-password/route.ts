@@ -5,10 +5,12 @@ import { changePasswordForUser } from "@/services/api/auth";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
-const changePasswordBodySchema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(1),
-});
+const changePasswordBodySchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(1),
+  })
+  .strict();
 
 export async function POST(request: Request) {
   const authResult = await requireApiUser();
@@ -31,7 +33,11 @@ export async function POST(request: Request) {
     return response;
   }
 
-  const parsed = await parseJsonBody(request, changePasswordBodySchema);
+  const parsed = await parseJsonBody(
+    request,
+    changePasswordBodySchema,
+    "Current and new password are required",
+  );
   if ("error" in parsed) return parsed.error;
   const body = parsed.data;
   return changePasswordForUser(request, user, body);

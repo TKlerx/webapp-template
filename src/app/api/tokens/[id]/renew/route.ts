@@ -7,9 +7,11 @@ import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
 const ALLOWED_EXPIRY_DAYS = [7, 30, 60, 90, 180, 365];
-const renewTokenBodySchema = z.object({
-  expiresInDays: z.number().int().optional(),
-});
+const renewTokenBodySchema = z
+  .object({
+    expiresInDays: z.number().int().optional(),
+  })
+  .strict();
 
 export async function POST(
   request: Request,
@@ -20,7 +22,11 @@ export async function POST(
     return auth.error;
   }
 
-  const parsed = await parseJsonBody(request, renewTokenBodySchema);
+  const parsed = await parseJsonBody(
+    request,
+    renewTokenBodySchema,
+    "Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365",
+  );
   if ("error" in parsed) return parsed.error;
   const { expiresInDays = 90 } = parsed.data;
   if (!ALLOWED_EXPIRY_DAYS.includes(expiresInDays)) {

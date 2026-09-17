@@ -3,10 +3,12 @@ import { Role } from "../../../../generated/prisma/enums";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
-const backgroundJobBodySchema = z.object({
-  jobType: z.string().optional(),
-  payload: z.unknown().optional(),
-});
+const backgroundJobBodySchema = z
+  .object({
+    jobType: z.string().optional(),
+    payload: z.unknown().optional(),
+  })
+  .strict();
 import {
   createBackgroundJobForUser,
   listBackgroundJobsForUser,

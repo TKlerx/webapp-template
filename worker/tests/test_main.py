@@ -77,6 +77,26 @@ class WorkerTests(unittest.TestCase):
                 )()
             )
 
+    def test_process_job_rejects_unknown_notification_fields(self) -> None:
+        with self.assertRaises(ValueError):
+            process_job(
+                type(
+                    "Job",
+                    (),
+                    {
+                        "job_type": "notification_delivery",
+                        "payload": {
+                            "notificationId": "notification-1",
+                            "recipientEmail": "user@example.com",
+                            "recipientName": "User",
+                            "subject": "Test",
+                            "bodyText": "Hello",
+                            "unexpected": True,
+                        },
+                    },
+                )()
+            )
+
     def test_process_job_teams_delivery_sends_message(self) -> None:
         with patch(
             "starter_worker.main.send_teams_channel_message", return_value={"id": "graph-1"}
@@ -101,6 +121,24 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result["teamsOutboundMessageId"], "outbound-1")
         self.assertEqual(result["graphMessageId"], "graph-1")
         self.assertEqual(result["status"], "sent")
+
+    def test_process_job_rejects_invalid_teams_payload(self) -> None:
+        with self.assertRaises(ValueError):
+            process_job(
+                type(
+                    "Job",
+                    (),
+                    {
+                        "job_type": "teams_message_delivery",
+                        "payload": {
+                            "teamsOutboundMessageId": "outbound-1",
+                            "teamId": "",
+                            "channelId": "channel-1",
+                            "content": "hello",
+                        },
+                    },
+                )()
+            )
 
     def test_process_inbound_mail_poll_stores_bounces_and_entity_links(self) -> None:
         with (
@@ -387,6 +425,13 @@ class WorkerTests(unittest.TestCase):
             config = load_config(env_path=env_path)
 
         self.assertEqual(config.database_url, "postgresql://worker:test@localhost:5432/app")
+
+    def test_load_config_rejects_invalid_numeric_settings(self) -> None:
+        with (
+            patch.dict(os.environ, {"WORKER_MAX_ATTEMPTS": "0"}, clear=True),
+            self.assertRaises(ValueError),
+        ):
+            load_config(env_path=Path(self.temp_dir.name) / ".env")
 
     def test_worker_lifecycle_logs_use_structured_events(self) -> None:
         job = type(

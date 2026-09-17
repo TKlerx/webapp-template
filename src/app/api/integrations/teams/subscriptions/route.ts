@@ -7,12 +7,14 @@ import { Role } from "../../../../../../generated/prisma/enums";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
-const intakeSubscriptionBodySchema = z.object({
-  teamId: z.string().trim().min(1),
-  channelId: z.string().trim().min(1),
-  teamName: z.string().optional(),
-  channelName: z.string().optional(),
-});
+const intakeSubscriptionBodySchema = z
+  .object({
+    teamId: z.string().trim().min(1),
+    channelId: z.string().trim().min(1),
+    teamName: z.string().optional(),
+    channelName: z.string().optional(),
+  })
+  .strict();
 
 export async function GET(request: Request) {
   const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
@@ -30,7 +32,11 @@ export async function POST(request: Request) {
     return auth.error;
   }
 
-  const parsed = await parseJsonBody(request, intakeSubscriptionBodySchema);
+  const parsed = await parseJsonBody(
+    request,
+    intakeSubscriptionBodySchema,
+    "teamId and channelId are required",
+  );
   if ("error" in parsed) return parsed.error;
   const body = parsed.data;
 

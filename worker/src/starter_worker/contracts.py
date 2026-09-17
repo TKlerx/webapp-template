@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class NotificationDeliveryPayload(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="forbid")
 
     notificationId: str = Field(min_length=1)
     recipientEmail: str = Field(min_length=1)
@@ -13,7 +13,7 @@ class NotificationDeliveryPayload(BaseModel):
 
 
 class TeamsMessageDeliveryPayload(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="forbid")
 
     teamsOutboundMessageId: str = Field(min_length=1)
     teamId: str = Field(min_length=1)

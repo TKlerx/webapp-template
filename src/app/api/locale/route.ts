@@ -4,10 +4,14 @@ import { getUserLocaleCookieHeaders } from "@/i18n/locale";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
-const localeBodySchema = z.object({ locale: z.string().min(1) });
+const localeBodySchema = z.object({ locale: z.string().min(1) }).strict();
 
 export async function POST(request: Request) {
-  const parsed = await parseJsonBody(request, localeBodySchema);
+  const parsed = await parseJsonBody(
+    request,
+    localeBodySchema,
+    "Invalid locale",
+  );
   if ("error" in parsed) return parsed.error;
   const body = parsed.data;
 

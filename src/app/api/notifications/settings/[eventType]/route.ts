@@ -7,9 +7,11 @@ import { Role } from "../../../../../../generated/prisma/enums";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
-const notificationSettingsBodySchema = z.object({
-  enabled: z.boolean(),
-});
+const notificationSettingsBodySchema = z
+  .object({
+    enabled: z.boolean(),
+  })
+  .strict();
 
 export async function PATCH(
   request: Request,
@@ -29,6 +31,7 @@ export async function PATCH(
   const parsedBody = await parseJsonBody(
     request,
     notificationSettingsBodySchema,
+    "enabled must be a boolean",
   );
   if ("error" in parsedBody) return parsedBody.error;
   const body = parsedBody.data;

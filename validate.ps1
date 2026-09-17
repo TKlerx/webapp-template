@@ -6,16 +6,17 @@
 .DESCRIPTION
     Usage: ./validate.ps1 [phase]
     Phases:
-      all      - typecheck + TS/Python/CLI quality + semgrep + test (default)
-      full     - all quality checks + Trivy supply-chain audit + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
+      all      - typecheck + TS/Python/CLI quality + semgrep + Trivy secret scan + test (default)
+      full     - all quality checks + Trivy secret/supply-chain audits + shipped-deps audit + Playwright E2E tests (recommended before merge; skips continuity freshness)
       continuity - check whether CONTINUE.md / CONTINUE_LOG.md need a refresh
-      precommit - fast local sanity: TS typecheck + architecture + duplication
-      prepush  - medium local gate: ESLint ratchets + Python quality/complexity
+      precommit - fast local sanity: Trivy secret scan + TS typecheck + architecture + duplication
+      prepush  - medium local gate: Trivy secret scan + ESLint ratchets + Python quality/complexity
       quick    - typecheck only (use during scaffolding before tests exist)
       test     - tests only
       e2e      - Playwright E2E tests only
       quality  - TS/Python/CLI quality + semgrep
-      commit   - validate all + blocking Trivy supply-chain audit + shipped-deps audit + continuity, then git add + commit + push
+      secret   - blocking Trivy filesystem secret scan only
+      commit   - validate all + blocking Trivy secret/supply-chain audits + shipped-deps audit + continuity, then git add + commit + push
 
     Set QUALITY_THRESHOLDS_BYPASS=1 to make configured quality thresholds
     advisory while keeping formatting, lint correctness, tests, and security
@@ -23,7 +24,7 @@
 #>
 
 param(
-    [ValidateSet("all", "full", "continuity", "precommit", "prepush", "quick", "test", "e2e", "quality", "commit")]
+    [ValidateSet("all", "full", "continuity", "precommit", "prepush", "quick", "test", "e2e", "quality", "secret", "commit")]
     [string]$Phase = "all"
 )
 
@@ -649,6 +650,24 @@ function Test-SupplyChainAudit {
     }
 }
 
+function Test-SecretScan {
+    Write-Step "Secret scan (Trivy)"
+    try {
+        $result = Invoke-NativeCommandCaptured "trivy fs --scanners secret --exit-code 1 --no-progress --skip-dirs .git --skip-dirs node_modules --skip-dirs .next --skip-dirs .artifacts --skip-dirs .worktrees --skip-dirs .deepsec/data --skip-files .env ."
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "secret scan failed"
+        }
+
+        $result.Output | Out-Host
+        Write-Pass "secret scan passed"
+    } catch {
+        Write-Fail "secret scan failed"
+        Write-Host $_.Exception.Message -ForegroundColor Yellow
+        $script:failures += "secret-scan"
+    }
+}
+
 function Test-ProductionDependencyAudit([switch]$Blocking) {
     Write-Step "Production dependency audit (pnpm audit --prod --no-optional)"
     try {
@@ -903,6 +922,10 @@ function Get-AuditPackageStatuses($audit) {
 }
 
 $failures = @()
+
+if ($Phase -in "all", "full", "precommit", "prepush", "secret", "commit") {
+    Test-SecretScan
+}
 
 if ($Phase -in "all", "full", "precommit", "quick", "commit") {
     Write-Step "Typecheck (tsc --noEmit)"

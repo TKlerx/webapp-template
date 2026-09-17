@@ -7,9 +7,11 @@ import { Role } from "../../../../../../../generated/prisma/enums";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
-const updateIntakeSubscriptionBodySchema = z.object({
-  active: z.boolean(),
-});
+const updateIntakeSubscriptionBodySchema = z
+  .object({
+    active: z.boolean(),
+  })
+  .strict();
 
 export async function PUT(
   request: Request,
@@ -24,6 +26,7 @@ export async function PUT(
   const parsed = await parseJsonBody(
     request,
     updateIntakeSubscriptionBodySchema,
+    "active must be a boolean",
   );
   if ("error" in parsed) return parsed.error;
   const body = parsed.data;

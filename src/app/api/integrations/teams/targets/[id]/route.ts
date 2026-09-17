@@ -9,6 +9,7 @@ import { z } from "zod";
 
 const updateDeliveryTargetBodySchema = z
   .object({ name: z.string().optional(), active: z.boolean().optional() })
+  .strict()
   .refine((body) => body.name !== undefined || body.active !== undefined);
 
 export async function PUT(
@@ -21,7 +22,16 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const parsed = await parseJsonBody(request, updateDeliveryTargetBodySchema);
+  const parsed = await parseJsonBody(
+    request,
+    updateDeliveryTargetBodySchema,
+    (error) =>
+      error.issues[0]?.path[0] === "active"
+        ? "active must be a boolean"
+        : error.issues[0]?.code === "custom"
+          ? "At least one field is required"
+          : "Invalid request body",
+  );
   if ("error" in parsed) return parsed.error;
   const body = parsed.data;
 

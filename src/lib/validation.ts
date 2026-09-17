@@ -4,6 +4,9 @@ import { z } from "zod";
 export async function parseJsonBody<T extends z.ZodType>(
   request: Request,
   schema: T,
+  validationMessage:
+    | string
+    | ((error: z.ZodError, value: unknown) => string) = "Invalid request body",
 ): Promise<{ data: z.infer<T> } | { error: Response }> {
   let value: unknown;
   try {
@@ -13,7 +16,19 @@ export async function parseJsonBody<T extends z.ZodType>(
   }
 
   const parsed = schema.safeParse(value);
+  const hasUnknownKeys =
+    !parsed.success &&
+    parsed.error.issues.some((issue) => issue.code === "unrecognized_keys");
   return parsed.success
     ? { data: parsed.data }
-    : { error: jsonError("Invalid request body", 400) };
+    : {
+        error: jsonError(
+          hasUnknownKeys
+            ? "Invalid request body"
+            : typeof validationMessage === "function"
+              ? validationMessage(parsed.error, value)
+              : validationMessage,
+          400,
+        ),
+      };
 }
