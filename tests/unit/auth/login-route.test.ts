@@ -85,6 +85,7 @@ describe("login route", () => {
         body: JSON.stringify({
           email: "Member@Example.com",
           password: "TempPass123",
+          redirectTo: null,
         }),
         headers: { "content-type": "application/json" },
       }),

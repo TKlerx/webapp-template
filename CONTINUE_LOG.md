@@ -1794,6 +1794,7 @@
 ## 2026-09-04 fast-uri security patch
 
 - Patched .deepsec/pnpm-lock.yaml to fast-uri 3.1.6 for GHSA-jqff-g426-hqxp. Targeted URI and AJV regression checks pass. Frozen installation remains blocked by existing trust-policy rejections for @vercel/cli-config 0.2.2, @vercel/cli-exec 1.0.1, and @vercel/oidc 3.8.2; no policy exception was added.
+
 ## 2026-09-17 11:16:08
 
 - Branch snapshot refreshed for `codex/add-zod-pydantic-validation`.

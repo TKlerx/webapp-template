@@ -20,7 +20,7 @@ const DUMMY_PASSWORD_HASH =
     "$",
   );
 
-function getSafeRedirectTarget(redirectTo?: string) {
+function getSafeRedirectTarget(redirectTo?: string | null) {
   if (!redirectTo?.startsWith("/") || redirectTo.startsWith("//")) {
     return null;
   }
@@ -32,7 +32,7 @@ const loginBodySchema = z
   .object({
     email: z.string().trim().min(1),
     password: z.string().min(1),
-    redirectTo: z.string().optional(),
+    redirectTo: z.string().nullish(),
   })
   .strict();
 
