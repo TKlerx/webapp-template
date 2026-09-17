@@ -4,6 +4,18 @@ import {
   listDeliveryTargets,
 } from "@/services/teams/admin";
 import { Role } from "../../../../../../generated/prisma/enums";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
+
+const deliveryTargetBodySchema = z
+  .object({
+    name: z.string().trim().min(1),
+    teamId: z.string().trim().min(1),
+    channelId: z.string().trim().min(1),
+    teamName: z.string().optional(),
+    channelName: z.string().optional(),
+  })
+  .strict();
 
 export async function GET(request: Request) {
   const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
@@ -21,20 +33,13 @@ export async function POST(request: Request) {
     return auth.error;
   }
 
-  const body = (await request.json()) as {
-    name?: string;
-    teamId?: string;
-    channelId?: string;
-    teamName?: string;
-    channelName?: string;
-  };
-
-  if (!body.name?.trim() || !body.teamId?.trim() || !body.channelId?.trim()) {
-    return Response.json(
-      { error: "name, teamId, and channelId are required" },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseJsonBody(
+    request,
+    deliveryTargetBodySchema,
+    "name, teamId, and channelId are required",
+  );
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
 
   const result = await createDeliveryTarget({
     actorId: auth.user.id,

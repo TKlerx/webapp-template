@@ -4,6 +4,14 @@ import {
   updateNotificationTypeConfiguration,
 } from "@/services/notifications/admin";
 import { Role } from "../../../../../../generated/prisma/enums";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
+
+const notificationSettingsBodySchema = z
+  .object({
+    enabled: z.boolean(),
+  })
+  .strict();
 
 export async function PATCH(
   request: Request,
@@ -20,13 +28,13 @@ export async function PATCH(
     return parsedEventType.error;
   }
 
-  const body = (await request.json()) as { enabled?: boolean };
-  if (typeof body.enabled !== "boolean") {
-    return Response.json(
-      { error: "enabled must be a boolean" },
-      { status: 400 },
-    );
-  }
+  const parsedBody = await parseJsonBody(
+    request,
+    notificationSettingsBodySchema,
+    "enabled must be a boolean",
+  );
+  if ("error" in parsedBody) return parsedBody.error;
+  const body = parsedBody.data;
 
   const result = await updateNotificationTypeConfiguration(
     parsedEventType.eventType!,

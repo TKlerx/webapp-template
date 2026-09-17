@@ -109,6 +109,45 @@ describe("teams integration API", () => {
     expect(response.status).toBe(200);
   });
 
+  it("preserves validation errors and rejects unknown config fields", async () => {
+    const invalidType = await putTeamsConfig(
+      new Request("http://localhost/api/integrations/teams", {
+        method: "PUT",
+        body: JSON.stringify({ sendEnabled: "yes" }),
+      }),
+    );
+    const unknownField = await putTeamsConfig(
+      new Request("http://localhost/api/integrations/teams", {
+        method: "PUT",
+        body: JSON.stringify({ sendEnabled: true, unexpected: true }),
+      }),
+    );
+
+    expect(invalidType.status).toBe(400);
+    await expect(invalidType.json()).resolves.toEqual({
+      error: "sendEnabled must be a boolean",
+    });
+    expect(unknownField.status).toBe(400);
+    await expect(unknownField.json()).resolves.toEqual({
+      error: "Invalid request body",
+    });
+    expect(prismaMock.teamsIntegrationConfig.update).not.toHaveBeenCalled();
+  });
+
+  it("preserves the delivery target required-fields error", async () => {
+    const response = await postTarget(
+      new Request("http://localhost/api/integrations/teams/targets", {
+        method: "POST",
+        body: JSON.stringify({ name: "Alerts", teamId: "team-1" }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "name, teamId, and channelId are required",
+    });
+  });
+
   it("lists and creates delivery targets", async () => {
     prismaMock.teamsDeliveryTarget.findMany.mockResolvedValue([] as never);
     prismaMock.teamsDeliveryTarget.create.mockResolvedValue({

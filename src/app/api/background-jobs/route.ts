@@ -1,5 +1,14 @@
 import { requireApiUser, requireApiUserWithRoles } from "@/lib/route-auth";
 import { Role } from "../../../../generated/prisma/enums";
+import { parseJsonBody } from "@/lib/validation";
+import { z } from "zod";
+
+const backgroundJobBodySchema = z
+  .object({
+    jobType: z.string().optional(),
+    payload: z.unknown().optional(),
+  })
+  .strict();
 import {
   createBackgroundJobForUser,
   listBackgroundJobsForUser,
@@ -24,10 +33,9 @@ export async function POST(request: Request) {
     return auth.error;
   }
 
-  const body = (await request.json()) as {
-    jobType?: string;
-    payload?: unknown;
-  };
+  const parsed = await parseJsonBody(request, backgroundJobBodySchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const result = await createBackgroundJobForUser(auth.user.id, body);
   if ("error" in result) {
     return result.error;
