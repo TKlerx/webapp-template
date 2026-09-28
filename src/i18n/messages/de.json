@@ -149,6 +149,14 @@
     "refresh": "Aktualisieren",
     "refreshing": "Aktualisiere...",
     "refreshFailed": "Der Health-Snapshot konnte nicht aktualisiert werden.",
+    "healthyDescription": "Kein Problem erkannt.",
+    "guidance": {
+      "runtime": "Anwendungsprotokolle und Laufzeitbereitschaft prüfen.",
+      "database": "Datenbankverbindung und Konfiguration prüfen.",
+      "configuration": "Authentifizierung und Laufzeitkonfiguration prüfen.",
+      "worker": "Aktuelle Hintergrundaufträge und Worker-Protokolle prüfen.",
+      "deploySmoke": "Ergebnisse des letzten Deployment-Tests prüfen."
+    },
     "status": {
       "healthy": "Gesund",
       "degraded": "Beeinträchtigt",

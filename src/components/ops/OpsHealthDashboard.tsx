@@ -157,13 +157,10 @@ export function OpsHealthDashboard({
               />
             </div>
             <p className="mt-4 text-sm text-[var(--foreground)]">
-              {check.summary}
+              {check.status === "healthy"
+                ? t("healthyDescription")
+                : t(`guidance.${check.key}`)}
             </p>
-            {check.detail ? (
-              <p className="mt-2 text-xs leading-5 text-[var(--muted-foreground)]">
-                {check.detail}
-              </p>
-            ) : null}
             {check.checkedAt ? (
               <p className="mt-4 font-mono text-xs text-[var(--muted-foreground)]">
                 {t("checkedAt", { value: check.checkedAt })}

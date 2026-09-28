@@ -6,7 +6,7 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- `021-ops-health-dashboard`: implementation and validation complete; remaining work is commit, push, PR, and GitHub validation.
+- None. Spec 021 was delivered in PR #5 and its convergence gaps are addressed in this follow-up.
 
 ## Maintenance Rules
 

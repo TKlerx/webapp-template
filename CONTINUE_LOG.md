@@ -1820,3 +1820,18 @@
 - Active specs: none.
 - Next focus: no next task.
 - Ran the official `specify integration upgrade codex --force` flow to Spec Kit 1.0.8, including shared scripts and templates; the Codex integration now provides `speckit-converge`.
+## 2026-09-28 15:32:54
+
+- Branch snapshot refreshed for `codex/close-ops-health-spec`.
+- Latest non-continuity commit: 5da384d Upgrade Spec Kit integration and add converge (#39).
+- Active specs: 021-ops-health-dashboard.
+- Next focus: no next task.
+- PR #5 had already merged with a passing GitHub validation run; the open-spec entry was stale.
+- Convergence identified and addressed stale worker evidence, failed or stalled health checks, raw worker error exposure, and untranslated dashboard health guidance.
+- Focused unit/API tests and typecheck pass; local Playwright setup needs Docker, so the e2e check awaits CI.
+## 2026-09-28 15:42:02
+
+- Branch snapshot refreshed for `codex/close-ops-health-spec`.
+- Latest non-continuity commit: 41ded83 fix: complete ops health spec convergence.
+- Active specs: none.
+- Next focus: no next task.

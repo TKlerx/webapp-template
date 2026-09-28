@@ -31,6 +31,8 @@
    - Overall status
    - Runtime, database, configuration, worker, and deploy smoke health areas
    - Unknown/unavailable states where optional evidence is absent
+   - Worker status is based on completed or failed jobs from the last 24 hours; stale or pending jobs remain unknown
+   - If a check fails or stalls, other health areas remain visible and the failed check becomes unknown
    - Configuration readiness as presence/readiness only, without raw environment values
 
 5. Use the manual refresh action and confirm the snapshot timestamp changes.
@@ -41,6 +43,8 @@
 
 8. Confirm the dashboard has no horizontal overflow at mobile, tablet, and desktop widths.
 
+9. Switch to German and confirm health guidance is translated while the copied diagnostic summary remains safe.
+
 ## Automated Validation
 
 Run focused tests for the implementation:
@@ -50,7 +54,7 @@ pnpm test -- tests/unit/ops-health.test.ts tests/integration/ops-health-api.test
 pnpm test:e2e -- tests/e2e/ops-health/admin-ops-health.spec.ts
 ```
 
-The focused e2e spec covers admin access, non-admin denial, manual refresh, copy feedback, and responsive overflow checks.
+The focused e2e spec covers admin access, non-admin denial, manual refresh, copy feedback, German health text, and responsive overflow checks.
 
 Run broader project validation before merge:
 

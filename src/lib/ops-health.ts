@@ -46,6 +46,9 @@ const REQUIRED_CHECKS = new Set<HealthCheckKey>([
   "database",
   "configuration",
 ]);
+// ponytail: 24h is a fixed recency window; make it configurable if worker cadence varies by deployment.
+const WORKER_EVIDENCE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const CHECK_TIMEOUT_MS = 2_000;
 const SENSITIVE_KEY_PATTERN =
   /(secret|token|password|passwd|authorization|cookie|private.?key|connection.?string|database.?url|url)$/i;
 const FORBIDDEN_SUMMARY_PATTERNS = [
@@ -220,17 +223,20 @@ async function mapDatabaseHealth(
 }
 
 async function getWorkerHealth(capturedAt: string): Promise<HealthCheckResult> {
+  const cutoff = new Date(Date.now() - WORKER_EVIDENCE_MAX_AGE_MS);
   const recentJob = await prisma.backgroundJob.findFirst({
+    where: {
+      updatedAt: { gte: cutoff },
+      status: { in: ["COMPLETED", "FAILED"] },
+    },
     orderBy: { updatedAt: "desc" },
     select: {
       status: true,
       updatedAt: true,
-      workerId: true,
-      error: true,
     },
   });
 
-  if (!recentJob) {
+  if (!recentJob || recentJob.updatedAt < cutoff) {
     return {
       key: "worker",
       status: "unknown",
@@ -245,9 +251,17 @@ async function getWorkerHealth(capturedAt: string): Promise<HealthCheckResult> {
       key: "worker",
       status: "degraded",
       summary: "Recent worker job failed",
-      detail: String(
-        redactSensitiveValue(recentJob.error ?? "Review background jobs."),
-      ),
+      detail: "Review background jobs for the failure.",
+      checkedAt,
+      optional: true,
+    };
+  }
+
+  if (recentJob.status !== "COMPLETED") {
+    return {
+      key: "worker",
+      status: "unknown",
+      summary: "No completed worker job is available",
       checkedAt,
       optional: true,
     };
@@ -256,11 +270,36 @@ async function getWorkerHealth(capturedAt: string): Promise<HealthCheckResult> {
   return {
     key: "worker",
     status: "healthy",
-    summary: `Recent worker evidence: ${recentJob.status.toLowerCase()}`,
-    detail: recentJob.workerId ? `Worker: ${recentJob.workerId}.` : undefined,
+    summary: "A recent worker job completed",
     checkedAt,
     optional: true,
   };
+}
+
+async function runHealthCheck(
+  key: HealthCheckKey,
+  check: () => HealthCheckResult | Promise<HealthCheckResult>,
+  optional = false,
+): Promise<HealthCheckResult> {
+  const fallback: HealthCheckResult = {
+    key,
+    status: "unknown",
+    summary: "Health check could not be completed",
+    optional,
+  };
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      Promise.resolve().then(check),
+      new Promise<HealthCheckResult>((resolve) => {
+        timeout = setTimeout(() => resolve(fallback), CHECK_TIMEOUT_MS);
+      }),
+    ]);
+  } catch {
+    return fallback;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function getDeploySmokeHealth(): HealthCheckResult {
@@ -274,13 +313,13 @@ function getDeploySmokeHealth(): HealthCheckResult {
 
 export async function buildOpsHealthSnapshot(): Promise<HealthSnapshot> {
   const capturedAt = new Date().toISOString();
-  const checks = [
-    mapRuntimeHealth(capturedAt),
-    await mapDatabaseHealth(capturedAt),
-    getConfigurationHealth(),
-    await getWorkerHealth(capturedAt),
-    getDeploySmokeHealth(),
-  ];
+  const checks = await Promise.all([
+    runHealthCheck("runtime", () => mapRuntimeHealth(capturedAt)),
+    runHealthCheck("database", () => mapDatabaseHealth(capturedAt)),
+    runHealthCheck("configuration", () => getConfigurationHealth()),
+    runHealthCheck("worker", () => getWorkerHealth(capturedAt), true),
+  ]);
+  checks.push(getDeploySmokeHealth());
   const snapshotWithoutSummary = {
     capturedAt,
     overallStatus: aggregateOverallStatus(checks),
