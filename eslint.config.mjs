@@ -20,6 +20,7 @@ const config = [
       "generated/**",
       "public/vendor/**",
       ".agents/**",
+      ".worktrees/**",
       ".claude/**",
       "**/*.min.js",
     ],

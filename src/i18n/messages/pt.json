@@ -149,6 +149,14 @@
     "refresh": "Atualizar",
     "refreshing": "Atualizando...",
     "refreshFailed": "Não foi possível atualizar o instantâneo de saúde.",
+    "healthyDescription": "Nenhum problema detectado.",
+    "guidance": {
+      "runtime": "Verifique os logs da aplicação e o estado do serviço.",
+      "database": "Verifique a ligação e a configuração da base de dados.",
+      "configuration": "Verifique a autenticação e a configuração do serviço.",
+      "worker": "Verifique os trabalhos recentes e os logs do worker.",
+      "deploySmoke": "Verifique os resultados mais recentes dos testes de implantação."
+    },
     "status": {
       "healthy": "Saudável",
       "degraded": "Degradado",

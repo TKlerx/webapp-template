@@ -80,6 +80,18 @@ test("platform admin can inspect and copy ops health diagnostics", async ({
     await expect(page.getByRole("status")).toContainText(
       "Diagnostic summary copied",
     );
+
+    await page.context().addCookies([
+      {
+        name: "starter_app_locale",
+        value: "de",
+        domain: "localhost",
+        path: "/",
+      },
+    ]);
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("lang", "de");
+    await expect(page.getByText("Kein Problem erkannt.").first()).toBeVisible();
   } finally {
     updateUserStatus(adminEmail, UserStatus.INACTIVE);
   }

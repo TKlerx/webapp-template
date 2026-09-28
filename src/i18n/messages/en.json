@@ -149,6 +149,14 @@
     "refresh": "Refresh",
     "refreshing": "Refreshing...",
     "refreshFailed": "Could not refresh the health snapshot.",
+    "healthyDescription": "No issue detected.",
+    "guidance": {
+      "runtime": "Check application logs and runtime readiness.",
+      "database": "Check database connectivity and configuration.",
+      "configuration": "Check authentication and runtime configuration.",
+      "worker": "Review recent background jobs and worker logs.",
+      "deploySmoke": "Review the latest deployment smoke results."
+    },
     "status": {
       "healthy": "Healthy",
       "degraded": "Degraded",

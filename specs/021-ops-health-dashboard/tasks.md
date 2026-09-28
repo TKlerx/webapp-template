@@ -230,3 +230,10 @@ Task: "T041 [US3] Add integration test asserting /api/admin/ops-health diagnosti
 - Tasks intentionally avoid adding new storage or dependencies.
 - Optional worker and deploy smoke evidence must remain unknown/unavailable when no recent safe record exists.
 - Diagnostic summary output must be allowlisted and redacted by default.
+
+## Phase 7: Convergence
+
+- [x] T057 Remove raw background-job error text from ops health responses and test secret-like errors per FR-008 (contradicts, CRITICAL)
+- [x] T058 Localize all operator-facing health summaries and details in en/de/es/fr/pt per Constitution IX (contradicts, CRITICAL)
+- [x] T059 Mark worker evidence unknown when its recorded result is no longer recent, with a focused stale-record test per FR-015 (partial)
+- [x] T060 Keep the snapshot available when worker evidence lookup fails or stalls, with focused failure tests per FR-010 (partial)
