@@ -1806,3 +1806,17 @@
 - Added blocking Trivy secret scanning to CI, pre-commit/pre-push/commit validation, and CLI release validation without adding another scanner.
 - Verification passed: Trivy secret phase, pre-commit validation, TypeScript typecheck, focused route tests, all worker tests, Python/CLI quality checks, PowerShell syntax parsing, focused ESLint/Prettier, and `git diff --check`.
 - The full TypeScript suite retains five existing Prisma SQLite/Postgres initialization failures; 56 files and 200 tests pass.
+## 2026-09-28 14:47:26
+
+- Branch snapshot refreshed for `codex/add-zod-pydantic-validation`.
+- Latest non-continuity commit: c4c75ce fix: accept login requests without redirects.
+- Active specs: none.
+- Next focus: no next task.
+- Added Spec Kit converge to the Codex prompt and agent skill surfaces, using the existing PowerShell prerequisites script.
+## 2026-09-28 14:54:19
+
+- Branch snapshot refreshed for `codex/speckit-converge`.
+- Latest non-continuity commit: 98f0893 Validate boundaries and block committed secrets (#38).
+- Active specs: none.
+- Next focus: no next task.
+- Ran the official `specify integration upgrade codex --force` flow to Spec Kit 1.0.8, including shared scripts and templates; the Codex integration now provides `speckit-converge`.
