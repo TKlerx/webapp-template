@@ -3,6 +3,10 @@ node_modules/
 .agents/
 .claude/
 .codex/
+.specify/
+.worktrees/
+CONTINUE.md
+CONTINUE_LOG.md
 .deepsec/
 coverage/
 dist/
