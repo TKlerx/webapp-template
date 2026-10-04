@@ -3,11 +3,12 @@ blockExoticSubdeps: true
 minimumReleaseAge: 4320 # nosemgrep: package_managers.pnpm.pnpm-missing-minimum-release-age.pnpm-minimum-release-age
 trustPolicy: no-downgrade
 overrides:
+  brace-expansion@>=5.0.0 <5.0.12: ^5.0.12
+  undici: 8.10.2
   "@hono/node-server": 2.0.10
   hono@<4.13.5: ^4.13.5
   qs@>=2.2.5 <6.16.0: ^6.16.0
   qs@>=6.14.2 <=6.15.3: ^6.15.4
-  undici: 8.9.0
 minimumReleaseAgeExclude:
   - qs@6.15.4 || 6.16.0
   - hono@4.13.5
