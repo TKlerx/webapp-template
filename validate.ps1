@@ -29,6 +29,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+Set-Location $PSScriptRoot
 
 if ($Host.UI -and $Host.UI.RawUI) {
     $Host.UI.RawUI.WindowTitle = "resource-planning validate"
@@ -39,18 +40,6 @@ function Write-Pass($msg) { Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Fail($msg) { Write-Host "  [FAIL] $msg" -ForegroundColor Red }
 function Write-Warn($msg) { Write-Host "  [SKIP] $msg" -ForegroundColor Yellow }
 function Write-Info($msg) { Write-Host "  [INFO] $msg" -ForegroundColor DarkGray }
-
-$AllowedProductionAuditPackages = @(
-    "@hono/node-server",
-    "@prisma/dev",
-    "defu",
-    "drizzle-orm",
-    "hono",
-    "next",
-    "postcss",
-    "prisma",
-    "vite"
-)
 
 $PackagePublishTimeCache = @{}
 
@@ -668,7 +657,7 @@ function Test-SecretScan {
     }
 }
 
-function Test-ProductionDependencyAudit([switch]$Blocking) {
+function Test-ProductionDependencyAudit {
     Write-Step "Production dependency audit (pnpm audit --prod --no-optional)"
     try {
         $result = Invoke-NativeCommandCaptured "pnpm audit --prod --no-optional --json"
@@ -706,30 +695,14 @@ function Test-ProductionDependencyAudit([switch]$Blocking) {
         if ($audit -and $audit.metadata -and $audit.metadata.vulnerabilities) {
             $vulns = $audit.metadata.vulnerabilities
             $affectedPackages = @($audit.vulnerabilities.PSObject.Properties.Name | Sort-Object)
-            $unexpectedPackages = @(
-                $affectedPackages |
-                    Where-Object { $AllowedProductionAuditPackages -notcontains $_ }
-            )
             $packageStatuses = @(Get-AuditPackageStatuses $audit)
             $summary = "$($vulns.total) vulnerabilities ($($vulns.high) high, $($vulns.moderate) moderate, $($vulns.low) low, $($vulns.critical) critical)"
 
-            $shouldFail = $Blocking -or $unexpectedPackages.Count -gt 0
-
-            if ($shouldFail) {
-                Write-Fail "production dependency audit failed"
-            } else {
-                Write-Warn "production dependency audit reported only allowlisted vulnerabilities"
-            }
+            Write-Fail "production dependency audit failed"
 
             Write-Host $summary -ForegroundColor Yellow
             if ($affectedPackages.Count -gt 0) {
                 Write-Host ("Affected packages: " + ($affectedPackages -join ", ")) -ForegroundColor Yellow
-            }
-            if ($unexpectedPackages.Count -gt 0) {
-                Write-Host ("Unexpected packages: " + ($unexpectedPackages -join ", ")) -ForegroundColor Yellow
-            } else {
-                Write-Host ("Allowlisted packages: " + ($AllowedProductionAuditPackages -join ", ")) -ForegroundColor Yellow
-                Write-Host "This repo enforces pnpm minimumReleaseAge=4320. If the fixed package versions are newer than that cooldown window, the allowlisted audit can stay red temporarily." -ForegroundColor Yellow
             }
             if ($packageStatuses.Count -gt 0) {
                 Write-Host "Per-package fix status:" -ForegroundColor Yellow
@@ -752,27 +725,17 @@ function Test-ProductionDependencyAudit([switch]$Blocking) {
                 $rawOutput | Out-Host
             }
 
-            if ($Blocking) {
-                Write-Fail "production dependency audit failed"
-            } else {
-                Write-Fail "production dependency audit failed"
-            }
+            Write-Fail "production dependency audit failed"
             Write-Host "pnpm audit returned a non-zero status but did not produce machine-readable details." -ForegroundColor Yellow
             $script:failures += "prod-audit"
             return
         }
 
-        if ($Blocking -or ($unexpectedPackages -and $unexpectedPackages.Count -gt 0)) {
-            $script:failures += "prod-audit"
-        }
+        $script:failures += "prod-audit"
     } catch {
         Write-Fail "production dependency audit failed"
         Write-Host $_.Exception.Message -ForegroundColor Yellow
-        if ($Blocking) {
-            $script:failures += "prod-audit"
-        } else {
-            Write-Host "Continuing because production audit is advisory in the `full` phase." -ForegroundColor Yellow
-        }
+        $script:failures += "prod-audit"
     }
 }
 
@@ -946,7 +909,7 @@ if ($Phase -in "all", "full", "quick", "commit") {
         try {
             $mypyVersion = Invoke-NativeCommandCaptured "uv run mypy --version"
             if ($mypyVersion.ExitCode -ne 0) {
-                Write-Warn "mypy not available (run: uv sync --all-groups in worker)"
+                throw "mypy is required (run: uv sync --all-groups in worker)"
             } else {
                 $exitCode = Invoke-NativeCommand "uv run mypy --strict ."
                 if ($exitCode -ne 0) { throw "mypy failed" }
@@ -955,36 +918,23 @@ if ($Phase -in "all", "full", "quick", "commit") {
         } finally { Pop-Location }
     } catch {
         Write-Fail "Python mypy failed"
+        Write-Host $_.Exception.Message -ForegroundColor Yellow
         $failures += "mypy"
     }
 }
 
-if ($Phase -in "all", "full", "quick", "commit") {
-    Write-Step "Runtime schemas (Zod)"
+if ($Phase -in "all", "full", "quality", "commit") {
+    Write-Step "Input validation contracts (Zod + Pydantic)"
     try {
-        $result = Invoke-NativeCommandCaptured 'pnpm exec node -e "const { z } = require(''zod''); if (typeof z.object !== ''function'') process.exit(1)"'
-        if ($result.ExitCode -ne 0) { throw "Zod is not available" }
-        Write-Pass "Zod runtime available"
+        $result = Invoke-NativeCommandCaptured "pnpm run validation:inputs"
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Out-Host
+            throw "input validation contracts failed"
+        }
+        Write-Pass "input validation contracts passed"
     } catch {
-        Write-Fail "Zod validation failed"
-        $failures += "zod"
-    }
-}
-
-if ($Phase -in "all", "full", "quick", "commit") {
-    Write-Step "Python runtime schemas (Pydantic v2)"
-    try {
-        Push-Location "worker"
-        try {
-            $result = Invoke-NativeCommandCaptured 'uv run python -c "import pydantic; print(pydantic.__version__)"'
-            if ($result.ExitCode -ne 0) { throw "Pydantic is not available" }
-            $version = ($result.Output -join "`n").Trim()
-            if ($version -notmatch '^2\.') { throw "Pydantic v2 is required (found $version)" }
-            Write-Pass "Pydantic v2 available ($version)"
-        } finally { Pop-Location }
-    } catch {
-        Write-Fail "Pydantic v2 validation failed"
-        $failures += "pydantic"
+        Write-Fail "input validation contracts failed"
+        $failures += "input-validation"
     }
 }
 
@@ -1045,7 +995,8 @@ if ($Phase -in "all", "full", "quality", "commit") {
     Write-Step "Format check (prettier)"
     & {
         if (-not (Test-Path "node_modules/.bin/prettier")) {
-            Write-Warn "prettier not installed (add to devDependencies)"
+            Write-Fail "prettier is required (run: pnpm install --frozen-lockfile)"
+            $script:failures += "prettier"
             return
         }
         $result = Invoke-NativeCommandCaptured "pnpm exec prettier --check ."
@@ -1266,7 +1217,7 @@ if ($Phase -in "all", "full", "test", "commit") {
         try {
             $pytestVersion = Invoke-NativeCommandCaptured "uv run pytest --version"
             if ($pytestVersion.ExitCode -ne 0) {
-                Write-Warn "pytest not available (run: uv sync --all-groups in worker)"
+                throw "pytest is required (run: uv sync --all-groups in worker)"
             } else {
                 $result = Invoke-NativeCommandCaptured "uv run pytest -x --tb=short -q"
                 if ($result.ExitCode -ne 0) {
@@ -1287,6 +1238,7 @@ if ($Phase -in "all", "full", "test", "commit") {
         } finally { Pop-Location }
     } catch {
         Write-Fail "Python tests failed"
+        Write-Host $_.Exception.Message -ForegroundColor Yellow
         $failures += "pytest"
     }
 }
@@ -1367,14 +1319,14 @@ if ($Phase -in "full", "commit") {
 }
 
 if ($Phase -in "full", "commit") {
-    Test-ProductionDependencyAudit -Blocking:($Phase -eq "commit")
+    Test-ProductionDependencyAudit
 }
 
 if ($Phase -in "full", "commit") {
     Write-Step "Production dependency audit (uv audit)"
     try {
         if (-not (Test-Path "worker\pyproject.toml" -PathType Leaf)) {
-            Write-Warn "uv audit skipped (worker/pyproject.toml not found)"
+            throw "worker/pyproject.toml is required for the worker dependency audit"
         } else {
             Push-Location "worker"
             try {
@@ -1399,7 +1351,8 @@ if ($Phase -in "full", "commit") {
 if ($Phase -in "full", "e2e") {
     Write-Step "E2E Tests (playwright)"
     if (-not (Test-HasPlaywrightSpecs)) {
-        Write-Warn "playwright skipped (no e2e spec files found)"
+        Write-Fail "Playwright E2E specs are required"
+        $failures += "e2e"
     } else {
         try {
             $commandLine = if ($IsWindows -or $env:OS -eq "Windows_NT") {

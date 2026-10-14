@@ -1835,3 +1835,26 @@
 - Latest non-continuity commit: 41ded83 fix: complete ops health spec convergence.
 - Active specs: none.
 - Next focus: no next task.
+## 2026-10-14 23:54:24
+
+- Branch snapshot refreshed for `codex/close-ops-health-spec`.
+- Latest non-continuity commit: 41ded83 fix: complete ops health spec convergence.
+- Active specs: none.
+- Next focus: no next task.
+
+### Validation improvements
+
+- Unified npm validation aliases and CI on validate.ps1; required missing tools/specs and production audit failures now block. The script resolves its repository directory independently of the caller's working directory.
+- Enabled typed ESLint promise/unsafe-value rules for production TypeScript and body-parser guards for API routes/services. Fixed the findings without disabling those rules.
+- Made runtime cycles and server/UI/database layer violations blocking; split password helpers to remove the auth/Better Auth cycle while preserving auth exports.
+- Replaced schema-library availability probes with TypeScript/Python input contract tests. Added strict form parsing with duplicate-field rejection, preserved CLI approval CSRF verification, and tightened worker delivery models.
+- Verification: 258 TypeScript tests, 21 Python tests, tsc, strict mypy, ESLint, architecture, formatting, Go checks, Semgrep, secret scan, and OpenTofu validation passed. Validation from outside the repository also passes in quick mode.
+- Full validation reaches the dependency/E2E gates but Docker is not running. Production audits report existing High/Critical findings in next 16.3.3 and source-map-js 1.2.1; fixes reported are next >=16.3.8 and source-map-js >=1.2.2. See .artifacts/supply-chain-audit/validate-full.json. Dependency upgrades were not included in this change.
+- Final pnpm run validate completed with ALL CHECKS PASSED after the implementation edits, including all 258 TypeScript tests and 21 Python tests.
+- Next: start Docker and remediate the production dependency findings, then rerun pnpm run validate:full.
+## 2026-10-15 00:03:26
+
+- Branch snapshot refreshed for `codex/close-ops-health-spec`.
+- Latest non-continuity commit: 41ded83 fix: complete ops health spec convergence.
+- Active specs: none.
+- Next focus: no next task.

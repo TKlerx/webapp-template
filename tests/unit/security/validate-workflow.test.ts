@@ -31,4 +31,19 @@ describe("validate workflow fixtures", () => {
     expect(workflow).not.toContain("astral.sh/uv/install.sh");
     expect(workflow).not.toContain("curl -LsSf");
   });
+
+  it("uses the same mandatory validation entry points locally and in CI", () => {
+    const workflow = fs.readFileSync(WORKFLOW_PATH, "utf8");
+    const pkg = JSON.parse(fs.readFileSync("package.json", "utf8")) as {
+      scripts: Record<string, string>;
+    };
+    expect(pkg.scripts.validate).toBe(
+      "pwsh -NoProfile -ExecutionPolicy Bypass -File validate.ps1 all",
+    );
+    expect(pkg.scripts["validate:full"]).toBe(
+      "pwsh -NoProfile -ExecutionPolicy Bypass -File validate.ps1 full",
+    );
+    expect(workflow).toContain("run: pnpm run validate:full");
+    expect(workflow).toContain("uv sync --all-groups --locked");
+  });
 });

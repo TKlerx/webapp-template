@@ -41,6 +41,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install worker dependencies
+        working-directory: worker
+        run: uv sync --all-groups --locked
+
       - name: Generate Prisma client
         run: pnpm run prisma:generate
 
@@ -55,4 +59,4 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Run full validation
-        run: bash ./validate.sh full
+        run: pnpm run validate:full

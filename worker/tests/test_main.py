@@ -140,6 +140,40 @@ class WorkerTests(unittest.TestCase):
                 )()
             )
 
+    def test_process_job_rejects_bad_delivery_payloads_before_sending(self) -> None:
+        valid_payloads: dict[str, dict[str, object]] = {
+            "notification_delivery": {
+                "notificationId": "notification-1",
+                "recipientEmail": "user@example.com",
+                "recipientName": "User",
+                "subject": "Test",
+                "bodyText": "Hello",
+            },
+            "teams_message_delivery": {
+                "teamsOutboundMessageId": "outbound-1",
+                "teamId": "team-1",
+                "channelId": "channel-1",
+                "content": "hello",
+            },
+        }
+        with (
+            patch("starter_worker.main.send_graph_mail") as send_mail,
+            patch("starter_worker.main.send_teams_channel_message") as send_teams,
+        ):
+            for job_type, payload in valid_payloads.items():
+                for invalid in [
+                    {**payload, "unexpected": True},
+                    {**payload, "bodyHtml": 42} if job_type == "notification_delivery"
+                    else {**payload, "contentType": "javascript"},
+                    {**payload, "bodyText": b"Hello"} if job_type == "notification_delivery"
+                    else {**payload, "content": b"hello"},
+                ]:
+                    with self.subTest(job_type=job_type, payload=invalid):
+                        with self.assertRaises(ValueError):
+                            process_job(type("Job", (), {"job_type": job_type, "payload": invalid})())
+            send_mail.assert_not_called()
+            send_teams.assert_not_called()
+
     def test_process_inbound_mail_poll_stores_bounces_and_entity_links(self) -> None:
         with (
             patch(

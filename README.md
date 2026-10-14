@@ -63,6 +63,12 @@ Guidelines:
 
 ## Validation
 
+`pnpm run validate` and `pnpm run validate:full` invoke `validate.ps1 all` and
+`validate.ps1 full`, respectively. CI uses the same full entry point. Install
+worker development tools with `cd worker; uv sync --all-groups --locked`.
+Missing mypy, pytest, Prettier, or E2E specs fail their required phases;
+`full` also blocks production dependency audit failures.
+
 ```powershell
 .\validate.ps1 precommit
 .\validate.ps1 prepush
@@ -100,8 +106,11 @@ pnpm run quality:cli
 ```
 
 `quality:ts` runs blocking ESLint complexity, SonarJS cognitive-complexity,
-function-size, and jscpd duplication thresholds plus dependency-cruiser
-import-cycle analysis.
+function-size, and jscpd duplication thresholds. Production TypeScript also
+uses typed ESLint checks for unhandled/misplaced promises and unsafe `any`
+values. Dependency Cruiser blocks runtime import cycles, server imports of UI,
+component imports of services, and component imports of database clients;
+type-only imports remain allowed.
 `quality:python` runs Ruff plus blocking Xenon and complexipy complexity
 thresholds with Radon reporting for the worker package.
 `quality:cli` runs Go formatting checks, `go vet`, Staticcheck, a blocking
@@ -122,6 +131,14 @@ regressions by default:
 To bypass only the numeric threshold blockers during an intentional transition,
 set `QUALITY_THRESHOLDS_BYPASS=1`. Formatting, lint correctness, tests, security
 scans, and other non-threshold checks still run normally.
+
+API routes must read bodies through `parseJsonBody` or `parseFormBody` from
+`src/lib/validation.ts`, using strict Zod schemas. ESLint rejects direct body
+reads in API routes and API services. The form parser rejects duplicate fields. `pnpm run
+validation:inputs` tests malformed JSON/forms, unexpected fields, API error
+response shapes, and worker delivery payloads before side effects. It runs in
+`all`, `full`, `quality`, and `commit`. Python delivery models forbid unknown
+fields and type coercion; Teams content types are limited to `html` and `text`.
 
 ## CLI
 

@@ -13,7 +13,7 @@ import {
   hasRealAzureAdConfig,
   trimTrailingSlash,
 } from "@/lib/azure-auth";
-import { hashPassword, verifyPassword } from "@/lib/auth";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import {
   getDatabaseProviderForUrl,
   resolveAppDatabaseUrl,

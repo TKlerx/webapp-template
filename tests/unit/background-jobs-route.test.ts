@@ -130,6 +130,26 @@ describe("background jobs route", () => {
     });
   });
 
+  it.each([
+    "{",
+    "null",
+    "[]",
+    '{"jobType":42}',
+    '{"jobType":"echo","admin":true}',
+  ])("rejects malformed bodies before creating a job: %s", async (body) => {
+    requireApiUserWithRoles.mockResolvedValue({
+      user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
+    });
+    const response = await POST(
+      new Request("http://localhost/api/background-jobs", {
+        method: "POST",
+        body,
+      }),
+    );
+    expect(response?.status).toBe(400);
+    expect(prismaMock.backgroundJob.create).not.toHaveBeenCalled();
+  });
+
   it("lists the current user's jobs", async () => {
     requireApiUser.mockResolvedValue({
       user: { id: "user-1", role: Role.SCOPE_USER },

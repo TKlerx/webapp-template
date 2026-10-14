@@ -26,7 +26,7 @@ const SENSITIVE_JOB_KEYS = new Set([
   "apiKey",
 ]);
 
-export function safeParseJobJson(value: string | null) {
+export function safeParseJobJson(value: string | null): unknown {
   if (!value) {
     return null;
   }
