@@ -1,4 +1,4 @@
-# Business App Starter Worker
+# Webapp Template Worker
 
 Minimal `uv`-managed Python worker that polls the shared
 `BackgroundJob` table and processes jobs outside the Next.js request

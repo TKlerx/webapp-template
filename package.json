@@ -1,7 +1,7 @@
 {
-  "name": "business-app-starter",
+  "name": "webapp-template",
   "version": "1.0.0",
-  "description": "Reusable internal business app starter",
+  "description": "Reusable web application template",
   "private": true,
   "packageManager": "pnpm@11.21.0",
   "scripts": {
@@ -48,7 +48,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",

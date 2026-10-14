@@ -1,6 +1,6 @@
-# Business App Starter
+# Webapp Template
 
-A reusable internal web-app starter built from the extracted platform core of the original product.
+A reusable web application template built from the extracted platform core of the original product.
 
 Standalone template repo:
 
@@ -221,3 +221,9 @@ Reports are written under `.artifacts/supply-chain-audit/`.
 ## Suggested Next Step
 
 Clone the standalone template repo and continue product-specific work from there instead of from the original worktree.
+
+## License
+
+This template is licensed under the [MIT License](LICENSE), allowing private
+and commercial reuse. Third-party dependencies and bundled resources retain
+their respective licenses and notices.
