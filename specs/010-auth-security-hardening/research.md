@@ -4,7 +4,7 @@
 
 ## R1: In-Memory Rate Limiting Approach
 
-**Decision**: Use a plain `Map<string, { count: number; resetAt: number }>` keyed by IP address, with a periodic cleanup of expired entries.
+**Decision (corrected during implementation alignment, 2026-10-15)**: Use a plain in-memory Map holding recent attempt timestamps and a blocked-until timestamp per endpoint/client bucket, with periodic cleanup of expired entries. Preserve the later trusted-proxy and account-bucket protections.
 
 **Rationale**: The project is single-instance (~10 users), so in-memory state is sufficient. No new dependencies needed. A Map with timestamp-based expiry is the simplest implementation that satisfies the 5-attempts-per-15-minute-window requirement.
 
@@ -17,10 +17,9 @@
 **Implementation notes**:
 
 - Export a `checkRateLimit(ip: string, endpoint: string)` function returning `{ allowed: boolean; retryAfterMs: number }`.
-- Sliding window approximation: track the timestamp of the first attempt in the current window; if 5 attempts are reached, block until `resetAt`.
-- Fixed window (not sliding) is simpler and sufficient: reset count after 15 minutes from the first attempt.
+- Expire attempts individually after 15 minutes. When the fifth allowed attempt reaches the threshold, reject subsequent attempts for a full 15 minutes from that threshold. Blocked retries do not extend the cooldown. The earlier fixed-window design did not satisfy FR-001/FR-002 and is superseded by this correction.
 - Cleanup: run a sweep of expired entries every 5 minutes via `setInterval` to prevent unbounded growth. At ~10 users this is negligible, but good hygiene.
-- Extract IP from `request.headers.get("x-forwarded-for")` first segment or fall back to `request.headers.get("x-real-ip")` or `"unknown"`.
+- Preserve the later security hardening: accept `x-real-ip` only with explicit trusted-proxy mode and the configured proxy secret. Do not trust ordinary forwarded-for chains. When client IP is unavailable, retain the existing login-email or authenticated-user fallback buckets.
 
 ## R2: Proxy/Origin Trust Hardening
 
@@ -99,7 +98,7 @@
 
 - Create a helper `safeLogAudit(input)` that wraps `logAudit` in try/catch and logs errors to `console.error`. Use this in all routes.
 - Routes to instrument: login (success + failure), logout, change-password, user creation, approve, deactivate, reactivate, role change.
-- For login failures, the actor may not be authenticated — use the target email as the entity identifier and "anonymous" or the IP as actor context. Since `actorId` is a FK to User, for unauthenticated failures we can use the target user's ID (the account being attacked) or skip the audit entry if no user is found (no account = nothing to audit).
+- For login failures, the actor is unauthenticated: use nullable `actorId`, never invent a user or attribute the attempt to its victim. A known target uses its User ID; an unknown target or pre-lookup rejection uses a random LoginAttempt identifier. Persist invalid-input, invalid-credential and throttled attempts without storing submitted credentials or raw email. This 2026-10-15 correction supersedes the earlier suggestion to omit unknown-account audits.
 
 ## R7: Seed Password Validation
 

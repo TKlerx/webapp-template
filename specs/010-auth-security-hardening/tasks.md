@@ -144,3 +144,14 @@
 - The feature is implemented and validated.
 - Verification completed with `pnpm exec prisma generate`, `pnpm run typecheck`, `pnpm test`, `pnpm run validate`, and `pnpm run build`.
 - Remaining follow-up work, if any, should be tracked in a new numbered spec rather than reopening this one.
+
+## Phase 7: Convergence — Archival Review
+
+The user authorized correcting implementation gaps found while consolidating the completed specifications on 2026-10-15. Existing tasks remain unchanged; these tasks supersede the earlier assumption that feature 010 was fully complete.
+
+- [x] T027 [US1] Implement sliding-window login/password-change limits with a full cooldown after reaching the threshold, preserving newer trusted-proxy and account-bucket controls (FR-001, FR-002).
+- [x] T028 [US3] Persist anonymous and known-account failed-login audits without falsely attributing an unauthenticated actor; provide SQLite/PostgreSQL migrations (FR-008, FR-011).
+- [x] T029 [US3] Support anonymous audit entries in the viewer and exports, document the corrected contract, and add regression coverage (FR-008, FR-011).
+- [x] T030 Run focused regressions, migration/schema checks and repository validation; refresh continuity before resuming archival.
+
+Validation on 2026-10-15: 266 TypeScript tests and 21 Python tests passed; both Prisma schemas validated; the SQLite migration regression passed. Repository validation passed type checks, architecture, duplication, security, runtime credentials, logging, encoding, dependency cooldown, provenance, workflow and infrastructure checks. Its initial lint/overview failures were corrected by excluding downloaded `.artifacts/` content and regenerating the overview; lint was rerun successfully. No shared database migration or deployment was executed. Archival remains pending the subsequently requested PostgreSQL-only change.

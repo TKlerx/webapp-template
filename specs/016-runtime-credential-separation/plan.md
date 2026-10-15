@@ -13,12 +13,12 @@ Reduce production-style runtime blast radius in the starter by separating creden
 
 **Language/Version**: TypeScript 5.9 on Next.js 16 App Router, Python 3.12 worker, PowerShell validation
 **Primary Dependencies**: Prisma 7, Better Auth, Docker Compose, uv-managed Python worker
-**Storage**: SQLite for local development, PostgreSQL for production-style Docker deployment
+**Storage**: PostgreSQL for local development and production-style Docker deployment; user-approved policy/constitution v2.0.0 supersede the historical SQLite-local design (2026-10-15).
 **Testing**: Vitest, Python unittest/uv, `docker compose config`, existing validation scripts
 **Target Platform**: Docker-first web application template with local Windows/PowerShell development
 **Project Type**: Web application with background worker
 **Performance Goals**: No measurable runtime overhead; validation completes in under 10 seconds for static checks
-**Constraints**: Preserve simple local SQLite development and existing Docker commands
+**Constraints**: Preserve simple local PostgreSQL development through DATABASE_URL and existing Docker commands.
 **Scale/Scope**: Small internal deployments using app, worker, and migration containers
 
 ## Constitution Check

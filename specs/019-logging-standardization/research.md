@@ -11,15 +11,15 @@
 - Add a third-party logger: rejected because the constitution requires minimal dependencies and the existing logger already covers the core behavior.
 - Use raw `console.*` consistently: rejected because it does not enforce structure, redaction, or contract compliance.
 
-## Decision 2: Request logging is opt-in completion logging
+## Decision 2: Structured request-completion logging is enabled by default
 
-**Decision**: Request operational logs should be disabled unless explicitly enabled. When enabled, emit request completion with status and duration, not a default request-start log.
+**Decision (user-approved 2026-10-15)**: Emit structured request-completion logs by default, including with an unset ENABLE_REQUEST_LOGGING variable. Allow an explicit false setting to disable them. This supersedes the earlier opt-in decision. Record proxy-visible status and proxy handling duration.
 
-**Rationale**: Completion logs provide more diagnostic value and align with the clarified requirement to keep default volume low.
+**Rationale**: The user prefers useful operational visibility immediately. Structured, redacted completion events support that default while an off switch controls volume.
 
 **Alternatives considered**:
 
-- Keep current default request-start logging: rejected because it conflicts with the clarified opt-in requirement and misses status/duration.
+- Keep request-start logging: rejected because completion events provide status and duration.
 - Log both start and completion by default: rejected because it doubles volume for limited value in this app scale.
 
 ## Decision 3: Privacy-first metadata policy

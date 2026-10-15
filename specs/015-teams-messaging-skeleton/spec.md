@@ -2,7 +2,7 @@
 
 **Feature Branch**: `015-teams-messaging-skeleton`  
 **Created**: 2026-04-23  
-**Status**: Draft  
+**Status**: Completed
 **Input**: User description: "Do you think it would make sense to add teams functionality? So maybe, to send and/or receive messages via teams? Just as a skeleton"
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.
@@ -98,7 +98,7 @@ A platform administrator can view Teams integration status, delivery outcomes, a
 ### Dependencies
 
 - A Microsoft Teams tenant and app registration that permits approved send and read capabilities. The existing Azure AD app registration (used for SSO) is extended with Graph API permissions for Teams — credentials are already in environment variables.
-- Microsoft Graph API as the integration mechanism, using application permissions for sending messages (app identity, not user impersonation).
+- Microsoft Graph API as the integration mechanism: delegated `ChannelMessage.Send` consent from the active platform administrator who created the delivery target; application `ChannelMessage.Read.All` for independent intake. The delegated-consent clarification supersedes the earlier app-only sending decision (reconciled with user approval on 2026-10-15).
 - A thin `TeamsClient` abstraction layer to decouple callers from the Graph SDK, enabling future migration to Bot Framework without upstream changes.
 - Existing background processing and notification pipelines remain available for Teams delivery and intake scheduling.
 - Existing operational monitoring surfaces can display additional integration status signals.

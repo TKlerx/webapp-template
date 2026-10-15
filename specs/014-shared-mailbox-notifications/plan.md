@@ -3,6 +3,8 @@
 **Branch**: `014-shared-mailbox-notifications` | **Date**: 2026-04-19 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/014-shared-mailbox-notifications/spec.md`
 
+**Completion review (2026-10-15)**: This plan's foundation-only progress wording is historical. Outbound notifications, platform-admin controls and explicitly queued inbound processing now exist, but the full feature remains incomplete. `completion-review.md` records the missing scope-assignment integration, recipient rules, periodic mailbox scheduling, scoped log access and operational edge cases. The original requirements remain in force; archival is deferred.
+
 **Required First Step**: Read `/CONTINUE.md` before planning or implementation so the current handoff context, open risks, and recommended next actions are carried forward.
 
 ## Summary

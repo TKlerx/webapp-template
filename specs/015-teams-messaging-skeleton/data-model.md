@@ -93,19 +93,19 @@ Durable record of each outbound Teams delivery attempt.
 
 Approved Teams conversation for read-only message intake.
 
-| Field           | Type      | Constraints          | Notes                                           |
-| --------------- | --------- | -------------------- | ----------------------------------------------- |
-| id              | String    | @id @default(cuid()) |                                                 |
-| teamId          | String    |                      | Microsoft Graph team ID                         |
-| channelId       | String    |                      | Microsoft Graph channel ID                      |
-| teamName        | String?   |                      | Cached display name                             |
-| channelName     | String?   |                      | Cached display name                             |
-| active          | Boolean   | @default(true)       | Soft disable                                    |
-| deltaToken      | String?   |                      | Graph delta query token for incremental polling |
-| lastPolledAt    | DateTime? |                      | Last successful poll timestamp                  |
-| createdByUserId | String    |                      | Admin who created subscription                  |
-| createdAt       | DateTime  | @default(now())      |                                                 |
-| updatedAt       | DateTime  | @updatedAt           |                                                 |
+| Field           | Type      | Constraints          | Notes                                                       |
+| --------------- | --------- | -------------------- | ----------------------------------------------------------- |
+| id              | String    | @id @default(cuid()) |                                                             |
+| teamId          | String    |                      | Microsoft Graph team ID                                     |
+| channelId       | String    |                      | Microsoft Graph channel ID                                  |
+| teamName        | String?   |                      | Cached display name                                         |
+| channelName     | String?   |                      | Cached display name                                         |
+| active          | Boolean   | @default(true)       | Soft disable                                                |
+| deltaToken      | String?   |                      | Historical compatibility field; cleared after paged polling |
+| lastPolledAt    | DateTime? |                      | Last successful poll timestamp                              |
+| createdByUserId | String    |                      | Admin who created subscription                              |
+| createdAt       | DateTime  | @default(now())      |                                                             |
+| updatedAt       | DateTime  | @updatedAt           |                                                             |
 
 **Relations**: `createdByUserId` → User
 **Indexes**: `@@unique([teamId, channelId])`, `@@index([active])`
@@ -135,6 +135,23 @@ Durable record of each ingested Teams message.
 **Relations**: `subscriptionId` → TeamsIntakeSubscription
 **Indexes**: `@@index([subscriptionId, createdAt])`, `@@index([processingStatus, createdAt])`, `@@index([channelId, messageCreatedAt])`
 
+### TeamsDelegatedGrant
+
+One grant per consenting administrator, referenced through the delivery target's `createdByUserId`. The administrator must remain active with `PLATFORM_ADMIN` role. The app alone decrypts and refreshes the grant; the worker receives no delegated token.
+
+| Field        | Type      | Constraints                                                         |
+| ------------ | --------- | ------------------------------------------------------------------- |
+| id           | String    | Primary key, cuid                                                   |
+| userId       | String    | Unique; User relation, cascade on deletion                          |
+| scope        | String    | Granted OAuth scopes                                                |
+| accessToken  | String    | AES-256-GCM encrypted at rest                                       |
+| refreshToken | String?   | Encrypted at rest; retained when refresh response omits replacement |
+| expiresAt    | DateTime? | Refresh before expiry with a 60-second safety margin; indexed       |
+| createdAt    | DateTime  | Creation timestamp                                                  |
+| updatedAt    | DateTime  | Last grant update                                                   |
+
+Outbound delivery is serialized by a row lock and persists `SENT` and the Graph receipt before returning. A replay returns that receipt. Worker processing/error updates cannot overwrite `SENT`. Graph success followed by a database failure remains an ambiguous outcome requiring operator review.
+
 ## Updated Enums
 
 ### NotificationEventType (existing)
@@ -162,6 +179,8 @@ TeamsIntakeSubscription ←── TeamsInboundMessage
 ```
 
 ## State Transitions
+
+Historical `TeamsIntakeSubscription.deltaToken` is retained as a nullable compatibility field but cleared after a successful poll. Polling uses complete, same-channel paged listing rather than the previously planned unsupported channel delta endpoint. Provider IDs deduplicate rescanned messages.
 
 ### TeamsOutboundMessage.status
 

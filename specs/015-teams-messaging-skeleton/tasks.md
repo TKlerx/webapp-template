@@ -208,6 +208,13 @@ T019: GET/PUT config in src/app/api/integrations/teams/route.ts
 
 ## Notes
 
+### 2026-10-15 Implementation Reconciliation
+
+- [x] T043 Wire refreshed delegated grants into background delivery through a dedicated authenticated app endpoint; keep grants and encryption keys app-only; preserve receipts on replay.
+- [x] T044 Enforce fixed Teams retry intervals and at most three total attempts without changing other job types; accept the app's queued targetId field.
+- [x] T045 Replace unsupported channel delta calls with approved-channel paged listing, recheck queued intake emergency controls, and surface actual poll failures in admin health.
+- [x] T046 Verify delegated delivery, paging isolation, retry timing, receipt preservation and required repository gates; reconcile completion before archival. Final `pnpm run validate` passed: 279 application tests, 26 worker tests and every required quality/security/credential/infrastructure gate. Evidence: `.runlogs/validation-teams-015-final.log`. Live tenant delivery and pilot timing were not revalidated; see completion-review.md.
+
 - [P] tasks = different files, no dependencies
 - [Story] label maps task to specific user story
 - Each user story independently completable and testable

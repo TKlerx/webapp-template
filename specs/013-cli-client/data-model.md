@@ -1,4 +1,4 @@
-﻿# Data Model: Cross-Platform CLI Client
+# Data Model: Cross-Platform CLI Client
 
 **Date**: 2026-04-09 | **Spec**: [spec.md](./spec.md)
 
@@ -10,6 +10,8 @@ The CLI is a client application â€” it does not have a database. All persis
 
 **Location**: `~/.config/starterctl/config.json` (Linux/macOS), `%APPDATA%\starterctl\config.json` (Windows)
 **Permissions**: 0600 (owner read/write only)
+
+On Windows, a protected owner-only DACL enforces the equivalent access restriction. It excludes inherited grants, applies at file creation, and replaces permissive existing DACLs before any token is overwritten. A sharing or security error aborts the save before truncation. Other platforms enforce mode 0600 before writing.
 
 ```json
 {
@@ -57,13 +59,15 @@ type User struct {
 
 ### AuditEntry
 
+**Reconciled 2026-10-15**: Anonymous rejected-login audits have no authenticated actor under the corrected feature 010 contract. The CLI preserves JSON null with a nullable actor pointer and renders Anonymous in tabular output; known actor IDs are unchanged.
+
 ```go
 type AuditEntry struct {
     ID         string `json:"id"`
     Action     string `json:"action"`
     EntityType string `json:"entityType"`
     EntityId   string `json:"entityId"`
-    ActorId    string `json:"actorId"`
+    ActorId    *string `json:"actorId"`
     Details    string `json:"details"`
     CreatedAt  string `json:"createdAt"`
 }

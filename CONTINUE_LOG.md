@@ -1,5 +1,11 @@
 # Continue Log
 
+
+- 2026-10-15: Added direct dev dependency @types/pg ^8.23.1 and updated the pnpm lockfile; pnpm run typecheck passed.
+- 2026-10-15: Cleared 12 production npm advisories using patch updates (Next.js 16.3.8, fast-uri 3.1.8, sharp 0.35.5, source-map-js 1.2.2); pnpm production audit including optional dependencies is clean. Frozen uv production audit is clean across 9 packages; Python unchanged. Frozen pnpm install, formatting, and 272 application tests passed. Typecheck blocked separately by missing pg declarations in the PostgreSQL migration integration test.
+- 2026-10-15: Upgraded Go module and CLI Docker builder from 1.26.7 to 1.26.9. Confirmed active module toolchain is go1.26.9; production govulncheck package audit passed with no vulnerabilities. CLI tests passed (20 tests, 8 packages); Docker image rebuild not run.
+- 2026-10-15: Added blocking production-import Go vulnerability scans to CLI quality validation and release CI, plus explicit Go setup in the main validation workflow. Pinned govulncheck v1.8.0; test and quality-tool dependencies excluded. All 13 targeted gate tests passed; live audit correctly failed on 11 Go 1.26.7 standard-library package findings (fixed in 1.26.9). Existing pnpm/uv production audits confirmed.
+
 ## 2026-06-20 09:45:41 +02:00
 
 - Ported rag-agent-style supply-chain audit coverage into `webapp-template`.
@@ -1873,3 +1879,41 @@
 - Latest non-continuity commit: 128ab52 Strengthen mandatory validation and static analysis gates.
 - Active specs: none.
 - Next focus: no next task.
+## 2026-10-15 00:30:39
+
+- Branch snapshot refreshed for `codex/close-ops-health-spec`.
+- Latest non-continuity commit: c6c882b License template under MIT and refresh visible branding.
+- Active specs: 020-deploy-smoke-verification.
+- Next focus: no next task.
+
+- Archive trial: installed v1.4.0, seeded partial main spec from feature 020, marked source Completed, and added memory-reading guidance. Source-preservation checks and 13 smoke tests passed.
+
+- 2026-10-15: Extended the archive trial with feature 018; retained existing feature 020 entries, folded two shared items, assigned non-colliding IDs and updated memory-loading guidance. Source/provenance checks passed.
+
+- 2026-10-15: Corrected spec 010's rate-limit and login-audit implementation gaps with regression and migration checks (266 TypeScript / 21 Python tests passed). User explicitly requested PostgreSQL-only cleanup next, then resumption of sequential archival; original feature folders and local data files are retained.
+
+- 2026-10-15: Auth alignment complete; PostgreSQL-only app/worker, schema/history, local startup and isolated real-database tests implemented. Existing local data retained. Validation and browser verification in progress. User-requested 014 completion review found unmet requirements; reopened tracking rather than archiving an incomplete feature.
+
+- 2026-10-15: Completed PostgreSQL-only spec 022; 273 TypeScript and 22 Python tests passed and each validation gate passed, with Semgrep cleared on rerun. Archived 010 into existing memory without renumbering/removing older entries. The 011 nullable-actor model reconciliation awaits the user; 014 remains open with verified implementation gaps.
+
+- 2026-10-15: Production-build browser checks passed (3/3), including login/password change, notification creation and deterministic out-of-order notification filters. Final handoff: 011 audit-model decision pending; further sequential archival waits for that answer.
+
+## 2026-10-15 Full Validation
+
+- pnpm run validate:full finished with exit code 0: 273 application tests, 22 worker tests, 19 browser tests; all quality/security/spec/OpenTofu gates and ten supply-chain results passed, with zero findings. Fixed formatting, worker-test nullability/timeouts, Semgrep configuration/false positives/reference scopes, feature 022 stage records, Docker worktree exclusion, and the unused SQLite peer build policy. Evidence: .runlogs/validation-full-final.log and .artifacts/supply-chain-audit/validate-full.json.
+
+- 2026-10-15: Continued after the user requested proceeding. Reconciled 011 audit model, archived 011 and 012 separately, preserved original folders and stable memory IDs (18 stories/82 FR/32 SC/27 AS). CLI anonymous actors now preserve JSON null; regression and complete CLI quality gate pass. 013 policy/Windows ACL decisions are pending; 014 remains open. No later archive has bypassed those decisions.
+
+- 2026-10-15: User resolved 013 English-only CLI and Windows ACL decisions; implementation verified and 013 archived with originals retained. User explicitly authorized delegated Teams delivery/fixed-retry fixes for 015 before archival while 014 remains open. Work is in progress; new tests cover the delivery boundary and fixed PostgreSQL retry scheduling.
+
+- 2026-10-15: Completed the user-approved 015 delegated-delivery/fixed-retry reconciliation, including paging/health corrections and regression coverage. Final validation all passed: 279 app tests, 26 worker tests and all gates. Archived 015 using spec+changelog scope with originals retained; memory now 26 stories/115 FR/43 SC/39 AS. Live tenant, browser and image checks were not rerun. Next 016; its obsolete SQLite text now reflects the already-approved PostgreSQL-only policy. 014 remains open.
+
+- 2026-10-15: Archived 016 separately (41/41 tasks), folded six compatible items, preserved originals and stable IDs; memory now 28 stories/126 FR/47 SC/43 AS. User approved closing 017 raw credential persistence while 014 remains open. Added pre-write credential rejection, case/separator-aware and Bearer/Basic redaction, paged historical cleanup, regressions, API docs and the approved 011 non-secret shape qualification. Focused tests pass; broader validation pending.
+
+- 2026-10-15: User chose structured logging on by default for 019 while 014/017 remained open. Reconciled source policy, unset-variable behavior and environment examples; default-on/false opt-out/redaction regressions passed. Clean pnpm run validate passed every gate, 285 app tests and 26 worker tests (.runlogs/validation-017-019-final.log). Archived 017, 019, 021 and 022 separately after their reviews and impact previews; all source directories and existing IDs remain. Final consolidated memory: 38 stories/180 FR/77 SC/59 AS; all 12 completed numbered features archived, only incomplete 014 remains open. Updated agent guidance as separate continuity maintenance after archive runs, not as archive content. Per-feature source completion reviews and chat output reports record evidence limits. No new live deployment/DeepSec/browser/image scan, commit or push. Recommend completing 014 next after user selection.
+
+## 2026-10-15 Commit And Push Preparation
+
+- Consolidated runtime/auth/PostgreSQL/Teams/security/dependency work into a focused commit; prepared separate specification-archive and advisory-analysis source commits on codex/consolidate-runtime-and-analysis. Feature 014 remains unfinished.
+- Promoted both CodeQL and Joern query/check/runner sources, controls and MIT notices to security-analysis; downloaded toolchains, databases, graphs, snapshots and reports remain ignored. Fresh CodeQL security-extended scanned all 160 runtime JS/TS files and 8 Python files with zero findings/warnings; both original cross-file unsafe controls detected and safe calls unflagged. Fresh Joern controls matched CodeQL and detected all 12 unsafe Next.js/worker cases, leaving 12 safe cases and 3 unrelated objects unflagged.
+- Fresh precommit validation and staged text checks passed. Removed BOMs from six specification files. The latest application-wide validation remains 285 application tests and 26 worker tests, all gates passing; no later full browser/image rerun is implied.

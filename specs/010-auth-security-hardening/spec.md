@@ -2,7 +2,7 @@
 
 **Feature Branch**: `010-auth-security-hardening`  
 **Created**: 2026-04-01  
-**Status**: Draft  
+**Status**: Completed
 **Input**: User description: "Tackle the auth review findings by hardening authentication and security: add abuse protection for login and password change, tighten proxy/origin trust, address the unsigned id_token fallback risk, validate user status filters, ensure audit coverage for auth and user-admin events, and align seed/setup behavior with the auth policy."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.

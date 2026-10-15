@@ -2,7 +2,7 @@
 
 **Feature Branch**: `020-deploy-smoke-verification`  
 **Created**: 2026-06-11  
-**Status**: Draft  
+**Status**: Completed
 **Input**: User description: "Add deployment smoke verification for Azure deployments so operators can prove the deployed app, health endpoint, migrations, worker readiness, and container app revision health after deployment."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.

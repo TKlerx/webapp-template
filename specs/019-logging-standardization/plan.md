@@ -7,7 +7,9 @@
 
 ## Summary
 
-Standardize operational logging across the Next.js app and Python worker by extending the existing structured logger rather than introducing a new observability platform. The implementation will define a shared event contract, keep important operational events enabled by default, make request completion logging explicit opt-in, redact sensitive metadata recursively, avoid raw actor identity/URL/query leakage, and add guardrails that block ad hoc production `console.*` logging in app and worker paths.
+Standardize operational logging across the Next.js app and Python worker by extending the existing structured logger. Define a shared event contract; enable important operational events and structured request-completion logs by default with an explicit request-logging opt-out; redact sensitive metadata recursively; avoid raw actor identity/URL/query leakage; and block ad hoc production `console.*` output.
+
+2026-10-15 reconciliation: the user explicitly chose proper structured logging by default over the old opt-in policy, authorizing this correction while 014/017 remain unfinished. Align the logger's unset-variable behavior with the existing Compose default. The proxy-visible status/duration scope remains as specified in FR-013.
 
 ## Technical Context
 
@@ -18,7 +20,7 @@ Standardize operational logging across the Next.js app and Python worker by exte
 **Target Platform**: Next.js Node runtime in local/Docker/shared deployments; Python worker container/process; GitHub Actions CI  
 **Project Type**: Web application plus background worker  
 **Performance Goals**: Bounded metadata sanitization and request completion measurement with negligible application overhead; no blocking network logging path  
-**Constraints**: No new hosted logging dependency; no raw secrets, emails, display names, full URLs, or arbitrary query strings in operational logs; request logs disabled unless explicitly enabled; operational logs do not replace audit records  
+**Constraints**: No new hosted logging dependency; no raw secrets, emails, display names, full URLs, or arbitrary query strings in operational logs; structured request-completion logging enabled by default with an explicit off switch; operational logs do not replace audit records
 **Scale/Scope**: Small-team single-instance app; scoped to production app/worker source paths and validation/docs
 
 ## Constitution Check

@@ -13,13 +13,13 @@
 
 ## Decision 2: Keep Local Development Pragmatic
 
-**Decision**: Local development may continue using `DATABASE_URL=file:./dev.db`, and the worker may keep a fallback to that value outside production-style runs.
+**Decision (reconciled 2026-10-15)**: Local app and worker development may use one PostgreSQL `DATABASE_URL` as the fallback for runtime-specific URLs. The user's PostgreSQL-only decision and constitution v2.0.0 supersede this research's earlier SQLite-local design.
 
-**Rationale**: The starter's fast local setup is important. The hardening target is production-style and hosted runtime blast-radius reduction, not making local SQLite cumbersome.
+**Rationale**: Keep local setup simple while using the same database engine in development, tests and deployments. Credential ownership remains explicit without requiring three roles on every workstation.
 
 **Alternatives Considered**:
 
-- Require all three database URLs locally: clearer separation, but needless friction when all contexts point at one local SQLite file.
+- Require all three database URLs locally: clearer separation, but needless friction when all contexts point at one local PostgreSQL database.
 
 ## Decision 3: Split Compose Environment Blocks By Service
 

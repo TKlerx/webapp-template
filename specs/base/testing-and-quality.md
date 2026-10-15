@@ -51,7 +51,7 @@ Tooling:
 Coverage focus:
 
 - worker job processing
-- SQLite claim / complete / fail transitions
+- PostgreSQL claim / complete / fail transitions
 
 ## Validation Pipeline
 

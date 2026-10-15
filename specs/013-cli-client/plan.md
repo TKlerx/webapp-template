@@ -1,4 +1,4 @@
-﻿# Implementation Plan: Cross-Platform CLI Client
+# Implementation Plan: Cross-Platform CLI Client
 
 **Branch**: `013-cli-client` | **Date**: 2026-04-09 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/013-cli-client/spec.md`
@@ -25,18 +25,18 @@ Build a cross-platform CLI client (`starterctl`) in Go that provides command-lin
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle                | Status | Notes                                                                        |
-| ------------------------ | ------ | ---------------------------------------------------------------------------- |
-| I. Simplicity First      | PASS   | Cobra is the standard Go CLI framework â€” no custom abstractions            |
-| II. Test Coverage        | PASS   | Tests for every command, auth flow, and output formatter                     |
-| III. Duplication Control | PASS   | Shared HTTP client, output formatter, and auth resolver                      |
-| IV. Incremental Delivery | PASS   | P1 (auth + users) â†’ P2 (completions, audit, jobs) â†’ P3 (health, install) |
-| V. Spec Sequencing       | PASS   | 012 planned first; 013 requires 012's server-side API                        |
-| VI. Continuity           | PASS   | CONTINUE.md will be updated                                                  |
-| VII. Azure OpenAI        | N/A    | No AI features                                                               |
-| VIII. Web Standards      | N/A    | CLI, not web â€” but respects server's base path                             |
-| IX. Internationalization | N/A    | CLI output is English-only (standard for developer tools)                    |
-| X. Responsive Design     | N/A    | CLI, not web                                                                 |
+| Principle                | Status | Notes                                                                                                                         |
+| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| I. Simplicity First      | PASS   | Cobra is the standard Go CLI framework â€” no custom abstractions                                                             |
+| II. Test Coverage        | PASS   | Tests for every command, auth flow, and output formatter                                                                      |
+| III. Duplication Control | PASS   | Shared HTTP client, output formatter, and auth resolver                                                                       |
+| IV. Incremental Delivery | PASS   | P1 (auth + users) â†’ P2 (completions, audit, jobs) â†’ P3 (health, install)                                                  |
+| V. Spec Sequencing       | PASS   | 012 planned first; 013 requires 012's server-side API                                                                         |
+| VI. Continuity           | PASS   | CONTINUE.md will be updated                                                                                                   |
+| VII. Azure OpenAI        | N/A    | No AI features                                                                                                                |
+| VIII. Web Standards      | N/A    | CLI, not web â€” but respects server's base path                                                                              |
+| IX. Internationalization | PASS   | User-approved English-only companion CLI exception in constitution 3.0.0 (2026-10-15); web UI localization remains unchanged. |
+| X. Responsive Design     | N/A    | CLI, not web                                                                                                                  |
 
 ## Project Structure
 

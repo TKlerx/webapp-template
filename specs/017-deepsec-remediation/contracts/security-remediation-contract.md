@@ -11,6 +11,7 @@ This contract describes externally observable behavior that Phase 1 remediation 
 - Responses and rendered views MUST include job status, type, owner, timestamps, and safe metadata.
 - Responses and rendered views MUST NOT include delegated access tokens, refresh tokens, bearer credentials, authorization headers, or equivalent secret values.
 - Historical records containing sensitive payloads MUST be redacted when read and cleaned from storage.
+- New credential-bearing payloads are rejected before persistence with HTTP 400 and `{"error":"Job payload must not contain credentials"}`. Recognized credential keys include nested objects/arrays and normalized case/separator variants; Bearer/Basic material in strings is rejected. Accepted non-secret payloads retain their shape and content.
 - Failed cleanup MUST be visible to maintainers through non-secret operational evidence without exposing the secret value.
 
 **Acceptance Evidence**

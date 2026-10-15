@@ -1,6 +1,6 @@
 # Business App Starter Specs Overview
 
-Last Updated: 2026-09-28
+Last Updated: 2026-10-15
 
 Purpose: Track the status of all planned features, their implementation progress, and next steps.
 
@@ -18,20 +18,21 @@ Purpose: Track the status of all planned features, their implementation progress
 
 ## Specs Summary
 
-| #   | Feature                       | Status            | Depends On                                                                                   | Est. Effort | Next Step                                          |
-| --- | ----------------------------- | ----------------- | -------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------- |
-| 010 | Auth Security Hardening       | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 011 | API Route Refactor            | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 012 | Openapi And Pat               | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 013 | Cli Client                    | Fully Implemented | Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow | Large       | Review, commit, and propagate the finished feature |
-| 014 | Shared Mailbox Notifications  | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 015 | Teams Messaging Skeleton      | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 016 | Runtime Credential Separation | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 017 | DeepSec Remediation           | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 018 | OpenTofu Azure Infrastructure | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 019 | Logging Standardization       | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 020 | Deploy Smoke Verification     | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
-| 021 | Ops Health Dashboard          | Fully Implemented | -                                                                                            | Large       | Review, commit, and propagate the finished feature |
+| #   | Feature                          | Status                | Depends On                                                                                   | Est. Effort | Next Step                                                |
+| --- | -------------------------------- | --------------------- | -------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------- |
+| 010 | Auth Security Hardening          | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 011 | API Route Refactor               | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 012 | Openapi And Pat                  | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 013 | Cli Client                       | Fully Implemented     | Spec 012 (OpenAPI & Personal Access Tokens) â€” requires PAT auth and CLI browser login flow | Large       | Review, commit, and propagate the finished feature       |
+| 014 | Shared Mailbox Notifications     | Partially Implemented | -                                                                                            | Large       | Continue implementation and complete the remaining tasks |
+| 015 | Teams Messaging Skeleton         | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 016 | Runtime Credential Separation    | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 017 | DeepSec Remediation              | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 018 | OpenTofu Azure Infrastructure    | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 019 | Logging Standardization          | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 020 | Deploy Smoke Verification        | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 021 | Ops Health Dashboard             | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
+| 022 | PostgreSQL-only database support | Fully Implemented     | -                                                                                            | Small       | Review, commit, and propagate the finished feature       |
 
 ## Implementation Roadmap
 
@@ -41,7 +42,6 @@ Purpose: Track the status of all planned features, their implementation progress
 - 011 API Route Refactor: fully implemented
 - 012 Openapi And Pat: fully implemented
 - 013 Cli Client: fully implemented
-- 014 Shared Mailbox Notifications: fully implemented
 - 015 Teams Messaging Skeleton: fully implemented
 - 016 Runtime Credential Separation: fully implemented
 - 017 DeepSec Remediation: fully implemented
@@ -49,10 +49,11 @@ Purpose: Track the status of all planned features, their implementation progress
 - 019 Logging Standardization: fully implemented
 - 020 Deploy Smoke Verification: fully implemented
 - 021 Ops Health Dashboard: fully implemented
+- 022 PostgreSQL-only database support: fully implemented
 
 ### Begin Immediately
 
-- No tasked or in-progress numbered features are waiting for implementation work
+- 014 Shared Mailbox Notifications: Continue implementation and complete the remaining tasks
 
 ### Blocked / Prep Needed
 

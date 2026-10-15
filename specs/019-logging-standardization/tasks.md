@@ -48,7 +48,7 @@
 
 ### Tests for User Story 1
 
-- [x] T009 [P] [US1] Add request logging disabled-by-default and opt-in completion tests in `tests/unit/proxy-request-logging.test.ts`
+- [x] T009 [P] [US1] Add request logging enabled-by-default and explicit opt-out completion tests in `tests/unit/proxy-request-logging.test.ts`
 - [x] T010 [P] [US1] Add request path/query sanitization tests for raw URL and sensitive query exclusion in `tests/unit/proxy-request-logging.test.ts`
 - [x] T011 [P] [US1] Add service logging tests for structured events replacing ad hoc console failures in `tests/unit/token-service.test.ts`, `tests/unit/notifications/notification-service.test.ts`, and `tests/unit/teams-service.test.ts`
 - [x] T012 [P] [US1] Add audit-boundary regression test confirming operational logging changes do not replace audit persistence behavior in `tests/unit/audit.test.ts`
@@ -56,7 +56,7 @@
 
 ### Implementation for User Story 1
 
-- [x] T014 [US1] Update request logging to emit opt-in `http.request.completed` events with `requestId`, `method`, `path`, proxy-visible `status`, and proxy handling `durationMs` in `src/proxy.ts`
+- [x] T014 [US1] Update request logging to emit default-on `http.request.completed` events with `requestId`, `method`, `path`, proxy-visible `status`, and proxy handling `durationMs` in `src/proxy.ts`
 - [x] T015 [US1] Add request path and allowlisted/sanitized query helpers in `src/lib/logger.ts`
 - [x] T016 [US1] Add or document request correlation context at touched service failure log call sites in `src/services/api/tokens.ts`, `src/services/notifications/service.ts`, and `src/services/teams/service.ts`
 - [x] T017 [US1] Replace ad hoc token update failure logging with structured logger events in `src/services/api/tokens.ts`
@@ -166,7 +166,7 @@
 ## Parallel Example: User Story 1
 
 ```text
-Task: "T009 [US1] Add request logging disabled-by-default and opt-in completion tests in tests/unit/proxy-request-logging.test.ts"
+Task: "T009 [US1] Add request logging enabled-by-default and explicit opt-out completion tests in tests/unit/proxy-request-logging.test.ts"
 Task: "T010 [US1] Add request path/query sanitization tests for raw URL and sensitive query exclusion in tests/unit/proxy-request-logging.test.ts"
 Task: "T011 [US1] Add service logging tests for structured events replacing ad hoc console failures in tests/unit/logging-conventions.test.ts"
 Task: "T012 [US1] Add audit-boundary regression test confirming operational logging changes do not replace audit persistence behavior in tests/unit/audit.test.ts"
@@ -202,3 +202,8 @@ Task: "T024 [US2] Add worker job lifecycle logging tests for claimed, completed,
 - Run focused tests after each story checkpoint.
 - Run `.\validate.ps1 all` before considering the feature complete.
 - Use `.\validate.ps1 full` only when e2e and supply-chain gates are needed before merge.
+
+## Default Policy Reconciliation — 2026-10-15
+
+- [x] T043 Apply the user-selected default-on request logging policy in `src/lib/logger.ts` and reconcile feature documents and environment examples.
+- [x] T044 Verify default-on, explicit opt-out and redaction regressions in `tests/unit/proxy-request-logging.test.ts` and run required project validation.

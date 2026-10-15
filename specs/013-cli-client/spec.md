@@ -1,8 +1,8 @@
-﻿# Feature Specification: Cross-Platform CLI Client
+# Feature Specification: Cross-Platform CLI Client
 
 **Feature Branch**: `013-cli-client`  
 **Created**: 2026-04-08  
-**Status**: Draft  
+**Status**: Completed
 **Input**: User description: "Build a cross-platform CLI client (Windows, Linux, macOS) that provides a command-line interface to all API endpoints, with PAT authentication, shell autocompletion, and multiple output formats."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.

@@ -3,7 +3,7 @@
 ## Implement
 
 1. Extend `src/lib/logger.ts` to expose the agreed event shape and safe metadata helpers.
-2. Update `src/proxy.ts` so request logging is opt-in and emits completion logs with status and duration.
+2. Emit structured request-completion logs by default with status and duration; allow explicit opt-out through ENABLE_REQUEST_LOGGING=false.
 3. Replace ad hoc production `console.error` calls in app services with structured logger calls.
 4. Add worker structured logging parity for job lifecycle events.
 5. Add or extend validation so production app/worker source rejects ad hoc console/direct output.

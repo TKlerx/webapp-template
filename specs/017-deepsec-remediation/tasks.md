@@ -322,6 +322,12 @@ After Phase 1 is validated, use `phase-2-findings.md` and the refreshed export t
 
 ## Notes
 
+### 2026-10-15 Archival Reconciliation
+
+- [x] T101 Reject detected credential-bearing job payloads before database writes; preserve accepted non-secret payload shapes and reconcile the old 011 contract with user approval.
+- [x] T102 Make historical cleanup cover later pages and result/error-only credentials without changing clean payload formatting or null results; add regression checks.
+- [x] T103 Verify focused regressions and required repository gates before archiving 017.
+
 - Keep tasks checked only when code, tests, and evidence for that task are complete.
 - Do not mark a scanner finding fixed unless local tests and refreshed DeepSec evidence support it or accepted risk is documented.
 - Avoid broad refactors outside the files listed in this task plan.
@@ -329,7 +335,7 @@ After Phase 1 is validated, use `phase-2-findings.md` and the refreshed export t
 ## Post-Merge Postgres E2E Default Hardening
 
 - [x] T096 Add Postgres-first E2E database provisioning in `scripts/ensure-e2e-db.mjs`.
-- [x] T097 Update Playwright global setup, teardown, and DB helpers to default to the Postgres E2E database while preserving explicit SQLite fallback.
+- [x] T097 Update Playwright global setup, teardown, and DB helpers to default to the Postgres E2E database. The historical explicit SQLite fallback was subsequently removed by the user-approved PostgreSQL-only policy (022, 2026-10-15).
 - [x] T098 Disable implicit Playwright web server reuse for database-resetting E2E runs, with `E2E_REUSE_SERVER=1` as an explicit opt-in.
 - [x] T099 Run the full Playwright suite against the default Postgres E2E path and record validation evidence.
 - [x] T100 Move the default E2E Postgres URL to its own test database and keep Prisma Postgres adapter schema support for explicit schema URLs.

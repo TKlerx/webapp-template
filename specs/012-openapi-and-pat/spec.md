@@ -1,8 +1,8 @@
-﻿# Feature Specification: OpenAPI Specification & Personal Access Tokens
+# Feature Specification: OpenAPI Specification & Personal Access Tokens
 
 **Feature Branch**: `012-openapi-and-pat`  
 **Created**: 2026-04-08  
-**Status**: Draft  
+**Status**: Completed
 **Input**: User description: "Add an OpenAPI 3.1 YAML specification for all existing API endpoints and implement Personal Access Token (PAT) authentication for programmatic API access."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.

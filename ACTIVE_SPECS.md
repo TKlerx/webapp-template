@@ -6,7 +6,7 @@ when the spec is fully finished.
 
 ## Open Specs
 
-- None. Spec 021 was delivered in PR #5 and its convergence gaps are addressed in this follow-up.
+- 014-shared-mailbox-notifications: User-requested implementation review confirmed incomplete requirements. See `specs/014-shared-mailbox-notifications/completion-review.md` and reopened tasks T032-T038. Defer archival until implementation or explicit scope revision resolves the gaps.
 
 ## Maintenance Rules
 

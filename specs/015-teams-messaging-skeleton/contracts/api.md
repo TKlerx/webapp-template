@@ -2,6 +2,14 @@
 
 All endpoints require `PLATFORM_ADMIN` role. Base path: `/api/integrations/teams`
 
+The internal delivery endpoint below instead requires its dedicated worker secret.
+
+## POST /api/internal/teams/deliver
+
+Authenticate with `Authorization: Bearer <TEAMS_DELIVERY_SHARED_SECRET>` (at least 32 characters). Request: `{"jobId":"claimed-teams-job-id"}`; unknown fields are rejected. The job must be `IN_PROGRESS` with type `teams_message_delivery`. Persisted content and the target creator's refreshed delegated grant determine the send. The creator must remain an active platform administrator. Global sending, config sending and target activation are rechecked.
+
+Response 200: `{"id":"graph-message-id"}` (id may be null if Graph omits it). A saved SENT receipt is returned on replay. No tokens are returned. Errors: 400 invalid body, 401 bad secret, 503 missing/short server secret, 502 delivery/consent/configuration failure with sanitized text. Failed attempts retry at the fixed worker interval, up to three total attempts.
+
 ## GET /api/integrations/teams
 
 Returns integration config + computed health metrics.

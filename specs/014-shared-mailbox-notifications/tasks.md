@@ -120,7 +120,7 @@
 
 - [x] T030 [Governance] Add the missing implementation-spec package for feature 014 in `specs/014-shared-mailbox-notifications/`
 - [x] T031 [Governance] Update `ACTIVE_SPECS.md`, `CONTINUE.md`, and `CONTINUE_LOG.md` to reflect that the Graph mail foundation is complete but the broader feature remains open
-- [x] T032 [Governance] Remove feature 014 from `ACTIVE_SPECS.md` only when all remaining tasks are complete
+- [ ] T032 [Governance] Remove feature 014 from `ACTIVE_SPECS.md` only when all remaining tasks are complete (reopened after the 2026-10-15 completion review).
 
 ---
 
@@ -166,3 +166,14 @@
 
 - The current implementation is intentionally smaller than the full feature spec; it is the foundation for the broader notification product work.
 - Every later phase should continue to route outbound mail through `createMailClient()` so provider concerns stay isolated.
+
+## Completion Reconciliation (2026-10-15)
+
+The preceding foundation-only progress notes describe an earlier slice. The current implementation also includes outbound notifications, platform-admin controls and explicitly queued inbound processing. It does not satisfy the full original spec. See `completion-review.md` for implementation evidence and validation limits. Do not archive as completed or weaken the requirements to match the code.
+
+- [ ] T033 [US1] Implement and validate scope-assignment notification triggering (FR-002; the deferred portion of T015).
+- [ ] T034 [US2] Store and apply per-event recipient rules, including affected user, acting admin and role-based audiences (FR-009).
+- [ ] T035 [US3] Schedule mailbox polling at a configurable interval in the worker, with deduplication and restart-safe behavior (FR-011, SC-006).
+- [ ] T036 [US2] Provide scope-filtered notification log access for SCOPE_ADMIN while keeping management PLATFORM_ADMIN-only (FR-014).
+- [ ] T037 [US1] Implement and test mailbox-authentication failure alerts and provider-aware send pacing/backoff for the specified operational edge cases.
+- [ ] T038 [Governance] Validate the completed stories, reconcile the plan and operator docs, and record completion evidence before archival.

@@ -19,7 +19,7 @@ This contract defines the target ownership for high-risk runtime settings.
 | `APP_DATABASE_URL`       | app               | Runtime app database access                        | `DATABASE_URL` in local development only                                      |
 | `WORKER_DATABASE_URL`    | worker            | Worker job queue and background integration access | `DATABASE_URL` in local development only                                      |
 | `MIGRATION_DATABASE_URL` | migration         | Prisma migration and initial seed access           | `DATABASE_URL` during transition only                                         |
-| `DATABASE_URL`           | local-development | SQLite or legacy compatibility fallback            | Must not be the only documented production-style setting after implementation |
+| `DATABASE_URL`           | local-development | PostgreSQL local/compatibility fallback            | Must not be the only documented production-style setting after implementation |
 
 ## Target Integration Settings
 
