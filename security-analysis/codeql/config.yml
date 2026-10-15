@@ -1,0 +1,12 @@
+name: Webapp Template CodeQL trial
+paths:
+  - src
+  - worker/src
+paths-ignore:
+  - node_modules
+  - generated
+  - tests
+  - .next
+  - .worktrees
+  - .deepsec
+  - .artifacts
