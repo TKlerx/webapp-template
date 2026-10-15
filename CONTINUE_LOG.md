@@ -1917,3 +1917,16 @@
 - Consolidated runtime/auth/PostgreSQL/Teams/security/dependency work into a focused commit; prepared separate specification-archive and advisory-analysis source commits on codex/consolidate-runtime-and-analysis. Feature 014 remains unfinished.
 - Promoted both CodeQL and Joern query/check/runner sources, controls and MIT notices to security-analysis; downloaded toolchains, databases, graphs, snapshots and reports remain ignored. Fresh CodeQL security-extended scanned all 160 runtime JS/TS files and 8 Python files with zero findings/warnings; both original cross-file unsafe controls detected and safe calls unflagged. Fresh Joern controls matched CodeQL and detected all 12 unsafe Next.js/worker cases, leaving 12 safe cases and 3 unrelated objects unflagged.
 - Fresh precommit validation and staged text checks passed. Removed BOMs from six specification files. The latest application-wide validation remains 285 application tests and 26 worker tests, all gates passing; no later full browser/image rerun is implied.
+
+## 2026-10-04 22:57:45
+
+- Branch snapshot refreshed for `codex/security-20261004`.
+- Latest non-continuity commit: ad5dccd Complete ops health spec convergence (#40).
+- Active specs: none.
+- Next focus: no next task.
+
+- Updated security dependencies in both workspaces and removed unnecessary overrides. Application frozen lockfile passes; scanner audit is clean but existing Vercel trust-downgrade rejection blocks scanner installation. Unpatched braces remains visible; full validation awaits PR CI.
+
+## 2026-10-15 Final Consolidation
+
+- Created focused commits 557922f (runtime/security), 2ef2ef6 (spec archival) and e0cc321 (advisory Joern and CodeQL sources). Integrated current main, preserving its dependency updates and four health regressions, with the imported database fixture aligned to PostgreSQL. Post-merge tests: 289 across 66 files passed; typecheck, frozen pnpm install, pnpm production audit and uv production audit passed. Generated analysis artifacts and abandoned worktrees remain excluded. Prepared push to origin/codex/consolidate-runtime-and-analysis.

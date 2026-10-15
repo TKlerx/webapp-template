@@ -2,6 +2,7 @@
 
 ## Commit And Push Preparation
 
+- Final consolidation: commits `557922f`, `2ef2ef6` and `e0cc321` contain runtime fixes, archival and both advisory analysis kits. Integrated current main and retained its dependency updates and four health regressions; aligned the imported database fixture with PostgreSQL. Post-merge application tests pass (289 across 66 files), typecheck passes, frozen pnpm install and both production audits pass. Push target: `origin/codex/consolidate-runtime-and-analysis`.
 - 2026-10-15: Consolidating yesterday/today work on `codex/consolidate-runtime-and-analysis`, since the previous branch PR was already merged. Separate commits cover runtime/security/dependency fixes, completed-feature archival and the advisory Joern/CodeQL source kit. Feature 014 remains incomplete.
 - Both analysis source kits are retained under `security-analysis/`, including deliberately unsafe analysis-only controls and upstream MIT notices. Generated graphs/databases/results, downloaded tools, environment files and old worktrees remain ignored. The analysis fixtures are excluded from application compilation and mandatory production lint/scans; their dedicated runners verify them separately.
 - Fresh precommit validation passed. The latest application-wide validation passed 285 application tests and 26 worker tests; earlier full validation passed browser and image checks before later runtime reconciliations. New analysis runner verification is recorded in the delivery log.

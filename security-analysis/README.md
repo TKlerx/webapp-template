@@ -2,7 +2,7 @@
 
 This directory preserves both the native CodeQL trial and the CodeQL-derived Joern command-injection queries. These experiments remain outside mandatory validation. Fixtures contain deliberately unsafe code: analyze them; never execute them.
 
-Only query/check/runner sources, fixtures, upstream query references and license notices are tracked. Downloaded tools, generated graphs, databases, source snapshots, SARIF reports and logs remain ignored.
+Only query/check/runner sources, fixtures, upstream query references and license notices are tracked. Downloaded tools, generated graphs, databases, source snapshots, SARIF reports, logs and Joern's root `workspace/` remain ignored.
 
 ## Reproduce
 
