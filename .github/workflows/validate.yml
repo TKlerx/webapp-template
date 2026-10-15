@@ -8,11 +8,13 @@ on:
 
 jobs:
   joern:
-    name: Joern command-injection analysis
+    name: Joern security analysis
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
+    env:
+      JAVA_TOOL_OPTIONS: -XX:ActiveProcessorCount=2 -Xmx768m -Xms64m
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5

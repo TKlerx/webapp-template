@@ -20,3 +20,5 @@ foreach ($language in @("python", "javascript")) {
 }
 & node "$trialRoot/check-input-models.mjs"
 if ($LASTEXITCODE -ne 0) { throw "Input model verification failed." }
+& node "$trialRoot/check-ci-gate.mjs"
+if ($LASTEXITCODE -ne 0) { throw "CI gate regression failed." }
