@@ -215,15 +215,16 @@ export async function getIntegrationStatus() {
     recentIntakeFailures,
     recentOutbound,
     recentInbound,
+    recentPollFailures,
   ] = await Promise.all([
     getOrCreateTeamsConfig(),
     prisma.teamsOutboundMessage.findFirst({
       where: { status: TeamsMessageStatus.SENT },
       orderBy: { updatedAt: "desc" },
     }),
-    prisma.teamsInboundMessage.findFirst({
-      where: { processingStatus: { not: TeamsInboundStatus.IGNORED } },
-      orderBy: { updatedAt: "desc" },
+    prisma.teamsIntakeSubscription.findFirst({
+      where: { lastPolledAt: { not: null } },
+      orderBy: { lastPolledAt: "desc" },
     }),
     prisma.teamsOutboundMessage.count({
       where: {
@@ -231,9 +232,10 @@ export async function getIntegrationStatus() {
         updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
       },
     }),
-    prisma.teamsInboundMessage.count({
+    prisma.backgroundJob.count({
       where: {
-        processingStatus: TeamsInboundStatus.IGNORED,
+        jobType: "teams_intake_poll",
+        error: { not: null },
         updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
       },
     }),
@@ -247,9 +249,25 @@ export async function getIntegrationStatus() {
       orderBy: { createdAt: "desc" },
       take: 20,
     }),
+    prisma.backgroundJob.findMany({
+      where: {
+        jobType: "teams_intake_poll",
+        error: { not: null },
+        updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 20,
+    }),
   ]);
 
   const recentActivity = [
+    ...recentPollFailures.map((job) => ({
+      type: "intake" as const,
+      subscriptionName: job.jobType,
+      messagesIngested: 0,
+      timestamp: job.updatedAt,
+      error: job.error,
+    })),
     ...recentOutbound.map((item) => ({
       type: "send" as const,
       targetName: item.target.name,
@@ -278,7 +296,7 @@ export async function getIntegrationStatus() {
     updatedAt: config.updatedAt,
     health: {
       lastSuccessfulSend: lastSend?.updatedAt ?? null,
-      lastSuccessfulIntake: lastIntake?.updatedAt ?? null,
+      lastSuccessfulIntake: lastIntake?.lastPolledAt ?? null,
       recentSendFailures,
       recentIntakeFailures,
     },

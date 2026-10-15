@@ -12,6 +12,7 @@ const config = [
     ignores: [
       "node_modules/**",
       ".next/**",
+      ".artifacts/**",
       "coverage/**",
       "dist/**",
       "build/**",
@@ -21,6 +22,7 @@ const config = [
       "public/vendor/**",
       ".agents/**",
       ".worktrees/**",
+      "security-analysis/**",
       ".claude/**",
       "**/*.min.js",
     ],

@@ -11,6 +11,12 @@ coverage/
 # Claude Code
 .claude/
 
+# Agent skill bundles contain reference/example code, not shipped application source.
+.agents/
+.worktrees/
+# Deliberately unsafe, never-executed analysis controls and upstream query references.
+security-analysis/
+
 # Generated files
 prisma/migrations/
 *.min.js

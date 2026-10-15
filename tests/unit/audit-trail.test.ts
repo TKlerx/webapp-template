@@ -29,6 +29,26 @@ describe("audit export", () => {
     vi.clearAllMocks();
   });
 
+  it("exports anonymous audit entries in CSV and PDF without requiring a user", async () => {
+    prismaMock.auditEntry.count.mockResolvedValue(1);
+    prismaMock.auditEntry.findMany.mockResolvedValue([
+      {
+        id: "anonymous-audit",
+        action: AuditAction.AUTH_LOGIN_REJECTED,
+        entityType: "LoginAttempt",
+        entityId: "attempt-1",
+        details: '{"reason":"rate_limited"}',
+        createdAt: new Date("2026-10-15T00:00:00Z"),
+        actor: null,
+        scope: null,
+      },
+    ] as never);
+    const csv = await exportToCSV();
+    const pdf = await exportToPDF();
+    expect(csv.buffer.toString("utf8")).toContain('"Anonymous",""');
+    expect(pdf.buffer.toString("utf8")).toContain("Actor: Anonymous");
+  });
+
   it("exports CSV with the expected fields", async () => {
     prismaMock.auditEntry.count.mockResolvedValue(1);
     prismaMock.auditEntry.findMany.mockResolvedValue([

@@ -98,6 +98,7 @@
     "switchedTo": "Design auf {theme}-Modus umgeschaltet"
   },
   "audit": {
+    "anonymous": "Anonym",
     "title": "Prufprotokoll",
     "action": "Aktion",
     "actor": "Akteur",

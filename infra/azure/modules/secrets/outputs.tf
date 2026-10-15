@@ -87,3 +87,8 @@ output "teams_delegated_grant_key_secret_id" {
   description = "Versionless Key Vault secret id for TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY when Teams is enabled."
   value       = try(azurerm_key_vault_secret.runtime["teams-delegated-grant-encryption-key"].versionless_id, null)
 }
+
+output "teams_delivery_shared_secret_id" {
+  description = "Versionless Key Vault secret id for the worker delivery endpoint."
+  value       = try(azurerm_key_vault_secret.runtime["teams-delivery-shared-secret"].versionless_id, null)
+}

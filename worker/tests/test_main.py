@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import json
 import os
-import sqlite3
+import uuid
 import tempfile
 import unittest
-from contextlib import closing
+from typing import Any
+from urllib.parse import urlencode, urlsplit
+
+import psycopg
+from psycopg.rows import dict_row
+from psycopg import sql
 from pathlib import Path
 from unittest.mock import patch
 
@@ -26,7 +31,17 @@ from starter_worker.main import (
 class WorkerTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.db_path = Path(self.temp_dir.name) / "worker-test.db"
+        self.base_url = os.environ.get(
+            "TEST_DATABASE_URL",
+            "postgresql://starter:starter_e2e_password@127.0.0.1:55432/business_app_starter_e2e_test",
+        )
+        if not urlsplit(self.base_url).path.endswith("_test"):
+            raise ValueError("Worker database tests require a dedicated database ending in _test")
+        self.schema = "worker_test_" + uuid.uuid4().hex
+        separator = "&" if "?" in self.base_url else "?"
+        self.database_url = (
+            self.base_url + separator + urlencode({"options": "-csearch_path=" + self.schema})
+        )
         self._create_schema()
 
     def tearDown(self) -> None:
@@ -107,8 +122,10 @@ class WorkerTests(unittest.TestCase):
                     (),
                     {
                         "job_type": "teams_message_delivery",
+                        "id": "claimed-job-1",
                         "payload": {
                             "teamsOutboundMessageId": "outbound-1",
+                            "targetId": "target-1",
                             "teamId": "team-1",
                             "channelId": "channel-1",
                             "content": "<p>hello</p>",
@@ -117,7 +134,7 @@ class WorkerTests(unittest.TestCase):
                 )()
             )
 
-        send_teams.assert_called_once()
+        send_teams.assert_called_once_with("claimed-job-1")
         self.assertEqual(result["teamsOutboundMessageId"], "outbound-1")
         self.assertEqual(result["graphMessageId"], "graph-1")
         self.assertEqual(result["status"], "sent")
@@ -163,14 +180,18 @@ class WorkerTests(unittest.TestCase):
             for job_type, payload in valid_payloads.items():
                 for invalid in [
                     {**payload, "unexpected": True},
-                    {**payload, "bodyHtml": 42} if job_type == "notification_delivery"
+                    {**payload, "bodyHtml": 42}
+                    if job_type == "notification_delivery"
                     else {**payload, "contentType": "javascript"},
-                    {**payload, "bodyText": b"Hello"} if job_type == "notification_delivery"
+                    {**payload, "bodyText": b"Hello"}
+                    if job_type == "notification_delivery"
                     else {**payload, "content": b"hello"},
                 ]:
                     with self.subTest(job_type=job_type, payload=invalid):
                         with self.assertRaises(ValueError):
-                            process_job(type("Job", (), {"job_type": job_type, "payload": invalid})())
+                            process_job(
+                                type("Job", (), {"job_type": job_type, "payload": invalid})()
+                            )
             send_mail.assert_not_called()
             send_teams.assert_not_called()
 
@@ -296,7 +317,7 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(inbound_bounce["processingStatus"], "IGNORED")
         self.assertEqual(notification["status"], "SENT")
 
-    def test_sqlite_job_store_claims_and_completes_job(self) -> None:
+    def test_postgres_job_store_claims_and_completes_job(self) -> None:
         self._insert_job(job_id="job-1", job_type="noop", payload={"message": "hello"})
         store = self._make_store()
 
@@ -318,7 +339,7 @@ class WorkerTests(unittest.TestCase):
         self.assertIsNotNone(row["finishedAt"])
         self.assertIsNone(row["lockedAt"])
 
-    def test_sqlite_job_store_retries_failure_before_max_attempts(self) -> None:
+    def test_postgres_job_store_retries_failure_before_max_attempts(self) -> None:
         self._insert_job(job_id="job-2", job_type="echo", payload={"message": "x"})
         store = self._make_store(max_attempts=3, retry_backoff_seconds=15)
 
@@ -335,7 +356,7 @@ class WorkerTests(unittest.TestCase):
         self.assertIsNone(row["finishedAt"])
         self.assertIsNone(row["lockedAt"])
 
-    def test_sqlite_job_store_marks_terminal_failure_after_max_attempts(self) -> None:
+    def test_postgres_job_store_marks_terminal_failure_after_max_attempts(self) -> None:
         self._insert_job(job_id="job-3", job_type="echo", payload={"message": "x"})
         store = self._make_store(max_attempts=1)
 
@@ -352,17 +373,53 @@ class WorkerTests(unittest.TestCase):
         self.assertIsNotNone(row["finishedAt"])
         self.assertIsNone(row["lockedAt"])
 
-    def test_sqlite_job_store_requeues_stale_in_progress_job(self) -> None:
-        with closing(sqlite3.connect(self.db_path)) as connection:
+    def test_teams_retries_stay_fixed_and_stop_after_three_attempts(self) -> None:
+        self._insert_job("teams-retry", "teams_message_delivery", {})
+        store = self._make_store(max_attempts=9, retry_backoff_seconds=15)
+        for attempt in range(1, 4):
+            job = store.claim_next_job()
+            assert job is not None
+            self.assertEqual(job.attempt_count, attempt)
+            store.fail_job(job.id, "send failed")
+            row = self._fetch_job(job.id)
+            if attempt == 3:
+                self.assertEqual(row["status"], "FAILED")
+                self.assertIsNotNone(row["finishedAt"])
+            else:
+                self.assertEqual(row["status"], "PENDING")
+                self.assertAlmostEqual((row["availableAt"] - row["updatedAt"]).total_seconds(), 15, delta=1)
+                with self._connect() as connection:
+                    connection.execute('UPDATE "BackgroundJob" SET "availableAt" = NOW() WHERE id = %s', (job.id,))
+        self.assertEqual(store._retry_delay_seconds(2, "notification_delivery"), 30)
+
+    def test_worker_retry_cannot_overwrite_a_persisted_teams_delivery_receipt(self) -> None:
+        with self._connect() as connection:
+            connection.execute('''INSERT INTO "TeamsDeliveryTarget" (id, name, "teamId", "channelId", "createdByUserId", "updatedAt")
+                VALUES ('target', 'Target', 'team', 'channel', 'admin-1', NOW())''')
+            connection.execute('''INSERT INTO "TeamsOutboundMessage" (id, "targetId", "eventType", content, status, "graphMessageId", "sentAt", "updatedAt")
+                VALUES ('outbound', 'target', 'USER_CREATED', 'Hello', 'SENT', 'graph-receipt', NOW(), NOW())''')
+        store = self._make_store()
+        store.mark_teams_outbound_processing("outbound", 2)
+        store.mark_teams_outbound_failed("outbound", "response lost", 2, will_retry=True)
+        with self._connect() as connection:
+            row = connection.execute('SELECT status, "graphMessageId", "lastError", "sentAt" FROM "TeamsOutboundMessage" WHERE id = %s', ("outbound",)).fetchone()
+        assert row is not None
+        self.assertEqual(row["status"], "SENT")
+        self.assertEqual(row["graphMessageId"], "graph-receipt")
+        self.assertIsNone(row["lastError"])
+        self.assertIsNotNone(row["sentAt"])
+
+    def test_postgres_job_store_requeues_stale_in_progress_job(self) -> None:
+        with self._connect() as connection:
             connection.execute(
                 """
-                INSERT INTO BackgroundJob (
-                    id, jobType, status, payload, attemptCount, availableAt, startedAt,
-                    lockedAt, workerId, createdAt, updatedAt
+                INSERT INTO "BackgroundJob" (
+                    id, "jobType", status, payload, "attemptCount", "availableAt", "startedAt",
+                    "lockedAt", "workerId", "createdAt", "updatedAt"
                 ) VALUES (
-                    ?, ?, 'IN_PROGRESS', ?, 1, datetime('now', '-10 minutes'),
-                    datetime('now', '-10 minutes'), datetime('now', '-10 minutes'),
-                    'worker-old', datetime('now', '-10 minutes'), datetime('now', '-10 minutes')
+                    %s, %s, 'IN_PROGRESS', %s, 1, (NOW() - INTERVAL '10 minutes'),
+                    (NOW() - INTERVAL '10 minutes'), (NOW() - INTERVAL '10 minutes'),
+                    'worker-old', (NOW() - INTERVAL '10 minutes'), (NOW() - INTERVAL '10 minutes')
                 )
                 """,
                 ("job-4", "noop", json.dumps({"message": "hello"})),
@@ -381,13 +438,14 @@ class WorkerTests(unittest.TestCase):
         self.assertIsNone(row["workerId"])
 
     def test_process_teams_intake_poll_stores_messages_and_updates_delta(self) -> None:
-        with closing(sqlite3.connect(self.db_path)) as connection:
+        with self._connect() as connection:
+            connection.execute('''INSERT INTO "TeamsIntegrationConfig" (id, "intakeEnabled", "updatedAt") VALUES ('default', true, NOW())''')
             connection.execute(
                 """
-                INSERT INTO TeamsIntakeSubscription (
-                    id, teamId, channelId, active, deltaToken, createdByUserId, createdAt, updatedAt
+                INSERT INTO "TeamsIntakeSubscription" (
+                    id, "teamId", "channelId", active, "deltaToken", "createdByUserId", "createdAt", "updatedAt"
                 ) VALUES (
-                    'sub-1', 'team-1', 'channel-1', 1, NULL, 'admin-1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                    'sub-1', 'team-1', 'channel-1', true, NULL, 'admin-1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
                 )
                 """
             )
@@ -408,20 +466,27 @@ class WorkerTests(unittest.TestCase):
             },
         ):
             store = self._make_store()
-            result = process_teams_intake_poll(store)
+            with patch.dict(os.environ, {"TEAMS_ENABLED": "true"}):
+                result = process_teams_intake_poll(store)
 
         self.assertEqual(result["created"], 1)
-        with closing(sqlite3.connect(self.db_path)) as connection:
-            connection.row_factory = sqlite3.Row
+        with self._connect() as connection:
             row = connection.execute(
-                "SELECT providerMessageId FROM TeamsInboundMessage WHERE providerMessageId = ?",
+                'SELECT "providerMessageId" FROM "TeamsInboundMessage" WHERE "providerMessageId" = %s',
                 ("teams-msg-1",),
             ).fetchone()
             self.assertIsNotNone(row)
             sub = connection.execute(
-                "SELECT deltaToken FROM TeamsIntakeSubscription WHERE id = 'sub-1'",
+                'SELECT "deltaToken" FROM "TeamsIntakeSubscription" WHERE id = \'sub-1\'',
             ).fetchone()
-            self.assertEqual(sub["deltaToken"], "/delta-token-1")
+            assert sub is not None
+            self.assertIsNone(sub["deltaToken"])
+
+        with self._connect() as connection:
+            connection.execute('UPDATE "TeamsIntegrationConfig" SET "intakeEnabled" = false')
+        with patch.dict(os.environ, {"TEAMS_ENABLED": "true"}), patch("starter_worker.main.list_teams_channel_messages") as graph:
+            self.assertEqual(process_teams_intake_poll(store)["subscriptions"], 0)
+            graph.assert_not_called()
 
     def test_load_config_reads_repo_env_file(self) -> None:
         env_path = Path(self.temp_dir.name) / ".env"
@@ -462,10 +527,23 @@ class WorkerTests(unittest.TestCase):
 
     def test_load_config_rejects_invalid_numeric_settings(self) -> None:
         with (
-            patch.dict(os.environ, {"WORKER_MAX_ATTEMPTS": "0"}, clear=True),
+            patch.dict(
+                os.environ, {"WORKER_MAX_ATTEMPTS": "0", "DATABASE_URL": self.base_url}, clear=True
+            ),
             self.assertRaises(ValueError),
         ):
             load_config(env_path=Path(self.temp_dir.name) / ".env")
+
+    def test_worker_rejects_missing_and_unsupported_database_urls_without_exposing_credentials(
+        self,
+    ) -> None:
+        for url in ["", "file:./dev.db", "https://worker:private-password@db/app"]:
+            with self.subTest(url=url), patch.dict(os.environ, {"DATABASE_URL": url}, clear=True):
+                with self.assertRaises(ValueError) as error:
+                    load_config(env_path=Path(self.temp_dir.name) / ".env")
+                self.assertNotIn("private-password", str(error.exception))
+        with self.assertRaises(ValueError):
+            normalize_postgres_database_url("file:./dev.db")
 
     def test_worker_lifecycle_logs_use_structured_events(self) -> None:
         job = type(
@@ -524,7 +602,7 @@ class WorkerTests(unittest.TestCase):
     ) -> JobStore:
         return JobStore(
             WorkerConfig(
-                database_url=f"file:{self.db_path}",
+                database_url=self.database_url,
                 poll_interval_seconds=0.1,
                 worker_id="worker-test",
                 max_attempts=max_attempts,
@@ -534,146 +612,47 @@ class WorkerTests(unittest.TestCase):
             )
         )
 
+    def _connect(self) -> psycopg.Connection[dict[str, Any]]:
+        return psycopg.connect(self.database_url, row_factory=dict_row, connect_timeout=10)
+
+    def _drop_schema(self) -> None:
+        with psycopg.connect(self.base_url, autocommit=True, connect_timeout=10) as connection:
+            # psycopg Identifier quotes the generated schema name; this is not string interpolation.
+            # nosemgrep: python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query
+            connection.execute(
+                sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(self.schema))
+            )
+
     def _create_schema(self) -> None:
-        with closing(sqlite3.connect(self.db_path)) as connection:
-            connection.execute(
-                """
-                CREATE TABLE BackgroundJob (
-                    id TEXT PRIMARY KEY,
-                    jobType TEXT NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'PENDING',
-                    payload TEXT,
-                    result TEXT,
-                    error TEXT,
-                    attemptCount INTEGER NOT NULL DEFAULT 0,
-                    availableAt TEXT NOT NULL,
-                    startedAt TEXT,
-                    lockedAt TEXT,
-                    finishedAt TEXT,
-                    workerId TEXT,
-                    createdByUserId TEXT,
-                    createdAt TEXT NOT NULL,
-                    updatedAt TEXT NOT NULL
-                )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE Notification (
-                    id TEXT PRIMARY KEY,
-                    providerMessageId TEXT,
-                    status TEXT NOT NULL DEFAULT 'QUEUED',
-                    lastError TEXT,
-                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE InboundEmail (
-                    id TEXT PRIMARY KEY,
-                    providerMessageId TEXT NOT NULL UNIQUE,
-                    mailbox TEXT NOT NULL,
-                    internetMessageId TEXT,
-                    conversationId TEXT,
-                    senderEmail TEXT,
-                    senderName TEXT,
-                    subject TEXT NOT NULL,
-                    bodyPreview TEXT,
-                    bodyText TEXT,
-                    bodyHtml TEXT,
-                    inReplyTo TEXT,
-                    referenceIds TEXT NOT NULL DEFAULT '[]',
-                    receivedAt TEXT NOT NULL,
-                    processingStatus TEXT NOT NULL DEFAULT 'RECEIVED',
-                    processingNotes TEXT,
-                    correlatedNotificationId TEXT,
-                    linkedEntityType TEXT,
-                    linkedEntityId TEXT,
-                    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE TeamsOutboundMessage (
-                    id TEXT PRIMARY KEY,
-                    status TEXT NOT NULL DEFAULT 'QUEUED',
-                    graphMessageId TEXT,
-                    attemptCount INTEGER NOT NULL DEFAULT 0,
-                    lastError TEXT,
-                    sentAt TEXT,
-                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE TeamsIntegrationConfig (
-                    id TEXT PRIMARY KEY,
-                    sendEnabled INTEGER NOT NULL DEFAULT 0,
-                    intakeEnabled INTEGER NOT NULL DEFAULT 0,
-                    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE TeamsIntakeSubscription (
-                    id TEXT PRIMARY KEY,
-                    teamId TEXT NOT NULL,
-                    channelId TEXT NOT NULL,
-                    active INTEGER NOT NULL DEFAULT 1,
-                    deltaToken TEXT,
-                    lastPolledAt TEXT,
-                    createdByUserId TEXT NOT NULL,
-                    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE TeamsInboundMessage (
-                    id TEXT PRIMARY KEY,
-                    subscriptionId TEXT NOT NULL,
-                    providerMessageId TEXT NOT NULL UNIQUE,
-                    teamId TEXT NOT NULL,
-                    channelId TEXT NOT NULL,
-                    senderDisplayName TEXT,
-                    senderUserId TEXT,
-                    content TEXT,
-                    contentType TEXT,
-                    truncated INTEGER NOT NULL DEFAULT 0,
-                    processingStatus TEXT NOT NULL DEFAULT 'RECEIVED',
-                    processingNotes TEXT,
-                    messageCreatedAt TEXT NOT NULL,
-                    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-            connection.commit()
+        with psycopg.connect(self.base_url, autocommit=True, connect_timeout=10) as connection:
+            # psycopg Identifier quotes the generated schema name; this is not string interpolation.
+            # nosemgrep: python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query
+            connection.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(self.schema)))
+        self.addCleanup(self._drop_schema)
+        migrations = Path(__file__).resolve().parents[2] / "prisma/migrations"
+        with self._connect() as connection:
+            for migration in sorted(migrations.glob("*/migration.sql")):
+                connection.execute(migration.read_text(encoding="utf-8"))
+            connection.execute("""INSERT INTO "User" (id, email, name, "authMethod", "updatedAt")
+                VALUES ('admin-1', 'admin@example.com', 'Admin', 'LOCAL', NOW())""")
 
     def _insert_job(self, job_id: str, job_type: str, payload: dict[str, object]) -> None:
-        with closing(sqlite3.connect(self.db_path)) as connection:
+        with self._connect() as connection:
             connection.execute(
                 """
-                INSERT INTO BackgroundJob (
-                    id, jobType, status, payload, attemptCount,
-                    availableAt, createdAt, updatedAt
-                ) VALUES (?, ?, 'PENDING', ?, 0, datetime('now', '-1 minute'), datetime('now'), datetime('now'))
+                INSERT INTO "BackgroundJob" (
+                    id, "jobType", status, payload, "attemptCount",
+                    "availableAt", "createdAt", "updatedAt"
+                ) VALUES (%s, %s, 'PENDING', %s, 0, (NOW() - INTERVAL '1 minutes'), NOW(), NOW())
                 """,
                 (job_id, job_type, json.dumps(payload)),
             )
             connection.commit()
 
-    def _fetch_job(self, job_id: str) -> sqlite3.Row:
-        with closing(sqlite3.connect(self.db_path)) as connection:
-            connection.row_factory = sqlite3.Row
-            row: sqlite3.Row | None = connection.execute(
-                "SELECT * FROM BackgroundJob WHERE id = ?",
+    def _fetch_job(self, job_id: str) -> dict[str, Any]:
+        with self._connect() as connection:
+            row: dict[str, Any] | None = connection.execute(
+                'SELECT * FROM "BackgroundJob" WHERE id = %s',
                 (job_id,),
             ).fetchone()
 
@@ -686,35 +665,38 @@ class WorkerTests(unittest.TestCase):
         *,
         provider_message_id: str | None = None,
     ) -> None:
-        with closing(sqlite3.connect(self.db_path)) as connection:
+        with self._connect() as connection:
             connection.execute(
                 """
-                INSERT INTO Notification (id, providerMessageId, status, lastError, updatedAt)
-                VALUES (?, ?, 'SENT', NULL, CURRENT_TIMESTAMP)
+                INSERT INTO "NotificationEvent" (id, "eventType", payload) VALUES (%s, 'USER_CREATED', '{}')""",
+                ("event-" + notification_id,),
+            )
+            connection.execute(
+                """INSERT INTO "Notification" (id, "eventId", "recipientEmail", subject, "bodyText", "providerMessageId", status, "lastError", "updatedAt")
+                VALUES (%s, %s, 'recipient@example.com', 'Test', 'Test', %s, 'SENT', NULL, CURRENT_TIMESTAMP)
                 """,
                 (
                     notification_id,
+                    "event-" + notification_id,
                     provider_message_id or f"<provider-{notification_id}@example.com>",
                 ),
             )
             connection.commit()
 
-    def _fetch_notification(self, notification_id: str) -> sqlite3.Row:
-        with closing(sqlite3.connect(self.db_path)) as connection:
-            connection.row_factory = sqlite3.Row
-            row: sqlite3.Row | None = connection.execute(
-                "SELECT * FROM Notification WHERE id = ?",
+    def _fetch_notification(self, notification_id: str) -> dict[str, Any]:
+        with self._connect() as connection:
+            row: dict[str, Any] | None = connection.execute(
+                'SELECT * FROM "Notification" WHERE id = %s',
                 (notification_id,),
             ).fetchone()
 
         assert row is not None
         return row
 
-    def _fetch_inbound_email(self, inbound_email_id: str) -> sqlite3.Row:
-        with closing(sqlite3.connect(self.db_path)) as connection:
-            connection.row_factory = sqlite3.Row
-            row: sqlite3.Row | None = connection.execute(
-                "SELECT * FROM InboundEmail WHERE id = ?",
+    def _fetch_inbound_email(self, inbound_email_id: str) -> dict[str, Any]:
+        with self._connect() as connection:
+            row: dict[str, Any] | None = connection.execute(
+                'SELECT * FROM "InboundEmail" WHERE id = %s',
                 (inbound_email_id,),
             ).fetchone()
 

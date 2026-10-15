@@ -99,10 +99,10 @@ resource "azurerm_container_app" "worker" {
 
       dynamic "env" {
         for_each = var.enable_teams ? {
-          AZURE_AD_CLIENT_ID                   = "azure-ad-client-id"
-          AZURE_AD_CLIENT_SECRET               = "azure-ad-client-secret"
-          AZURE_AD_TENANT_ID                   = "azure-ad-tenant-id"
-          TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY = "teams-delegated-grant-encryption-key"
+          AZURE_AD_CLIENT_ID           = "azure-ad-client-id"
+          AZURE_AD_CLIENT_SECRET       = "azure-ad-client-secret"
+          AZURE_AD_TENANT_ID           = "azure-ad-tenant-id"
+          TEAMS_DELIVERY_SHARED_SECRET = "teams-delivery-shared-secret"
         } : {}
 
         content {
@@ -114,6 +114,11 @@ resource "azurerm_container_app" "worker" {
       env {
         name  = "TEAMS_ENABLED"
         value = var.enable_teams ? "true" : "false"
+      }
+
+      env {
+        name  = "APP_INTERNAL_URL"
+        value = "${local.default_app_base_url}${var.base_path}"
       }
 
       env {

@@ -1,5 +1,7 @@
 # Webapp Template Worker
 
+Teams outbound jobs submit their claimed job ID to the app's `/api/internal/teams/deliver` endpoint. Set `APP_INTERNAL_URL` including `BASE_PATH`, and the same random `TEAMS_DELIVERY_SHARED_SECRET` (at least 32 characters) in app and worker. Only the app refreshes/decrypts the target creator's delegated grant. Intake continues using application credentials. Teams sends retry at a fixed `WORKER_RETRY_BACKOFF_SECONDS`, up to three total attempts (or a lower `WORKER_MAX_ATTEMPTS`).
+
 Minimal `uv`-managed Python worker that polls the shared
 `BackgroundJob` table and processes jobs outside the Next.js request
 lifecycle.
@@ -17,13 +19,10 @@ uv run starter-worker
 
 The worker automatically loads the shared repo-root `.env` file when started
 from the `worker/` subdirectory. Production-style runs should set
-`WORKER_DATABASE_URL`; local development can still fall back to
-`DATABASE_URL=file:./dev.db`.
+`WORKER_DATABASE_URL`; local development can use the PostgreSQL `DATABASE_URL`.
+PostgreSQL is the only supported database. Start it with `pnpm run db:up` from the repository root before starting the worker.
 
-The worker supports both:
-
-- `file:` SQLite URLs for local development
-- PostgreSQL URLs for Docker/shared deployments
+Tests use isolated schemas in a dedicated PostgreSQL database. Provision it from the repository root with `node scripts/ensure-e2e-db.mjs`, then run `uv run pytest` from `worker/`. `TEST_DATABASE_URL` can override the test connection; its database name must end in `_test`. Tests never reset the ordinary development database.
 
 ## Reliability Settings
 

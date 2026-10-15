@@ -122,6 +122,7 @@ resource "azurerm_container_app" "app" {
 
       dynamic "env" {
         for_each = var.enable_teams ? {
+          TEAMS_DELIVERY_SHARED_SECRET         = "teams-delivery-shared-secret"
           AZURE_AD_CLIENT_ID                   = "azure-ad-client-id"
           AZURE_AD_CLIENT_SECRET               = "azure-ad-client-secret"
           AZURE_AD_TENANT_ID                   = "azure-ad-tenant-id"

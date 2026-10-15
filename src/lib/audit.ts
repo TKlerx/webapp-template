@@ -8,7 +8,7 @@ export type LogAuditInput = {
   action: AuditAction;
   entityType: string;
   entityId: string;
-  actorId: string;
+  actorId: string | null;
   details?: unknown;
   scopeId?: string | null;
 };

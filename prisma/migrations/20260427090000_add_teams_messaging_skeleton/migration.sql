@@ -1,11 +1,17 @@
+-- CreateEnum
+CREATE TYPE "TeamsMessageStatus" AS ENUM ('QUEUED', 'SENDING', 'RETRYING', 'SENT', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "TeamsInboundStatus" AS ENUM ('RECEIVED', 'PROCESSED', 'IGNORED');
+
 -- CreateTable
 CREATE TABLE "TeamsIntegrationConfig" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "sendEnabled" BOOLEAN NOT NULL DEFAULT false,
     "intakeEnabled" BOOLEAN NOT NULL DEFAULT false,
     "updatedByUserId" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "TeamsIntegrationConfig_updatedByUserId_fkey" FOREIGN KEY ("updatedByUserId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -19,8 +25,8 @@ CREATE TABLE "TeamsDeliveryTarget" (
     "channelName" TEXT,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "createdByUserId" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "TeamsDeliveryTarget_createdByUserId_fkey" FOREIGN KEY ("createdByUserId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -28,18 +34,18 @@ CREATE TABLE "TeamsDeliveryTarget" (
 CREATE TABLE "TeamsOutboundMessage" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "targetId" TEXT NOT NULL,
-    "eventType" TEXT NOT NULL,
+    "eventType" "NotificationEventType" NOT NULL,
     "eventId" TEXT,
     "content" TEXT NOT NULL,
     "contentType" TEXT NOT NULL DEFAULT 'html',
     "truncated" BOOLEAN NOT NULL DEFAULT false,
-    "status" TEXT NOT NULL DEFAULT 'QUEUED',
+    "status" "TeamsMessageStatus" NOT NULL DEFAULT 'QUEUED',
     "graphMessageId" TEXT,
     "attemptCount" INTEGER NOT NULL DEFAULT 0,
     "lastError" TEXT,
-    "sentAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "sentAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "TeamsOutboundMessage_targetId_fkey" FOREIGN KEY ("targetId") REFERENCES "TeamsDeliveryTarget" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "TeamsOutboundMessage_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "NotificationEvent" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -53,10 +59,10 @@ CREATE TABLE "TeamsIntakeSubscription" (
     "channelName" TEXT,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "deltaToken" TEXT,
-    "lastPolledAt" DATETIME,
+    "lastPolledAt" TIMESTAMP(3),
     "createdByUserId" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "TeamsIntakeSubscription_createdByUserId_fkey" FOREIGN KEY ("createdByUserId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -72,11 +78,11 @@ CREATE TABLE "TeamsInboundMessage" (
     "content" TEXT,
     "contentType" TEXT,
     "truncated" BOOLEAN NOT NULL DEFAULT false,
-    "processingStatus" TEXT NOT NULL DEFAULT 'RECEIVED',
+    "processingStatus" "TeamsInboundStatus" NOT NULL DEFAULT 'RECEIVED',
     "processingNotes" TEXT,
-    "messageCreatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "messageCreatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "TeamsInboundMessage_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "TeamsIntakeSubscription" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 

@@ -64,6 +64,13 @@ describe("background jobs route", () => {
     }
 
     expect(response.status).toBe(201);
+    expect(prismaMock.backgroundJob.create).toHaveBeenCalledWith({
+      data: {
+        jobType: "echo",
+        payload: '{"message":"hello"}',
+        createdByUserId: "admin-1",
+      },
+    });
     await expect(response.json()).resolves.toMatchObject({
       job: {
         id: "job-1",
@@ -100,6 +107,31 @@ describe("background jobs route", () => {
     await expect(response.json()).resolves.toMatchObject({
       error: "Unsupported jobType",
     });
+  });
+
+  it.each([
+    { delegatedAccessToken: "private-value" },
+    { nested: [{ ACCESS_TOKEN: "private-value" }] },
+    { nested: { "client-secret": "private-value" } },
+    { metadata: "Authorization: Bearer private-value" },
+    ["Basic cHJpdmF0ZTp2YWx1ZQ=="],
+  ])("rejects credentials before storing a job: %j", async (payload) => {
+    requireApiUserWithRoles.mockResolvedValue({
+      user: { id: "admin-1", role: Role.PLATFORM_ADMIN },
+    });
+    const response = await POST(
+      new Request("http://localhost/api/background-jobs", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jobType: "echo", payload }),
+      }),
+    );
+    if (!response) throw new Error("Expected credential rejection response");
+    expect(response.status).toBe(400);
+    expect(await response.text()).toBe(
+      '{"error":"Job payload must not contain credentials"}',
+    );
+    expect(prismaMock.backgroundJob.create).not.toHaveBeenCalled();
   });
 
   it("rejects oversized payloads", async () => {

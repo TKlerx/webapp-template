@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  getDatabaseProviderForUrl,
   resolveAppDatabaseUrl,
   resolveMigrationDatabaseUrl,
 } from "@/lib/database-url";
@@ -17,13 +16,18 @@ describe("database URL resolution", () => {
   });
 
   it("falls back to DATABASE_URL for local app runtime", () => {
-    expect(resolveAppDatabaseUrl({ DATABASE_URL: "file:./dev.db" })).toBe(
-      "file:./dev.db",
-    );
+    expect(
+      resolveAppDatabaseUrl({
+        DATABASE_URL: "postgresql://app:test@localhost:5432/app",
+      }),
+    ).toBe("postgresql://app:test@localhost:5432/app");
   });
 
-  it("defaults to local SQLite when no app database URL is configured", () => {
-    expect(resolveAppDatabaseUrl({})).toBe("file:./dev.db");
+  it("requires an explicitly configured database", () => {
+    expect(() => resolveAppDatabaseUrl({})).toThrow("Configure a PostgreSQL");
+    expect(() => resolveMigrationDatabaseUrl({})).toThrow(
+      "Configure a PostgreSQL",
+    );
   });
 
   it("prefers MIGRATION_DATABASE_URL for migration runtime", () => {
@@ -35,10 +39,12 @@ describe("database URL resolution", () => {
     ).toBe("postgresql://migrator:test@localhost:5432/app");
   });
 
-  it("detects Prisma provider from the selected URL", () => {
-    expect(getDatabaseProviderForUrl("file:./dev.db")).toBe("sqlite");
-    expect(getDatabaseProviderForUrl("postgresql://app:test@db:5432/app")).toBe(
-      "postgresql",
-    );
-  });
+  it.each(["file:./dev.db", "https://db/app", "postgresql://db", "not-a-url"])(
+    "rejects unsupported database URL %s without exposing credentials",
+    (url) => {
+      expect(() => resolveAppDatabaseUrl({ DATABASE_URL: url })).toThrow(
+        /PostgreSQL/,
+      );
+    },
+  );
 });

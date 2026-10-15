@@ -41,6 +41,11 @@ The default config locations are:
 - Windows: `%APPDATA%\starterctl\config.json`
 - macOS/Linux: `~/.config/starterctl/config.json`
 
+The token file is restricted to its owner: mode 0600 on macOS/Linux and a
+protected current-user-only DACL on Windows. Saving also repairs permissive
+existing file permissions before writing. If the file cannot be secured or is
+open elsewhere on Windows, the save fails without overwriting its contents.
+
 You can also override config and auth through environment variables:
 
 - `STARTERCTL_CONFIG_DIR`
@@ -173,13 +178,16 @@ From `cli/`:
 gofmt -l .
 go test ./...
 go vet ./...
+go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -scan=package -test=false .
 go run honnef.co/go/tools/cmd/staticcheck ./...
 go run github.com/fzipp/gocyclo/cmd/gocyclo -over 15 .
 go build ./...
 ```
 
 From the repository root, `pnpm run quality:cli` runs the full CLI quality gate,
-including the Go cyclomatic-complexity threshold. Set
+including the Go cyclomatic-complexity threshold and a blocking vulnerability
+audit of production imports (excluding test and quality-tool dependencies). The
+audit also runs before publishing CLI releases. Set
 `QUALITY_THRESHOLDS_BYPASS=1` to make that threshold advisory while keeping the
 other CLI checks blocking.
 

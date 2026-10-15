@@ -18,6 +18,7 @@ class TeamsMessageDeliveryPayload(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     teamsOutboundMessageId: str = Field(min_length=1)
+    targetId: str | None = Field(default=None, min_length=1)
     teamId: str = Field(min_length=1)
     channelId: str = Field(min_length=1)
     content: str

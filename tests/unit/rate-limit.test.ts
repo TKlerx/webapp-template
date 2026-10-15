@@ -64,6 +64,36 @@ describe("rate limit utility", () => {
     });
   });
 
+  it("keeps a full cooldown after a late threshold and does not extend it for blocked retries", () => {
+    checkRateLimit("client", "login");
+    vi.advanceTimersByTime(14 * 60 * 1000);
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      expect(checkRateLimit("client", "login").allowed).toBe(true);
+    }
+    expect(checkRateLimit("client", "login")).toEqual({
+      allowed: false,
+      retryAfterMs: 15 * 60 * 1000,
+    });
+    vi.advanceTimersByTime(60 * 1000);
+    expect(checkRateLimit("client", "login")).toEqual({
+      allowed: false,
+      retryAfterMs: 14 * 60 * 1000,
+    });
+    vi.advanceTimersByTime(14 * 60 * 1000);
+    expect(checkRateLimit("client", "login").allowed).toBe(true);
+  });
+
+  it("expires individual attempts from a sliding window before the threshold", () => {
+    checkRateLimit("client", "login");
+    vi.advanceTimersByTime(14 * 60 * 1000);
+    for (let attempt = 0; attempt < 3; attempt += 1)
+      checkRateLimit("client", "login");
+    vi.advanceTimersByTime(60 * 1000);
+    expect(checkRateLimit("client", "login").allowed).toBe(true);
+    expect(checkRateLimit("client", "login").allowed).toBe(true);
+    expect(checkRateLimit("client", "login").allowed).toBe(false);
+  });
+
   it("ignores proxy headers by default", () => {
     const forwardedRequest = new Request("http://localhost/test", {
       headers: {

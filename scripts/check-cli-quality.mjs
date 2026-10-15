@@ -87,6 +87,14 @@ if (unformatted) {
 }
 
 runGo(["vet", "./..."]);
+// Scan production imports only; test and quality-tool dependencies are excluded.
+runGo([
+  "run",
+  "golang.org/x/vuln/cmd/govulncheck@v1.8.0",
+  "-scan=package",
+  "-test=false",
+  ".",
+]);
 runGo(["run", "honnef.co/go/tools/cmd/staticcheck", "./..."]);
 runGo([
   "run",

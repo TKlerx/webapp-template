@@ -1248,11 +1248,10 @@ if ($Phase -in "all", "full", "test", "commit") {
     try {
         $previousDatabaseUrl = $env:DATABASE_URL
         if ([string]::IsNullOrWhiteSpace($env:APP_DATABASE_URL) -and [string]::IsNullOrWhiteSpace($env:DATABASE_URL)) {
-            $env:DATABASE_URL = "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e_test"
+            $env:DATABASE_URL = "postgresql://starter:starter_e2e_password@127.0.0.1:55432/business_app_starter_e2e_test"
         }
 
-        $effectiveDatabaseUrl = if (-not [string]::IsNullOrWhiteSpace($env:APP_DATABASE_URL)) { $env:APP_DATABASE_URL } else { $env:DATABASE_URL }
-        $generateCommand = if ($effectiveDatabaseUrl -like "file:*") { "pnpm run prisma:generate" } else { "pnpm run prisma:generate:postgres" }
+        $generateCommand = "pnpm run prisma:generate"
         $generateResult = Invoke-NativeCommandCaptured $generateCommand
         if ($generateResult.ExitCode -ne 0) {
             $generateResult.Output | Out-Host

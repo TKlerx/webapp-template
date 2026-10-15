@@ -17,8 +17,7 @@ These files are intentionally committed into the template so copied repos still 
 ## Includes
 
 - Next.js 16 app router
-- Prisma starter data model with SQLite for local development
-- PostgreSQL-backed Docker deployment
+- Prisma data model with PostgreSQL in development, tests, and deployment
 - Go-based `starterctl` CLI with PAT-backed API access and GoReleaser packaging
 - uv-managed Python worker skeleton for background jobs
 - Azure SSO and local login
@@ -80,12 +79,13 @@ Missing mypy, pytest, Prettier, or E2E specs fail their required phases;
 Playwright E2E defaults to a local PostgreSQL container named
 `webapp-template-e2e-postgres` on host port `55432`. The E2E setup script
 creates or starts that container, ensures the `business_app_starter_e2e_test`
-database exists, resets that database, seeds the initial admin, and runs the app
-with the Postgres Prisma schema. Use a separate database such as
+database exists, applies migrations without resetting existing data, seeds the initial admin, and runs the app
+with the same Prisma schema used by deployments. Use a separate database such as
 `business_app_starter_manual` in the same container for manual exploratory
-testing. Set an explicit `DATABASE_URL=file:./e2e.db` only when you intentionally
-need the legacy SQLite E2E path. Set `E2E_REUSE_SERVER=1` only when you are not
-resetting the database between runs.
+testing. Override test connections with `TEST_DATABASE_URL`, pointing to a dedicated
+database whose name ends in `_test`; ordinary `DATABASE_URL` is never used for test resets.
+Playwright uses a fresh timestamped `_test` database by default. Use an explicit
+`TEST_DATABASE_URL` with `E2E_REUSE_SERVER=1` when reusing a running test server.
 
 `precommit` is the fast local hook phase: TypeScript typecheck,
 dependency-cruiser architecture, and jscpd duplication.
@@ -169,9 +169,25 @@ $env:CLI_RELEASES_SOURCE_DIR='.\cli\dist'
 pnpm run cli:install-releases
 ```
 
+## Local Development
+
+Configure `.env` from `.env.example`: set `POSTGRES_PASSWORD` and match it in the PostgreSQL `DATABASE_URL`. Start Docker/Rancher Desktop, then:
+
+```powershell
+pnpm run db:up
+pnpm run prisma:generate
+pnpm run prisma:deploy
+pnpm run prisma:seed
+pnpm run dev
+```
+
+`db:up` starts only PostgreSQL on loopback port 5432 with a persistent development volume. `db:stop` stops it without deleting data. The web app, worker and migrations use the same PostgreSQL schema; deployed runtime-specific credentials remain separate. Missing or unsupported database URLs fail explicitly.
+
+For database-backed tests, run `node scripts/ensure-e2e-db.mjs` once before `pnpm test` or the worker tests. It creates a separate test database on port 55432. Existing SQLite files are retained for explicit data export/import if needed; this change does not automatically transfer their contents.
+
 ## Docker Deployment
 
-- Local `pnpm run dev` uses SQLite via `DATABASE_URL=file:./dev.db`.
+- Local development and Docker deployments both use PostgreSQL.
 - Put Docker-only PostgreSQL and initial admin values in `.env.docker` using `.env.docker.example` as the template, then start Docker with `pnpm docker up`.
 - Production-style Docker uses separate database URL names by runtime: `APP_DATABASE_URL`, `WORKER_DATABASE_URL`, and `MIGRATION_DATABASE_URL`.
 - Docker services receive explicit allowlisted environment variables; the Postgres container only receives `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`.

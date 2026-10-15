@@ -98,6 +98,7 @@
     "switchedTo": "Tema alterado para modo {theme}"
   },
   "audit": {
+    "anonymous": "Anónimo",
     "title": "Auditoria",
     "action": "Acao",
     "actor": "Autor",

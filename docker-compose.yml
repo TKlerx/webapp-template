@@ -51,6 +51,8 @@ x-app-env: &app-env
   PAT_MAX_ACTIVE_PER_USER: ${PAT_MAX_ACTIVE_PER_USER:-10}
   PAT_TOKEN_PREFIX: ${PAT_TOKEN_PREFIX:-starter_pat}
   TEAMS_ENABLED: ${TEAMS_ENABLED:-false}
+  TEAMS_DELIVERY_SHARED_SECRET: ${TEAMS_DELIVERY_SHARED_SECRET:-}
+  TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY: ${TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY:-${BETTER_AUTH_SECRET}}
 
 x-migration-env: &migration-env
   <<: *common-env
@@ -72,6 +74,8 @@ x-worker-env: &worker-env
   GRAPH_TENANT_ID: ${GRAPH_TENANT_ID:-}
   MAIL_DEFAULT_MAILBOX: ${MAIL_DEFAULT_MAILBOX:-}
   MAIL_PROVIDER: ${MAIL_PROVIDER:-graph}
+  APP_INTERNAL_URL: http://app:3270${BASE_PATH:-}
+  TEAMS_DELIVERY_SHARED_SECRET: ${TEAMS_DELIVERY_SHARED_SECRET:-}
   TEAMS_ENABLED: ${TEAMS_ENABLED:-false}
   TEAMS_POLL_INTERVAL_SECONDS: ${TEAMS_POLL_INTERVAL_SECONDS:-60}
   WORKER_MAX_ATTEMPTS: ${WORKER_MAX_ATTEMPTS:-3}
@@ -104,7 +108,7 @@ services:
       <<: *migration-env
       NODE_ENV: "production"
       PORT: "3270"
-      PRISMA_CONFIG_PATH: "prisma.config.postgres.ts"
+      PRISMA_CONFIG_PATH: "prisma.config.ts"
     networks: [internal]
     volumes:
       - uploads_data:/app/uploads
@@ -118,7 +122,7 @@ services:
       ''|starter) echo 'Docker Compose production flow requires POSTGRES_PASSWORD in .env.docker or .env to be set to a non-default secret.' >&2; exit 1 ;;
       esac
       && node scripts/prisma-predeploy-check.js
-      && ./node_modules/.bin/prisma migrate deploy --config prisma.config.postgres.ts
+      && ./node_modules/.bin/prisma migrate deploy --config prisma.config.ts
       && node scripts/seed-initial-admin.mjs"
     depends_on:
       postgres:

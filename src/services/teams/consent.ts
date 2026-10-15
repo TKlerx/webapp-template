@@ -19,12 +19,13 @@ type TeamsTokenResponse = {
 
 function getTeamsGrantEncryptionSecret() {
   const configured =
-    process.env.TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY ??
-    process.env.BETTERAUTH_SECRET;
+    process.env.TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY?.trim() ||
+    process.env.BETTERAUTH_SECRET ||
+    process.env.BETTER_AUTH_SECRET;
 
   if (!configured?.trim()) {
     throw new Error(
-      "Missing delegated grant encryption secret. Set TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY or BETTERAUTH_SECRET.",
+      "Missing delegated grant encryption secret. Set TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY or BETTER_AUTH_SECRET.",
     );
   }
 
@@ -166,6 +167,7 @@ export async function exchangeTeamsConsentCode(request: Request, code: string) {
         scope: TEAMS_DELEGATED_SCOPE,
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     },
   );
   if (!response.ok) {
@@ -181,11 +183,12 @@ export async function exchangeTeamsConsentCode(request: Request, code: string) {
 export async function saveTeamsDelegatedGrant(
   userId: string,
   token: TeamsTokenResponse,
+  db: Pick<typeof prisma, "teamsDelegatedGrant"> = prisma,
 ) {
   const expiresAt = token.expires_in
     ? new Date(Date.now() + token.expires_in * 1000)
     : null;
-  return prisma.teamsDelegatedGrant.upsert({
+  return db.teamsDelegatedGrant.upsert({
     where: { userId },
     update: {
       scope: token.scope ?? TEAMS_DELEGATED_SCOPE,
@@ -234,8 +237,11 @@ export async function getTeamsDelegatedGrantStatus(userId: string) {
   };
 }
 
-export async function getFreshTeamsDelegatedAccessToken(userId: string) {
-  const grant = await prisma.teamsDelegatedGrant.findUnique({
+export async function getFreshTeamsDelegatedAccessToken(
+  userId: string,
+  db: Pick<typeof prisma, "teamsDelegatedGrant"> = prisma,
+) {
+  const grant = await db.teamsDelegatedGrant.findUnique({
     where: { userId },
   });
   if (!grant) {
@@ -271,6 +277,7 @@ export async function getFreshTeamsDelegatedAccessToken(userId: string) {
         scope: TEAMS_DELEGATED_SCOPE,
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     },
   );
   if (!response.ok) {
@@ -281,6 +288,11 @@ export async function getFreshTeamsDelegatedAccessToken(userId: string) {
   }
 
   const token = (await response.json()) as TeamsTokenResponse;
-  await saveTeamsDelegatedGrant(userId, token);
+  if (!token.access_token?.trim()) {
+    throw new Error("Teams refresh response did not include an access token.");
+  }
+  // Entra can omit an unchanged refresh token; retain the existing grant.
+  token.refresh_token ??= refreshToken;
+  await saveTeamsDelegatedGrant(userId, token, db);
   return token.access_token;
 }

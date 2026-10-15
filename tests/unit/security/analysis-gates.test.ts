@@ -8,6 +8,46 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 
 describe("analysis gates", () => {
+  it.each(["clean", "vulnerabilities", "unavailable"])(
+    "runs the production Go audit and blocks failures: %s",
+    (mode) => {
+      const result = spawnSync(
+        process.execPath,
+        [
+          "--input-type=module",
+          "-e",
+          `
+          import cp from 'node:child_process';
+          import { syncBuiltinESMExports } from 'node:module';
+          cp.spawnSync = (command, args) => {
+            if (args.some(arg => arg.includes('govulncheck'))) {
+              console.log('AUDIT_ARGS=' + JSON.stringify(args));
+              if ('${mode}' === 'unavailable') return { error: new Error('scanner unavailable') };
+              if ('${mode}' === 'vulnerabilities') return { status: 3 };
+            }
+            return { status: 0, stdout: '', stderr: '' };
+          };
+          syncBuiltinESMExports();
+          await import('./scripts/check-cli-quality.mjs');
+          `,
+        ],
+        { cwd: root, encoding: "utf8" },
+      );
+      expect(result.error).toBeUndefined();
+      expect(result.stdout).toContain(
+        'AUDIT_ARGS=["run","golang.org/x/vuln/cmd/govulncheck@v1.8.0","-scan=package","-test=false","."]',
+      );
+      if (mode === "clean") {
+        expect(result.status, result.stdout + result.stderr).toBe(0);
+      } else {
+        expect(result.status).toBeGreaterThan(0);
+        expect(result.stdout).not.toContain(
+          "honnef.co/go/tools/cmd/staticcheck",
+        );
+      }
+    },
+  );
+
   it.each(["vulnerabilities", "unavailable"])(
     "blocks production audit failures without an opt-in flag: %s",
     (mode) => {

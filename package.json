@@ -41,10 +41,11 @@
     "validation:inputs": "pnpm exec vitest run tests/unit/validation.test.ts tests/unit/background-jobs-route.test.ts tests/unit/auth/cli-approval-route.test.ts && cd worker && uv run pytest tests/test_main.py -k process_job -q",
     "template:stamp": "node scripts/stamp-template-origin.mjs",
     "prisma:generate": "prisma generate",
-    "prisma:generate:postgres": "prisma generate --config prisma.config.postgres.ts",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:postgres": "prisma migrate deploy --config prisma.config.postgres.ts",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:deploy": "prisma migrate deploy",
+    "db:up": "docker compose -f compose.dev.yml up -d --wait",
+    "db:stop": "docker compose -f compose.dev.yml stop"
   },
   "keywords": [],
   "author": "",
@@ -58,7 +59,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.27.0",
-    "next": "^16.3.3",
+    "next": "^16.3.8",
     "next-intl": "^4.13.4",
     "pg": "^8.23.0",
     "radix-ui": "^1.6.7",
@@ -67,16 +68,13 @@
     "tailwind-merge": "^3.6.0",
     "zod": "^4.5.4"
   },
-  "optionalDependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.10.0",
-    "better-sqlite3": "^12.11.1"
-  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
     "@playwright/test": "^1.62.1",
     "@swc/helpers": "^0.5.23",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.1.1",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitest/coverage-v8": "^4.1.11",

@@ -63,10 +63,18 @@ func Save(cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(ConfigPath(), append(data, '\n'), 0o600); err != nil {
+	file, err := openPrivateConfig(ConfigPath())
+	if err != nil {
 		return err
 	}
-	return os.Chmod(ConfigPath(), 0o600)
+	defer file.Close()
+	if err := file.Truncate(0); err != nil {
+		return err
+	}
+	if _, err := file.Write(append(data, '\n')); err != nil {
+		return err
+	}
+	return file.Close()
 }
 
 func Clear() error {

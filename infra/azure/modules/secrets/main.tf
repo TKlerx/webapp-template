@@ -3,6 +3,12 @@ resource "random_password" "better_auth" {
   special = false
 }
 
+resource "random_password" "teams_delivery" {
+  count   = var.enable_teams ? 1 : 0
+  length  = 48
+  special = false
+}
+
 resource "random_password" "initial_admin" {
   length           = 32
   special          = true
@@ -31,10 +37,11 @@ locals {
   } : {}
 
   teams_secret_values = var.enable_teams ? {
+    teams-delivery-shared-secret         = random_password.teams_delivery[0].result
     azure-ad-client-id                   = var.azure_ad_client_id
     azure-ad-client-secret               = var.azure_ad_client_secret
     azure-ad-tenant-id                   = var.azure_ad_tenant_id
-    teams-delegated-grant-encryption-key = var.teams_delegated_grant_key
+    teams-delegated-grant-encryption-key = length(trimspace(var.teams_delegated_grant_key)) > 0 ? var.teams_delegated_grant_key : random_password.better_auth.result
   } : {}
 
   secret_values = merge(

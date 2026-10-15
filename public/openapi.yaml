@@ -15,6 +15,41 @@ tags:
   - name: CLI Auth
   - name: System
 paths:
+  /api/internal/teams/deliver:
+    post:
+      tags: [System]
+      summary: Deliver a claimed Teams job using the target owner's delegated grant
+      security:
+        - teamsDeliveryAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [jobId]
+              properties:
+                jobId: { type: string, minLength: 1, maxLength: 200 }
+            example: { jobId: claimed-teams-job-id }
+      responses:
+        "200":
+          description: Persisted delivery receipt, reused on replay
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: [string, "null"] }
+              example: { id: graph-message-id }
+        "400":
+          description: Invalid job-only request
+        "401":
+          description: Invalid dedicated delivery secret
+        "502":
+          description: Sanitized delivery failure; no tokens or provider bodies returned
+        "503":
+          description: Delivery secret missing or shorter than 32 characters
   /api/health:
     get:
       tags: [System]
@@ -68,7 +103,7 @@ paths:
         - apiKeyAuth: []
       responses:
         "200":
-          description: Audit entries
+          description: Audit entries. Unauthenticated login attempts have a null actor; known target user IDs do not imply an authenticated actor.
   /api/audit/export:
     get:
       tags: [Audit]
@@ -94,12 +129,42 @@ paths:
     post:
       tags: [Background Jobs]
       summary: Queue a background job
+      description: Credential-bearing payloads are rejected before persistence. Accepted non-secret payloads retain their shape and content.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [jobType]
+              properties:
+                jobType: { type: string }
+                payload: {}
+            example: { jobType: echo, payload: { message: hello } }
       security:
         - bearerAuth: []
         - apiKeyAuth: []
       responses:
         "201":
           description: Job created
+          content:
+            application/json:
+              example:
+                {
+                  job:
+                    {
+                      id: job-id,
+                      jobType: echo,
+                      status: PENDING,
+                      payload: { message: hello },
+                    },
+                }
+        "400":
+          description: Unsupported job type, oversized payload, or detected credentials
+          content:
+            application/json:
+              example: { error: Job payload must not contain credentials }
   /api/locale:
     post:
       tags: [System]
@@ -207,6 +272,10 @@ paths:
           description: YAML document
 components:
   securitySchemes:
+    teamsDeliveryAuth:
+      type: http
+      scheme: bearer
+      description: Dedicated TEAMS_DELIVERY_SHARED_SECRET shared only by app and worker
     bearerAuth:
       type: http
       scheme: bearer

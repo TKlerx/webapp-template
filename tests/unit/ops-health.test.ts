@@ -138,7 +138,8 @@ describe("ops health snapshot helpers", () => {
     process.env.APP_REVISION = "abcdef1234567890";
     process.env.APP_BUILD_ID = "123.2";
     process.env.APP_BUILT_AT = "2026-06-11T09:20:17Z";
-    process.env.APP_DATABASE_URL = "file:./dev.db";
+    process.env.APP_DATABASE_URL =
+      "postgresql://health:test@localhost:5432/test_database";
     checkDatabaseHealth.mockResolvedValue({ status: "ok" });
     getProcessHealth.mockReturnValue({
       status: "ok",
@@ -163,7 +164,9 @@ describe("ops health snapshot helpers", () => {
       "deploySmoke",
     ]);
     expect(snapshot.diagnosticSummary.text).toContain("Version: staging-42");
-    expect(snapshot.diagnosticSummary.text).not.toContain("file:./dev.db");
+    expect(snapshot.diagnosticSummary.text).not.toContain(
+      "postgresql://health:test@localhost:5432/test_database",
+    );
   });
 
   it("does not treat stale or pending jobs as worker evidence", async () => {
@@ -240,7 +243,8 @@ describe("ops health snapshot helpers", () => {
   }, 5000);
 
   it("keeps the snapshot when a required check rejects", async () => {
-    process.env.APP_DATABASE_URL = "file:./dev.db";
+    process.env.APP_DATABASE_URL =
+      "postgresql://health:test@localhost:5432/test_database";
     checkDatabaseHealth.mockRejectedValue(new Error("database probe failed"));
     getProcessHealth.mockReturnValue({
       status: "ok",

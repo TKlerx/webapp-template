@@ -140,6 +140,7 @@ module "runtime" {
   azure_ad_client_secret_secret_id    = module.secrets.azure_ad_client_secret_secret_id
   azure_ad_tenant_id_secret_id        = module.secrets.azure_ad_tenant_id_secret_id
   teams_delegated_grant_key_secret_id = module.secrets.teams_delegated_grant_key_secret_id
+  teams_delivery_shared_secret_id     = module.secrets.teams_delivery_shared_secret_id
   tags                                = local.tags
 
   depends_on = [

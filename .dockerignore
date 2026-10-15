@@ -4,6 +4,8 @@ node_modules/
 .codex/
 .deepsec/
 .git/
+.worktrees/
+security-analysis/
 .next/
 .artifacts/
 coverage/

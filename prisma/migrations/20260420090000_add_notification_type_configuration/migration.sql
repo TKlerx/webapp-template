@@ -1,10 +1,9 @@
--- SQLite stores Prisma enums as text, so no physical enum schema change is required.
--- This migration introduces durable notification type configuration records.
-
 CREATE TABLE "NotificationTypeConfiguration" (
-    "eventType" TEXT NOT NULL PRIMARY KEY,
+    "eventType" "NotificationEventType" NOT NULL,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "updatedByUserId" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "NotificationTypeConfiguration_pkey" PRIMARY KEY ("eventType")
 );

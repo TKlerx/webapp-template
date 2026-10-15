@@ -4,6 +4,7 @@ locals {
   auth_base_url        = "${local.app_base_url}${var.base_path}"
 
   app_optional_secret_ids = var.enable_teams ? {
+    teams-delivery-shared-secret         = var.teams_delivery_shared_secret_id
     azure-ad-client-id                   = var.azure_ad_client_id_secret_id
     azure-ad-client-secret               = var.azure_ad_client_secret_secret_id
     azure-ad-tenant-id                   = var.azure_ad_tenant_id_secret_id
@@ -19,10 +20,10 @@ locals {
       graph-tenant-id      = var.graph_tenant_id_secret_id
     } : {},
     var.enable_teams ? {
-      azure-ad-client-id                   = var.azure_ad_client_id_secret_id
-      azure-ad-client-secret               = var.azure_ad_client_secret_secret_id
-      azure-ad-tenant-id                   = var.azure_ad_tenant_id_secret_id
-      teams-delegated-grant-encryption-key = var.teams_delegated_grant_key_secret_id
+      azure-ad-client-id           = var.azure_ad_client_id_secret_id
+      azure-ad-client-secret       = var.azure_ad_client_secret_secret_id
+      azure-ad-tenant-id           = var.azure_ad_tenant_id_secret_id
+      teams-delivery-shared-secret = var.teams_delivery_shared_secret_id
     } : {},
   )
 }

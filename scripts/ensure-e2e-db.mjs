@@ -1,32 +1,24 @@
 import { spawnSync } from "node:child_process";
 
 const DEFAULT_E2E_DATABASE_URL =
-  "postgresql://starter:starter_e2e_password@localhost:55432/business_app_starter_e2e_test";
+  "postgresql://starter:starter_e2e_password@127.0.0.1:55432/business_app_starter_e2e_test";
 
 const databaseUrl =
-  process.env.DATABASE_URL?.trim() || DEFAULT_E2E_DATABASE_URL;
-
-if (databaseUrl.startsWith("file:")) {
-  runStep(
-    "Provision local SQLite E2E database",
-    "node scripts/ensure-local-db.mjs",
-    {
-      DATABASE_URL: databaseUrl,
-    },
-  );
-  process.exit(0);
-}
+  process.env.TEST_DATABASE_URL?.trim() || DEFAULT_E2E_DATABASE_URL;
 
 if (
   !databaseUrl.startsWith("postgresql://") &&
   !databaseUrl.startsWith("postgres://")
 ) {
-  throw new Error(
-    "E2E DATABASE_URL must be a PostgreSQL URL or an explicit file: SQLite URL.",
-  );
+  throw new Error("E2E DATABASE_URL must be a PostgreSQL URL.");
 }
 
 const parsed = new URL(databaseUrl);
+if (!parsed.pathname.endsWith("_test")) {
+  throw new Error(
+    "Destructive E2E provisioning requires a dedicated database ending in _test.",
+  );
+}
 const containerName =
   process.env.E2E_POSTGRES_CONTAINER || "webapp-template-e2e-postgres";
 const postgresUser = decodeURIComponent(parsed.username || "starter");
@@ -45,17 +37,17 @@ const env = {
   MIGRATION_DATABASE_URL: databaseUrl,
   INITIAL_ADMIN_EMAIL: process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
   INITIAL_ADMIN_PASSWORD: process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
-  PRISMA_CONFIG_PATH: "prisma.config.postgres.ts",
+  PRISMA_CONFIG_PATH: "prisma.config.ts",
 };
 
 runStep(
   "Generate PostgreSQL Prisma client",
-  "pnpm exec prisma generate --config prisma.config.postgres.ts",
+  "pnpm exec prisma generate --config prisma.config.ts",
   env,
 );
 runStep(
-  "Reset PostgreSQL E2E schema",
-  "pnpm exec prisma migrate reset --force --config prisma.config.postgres.ts",
+  "Apply PostgreSQL test migrations",
+  "pnpm exec prisma migrate deploy --config prisma.config.ts",
   env,
 );
 runStep("Seed PostgreSQL E2E data", "pnpm exec tsx prisma/seed.ts", env);
@@ -81,7 +73,7 @@ function ensureDockerPostgres() {
       "--name",
       containerName,
       "-p",
-      `${hostPort}:5432`,
+      `127.0.0.1:${hostPort}:5432`,
       "-e",
       `POSTGRES_USER=${postgresUser}`,
       "-e",
