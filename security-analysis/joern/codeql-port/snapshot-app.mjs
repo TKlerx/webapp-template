@@ -26,7 +26,7 @@ for (const entry of fs.readdirSync(repoRoot, { withFileTypes: true })) {
 }
 const manifest = {
   capturedAt: new Date().toISOString(),
-  commit: execFileSync('rtk', ['proxy', 'git', 'rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim(),
+  commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim(),
   scope: ['src', 'worker/src', 'scripts', 'root JavaScript/TypeScript configuration files'],
   files: []
 };

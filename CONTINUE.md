@@ -1,5 +1,9 @@
 # Continue
 
+## Joern CI Integration
+
+- 2026-10-15: Added a separate Joern job to the Validate workflow (PR/main), with pinned Joern 4.0.650 checksum and Java 25. It runs independent positive/negative controls and fresh current-source command-injection analysis, failing on findings or analysis/control errors and uploading JSON/log evidence. CodeQL comparison remains optional/local. Joern is not invoked by local validate:full. Local runner passed: original controls plus 12 unsafe/12 safe input cases; current application has zero findings, 186/195 JS/TS files represented (nine omissions listed in evidence), 8/8 Python files, 84 Next.js sources and 12 worker payload sources. Actionlint and workflow formatting passed; live Linux CI has not yet run. Secret scans skip generated Joern workspace and CodeQL databases while retaining analysis source coverage.
+
 ## Commit And Push Preparation
 
 - Final consolidation: commits `557922f`, `2ef2ef6` and `e0cc321` contain runtime fixes, archival and both advisory analysis kits. Integrated current main and retained its dependency updates and four health regressions; aligned the imported database fixture with PostgreSQL. Post-merge application tests pass (289 across 66 files), typecheck passes, frozen pnpm install and both production audits pass. Push target: `origin/codex/consolidate-runtime-and-analysis`.

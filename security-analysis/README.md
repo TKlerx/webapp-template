@@ -1,6 +1,6 @@
 # Advisory security-analysis experiments
 
-This directory preserves both the native CodeQL trial and the CodeQL-derived Joern command-injection queries. These experiments remain outside mandatory validation. Fixtures contain deliberately unsafe code: analyze them; never execute them.
+This directory preserves both the native CodeQL trial and the CodeQL-derived Joern command-injection queries. The Validate workflow runs Joern in a separate job on pull requests and pushes to main. CodeQL remains a local advisory comparison. Fixtures contain deliberately unsafe code: analyze them; never execute them.
 
 Only query/check/runner sources, fixtures, upstream query references and license notices are tracked. Downloaded tools, generated graphs, databases, source snapshots, SARIF reports, logs and Joern's root `workspace/` remain ignored.
 
@@ -14,6 +14,14 @@ From the repository root:
 pwsh -NoProfile -File security-analysis/codeql/run.ps1
 pwsh -NoProfile -File security-analysis/joern/codeql-port/run-input-models.ps1
 ```
+
+Run Joern independently of CodeQL, including a fresh application snapshot:
+
+```powershell
+pwsh -NoProfile -File security-analysis/joern/codeql-port/run-application.ps1
+```
+
+CI downloads Joern 4.0.650 with a pinned SHA-256 checksum, verifies positive and negative controls, and scans current app/worker/scripts/configuration sources. Extraction failures, control regressions and application findings fail its job. JSON evidence and logs are uploaded, including represented and omitted files; no CodeQL binary, license acceptance or previous scan output is required. The local `validate:full` command retains its existing checks; Joern is a parallel CI job. Its bounded command-injection model does not cover Go or replace the other security checks.
 
 The CodeQL runner scans the current app and worker plus the original Express/Flask controls. The Joern runner rebuilds graphs for those same controls and the Next.js/worker controls, reruns the adapted query, and checks unsafe detections, safe cases, cross-file traces and agreement with CodeQL's control SARIF.
 

@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
+const compareCodeql = !process.argv.includes('--skip-codeql-comparison');
 const read = filename => JSON.parse(fs.readFileSync(filename, 'utf8'));
 const summary = {
   joernVersion: '4.0.650',
@@ -40,13 +41,15 @@ for (const [language, ruleId, wrapperFile, unsafeLine, safeLine] of [
   assert(!finding.path.some(node => node.code.includes('argument')));
   assert(joern.processCalls.some(call => call.line === safeLine));
   assert(joern.commandArguments.some(argument => /["']whoami["']/.test(argument.code)), 'Safe executable must remain a constant sink');
-  const codeql = read(path.join(root, '..', '..', 'codeql', `control-${language}.sarif`));
-  const baseline = codeql.runs.flatMap(run => run.results ?? []).filter(result => result.ruleId === ruleId);
-  assert.equal(baseline.length, 1);
-  const baselineLocation = baseline[0].locations[0].physicalLocation;
-  assert(baselineLocation.artifactLocation.uri.endsWith(wrapperFile));
-  assert.equal(baselineLocation.region.startLine, unsafeLine);
-  summary.controls[language] = { unsafeDetected: true, safeFlagged: false, matchesExistingCodeqlControl: true, finding };
+  if (compareCodeql) {
+    const codeql = read(path.join(root, '..', '..', 'codeql', `control-${language}.sarif`));
+    const baseline = codeql.runs.flatMap(run => run.results ?? []).filter(result => result.ruleId === ruleId);
+    assert.equal(baseline.length, 1);
+    const baselineLocation = baseline[0].locations[0].physicalLocation;
+    assert(baselineLocation.artifactLocation.uri.endsWith(wrapperFile));
+    assert.equal(baselineLocation.region.startLine, unsafeLine);
+  }
+  summary.controls[language] = { unsafeDetected: true, safeFlagged: false, matchesExistingCodeqlControl: compareCodeql ? true : 'not run', finding };
 }
 fs.writeFileSync(path.join(root, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
-console.log('PASS: Python and TypeScript each detect one cross-file unsafe command flow, leave safe argument-list execution unflagged, and match the existing CodeQL control results.');
+console.log(`PASS: Python and TypeScript each detect one cross-file unsafe command flow and leave safe argument-list execution unflagged. CodeQL comparison: ${compareCodeql ? 'passed' : 'not run'}.`);

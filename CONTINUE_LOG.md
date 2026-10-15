@@ -1,5 +1,8 @@
 # Continue Log
 
+- 2026-10-15: Integrated Joern into PR/main CI as a separate job using pinned/checksummed 4.0.650, Java 25, independent controls and fresh app/worker/script/config source snapshots. CodeQL remains optional. Local runner passed both original controls and all 12 unsafe/12 safe input cases; application zero findings with 186/195 JS/TS files (nine explicit frontend omissions), 8/8 Python files, 84 Next.js and 12 worker sources. Workflow actionlint/format checks passed; Linux CI execution pending. Secret scans exclude generated workspace and CodeQL databases, retaining analysis source checks; interrupted earlier scans that traversed generated databases before rerunning the corrected scope.
+- Final checks passed: corrected Trivy secret scan, TypeScript typecheck, architecture, duplication, staged UTF-8/LF conventions and diff checks. No full application/browser/image rerun was needed for this CI-only integration.
+
 
 - 2026-10-15: Added direct dev dependency @types/pg ^8.23.1 and updated the pnpm lockfile; pnpm run typecheck passed.
 - 2026-10-15: Cleared 12 production npm advisories using patch updates (Next.js 16.3.8, fast-uri 3.1.8, sharp 0.35.5, source-map-js 1.2.2); pnpm production audit including optional dependencies is clean. Frozen uv production audit is clean across 9 packages; Python unchanged. Frozen pnpm install, formatting, and 272 application tests passed. Typecheck blocked separately by missing pg declarations in the PostgreSQL migration integration test.

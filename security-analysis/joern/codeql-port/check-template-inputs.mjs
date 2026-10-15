@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const runRoot = path.join(root, 'application-input-models');
+const runRoot = path.join(root, process.argv[2] ?? 'application-input-models');
 const read = filename => JSON.parse(fs.readFileSync(filename, 'utf8'));
 const manifest = read(path.join(runRoot, 'manifest.json'));
 const controls = read(path.join(root, 'input-model-summary.json'));
@@ -23,7 +23,6 @@ const summary = { capturedAt: manifest.capturedAt, commit: manifest.commit, quer
 ] };
 for (const language of ['javascript', 'python']) {
   const current = read(path.join(runRoot, `${language}-results.json`));
-  const previous = read(path.join(root, 'application', `${language}-results.json`));
   assert(current.calls > 0 && current.methods > 0);
   const modelCounts = {};
   for (const source of current.sources) modelCounts[source.model] = (modelCounts[source.model] ?? 0) + 1;
@@ -33,7 +32,8 @@ for (const language of ['javascript', 'python']) {
   assert(actual.every(name => expected.includes(name)));
   const missingFiles = expected.filter(name => !actual.includes(name));
   if (language === 'python') assert.equal(missingFiles.length, 0);
-  summary.application[language] = { expectedFiles: expected.length, representedFiles: actual.length, missingFiles, previousSources: previous.sources.length, modeledSources: current.sources.length, sourceModels: modelCounts, processCalls: current.processCalls.length, findings: current.findings, reportedFalsePositives: current.findings.length === 0 ? 0 : 'requires review' };
+  summary.application[language] = { expectedFiles: expected.length, representedFiles: actual.length, missingFiles, modeledSources: current.sources.length, sourceModels: modelCounts, processCalls: current.processCalls.length, findings: current.findings };
 }
 fs.writeFileSync(path.join(runRoot, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
 console.log(JSON.stringify(summary.application, null, 2));
+assert(Object.values(summary.application).every(result => result.findings.length === 0), 'Command-injection findings require review; see summary.json');
