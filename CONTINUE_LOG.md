@@ -1850,3 +1850,9 @@
 - Updated Next.js/eslint-config-next 16.4.3, Better Auth 1.7.13, Zod 4.6.7, Vitest/coverage 4.1.12, Vite 8.3.5 and Go 1.26.10 plus patched transitive overrides. Both production and full pnpm audits are clean. Typecheck and 225 application tests across 62 files pass; isolated-branch CI remains to be verified.
 - PR #44's Linux validation found a Python 3.15/psycopg wheel mismatch. Pinned the security PR's CI to Python 3.12 and provisioned PostgreSQL for the migration regression. Joern itself passed Linux CI on #44, which is now draft and remains unmerged.
 - Located the originating Joern chat: Investigate missing Dependabot PRs, 01a13ca3-4694-7c31-9e87-e2e14a6bcd2e. That chat created/expanded the Joern controls and CI on October 15.
+
+## 2026-10-29 Focused Joern Gate
+
+- User authorized splitting Joern from #44, correcting its two merge-gate gaps, running CI and merging on success. Started codex/joern-security-gate from main after security PR #45; runtime/PostgreSQL and archival work stays in draft #44.
+- Added the pinned Joern workflow and retained static-analysis sources/controls. Added an explicit allowlist for the nine reviewed JS/TS frontend omissions. A real-process regression confirmed an additional omitted route passed before the fix and fails after it; known omissions remain accepted.
+- Main's required checks must retain validate and add Joern security analysis. Analysis fixtures/references are excluded from application compilation/lint/Semgrep and Docker contexts, with generated output ignored. Local typecheck, lint, formatting, gate regression and 225 application tests pass; fresh CI remains required before merging.

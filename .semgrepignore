@@ -11,6 +11,9 @@ coverage/
 # Claude Code
 .claude/
 
+# Static-analysis controls deliberately contain unsafe examples; never shipped.
+security-analysis/
+
 # Generated files
 prisma/migrations/
 *.min.js

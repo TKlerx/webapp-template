@@ -1,0 +1,7 @@
+*.cpg.bin
+*.sarif
+*.json
+*.log
+databases/
+toolchain/
+application*/
