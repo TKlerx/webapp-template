@@ -7,6 +7,44 @@ on:
       - main
 
 jobs:
+  joern:
+    name: Joern security analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      JAVA_TOOL_OPTIONS: -XX:ActiveProcessorCount=2 -Xmx768m -Xms64m
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "25"
+      - name: Install pinned Joern
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 https://github.com/joernio/joern/releases/download/v4.0.650/joern-cli-linux-x86_64.zip -o "$RUNNER_TEMP/joern.zip"
+          echo "a2f4b0fd22e805b2503c0646c3929d4469f621d986f12af3e4b66ee87c5ba62f  $RUNNER_TEMP/joern.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/joern.zip" -d "$RUNNER_TEMP/joern"
+      - name: Verify controls and analyze current application
+        shell: pwsh
+        run: ./security-analysis/joern/codeql-port/run-application.ps1 -JoernHome "$env:RUNNER_TEMP/joern/joern-cli"
+      - name: Upload analysis evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: joern-analysis
+          retention-days: 14
+          path: |
+            security-analysis/joern/codeql-port/**/*.json
+            security-analysis/joern/codeql-port/**/*.log
+          if-no-files-found: warn
+
   validate:
     runs-on: ubuntu-latest
     env:

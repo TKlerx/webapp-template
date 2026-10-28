@@ -26,6 +26,7 @@ data/cli-releases/
 backups/
 test-results/
 .artifacts/
+/workspace/
 *.tsbuildinfo
 .terraform/
 *.tfstate

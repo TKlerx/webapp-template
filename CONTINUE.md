@@ -1,5 +1,13 @@
 # Continue
 
+## 2026-10-29 Focused Joern Gate
+
+- Split the static-analysis sources and controls from draft PR #44 onto current main. No runtime, PostgreSQL conversion, dependency or archival changes are included. Security maintenance was already merged through PR #45 (`f877d61`).
+- Added the pinned Joern 4.0.650/Java 25 CI job with controls, fresh application extraction and uploaded evidence. Main must require both `validate` and `Joern security analysis` before this PR merges.
+- Fixed the extraction gate: only the nine reviewed JavaScript/TypeScript omissions are allowed; additional omissions fail. The real-process regression failed before the fix and passes after it, covering both known omissions and a newly omitted route. Python still requires complete extraction.
+- Kept analysis-only examples/references outside application compilation, lint, Semgrep and Docker build contexts; generated analysis artifacts remain ignored. Existing application security checks stay enabled.
+- Local verification: 225 application tests across 62 files, typecheck, ESLint, formatting and the real-process gate self-check pass. Run the focused PR's complete CI and merge only after both jobs pass. Keep PR #44 draft for the separate runtime/PostgreSQL review.
+
 ## 2026-10-28 Security-Only Maintenance
 
 - Isolated the security updates from commit `178b050` onto current main. The broader PostgreSQL/runtime/archival and Joern work remains on `codex/consolidate-runtime-and-analysis` in draft PR #44 and is outside this merge's scope.
@@ -13,8 +21,8 @@
 
 ## Current Snapshot
 
-- Updated: 2026-10-28 (Europe/Berlin)
-- Branch: `codex/security-maintenance-20261028`
+- Updated: 2026-10-29 (Europe/Berlin)
+- Branch: `codex/joern-security-gate`
 
 ## Recent Non-Continuity Commits
 

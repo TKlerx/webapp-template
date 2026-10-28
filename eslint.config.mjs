@@ -18,6 +18,7 @@ const config = [
       "test-results/**",
       "playwright-report/**",
       "generated/**",
+      "security-analysis/**",
       "public/vendor/**",
       ".agents/**",
       ".worktrees/**",
