@@ -1,6 +1,6 @@
 module github.com/TKlerx/webapp-template/cli
 
-go 1.26.7
+go 1.26.10
 
 require (
 	github.com/fzipp/gocyclo v0.6.0

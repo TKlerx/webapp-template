@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 import { PrismaPg } from "@prisma/adapter-pg";
 import type { SqlDriverAdapterFactory } from "@prisma/client/runtime/client";
@@ -85,9 +86,11 @@ async function main() {
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
+  const userId = randomUUID();
 
   await prisma.user.create({
     data: {
+      id: userId,
       email,
       emailVerified: true,
       name: "Initial Admin",
@@ -100,7 +103,7 @@ async function main() {
       accounts: {
         create: {
           providerId: "credential",
-          accountId: email,
+          accountId: userId,
           password: passwordHash,
         },
       },

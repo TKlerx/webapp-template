@@ -1843,3 +1843,10 @@
 - Next focus: no next task.
 
 - Updated security dependencies in both workspaces and removed unnecessary overrides. Application frozen lockfile passes; scanner audit is clean but existing Vercel trust-downgrade rejection blocks scanner installation. Unpatched braces remains visible; full validation awaits PR CI.
+
+## 2026-10-28 Security-Only Merge Preparation
+
+- User selected merging security updates separately from the older runtime/PostgreSQL/archival/Joern history. Created codex/security-maintenance-20261028 from main and adapted the security dependency/toolchain and Better Auth credential identity changes from 178b050 without the broader feature changes. Added the preserving credential identity migration to main's existing migration histories.
+- Updated Next.js/eslint-config-next 16.4.3, Better Auth 1.7.13, Zod 4.6.7, Vitest/coverage 4.1.12, Vite 8.3.5 and Go 1.26.10 plus patched transitive overrides. Both production and full pnpm audits are clean. Typecheck and 225 application tests across 62 files pass; isolated-branch CI remains to be verified.
+- PR #44's Linux validation found a Python 3.15/psycopg wheel mismatch. Pinned the security PR's CI to Python 3.12 and provisioned PostgreSQL for the migration regression. Joern itself passed Linux CI on #44, which is now draft and remains unmerged.
+- Located the originating Joern chat: Investigate missing Dependabot PRs, 01a13ca3-4694-7c31-9e87-e2e14a6bcd2e. That chat created/expanded the Joern controls and CI on October 15.
