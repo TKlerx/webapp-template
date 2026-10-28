@@ -1843,3 +1843,11 @@
 - Next focus: no next task.
 
 - Updated security dependencies in both workspaces and removed unnecessary overrides. Application frozen lockfile passes; scanner audit is clean but existing Vercel trust-downgrade rejection blocks scanner installation. Unpatched braces remains visible; full validation awaits PR CI.
+
+## Security remediation in PR #43 (2026-10-28)
+
+- Reused security maintenance changes for Next.js, Better Auth, Zod, source-map-js, sharp and Go 1.26.9.
+- Added credential-ID migrations for both supported database schemas and aligned login/account creation/password changes and fixtures.
+- Replaced the Better Auth 1.6 pin assertion with SDK/schema compatibility coverage; migration preserves hashes and OAuth identities.
+- Production dependency audit is clear; 225 tests passed. Windows native watcher loading blocks local browser startup; fresh Linux CI/image audit remains required.
+

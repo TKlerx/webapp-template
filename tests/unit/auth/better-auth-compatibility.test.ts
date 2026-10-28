@@ -1,10 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-
-const packageJson = JSON.parse(
-  fs.readFileSync(path.resolve(process.cwd(), "package.json"), "utf8"),
-) as { dependencies?: Record<string, string> };
+import { getSchema } from "better-auth/db";
 
 const prismaSchemas = [
   "prisma/schema.prisma",
@@ -14,14 +11,15 @@ const prismaSchemas = [
 );
 
 describe("Better Auth dependency compatibility", () => {
-  it("keeps Better Auth on the pre-1.7 account identity contract", () => {
-    expect(packageJson.dependencies?.["better-auth"]).toMatch(/^1\.6\.\d+$/);
-
+  it("supports the installed Better Auth account schema", () => {
+    const fields = getSchema({}).account.fields;
     for (const schema of prismaSchemas) {
       const accountModel = schema.match(/model Account \{[\s\S]*?\n\}/)?.[0];
       expect(accountModel).toBeDefined();
-      expect(accountModel).toContain("accountId");
-      expect(accountModel).not.toContain("issuer");
+      for (const [name, field] of Object.entries(fields)) {
+        if (field.required && !field.defaultValue)
+          expect(accountModel).toMatch(new RegExp(`\\b${name}\\s`));
+      }
     }
   });
 });

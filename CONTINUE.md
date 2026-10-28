@@ -1,5 +1,13 @@
 # Continue
 
+## Security remediation in PR #43 (2026-10-28)
+
+- Reused security maintenance changes for Next.js, Better Auth, Zod, source-map-js, sharp and Go 1.26.9.
+- Added credential-ID migrations for both supported database schemas and aligned login/account creation/password changes and fixtures.
+- Replaced the Better Auth 1.6 pin assertion with SDK/schema compatibility coverage; migration preserves hashes and OAuth identities.
+- Production dependency audit is clear; 225 tests passed. Windows native watcher loading blocks local browser startup; fresh Linux CI/image audit remains required.
+
+
 <!-- continuity:fingerprint=327ecf5abf4b15c8d7507401e047d857bc073b95464288446f2fbf696325d2fc -->
 
 ## Current Snapshot
