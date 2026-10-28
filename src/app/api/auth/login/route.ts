@@ -96,17 +96,19 @@ async function performLogin(request: Request) {
   const user = await prisma.user.findUnique({
     where: { email },
   });
-  const credentialAccount = await prisma.account.findUnique({
-    where: {
-      providerId_accountId: {
-        providerId: "credential",
-        accountId: email,
-      },
-    },
-    select: {
-      password: true,
-    },
-  });
+  const credentialAccount = user
+    ? await prisma.account.findUnique({
+        where: {
+          providerId_accountId: {
+            providerId: "credential",
+            accountId: user.id,
+          },
+        },
+        select: {
+          password: true,
+        },
+      })
+    : null;
   const passwordHash = credentialAccount?.password ?? DUMMY_PASSWORD_HASH;
   const validPassword = await verifyPassword(body.password, passwordHash);
 

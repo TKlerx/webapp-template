@@ -1,5 +1,14 @@
 # Continue
 
+## Security Maintenance (2026-10-28)
+
+- Updated Next.js/eslint-config-next to 16.4.3, Better Auth to 1.7.13, Zod to 4.6.7, Vitest/coverage to 4.1.12 and Vite to 8.3.5 (minimum ^8.2.4). Updated existing fast-uri and brace-expansion overrides to 3.1.9 and 1.1.21/5.0.12. Regenerated the lockfile; frozen install passes. Both production and full pnpm audits report zero known vulnerabilities; the Python production audit remains clean across nine packages.
+- Updated the CLI Go directive and Docker builder to 1.26.10 for GO-2026-6809. The production Go vulnerability scan and complete CLI quality gate pass. The builder image was not rebuilt.
+- Better Auth 1.7 requires credential accountId to equal User.id. Aligned login, password changes, user/admin creation, mock SSO and browser fixtures. Migration `20261028000000_align_credential_account_ids` preserves password hashes, account row IDs and OAuth identities; its regression also checks repeat application. Replaced the old 1.6-only dependency assertion with an installed-library schema compatibility check.
+- Started development PostgreSQL on loopback port 5432 and test PostgreSQL on 55432. Applied the credential migration to the local development and default test databases; browser tests also applied all 12 migrations to an isolated test database. No shared/production database was changed. Deploy the migration with the application upgrade before using the new credential lookup contract.
+- Final `pnpm run validate` passed every gate, 290 application tests across 67 files and 26 worker tests. Production build passed; browser suite passed 19 tests with one existing Teams test skipped. Regenerated the stale specs overview. Evidence: `.artifacts/security-maintenance-20261028/validation-final.log`, `e2e-final.log`, `build.log` and `audit-*.log` in that directory. No fresh runtime-image audit, live Azure/tenant verification or CI run is claimed.
+- Follow-up: the production build reports five broad filesystem-tracing warnings in `src/services/api/cli-release-service.ts`; scope that tracing before treating the standalone bundle as minimal. Feature 014 remains the only unfinished spec. The user authorized committing and pushing this maintenance on the current branch; this entry supersedes earlier dependency-audit and commit/push status notes.
+
 ## Expanded Joern Rules
 
 - 2026-10-15: User requested all useful additional rules from the upstream review. Extended the existing query/CI path with SSRF, SQL injection, path traversal, open redirects, sensitive logging, code injection, Python unsafe deserialization and JavaScript prototype pollution. Existing command-injection rules remain. Added cross-file controls, bounded imported API/type models, credential sources, fixed-origin SSRF modeling, non-mutating library semantics and sink coverage evidence. All 34 unsafe/30 safe/five unrelated input cases and original Express/Flask controls pass. Fresh app scan: zero blocking findings, 17 advisory JavaScript findings (16 redirects/one logging) for guard/redactor precision review, zero Python findings; represented 186/195 JS/TS and 8/8 Python files. Redirect/logging rules are advisory for application findings while every family's controls remain mandatory; all other and unknown rule IDs block. A real-process gate regression verifies blocking/advisory policy, engine-error rejection and source-hash integrity. Precommit, actionlint and workflow formatting passed. See security-analysis/README.md for explicit coverage limits; no claim of a fresh Linux CI run. No scanner dependency or CodeQL CLI requirement added.
@@ -64,21 +73,21 @@
 
 ## Current Snapshot
 
-- Updated: 2026-10-15 00:30:39
+- Updated: 2026-10-28 (Europe/Berlin)
 - Branch: `codex/consolidate-runtime-and-analysis`
 
 ## Recent Non-Continuity Commits
 
-- c6c882b License template under MIT and refresh visible branding
-- 128ab52 Strengthen mandatory validation and static analysis gates
-- 41ded83 fix: complete ops health spec convergence
-- 5da384d Upgrade Spec Kit integration and add converge (#39)
-- 98f0893 Validate boundaries and block committed secrets (#38)
+- 6b4703c security: expand Joern analysis with tested Python and TypeScript rule families
+- e613392 ci: run independent Joern command-injection analysis
+- 67e5fba Merge current main into consolidated runtime and analysis work
+- e0cc321 chore: preserve advisory Joern and CodeQL analysis experiments
+- 2ef2ef6 docs: consolidate completed specifications and preserve incomplete notification work
 
 ## Git Status
 
-- Working tree contains the auth/PostgreSQL implementation, validation/dependency remediation and ongoing archive changes. No commit or push has been made in this chat.
-- Run `git status --short` for current paths. Pre-existing `.worktrees/` remains untouched.
+- The previous runtime, archival and Joern work is committed through `6b4703c`; the branch matched its local remote-tracking ref at the start of this maintenance run.
+- The 2026-10-28 security maintenance includes dependency/toolchain updates, the credential identity migration and compatibility changes, regression tests, the regenerated specs overview and refreshed continuity notes. Commit/push was authorized on the current branch. Run `git status --short` for the current checkout state.
 
 ## Active Specs
 
@@ -86,7 +95,9 @@
 
 ## Next Recommended Actions
 
-1. Review the consolidated spec and archive reports. Recommended next implementation: complete 014's open notification requirements, tracked in its completion review and T032-T038; do not archive it as complete yet. No commit or push was made.
+1. Review CI for the security maintenance branch. Apply the credential identity migration when upgrading other environments.
+2. Review the CLI download service's broad filesystem-tracing build warnings.
+3. Recommended next feature implementation: complete 014's notification requirements in its completion review and T032-T038; do not archive it as complete yet.
 
 ## Spec Kit Archive Trial
 
