@@ -14,6 +14,7 @@ jobs:
       E2E_BASE_PATH: /app-starter
       AUTH_BASE_URL: http://localhost:3290/app-starter
       BETTERAUTH_SECRET: ci-betterauth-secret-for-playwright-tests-only
+      TEST_DATABASE_URL: postgresql://starter:starter_e2e_password@127.0.0.1:55432/business_app_starter_e2e_test
 
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -30,7 +31,7 @@ jobs:
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
-          python-version: "3.x"
+          python-version: "3.12"
 
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
@@ -43,6 +44,9 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm run prisma:generate
+
+      - name: Provision PostgreSQL for migration regression tests
+        run: node scripts/ensure-e2e-db.mjs
 
       - name: Install Semgrep
         run: python -m pip install semgrep
