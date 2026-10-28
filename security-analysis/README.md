@@ -27,6 +27,10 @@ CI downloads Joern 4.0.650 with a pinned SHA-256 checksum, verifies positive and
 
 ## Security rules
 
+The `Joern security analysis` check is required alongside `validate` by main's branch protection. Keep both requirements when changing CI; a failed or missing Joern run must prevent merging.
+
+The application checker permits only the nine explicitly reviewed JavaScript/TypeScript frontend omissions listed in `check-template-inputs.mjs`. Any additional omission fails the job. Python requires complete extraction. The real-process gate regression checks both a known omission and a newly omitted route, alongside finding policy, engine errors and snapshot integrity.
+
 The historical `command-injection.sc` filename now contains all of these models. These are Joern implementations informed by the linked CodeQL references, not executions of the CodeQL queries or claims of equivalent coverage. Rule IDs in the JSON use local `js/` and `py/` names.
 
 | Family | TypeScript / JavaScript sinks | Python sinks | Reference |

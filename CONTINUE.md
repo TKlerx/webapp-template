@@ -1,5 +1,12 @@
 # Continue
 
+## Runtime/PostgreSQL Review And Main Reconciliation (2026-10-29)
+
+- PR #44 remains draft and unmerged. Reconciled its runtime/PostgreSQL/archival branch with main after security PR #45 and focused Joern PR #47 merged. Preserved Python 3.12, the isolated CI PostgreSQL URL, and Joern's explicit extraction-omission guard and regression. Removed the obsolete duplicate credential migration under `migrations-postgres`; the canonical migration remains.
+- Verified all 11 PostgreSQL migrations from main retain identical SQL bytes in `prisma/migrations`. Rehearsed an upgrade from main's migration history in a new isolated `_test` database: all 12 canonical migrations recorded, existing user/audit data preserved, anonymous audits accepted, repeat deploy a no-op. The scratch database was removed; no development/shared/production data was changed. Evidence: `.artifacts/runtime-review-20261029/migrations.log`.
+- Frozen installation passes. Fresh local validation and PR CI are required for this reconciled head; inspect PR #44's current `validate` and `Joern security analysis` checks before merging. Previous October 28 results below are historical. User requested a readiness review, not a merge.
+- Rollout still requires PostgreSQL URLs and migrations before application startup; SQLite data is retained without automatic transfer. App and worker need the same `TEAMS_DELIVERY_SHARED_SECRET` (at least 32 characters), and the worker needs `APP_INTERNAL_URL`; delegated grant encryption stays app-side. No fresh live Azure/Microsoft 365 tenant verification is claimed. Feature 014 remains incomplete; the existing five CLI release filesystem-tracing build warnings remain a follow-up.
+
 ## Security Maintenance (2026-10-28)
 
 - Updated Next.js/eslint-config-next to 16.4.3, Better Auth to 1.7.13, Zod to 4.6.7, Vitest/coverage to 4.1.12 and Vite to 8.3.5 (minimum ^8.2.4). Updated existing fast-uri and brace-expansion overrides to 3.1.9 and 1.1.21/5.0.12. Regenerated the lockfile; frozen install passes. Both production and full pnpm audits report zero known vulnerabilities; the Python production audit remains clean across nine packages.

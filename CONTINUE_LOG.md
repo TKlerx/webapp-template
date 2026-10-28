@@ -1946,3 +1946,9 @@
 - Started local development/test PostgreSQL on ports 5432/55432 and applied the credential migration to those databases. Browser verification used an isolated test database with all 12 migrations. No shared/production database was modified; other environments need the migration with the application upgrade.
 - Final pnpm run validate: all gates passed, 290 application tests in 67 files and 26 worker tests. Production build passed; browser suite: 19 passed, one existing Teams test skipped. Refreshed the stale specs overview. Logs: .artifacts/security-maintenance-20261028/validation-final.log, e2e-final.log, build.log and audit-*.log. No fresh runtime-image audit, live Azure/tenant verification or CI result is claimed.
 - Five broad filesystem-tracing warnings remain in the CLI download service. Feature 014 stays unfinished. Updated CONTINUE.md with current status and next actions. The user subsequently authorized committing and pushing this maintenance on the current branch.
+
+## 2026-10-29 — PR #44 runtime/PostgreSQL reconciliation review
+
+- Reconciled main after merged security #45 and Joern #47, preserving Python 3.12, CI test PostgreSQL configuration, and both Joern gate fixes. Runtime/PostgreSQL/spec archival remain in draft #44; no merge authorized by this review request.
+- All 11 existing PostgreSQL migration SQL files match main byte for byte after moving to the canonical directory. An isolated migration rehearsal upgraded main history to 12 migrations, retained existing user/audit data, accepted anonymous audits, and confirmed repeat deploy does nothing. Scratch database removed. Frozen installation passed; fresh validation/PR CI must be checked for the reconciled head.
+- Deployment conditions and remaining limits are recorded at the top of CONTINUE.md. Evidence: .artifacts/runtime-review-20261029/.

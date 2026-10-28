@@ -13,6 +13,18 @@ const queryHash = crypto.createHash('sha256').update(fs.readFileSync(path.join(r
 // ponytail: guard/redactor precision needs more controls before these families block application CI.
 // Controls still require their unsafe detections and reject safe-case regressions.
 const advisoryRules = new Set(['js/open-redirect', 'py/open-redirect', 'js/sensitive-logging', 'py/sensitive-logging']);
+// Joern 4.0.650 frontend omissions reviewed in the baseline run. New omissions fail.
+const allowedMissingJavaScriptFiles = new Set([
+  '.dependency-cruiser.cjs',
+  'next-env.d.ts',
+  'scripts/update-spec-overview.test.mjs',
+  'src/app/(dashboard)/docs/api/page.tsx',
+  'src/components/docs/swagger-ui.tsx',
+  'src/i18n/config.ts',
+  'src/i18n/locale.ts',
+  'src/i18n/request.ts',
+  'src/lib/__mocks__/db.ts',
+]);
 assert.equal(controls.querySha256, queryHash, 'Controls must cover the current query');
 for (const entry of manifest.files) {
   assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(runRoot, 'source', entry.path))).digest('hex'), entry.sha256);
@@ -39,6 +51,7 @@ for (const language of ['javascript', 'python']) {
   assert(actual.every(name => expected.includes(name)));
   const missingFiles = expected.filter(name => !actual.includes(name));
   if (language === 'python') assert.equal(missingFiles.length, 0);
+  else assert.deepEqual(missingFiles.filter(name => !allowedMissingJavaScriptFiles.has(name)), [], 'Unexpected JavaScript/TypeScript extraction omissions require review');
   const sinkCounts = {};
   for (const sink of current.securitySinks ?? []) sinkCounts[sink.rule] = (sinkCounts[sink.rule] ?? 0) + 1;
   const blockingFindings = current.findings.filter(finding => !advisoryRules.has(finding.ruleId));

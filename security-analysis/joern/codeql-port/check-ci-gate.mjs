@@ -33,6 +33,14 @@ function check(expectedExit, reason) {
 }
 try {
   check(0, 'A complete clean analysis must pass');
+  const manifest = JSON.parse(fs.readFileSync(path.join(destination, 'manifest.json'), 'utf8'));
+  for (const [file, expectedExit] of [['.dependency-cruiser.cjs', 0], ['src/app/api/new-route/route.ts', 1]]) {
+    fs.mkdirSync(path.dirname(path.join(destination, 'source', file)), { recursive: true });
+    write(`source/${file}`, source);
+    write('manifest.json', { ...manifest, files: [...manifest.files, { path: file, sha256 }] });
+    check(expectedExit, `Extraction omission policy for ${file}`);
+  }
+  write('manifest.json', manifest);
   for (const ruleId of ['js/sql-injection', 'js/unrecognized-rule', 'js/open-redirect', 'js/sensitive-logging']) {
     write('javascript-results.json', { ...result('javascript'), findings: [{ ruleId }] });
     const advisory = ruleId === 'js/open-redirect' || ruleId === 'js/sensitive-logging';
@@ -46,7 +54,7 @@ try {
   write('javascript-query.log', '');
   write('source/app.ts', 'changed after capture');
   check(1, 'Changed snapshot content must invalidate the analysis');
-  console.log('PASS: CI gate blocks SQL/unknown rules, preserves advisory findings, and rejects engine failures and changed source.');
+  console.log('PASS: CI gate blocks SQL/unknown rules and new extraction omissions, preserves advisory findings, and rejects engine failures and changed source.');
 } finally {
   assert.equal(path.dirname(destination), root);
   assert(path.basename(destination).startsWith('application-gate-'));
