@@ -109,7 +109,7 @@ async function main() {
         "createdAt",
         "updatedAt"
       ) values ($1, $2, $3, $4, $5, $6, $6)`,
-      [accountId, email, "credential", userId, passwordHash, now],
+      [accountId, userId, "credential", userId, passwordHash, now],
     );
 
     await client.query("commit");

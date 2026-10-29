@@ -1955,8 +1955,32 @@
 
 - Fresh local pnpm run validate completed successfully after reconciliation: all gates, 290 application tests across 67 files, 26 worker tests, native Windows CLI checks, zero Semgrep findings, runtime credential validation and OpenTofu. Joern CI passed on the reconciliation commit; check both required statuses on the final documentation head before merge. Full browser/image CI remains separately reported in PR #44 checks.
 
+## 2026-10-29 — Local Docker deployment verification blocked by storage
+
+- Confirmed PR #44 merged as 2e40f23. User selected local Docker verification. Development PostgreSQL has all 12 migrations; Docker uses a new separate database volume awaiting migration deployment.
+- Repaired missing Teams delivery secret in ignored .env.docker; verified Compose secret ownership and worker URL. Microsoft application credential token request returned HTTP 200; no token retained. New Docker database has no target or delegated consent for live Teams sends.
+- Built the worker image. Recovered Docker engine failures and constrained task-owned builder to 3 GiB/two CPUs/single parallel step. Build then failed on a full 38.3 GiB Docker filesystem. Removed only this repos unused old images; all volumes and unrelated images preserved. Awaiting approval to expand the Docker disk to 64 GB. Login, queue execution, Docker migrations and Teams endpoint smoke checks remain pending. Evidence/scripts: .artifacts/deployment-verification-20261029/.
+
+## 2026-10-29 — Local Docker cleanup and smoke verification completed
+
+- User authorized unused image and temporary build-cache cleanup while retaining every database volume. Cleanup left about 24.5 GiB free; no disk expansion. All app/migration/worker images built with bounded concurrency. Task-owned builder/cache was removed afterward; ordinary build cache is zero.
+- Found the Docker admin seed still wrote email as credential accountId. New real-script PostgreSQL regression failed before the one-line User.id fix and passed afterward, including repeat seed/password preservation. Existing local Docker account repaired using the unchanged identity-alignment SQL. Fixed migration image passed fresh 12-migration/bootstrap/repeat-seed checks in a disposable test database. Source/test changes are local on codex/fix-docker-admin-seed, uncommitted.
+- Local app health, real browser login, rejected-login auditing and API queue -> Python worker -> PostgreSQL echo completion pass. All 12 Docker migrations are applied; no identity mismatches remain. Teams shared-secret isolation, admin endpoints and authenticated worker-to-app wiring pass. Live Teams delivery remains blocked by missing delegated admin consent and target; send/intake stay disabled. No real message sent.
+- Focused regression tests, ESLint and typecheck pass. App remains running at http://localhost:3270/webapp-template. Evidence: .artifacts/deployment-verification-20261029/.
+
+## 2026-10-29 — Main security cleanup prepared
+
+- User approved commit/push/CI/merge of the Docker bootstrap correction and requested clean security reports, deferring Teams setup. Found 25 GitHub Dependabot alerts, all from the separate DeepSec workspace. Regenerated its dependency graph with patched versions, retained no-downgrade publishing trust with attested Vercel pins, and verified the CLI/Sandbox validation API. Both npm workspaces now audit clean.
+- Upgraded dev-only certifi to 2026.10.19; all 39 Python packages and the full Go module graph audit clean. Added required-workflow audits covering application, scanner, worker and CLI dependencies and explicit scanner Dependabot monitoring.
+- Enabled GitHub secret scanning and push protection; initial open-secret inventory is empty. Isolated the E2E server on loopback and generated fallback auth/mock-SSO secrets per run to address the historical test-network finding. No detector, production guard, unsafe-control test or alert dismissal is used to conceal findings. Await full CI and final main GitHub alert counts before claiming completion.
+
 ## Remove obsolete DeepSec workspace (2026-10-29)
 
 - Removed the unreferenced manual DeepSec workspace and its vulnerable standalone dependency graph. Active CI uses Trivy, Semgrep, Joern and the repository validation scripts; none executes DeepSec.
 - Removed obsolete scanner/container exclusion entries. Historical remediation evidence remains under specs/017-deepsec-remediation and docs/security.
 - Verified workflow/script/package references before removal; production application dependencies are unchanged.
+
+## 2026-10-29 — Reconcile security cleanup with current main
+
+- Main concurrently merged certifi update #46 and unused DeepSec removal #48. Preserved the retired workspace removal and removed this branchs now-obsolete scanner upgrades/audit entries; the earlier prepared scanner-update notes are superseded. GitHub now reports zero open Dependabot alerts. Local scanner output/dependencies are retained under ignored artifacts rather than reintroduced to the repository.
+- PR #49 retains the Docker bootstrap correction/regression, certifi 2026.10.19 security fix, full app/Python/Go dependency audits, E2E loopback isolation and per-run fallback secrets. Existing Trivy/Semgrep/Joern controls remain. Fresh CI on the reconciled head is required.

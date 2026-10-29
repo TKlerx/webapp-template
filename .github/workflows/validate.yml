@@ -85,9 +85,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Audit all application dependencies
+        run: pnpm audit --audit-level low
+
       - name: Install worker dependencies
         working-directory: worker
         run: uv sync --all-groups --locked
+
+      - name: Audit all worker dependencies
+        working-directory: worker
+        run: uv audit --frozen
+
+      - name: Audit all CLI module dependencies
+        working-directory: cli
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -scan=module
 
       - name: Generate Prisma client
         run: pnpm run prisma:generate
