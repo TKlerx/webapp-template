@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { safeLocalRedirectPath } from "@/lib/local-redirect";
 import { NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import { safeLogAudit } from "@/lib/audit";
@@ -20,14 +21,6 @@ const DUMMY_PASSWORD_HASH =
   ["$2b", "12", "y2Qs9vpYONDfvCzuE8RFJOe9a9BH64nv61TPNm3xrdTNB7/SwXKoe"].join(
     "$",
   );
-
-function getSafeRedirectTarget(redirectTo?: string | null) {
-  if (!redirectTo?.startsWith("/") || redirectTo.startsWith("//")) {
-    return null;
-  }
-
-  return redirectTo;
-}
 
 const loginBodySchema = z
   .object({
@@ -167,7 +160,7 @@ async function performLogin(request: Request) {
     mustChangePassword: user.mustChangePassword,
     redirectTo: user.mustChangePassword
       ? "/change-password"
-      : (getSafeRedirectTarget(body.redirectTo) ?? "/dashboard"),
+      : (safeLocalRedirectPath(body.redirectTo) ?? "/dashboard"),
   });
 
   return applySetCookieHeaders(response, authResponse);

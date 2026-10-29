@@ -1984,3 +1984,7 @@
 
 - Main concurrently merged certifi update #46 and unused DeepSec removal #48. Preserved the retired workspace removal and removed this branchs now-obsolete scanner upgrades/audit entries; the earlier prepared scanner-update notes are superseded. GitHub now reports zero open Dependabot alerts. Local scanner output/dependencies are retained under ignored artifacts rather than reintroduced to the repository.
 - PR #49 retains the Docker bootstrap correction/regression, certifi 2026.10.19 security fix, full app/Python/Go dependency audits, E2E loopback isolation and per-run fallback secrets. Existing Trivy/Semgrep/Joern controls remain. Fresh CI on the reconciled head is required.
+
+## 2026-10-29 — Joern advisory triage
+
+PR #49 and its main CI are green. Reviewed the 17 Joern advisory paths, fixed shared local redirect validation, and bounded alias receiver semantics while retaining unsafe mutation/return controls. Fresh local application scan has zero blocking and 15 advisory JS paths, all individually reviewed; Python zero. Evidence: `.artifacts/joern-triage-20261029/` and the tracked advisory triage note. Final local full validation passes: 296 app tests/69 files, 26 worker tests and all quality/security/infra gates. Full Joern controls pass (37 unsafe, 32 safe, five unrelated cases and gate regressions); new PR CI remains pending. Teams setup remains deferred.

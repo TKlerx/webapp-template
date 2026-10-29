@@ -71,52 +71,55 @@ describe("login route", () => {
     });
   });
 
-  it("delegates password verification to Better Auth for active users", async () => {
-    prismaMock.user.findUnique.mockResolvedValue({
-      id: "user-1",
-      email: "member@example.com",
-      name: "Member User",
-      role: Role.SCOPE_USER,
-      authMethod: AuthMethod.LOCAL,
-      status: UserStatus.ACTIVE,
-      mustChangePassword: false,
-    } as never);
-    prismaMock.account.findUnique.mockResolvedValue({
-      password: "stored-hash",
-    } as never);
-    verifyPassword.mockResolvedValue(true);
-    prismaMock.user.update.mockResolvedValue({} as never);
-    signInEmail.mockResolvedValue(new Response(null, { status: 200 }));
-
-    const response = await POST(
-      new Request("http://localhost/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({
-          email: "Member@Example.com",
-          password: "TempPass123",
-          redirectTo: null,
-        }),
-        headers: { "content-type": "application/json" },
-      }),
-    );
-
-    expect(signInEmail).toHaveBeenCalledWith({
-      body: {
-        email: "member@example.com",
-        password: "TempPass123",
-      },
-      headers: expect.any(Headers),
-      asResponse: true,
-    });
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      user: {
+  it.each([null, "/path\\child", "/\t/invalid", "/\r/invalid", "/\n/invalid"])(
+    "delegates password verification and rejects unsafe redirect paths: %s",
+    async (redirectTo) => {
+      prismaMock.user.findUnique.mockResolvedValue({
         id: "user-1",
         email: "member@example.com",
-      },
-      redirectTo: "/dashboard",
-    });
-  });
+        name: "Member User",
+        role: Role.SCOPE_USER,
+        authMethod: AuthMethod.LOCAL,
+        status: UserStatus.ACTIVE,
+        mustChangePassword: false,
+      } as never);
+      prismaMock.account.findUnique.mockResolvedValue({
+        password: "stored-hash",
+      } as never);
+      verifyPassword.mockResolvedValue(true);
+      prismaMock.user.update.mockResolvedValue({} as never);
+      signInEmail.mockResolvedValue(new Response(null, { status: 200 }));
+
+      const response = await POST(
+        new Request("http://localhost/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: "Member@Example.com",
+            password: "TempPass123",
+            redirectTo,
+          }),
+          headers: { "content-type": "application/json" },
+        }),
+      );
+
+      expect(signInEmail).toHaveBeenCalledWith({
+        body: {
+          email: "member@example.com",
+          password: "TempPass123",
+        },
+        headers: expect.any(Headers),
+        asResponse: true,
+      });
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        user: {
+          id: "user-1",
+          email: "member@example.com",
+        },
+        redirectTo: "/dashboard",
+      });
+    },
+  );
 
   it("returns a generic auth failure for inactive accounts", async () => {
     prismaMock.user.findUnique.mockResolvedValue({
