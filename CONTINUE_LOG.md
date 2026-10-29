@@ -1996,3 +1996,7 @@ User authorized reviewing all 15 residual paths and implementing warranted chang
 ## 2026-10-29 — Joern follow-up CI URL compatibility correction
 
 PR #51's initial head `6af8ce4` passed fresh Joern controls/application analysis and all dependency/image audits, but CI 40902789288 caught four browser SSO failures. The newly shared path exposed `getAbsoluteAppUrl` doubling the base path when legacy `AUTH_BASE_URL` already contains an app path. Extract the configured origin before applying the base path once; the new regression fails on the prior builder and passes after the correction. Browser tests and configuration are unchanged. Verify the local browser run and fresh required CI before merging.
+
+## 2026-10-29 — Joern follow-up browser verification complete
+
+The origin-only normalization correction passes all 19 enabled production-mode browser tests locally, including the four SSO cases that failed the initial CI. The existing live-Teams case remains skipped; no real Teams setup/send was performed. The added legacy-URL regression and focused boundary/CLI tests pass. Implementation and the 15-path review are complete; consult PR #51 for authoritative corrected-head CI/merge evidence and retain both required checks before merging.
