@@ -4,6 +4,7 @@ import type { Pool } from "pg";
 import type { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { merge } from "lodash";
+import { consume, fixedPath, identity, mutate } from "@/lib/readonly-controls";
 const FIXED_API = "https://example.com/api";
 
 export function network(value: string) { return fetch(value); }
@@ -19,6 +20,11 @@ export function normalizedFile(value: string) { return readFile(path.resolve("/s
 export function fixedFile(value: string) { return writeFile("/srv/uploads/fixed.txt", value); }
 export function redirectUrl(value: string) { return NextResponse.redirect(value); }
 export function fixedRedirect(value: string) { return NextResponse.redirect("https://example.com/done"); }
+export function responseThenFixedRedirect(value: string) { NextResponse.json({ value }); return NextResponse.redirect("https://example.com/done"); }
+export function responseThenUnsafeRedirect(value: string) { NextResponse.json({ ok: true }); return NextResponse.redirect(value); }
+export function aliasReceiver(value: string) { consume(value); return NextResponse.redirect(fixedPath()); }
+export function aliasReturn(value: string) { return NextResponse.redirect(identity(value)); }
+export function aliasMutation(value: string) { const holder = { destination: "/done" }; mutate(holder, value); return NextResponse.redirect(holder.destination); }
 export function evaluate(value: string) { return eval(value); }
 export function parse(value: string) { return JSON.parse(value); }
 export function populate(value: object) { return merge({}, value); }

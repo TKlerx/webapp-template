@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { safeLocalRedirectPath } from "@/lib/local-redirect";
 import {
   AuthMethod,
   Role,
@@ -15,14 +16,6 @@ import { prisma } from "@/lib/db";
 function redirectTo(request: Request, target: string) {
   const basePath = process.env.BASE_PATH ?? "";
   return NextResponse.redirect(new URL(`${basePath}${target}`, request.url));
-}
-
-function getSafeRedirectTarget(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//")) {
-    return null;
-  }
-
-  return value;
 }
 
 function isAuthorizedProductionMockSso(request: Request) {
@@ -46,7 +39,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const mockEmail = url.searchParams.get("email");
   const mockName = url.searchParams.get("name");
-  const requestedRedirect = getSafeRedirectTarget(
+  const requestedRedirect = safeLocalRedirectPath(
     url.searchParams.get("redirectTo"),
   );
 

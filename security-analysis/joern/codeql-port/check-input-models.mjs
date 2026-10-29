@@ -44,7 +44,7 @@ for (const [language, filename, unsafeNames, safeNames, lookalike, sinkLine] of 
     unsafe_yaml: 'unsafe-deserialization', unsafe_logging: 'sensitive-logging',
   } : {
     unsafeSsrf: 'ssrf', unsafeDynamicOrigin: 'ssrf', unsafeSql: 'sql-injection', unsafePrisma: 'sql-injection', unsafePath: 'path-traversal',
-    unsafeNormalizedPath: 'path-traversal', unsafeRedirect: 'open-redirect', unsafeCode: 'code-injection',
+    unsafeNormalizedPath: 'path-traversal', unsafeRedirect: 'open-redirect', unsafeResponseRedirect: 'open-redirect', unsafeAliasReturn: 'open-redirect', unsafeAliasMutation: 'open-redirect', unsafeCode: 'code-injection',
     unsafePrototype: 'prototype-pollution', unsafeLogging: 'sensitive-logging',
   };
   const prefix = language === 'python' ? 'py' : 'js';

@@ -152,8 +152,26 @@ import io.shiftleft.semanticcpg.layers.LayerCreatorContext
         api(call, "fs", name) || api(call, "fs/promises", name)) ||
       List("resolve", "join", "normalize", "basename").exists(name => api(call, "path", name))
   }.methodFullName.toList.distinct
+  // The frontend leaves @/ imports unresolved. A source-matched function declaration
+  // without authored `this` cannot mutate its synthetic call-site receiver. Keep
+  // conservative argument-to-argument and argument-to-return flows, including
+  // real object mutations; do not apply this to unknown helpers or arrow methods.
+  val readOnlyAliasReceivers = if (language != "JSSRC") Nil else {
+    val declarations = cpg.method.isExternal(false).filter(m =>
+      m.code.matches("(?s)\\s*(?:async\\s+)?function\\b.*") && !m.code.matches("(?s).*\\bthis\\b.*")).l
+    cpg.call.filter(_.methodFullName.startsWith("@/")).l.groupBy(_.methodFullName).toList.flatMap { case (name, calls) =>
+      val parts = name.stripPrefix("@/").split(":", 2)
+      val targets = if (parts.length != 2) Nil else declarations.filter(m => m.name == parts(1) &&
+        file(m).replace('\\', '/').replaceAll("\\.(?:tsx?|jsx?|mjs|cjs)$", "") == s"src/${parts(0)}")
+      if (targets.size != 1) Nil else {
+        val arity = calls.flatMap(_.argument.argumentIndex.l).filter(_ > 0).maxOption.getOrElse(0)
+        val mappings = List((0, 0)) ++ (for (input <- 1 to arity; output <- -1 :: (1 to arity).toList) yield (input, output)).toList
+        List(FlowSemantic.from(name, mappings))
+      }
+    }
+  }
   val semantics = DefaultSemantics().plus(valueApis.map(name =>
-    FlowSemantic(name, List(PassThroughMapping) ++ FlowSemantic.from(name, List((0, 0))).mappings)))
+    FlowSemantic(name, List(PassThroughMapping) ++ FlowSemantic.from(name, List((0, 0))).mappings)) ++ readOnlyAliasReceivers)
   semantics.initialize(cpg)
   given EngineContext = EngineContext(semantics = semantics)
   new OssDataFlow(new OssDataFlowOptions(semantics = semantics)).run(new LayerCreatorContext(cpg))

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { safeLocalRedirectPath } from "@/lib/local-redirect";
 import { requireApiUserWithRoles } from "@/lib/route-auth";
 import {
   createTeamsConsentState,
@@ -10,15 +11,6 @@ import {
 } from "@/services/teams/consent";
 import { Role } from "../../../../../../../generated/prisma/enums";
 
-function isSafeLocalRedirectPath(value: string) {
-  return (
-    value.startsWith("/") &&
-    !value.startsWith("//") &&
-    !value.includes("\\") &&
-    !/[\r\n]/.test(value)
-  );
-}
-
 export async function GET(request: Request) {
   const auth = await requireApiUserWithRoles([Role.PLATFORM_ADMIN], request);
   if ("error" in auth) {
@@ -26,11 +18,10 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const redirectTo = url.searchParams.get("redirectTo");
-  const safeRedirect =
-    redirectTo && isSafeLocalRedirectPath(redirectTo)
-      ? getTeamsConsentAppRedirectPath(redirectTo)
-      : "/admin/integrations/teams";
+  const redirectTo = safeLocalRedirectPath(url.searchParams.get("redirectTo"));
+  const safeRedirect = redirectTo
+    ? getTeamsConsentAppRedirectPath(redirectTo)
+    : "/admin/integrations/teams";
   const finalRedirect = getTeamsConsentAppRedirectPath(safeRedirect);
 
   const state = createTeamsConsentState();

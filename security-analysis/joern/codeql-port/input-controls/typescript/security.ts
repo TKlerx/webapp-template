@@ -1,6 +1,6 @@
 import type { Pool } from "pg";
 import type { PrismaClient } from "@prisma/client";
-import { network, fixedNetwork, fixedOrigin, dynamicOrigin, sql, boundSql, prismaSql, boundPrisma, file, normalizedFile, fixedFile, redirectUrl, fixedRedirect, evaluate, parse, populate, safePopulate, logSecret, maskSecret, unrelated } from "./security-wrappers";
+import { network, fixedNetwork, fixedOrigin, dynamicOrigin, sql, boundSql, prismaSql, boundPrisma, file, normalizedFile, fixedFile, redirectUrl, fixedRedirect, responseThenFixedRedirect, responseThenUnsafeRedirect, aliasReceiver, aliasReturn, aliasMutation, evaluate, parse, populate, safePopulate, logSecret, maskSecret, unrelated } from "./security-wrappers";
 declare const pool: Pool;
 declare const prisma: PrismaClient;
 
@@ -17,6 +17,11 @@ export async function unsafeNormalizedPath(input: Request) { const data = await 
 export async function safePath(input: Request) { const data = await input.json(); fixedFile(data.value); }
 export async function unsafeRedirect(input: Request) { const data = await input.json(); redirectUrl(data.value); }
 export async function safeRedirect(input: Request) { const data = await input.json(); fixedRedirect(data.value); }
+export async function safeResponseIsolation(input: Request) { const data = await input.json(); responseThenFixedRedirect(data.value); }
+export async function unsafeResponseRedirect(input: Request) { const data = await input.json(); responseThenUnsafeRedirect(data.value); }
+export async function safeAliasReceiver(input: Request) { const data = await input.json(); aliasReceiver(data.value); }
+export async function unsafeAliasReturn(input: Request) { const data = await input.json(); aliasReturn(data.value); }
+export async function unsafeAliasMutation(input: Request) { const data = await input.json(); aliasMutation(data.value); }
 export async function unsafeCode(input: Request) { const data = await input.json(); evaluate(data.value); }
 export async function safeCode(input: Request) { const data = await input.json(); parse(data.value); }
 export async function unsafePrototype(input: Request) { const data = await input.json(); populate(data.value); }

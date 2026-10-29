@@ -1,5 +1,12 @@
 # Continue
 
+## Joern Advisory Triage (2026-10-29)
+
+- PR #49 is merged as `d5ecbaa8c1da3ea3057b717271ea1233a08466ee`; both required main checks passed in run 40885832668. GitHub open Dependabot and provider secret alerts were zero after merge. DeepSec remains retired and Teams setup remains deferred.
+- User explicitly authorized reviewing/fixing Joern candidates. Fixed URL-normalization ambiguities in local redirects using one shared guard across login, SSO and Teams consent. Four login regression cases failed before the fix; 32 focused tests pass afterward.
+- Corrected synthetic receiver contamination only for exact source-matched alias function declarations without authored `this`, preserving conservative argument mutation/return flows. The new safe alias control failed before and passes after; unsafe alias controls remain required.
+- Fresh local snapshot: 187/196 JS/TS and 8/8 Python files, unchanged nine allowed frontend omissions, zero blocking and 15 advisory JS paths, Python zero. Reviewed every residual path in `security-analysis/joern/advisory-triage-2026-10-29.md`; no confirmed unresolved vulnerability in those paths, and raw findings remain visible. Full local validation passes (296 app tests across 69 files, 26 worker tests, all quality/security/infra gates). Full Joern controls pass (37 unsafe, 32 safe, five unrelated cases plus original controls and gate regressions). New PR CI is pending.
+
 ## Main Security Cleanup And Bootstrap Fix (2026-10-29)
 
 - User authorized committing/pushing the local bootstrap fix, running CI and merging, with Teams setup deferred and a clean main security state as the priority. Initially found 25 open Dependabot alerts, all in the standalone DeepSec workspace; main's concurrent PR #48 removed that unused workspace and GitHub now reports zero open Dependabot alerts. No alerts are being dismissed.
