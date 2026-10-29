@@ -38,15 +38,17 @@ This feature is a service-layer refactor. The current starter does not require P
 
 ### AuditEntry
 
-| Field      | Type               | Notes                            |
-| ---------- | ------------------ | -------------------------------- |
-| id         | String             | Primary key                      |
-| action     | `AuditAction` enum | Filtered by audit routes         |
-| entityType | String             | Included in audit/export queries |
-| entityId   | String             | Route-specific audit target      |
-| actorId    | String             | Acting user                      |
-| details    | String (JSON)      | Route-specific audit metadata    |
-| createdAt  | DateTime           | Used in filtering/export         |
+**Reconciled 2026-10-15**: The original required-actor snapshot is superseded by the corrected auth contract in feature 010. Authenticated actions retain a User actor; unauthenticated rejected logins use null rather than attributing an attempt to its target. This updates the historical model description only; the implementation and migration already support nullable actors.
+
+| Field      | Type               | Notes                                                      |
+| ---------- | ------------------ | ---------------------------------------------------------- |
+| id         | String             | Primary key                                                |
+| action     | `AuditAction` enum | Filtered by audit routes                                   |
+| entityType | String             | Included in audit/export queries                           |
+| entityId   | String             | Route-specific audit target                                |
+| actorId    | String?            | Authenticated acting user, or null for anonymous rejection |
+| details    | String (JSON)      | Route-specific audit metadata                              |
+| createdAt  | DateTime           | Used in filtering/export                                   |
 
 ### BackgroundJob
 
@@ -113,17 +115,17 @@ Shared representation of audit list/export filters.
 
 Shared orchestration input for the background jobs route.
 
-| Field         | Type    | Validation / Meaning                     |
-| ------------- | ------- | ---------------------------------------- |
-| requesterId   | string  | Authenticated caller                     |
-| requesterRole | `Role`  | Determines list visibility               |
-| jobType       | string  | Required, trimmed input for create       |
-| payload       | unknown | Serialized as JSON without shape changes |
+| Field         | Type    | Validation / Meaning                                                                                                                                                               |
+| ------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| requesterId   | string  | Authenticated caller                                                                                                                                                               |
+| requesterRole | `Role`  | Determines list visibility                                                                                                                                                         |
+| jobType       | string  | Required, trimmed input for create                                                                                                                                                 |
+| payload       | unknown | Accepted non-secret payloads are serialized without shape changes; credential-bearing payloads are rejected before storage (017 security reconciliation, user-approved 2026-10-15) |
 
 ## Relationships
 
 ```text
-User 1:N AuditEntry        (actorId)
+AuditEntry N:0..1 User     (nullable actorId; anonymous rejection has no actor)
 User 1:N BackgroundJob     (createdByUserId)
 User 1:N Account           (credential account used by local auth)
 

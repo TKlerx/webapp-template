@@ -39,7 +39,7 @@ Request-scoped service logs should include `requestId` when the caller has one a
 
 ## Request Logging
 
-Request logging is opt-in through `ENABLE_REQUEST_LOGGING=true`, `1`, or `yes`. When enabled, middleware emits `http.request.completed` with proxy-visible status and proxy handling duration:
+Structured request-completion logging is enabled by default, including when `ENABLE_REQUEST_LOGGING` is unset. Set `ENABLE_REQUEST_LOGGING=false` to opt out; `true`, `1`, or `yes` explicitly enable it. Middleware emits `http.request.completed` with proxy-visible status and proxy handling duration:
 
 ```ts
 proxyLogger.info("http.request.completed", {

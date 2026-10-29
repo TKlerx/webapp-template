@@ -56,7 +56,7 @@ def process_job(job: BackgroundJob) -> dict[str, object]:
     if job.job_type == "teams_message_delivery":
         teams_payload = TeamsMessageDeliveryPayload.model_validate(job.payload)
 
-        response = send_teams_channel_message(teams_payload.model_dump())
+        response = send_teams_channel_message(job.id)
         return {
             "teamsOutboundMessageId": teams_payload.teamsOutboundMessageId,
             "graphMessageId": str(response.get("id") or "").strip() or None,
@@ -68,6 +68,8 @@ def process_job(job: BackgroundJob) -> dict[str, object]:
 
 
 def process_teams_intake_poll(store: JobStore) -> dict[str, object]:
+    if not _is_teams_enabled() or not store.get_teams_integration_flags()["intakeEnabled"]:
+        return {"subscriptions": 0, "created": 0, "duplicates": 0}
     subscriptions = store.list_active_teams_subscriptions()
     created = 0
     duplicates = 0
@@ -76,7 +78,6 @@ def process_teams_intake_poll(store: JobStore) -> dict[str, object]:
         payload = {
             "teamId": subscription["teamId"],
             "channelId": subscription["channelId"],
-            "deltaToken": subscription.get("deltaToken"),
             "top": 50,
         }
         response = list_teams_channel_messages(payload)
@@ -121,11 +122,7 @@ def process_teams_intake_poll(store: JobStore) -> dict[str, object]:
             )
             created += 1
 
-        next_delta = (
-            str(response.get("@odata.deltaLink") or response.get("@odata.nextLink") or "").strip()
-            or None
-        )
-        store.update_teams_subscription_poll_state(subscription["id"], next_delta)
+        store.update_teams_subscription_poll_state(subscription["id"], None)
 
     return {
         "subscriptions": len(subscriptions),
@@ -505,9 +502,6 @@ def main() -> None:
             store.complete_job(job.id, result)
             if job.job_type == "notification_delivery" and notification_id:
                 store.mark_notification_sent(notification_id, job.attempt_count)
-            if job.job_type == "teams_message_delivery" and teams_outbound_id:
-                graph_message_id = str(result.get("graphMessageId") or "").strip() or None
-                store.mark_teams_outbound_sent(teams_outbound_id, graph_message_id)
             _log_job_completed(job, result)
         except Exception as error:  # noqa: BLE001
             notification_id = str(job.payload.get("notificationId") or "").strip()
@@ -524,7 +518,7 @@ def main() -> None:
                     teams_outbound_id,
                     str(error),
                     job.attempt_count,
-                    will_retry=job.attempt_count < config.max_attempts,
+                    will_retry=job.attempt_count < config.max_attempts_for(job.job_type),
                 )
             store.fail_job(job.id, str(error))
             _log_job_failed(job, error)

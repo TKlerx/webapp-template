@@ -208,6 +208,12 @@ variable "teams_delegated_grant_key_secret_id" {
   nullable    = true
 }
 
+variable "teams_delivery_shared_secret_id" {
+  description = "Key Vault secret id for the worker delivery endpoint when Teams is enabled."
+  type        = string
+  nullable    = true
+}
+
 variable "tags" {
   description = "Tags applied to runtime resources."
   type        = map(string)

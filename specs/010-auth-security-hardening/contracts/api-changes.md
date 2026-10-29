@@ -143,15 +143,17 @@ All audit entries follow the existing `AuditEntry` model:
 ```json
 {
   "action": "AUTH_LOGIN_SUCCEEDED | AUTH_LOGIN_REJECTED | AUTH_LOGOUT_SUCCEEDED | AUTH_PASSWORD_CHANGED | USER_CREATED | USER_STATUS_CHANGED | ROLE_CHANGED",
-  "entityType": "User",
-  "entityId": "<target user ID>",
-  "actorId": "<acting user ID>",
+  "entityType": "User | LoginAttempt",
+  "entityId": "<known target user ID or random anonymous-attempt ID>",
+  "actorId": "<authenticated acting user ID or null for anonymous rejection>",
   "details": "{ ... action-specific JSON ... }",
   "createdAt": "<ISO timestamp>"
 }
 ```
 
 ### Details field by action
+
+Anonymous rejected attempts never identify the target user as their actor. Unknown-account and pre-lookup failures use a random LoginAttempt ID; submitted credentials and raw email are excluded. Rejections include invalid input, invalid credentials, rate limiting, inactive accounts and internal errors.
 
 | Action                | Details                                                                       |
 | --------------------- | ----------------------------------------------------------------------------- |

@@ -6,6 +6,9 @@ workspace/
 .codex/
 .deepsec/
 .git/
+.worktrees/
+security-analysis/
+workspace/
 .next/
 .artifacts/
 coverage/

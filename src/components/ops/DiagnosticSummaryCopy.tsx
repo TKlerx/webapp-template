@@ -35,7 +35,9 @@ export function DiagnosticSummaryCopy({ text }: { text: string }) {
         className="inline-flex items-center gap-2"
         type="button"
         variant="secondary"
-        onClick={copySummary}
+        onClick={() => {
+          void copySummary();
+        }}
       >
         <Clipboard aria-hidden="true" className="size-4" />
         {t("button")}

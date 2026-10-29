@@ -1,4 +1,4 @@
-﻿# Research: Cross-Platform CLI Client
+# Research: Cross-Platform CLI Client
 
 **Date**: 2026-04-09 | **Spec**: [spec.md](./spec.md)
 
@@ -61,7 +61,9 @@
 }
 ```
 
-**Rationale**: JSON is simple, human-readable, and debuggable. The config contains only two fields â€” no need for YAML, TOML, or a library like viper. On Windows, Go's `os.Chmod` doesn't enforce Unix permissions but the file is in the user's AppData directory which is already user-scoped.
+**Rationale**: JSON is simple, human-readable, and debuggable. The config contains only two fields â€” no need for YAML, TOML, or a library like viper.
+
+**Security correction (2026-10-15)**: The earlier AppData-only rationale did not satisfy FR-004. Windows now uses a protected file DACL granting access only to the current process user. Creation supplies this descriptor atomically; existing files have their DACL restricted before truncation or token writes. Exclusive file sharing prevents overwriting a token while another handle can read it. Failure leaves existing contents unmodified. Unix-like platforms apply mode 0600 before truncation/writing. `golang.org/x/sys/windows`, already in the dependency graph, provides the native API and is now a direct dependency; no external permission-management executable is required.
 
 **Alternatives considered**:
 

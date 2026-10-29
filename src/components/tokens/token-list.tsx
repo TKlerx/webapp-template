@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
+import { tokenActionResponseSchema } from "@/lib/api-response";
 import {
   Select,
   SelectContent,
@@ -180,10 +181,12 @@ export function TokenList({
             : undefined,
       });
 
-      const payload =
+      const parsed = tokenActionResponseSchema.safeParse(
         response.status === 204
           ? null
-          : await response.json().catch(() => null);
+          : await response.json().catch(() => null),
+      );
+      const payload = parsed.success ? parsed.data : null;
       if (!response.ok) {
         pushToast(payload?.error ?? sharedT("updateFailed"));
         return;

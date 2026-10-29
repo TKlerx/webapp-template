@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Business App Starter",
+    "appName": "Webapp Template",
     "signOut": "Abmelden",
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -98,6 +98,7 @@
     "switchedTo": "Design auf {theme}-Modus umgeschaltet"
   },
   "audit": {
+    "anonymous": "Anonym",
     "title": "Prufprotokoll",
     "action": "Aktion",
     "actor": "Akteur",

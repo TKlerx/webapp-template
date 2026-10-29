@@ -3,7 +3,7 @@
 ## Prerequisites
 
 1. **Azure AD App Registration** — the existing app registration (used for SSO) needs additional Graph API permissions:
-   - `ChannelMessage.Send` (Application)
+   - `ChannelMessage.Send` (Delegated) and `offline_access`
    - `ChannelMessage.Read.All` (Application)
    - Admin consent granted in Azure portal
 
@@ -19,6 +19,8 @@
    ```
    TEAMS_ENABLED=true
    TEAMS_POLL_INTERVAL_SECONDS=60
+   APP_INTERNAL_URL=http://localhost:3270
+   TEAMS_DELIVERY_SHARED_SECRET=<same-random-value-at-least-32-characters-in-app-and-worker>
    ```
 
 ## Setup Steps
@@ -30,10 +32,12 @@
 5. Start worker: `cd worker && uv run python -m starter_worker.main`
 6. Open the avatar admin navigation and navigate to Settings -> Integrations -> Teams
 7. Enable Teams integration (send toggle)
-8. Add a delivery target (paste team ID + channel ID)
+8. Connect delegated Teams consent as the administrator who will create the delivery target, then add the target (paste team ID + channel ID). Sending uses this owner's identity; the owner must remain an active platform administrator with channel access.
 9. Trigger a notification event (e.g., create a user) → message appears in Teams channel
 
 ## Testing Outbound (P1)
+
+Include `BASE_PATH` in `APP_INTERNAL_URL` when configured. Compose supplies the internal app URL automatically; set the shared secret in `.env.docker`. Azure provisions the delivery secret in Key Vault and exposes the grant encryption key only to the app. Tokens never pass through jobs or the internal endpoint response.
 
 1. Configure one delivery target
 2. Enable send

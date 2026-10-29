@@ -1,6 +1,5 @@
 import { getAppVersionInfo, type AppVersionInfo } from "@/lib/app-version";
 import { prisma } from "@/lib/db";
-import { resolveAppDatabaseUrl } from "@/lib/database-url";
 import { checkDatabaseHealth, getProcessHealth } from "@/lib/monitoring";
 
 export type HealthStatus = "healthy" | "degraded" | "unknown" | "unavailable";
@@ -215,9 +214,7 @@ async function mapDatabaseHealth(
         ? "Database connectivity check passed"
         : "Database connectivity check failed",
     detail:
-      database.status === "ok"
-        ? `Provider: ${resolveAppDatabaseUrl().startsWith("file:") ? "sqlite" : "postgresql"}.`
-        : database.message,
+      database.status === "ok" ? "Provider: postgresql." : database.message,
     checkedAt: capturedAt,
   };
 }

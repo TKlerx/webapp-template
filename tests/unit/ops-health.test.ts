@@ -138,7 +138,8 @@ describe("ops health snapshot helpers", () => {
     process.env.APP_REVISION = "abcdef1234567890";
     process.env.APP_BUILD_ID = "123.2";
     process.env.APP_BUILT_AT = "2026-06-11T09:20:17Z";
-    process.env.APP_DATABASE_URL = "file:./dev.db";
+    process.env.APP_DATABASE_URL =
+      "postgresql://health:test@localhost:5432/test_database";
     checkDatabaseHealth.mockResolvedValue({ status: "ok" });
     getProcessHealth.mockReturnValue({
       status: "ok",
@@ -163,7 +164,9 @@ describe("ops health snapshot helpers", () => {
       "deploySmoke",
     ]);
     expect(snapshot.diagnosticSummary.text).toContain("Version: staging-42");
-    expect(snapshot.diagnosticSummary.text).not.toContain("file:./dev.db");
+    expect(snapshot.diagnosticSummary.text).not.toContain(
+      "postgresql://health:test@localhost:5432/test_database",
+    );
   });
 
   it("does not treat stale or pending jobs as worker evidence", async () => {
@@ -240,7 +243,101 @@ describe("ops health snapshot helpers", () => {
   }, 5000);
 
   it("keeps the snapshot when a required check rejects", async () => {
-    process.env.APP_DATABASE_URL = "file:./dev.db";
+    process.env.APP_DATABASE_URL =
+      "postgresql://health:test@localhost:5432/test_database";
+    checkDatabaseHealth.mockRejectedValue(new Error("database probe failed"));
+    getProcessHealth.mockReturnValue({
+      status: "ok",
+      uptimeSeconds: 42,
+      nodeEnv: "test",
+    });
+    prismaMock.backgroundJob.findFirst.mockResolvedValue(null);
+
+    const snapshot = await buildOpsHealthSnapshot();
+    expect(snapshot.overallStatus).toBe("unknown");
+    expect(
+      snapshot.checks.find((check) => check.key === "runtime")?.status,
+    ).toBe("healthy");
+    expect(
+      snapshot.checks.find((check) => check.key === "database")?.status,
+    ).toBe("unknown");
+  });
+
+  it("does not treat stale or pending jobs as worker evidence", async () => {
+    checkDatabaseHealth.mockResolvedValue({ status: "ok" });
+    getProcessHealth.mockReturnValue({
+      status: "ok",
+      uptimeSeconds: 42,
+      nodeEnv: "test",
+    });
+    prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
+      status: "COMPLETED",
+      updatedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+      workerId: "worker-old",
+      error: null,
+    });
+    prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
+      status: "PENDING",
+      updatedAt: new Date(),
+      workerId: null,
+      error: null,
+    });
+
+    for (const status of ["old", "pending"]) {
+      const snapshot = await buildOpsHealthSnapshot();
+      expect(
+        snapshot.checks.find((check) => check.key === "worker")?.status,
+        status,
+      ).toBe("unknown");
+    }
+  });
+
+  it("keeps job errors and failed worker lookups out of the snapshot", async () => {
+    checkDatabaseHealth.mockResolvedValue({ status: "ok" });
+    getProcessHealth.mockReturnValue({
+      status: "ok",
+      uptimeSeconds: 42,
+      nodeEnv: "test",
+    });
+    prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
+      status: "FAILED",
+      updatedAt: new Date(),
+      workerId: "worker-1",
+      error: "API_KEY=topsecret",
+    });
+    prismaMock.backgroundJob.findFirst.mockRejectedValueOnce(
+      new Error("API_KEY=topsecret"),
+    );
+
+    const failedJob = await buildOpsHealthSnapshot();
+    expect(JSON.stringify(failedJob)).not.toContain("topsecret");
+    expect(
+      failedJob.checks.find((check) => check.key === "worker")?.status,
+    ).toBe("degraded");
+
+    const failedLookup = await buildOpsHealthSnapshot();
+    expect(
+      failedLookup.checks.find((check) => check.key === "worker")?.status,
+    ).toBe("unknown");
+  });
+
+  it("bounds a stalled worker lookup", async () => {
+    checkDatabaseHealth.mockResolvedValue({ status: "ok" });
+    getProcessHealth.mockReturnValue({
+      status: "ok",
+      uptimeSeconds: 42,
+      nodeEnv: "test",
+    });
+    prismaMock.backgroundJob.findFirst.mockReturnValue(new Promise(() => {}));
+
+    const snapshot = await buildOpsHealthSnapshot();
+    expect(
+      snapshot.checks.find((check) => check.key === "worker")?.status,
+    ).toBe("unknown");
+  }, 5000);
+
+  it("keeps the snapshot when a required check rejects", async () => {
+    process.env.APP_DATABASE_URL = "postgresql://localhost/test";
     checkDatabaseHealth.mockRejectedValue(new Error("database probe failed"));
     getProcessHealth.mockReturnValue({
       status: "ok",

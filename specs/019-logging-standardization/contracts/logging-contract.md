@@ -43,7 +43,7 @@ Allowed diagnostic fields:
 
 ## Request Logs
 
-Request logging is opt-in. When enabled, emit completion logs with:
+Structured request-completion logging is enabled by default, including with an unset ENABLE_REQUEST_LOGGING variable. An explicit false setting disables it. Emit completion logs with:
 
 - `event`: `http.request.completed`
 - `requestId`

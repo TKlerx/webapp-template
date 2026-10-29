@@ -36,6 +36,7 @@ describe("login route", () => {
   afterEach(() => {
     vi.clearAllMocks();
     __resetRateLimitStore();
+    vi.unstubAllEnvs();
   });
 
   it("rejects missing users before Better Auth sign-in", async () => {
@@ -60,6 +61,14 @@ describe("login route", () => {
     expect(verifyPassword).toHaveBeenCalled();
     expect(signInEmail).not.toHaveBeenCalled();
     expect(response.status).toBe(401);
+    expect(prismaMock.auditEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actorId: null,
+        entityType: "LoginAttempt",
+        entityId: expect.any(String),
+        details: JSON.stringify({ reason: "invalid_credentials" }),
+      }),
+    });
   });
 
   it("delegates password verification to Better Auth for active users", async () => {
@@ -171,7 +180,14 @@ describe("login route", () => {
 
     expect(response.status).toBe(401);
     expect(signInEmail).not.toHaveBeenCalled();
-    expect(prismaMock.auditEntry.create).not.toHaveBeenCalled();
+    expect(prismaMock.auditEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actorId: null,
+        entityType: "User",
+        entityId: "user-3",
+        details: JSON.stringify({ reason: "invalid_credentials" }),
+      }),
+    });
     await expect(response.json()).resolves.toEqual({
       error: "Invalid email or password",
     });
@@ -206,6 +222,12 @@ describe("login route", () => {
       }),
     );
     expect(blocked.status).toBe(429);
+    expect(prismaMock.auditEntry.create).toHaveBeenLastCalledWith({
+      data: expect.objectContaining({
+        actorId: null,
+        details: JSON.stringify({ reason: "rate_limited" }),
+      }),
+    });
 
     const otherAccount = await POST(
       new Request("http://localhost/api/auth/login", {
@@ -218,5 +240,83 @@ describe("login route", () => {
       }),
     );
     expect(otherAccount.status).toBe(401);
+  });
+
+  it("audits invalid login payloads without storing credentials", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: "missing@example.com", password: "" }),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(prismaMock.auditEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actorId: null,
+        details: JSON.stringify({ reason: "invalid_request" }),
+      }),
+    });
+    expect(
+      JSON.stringify(prismaMock.auditEntry.create.mock.calls),
+    ).not.toContain("missing@example.com");
+  });
+
+  it("attempts a failure audit when login throws without swallowing the original error", async () => {
+    const failure = new Error("lookup unavailable");
+    prismaMock.user.findUnique.mockRejectedValueOnce(failure);
+    await expect(
+      POST(
+        new Request("http://localhost/api/auth/login", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            email: "member@example.com",
+            password: "wrong-secret",
+          }),
+        }),
+      ),
+    ).rejects.toBe(failure);
+    expect(prismaMock.auditEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actorId: null,
+        details: JSON.stringify({ reason: "internal_error" }),
+      }),
+    });
+  });
+
+  it("audits account-level throttling across trusted client IPs", async () => {
+    vi.stubEnv("TRUST_PROXY_HEADERS", "1");
+    vi.stubEnv("TRUST_PROXY_HEADER_SECRET", "test-proxy-secret");
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.account.findUnique.mockResolvedValue(null);
+    verifyPassword.mockResolvedValue(false);
+    for (let attempt = 1; attempt <= 11; attempt += 1) {
+      const response = await POST(
+        new Request("http://localhost/api/auth/login", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-real-ip": `192.0.2.${attempt}`,
+            "x-trusted-proxy-secret": "test-proxy-secret",
+          },
+          body: JSON.stringify({
+            email: "target@example.com",
+            password: "wrong-secret",
+          }),
+        }),
+      );
+      expect(response.status).toBe(attempt <= 10 ? 401 : 429);
+    }
+    expect(prismaMock.auditEntry.create).toHaveBeenCalledTimes(11);
+    expect(prismaMock.auditEntry.create).toHaveBeenLastCalledWith({
+      data: expect.objectContaining({
+        actorId: null,
+        details: JSON.stringify({ reason: "rate_limited" }),
+      }),
+    });
+    const audits = JSON.stringify(prismaMock.auditEntry.create.mock.calls);
+    expect(audits).not.toContain("target@example.com");
+    expect(audits).not.toContain("wrong-secret");
   });
 });

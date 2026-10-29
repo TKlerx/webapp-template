@@ -1,8 +1,8 @@
 import type {
   TeamsChannelMessage,
   TeamsClient,
-  TeamsMessageDeltaInput,
-  TeamsMessageDeltaResult,
+  TeamsMessagePageInput,
+  TeamsMessagePageResult,
   TeamsMessageInput,
   TeamsMessageListInput,
 } from "@/lib/teams/types";
@@ -52,6 +52,7 @@ type TokenCache = {
 };
 
 type TeamsClientOptions = {
+  delegatedAccessToken?: string;
   clientId?: string;
   clientSecret?: string;
   tenantId?: string;
@@ -136,8 +137,12 @@ export function createGraphTeamsClient(
     return payload.access_token;
   }
 
-  async function graphRequest<T>(path: string, init?: RequestInit) {
-    const accessToken = await getAccessToken();
+  async function graphRequest<T>(
+    path: string,
+    init?: RequestInit,
+    delegatedToken?: string,
+  ) {
+    const accessToken = delegatedToken ?? (await getAccessToken());
     const response = await fetchImpl(`${GRAPH_BASE_URL}${path}`, {
       ...init,
       headers: {
@@ -147,6 +152,7 @@ export function createGraphTeamsClient(
         ...(init?.headers ?? {}),
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
     });
 
     if (!response.ok) {
@@ -165,6 +171,9 @@ export function createGraphTeamsClient(
 
   return {
     async sendChannelMessage(input: TeamsMessageInput) {
+      if (!options.delegatedAccessToken?.trim()) {
+        throw new Error("Delegated Teams consent is required for sending.");
+      }
       const content = input.content.trim();
       if (!content) {
         throw new Error("Teams message content is required.");
@@ -182,6 +191,7 @@ export function createGraphTeamsClient(
             },
           }),
         },
+        options.delegatedAccessToken,
       );
 
       return {
@@ -199,13 +209,14 @@ export function createGraphTeamsClient(
 
       return mapMessages(payload.value ?? [], input.teamId, input.channelId);
     },
-    async getChannelMessagesDelta(
-      input: TeamsMessageDeltaInput,
-    ): Promise<TeamsMessageDeltaResult> {
+    async getChannelMessagesPage(
+      input: TeamsMessagePageInput,
+    ): Promise<TeamsMessagePageResult> {
       const top = Math.min(Math.max(input.top ?? 25, 1), MAX_TOP);
-      const path = input.deltaToken?.trim()
-        ? decodeDeltaPath(input.deltaToken.trim())
-        : `/teams/${encodeURIComponent(input.teamId)}/channels/${encodeURIComponent(input.channelId)}/messages/delta?$top=${top}`;
+      const channelPath = `/teams/${encodeURIComponent(input.teamId)}/channels/${encodeURIComponent(input.channelId)}/messages`;
+      const path = input.nextLink
+        ? decodePagePath(input.nextLink, channelPath)
+        : `${channelPath}?$top=${top}`;
 
       const payload = await graphRequest<GraphMessageListResponse>(path);
 
@@ -215,8 +226,7 @@ export function createGraphTeamsClient(
           input.teamId,
           input.channelId,
         ),
-        deltaToken:
-          payload["@odata.deltaLink"] ?? payload["@odata.nextLink"] ?? null,
+        nextLink: payload["@odata.nextLink"] ?? null,
       };
     },
   };
@@ -249,14 +259,16 @@ function mapMessages(
     }));
 }
 
-function decodeDeltaPath(deltaToken: string) {
-  if (deltaToken.startsWith("https://graph.microsoft.com/v1.0")) {
-    return deltaToken.replace("https://graph.microsoft.com/v1.0", "");
+function decodePagePath(nextLink: string, channelPath: string) {
+  const url = new URL(nextLink);
+  if (
+    url.origin !== "https://graph.microsoft.com" ||
+    url.hash ||
+    url.username ||
+    decodeURIComponent(url.pathname) !==
+      decodeURIComponent(`/v1.0${channelPath}`)
+  ) {
+    throw new Error("Teams paging link must stay within the approved channel.");
   }
-
-  if (deltaToken.startsWith("/")) {
-    return deltaToken;
-  }
-
-  return `/${deltaToken}`;
+  return `${channelPath}${url.search}`;
 }

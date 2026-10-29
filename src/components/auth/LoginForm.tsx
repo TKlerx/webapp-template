@@ -102,7 +102,11 @@ export function LoginForm() {
       </div>
 
       {formReady ? (
-        <Form onSubmit={handleSubmit}>
+        <Form
+          onSubmit={(event) => {
+            void handleSubmit(event);
+          }}
+        >
           <div>
             <label className="block text-sm font-medium" htmlFor="login-email">
               {t("email")}

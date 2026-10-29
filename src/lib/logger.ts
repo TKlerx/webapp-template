@@ -154,7 +154,9 @@ function getConsoleMethod(level: LogLevel) {
 }
 
 function isRequestLoggingEnabled() {
-  const value = process.env.ENABLE_REQUEST_LOGGING?.trim().toLowerCase();
+  const value = (process.env.ENABLE_REQUEST_LOGGING ?? "true")
+    .trim()
+    .toLowerCase();
   return value === "1" || value === "true" || value === "yes";
 }
 

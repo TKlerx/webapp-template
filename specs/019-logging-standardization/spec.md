@@ -2,7 +2,8 @@
 
 **Feature Branch**: `019-logging-standardization`  
 **Created**: 2026-06-10  
-**Status**: Draft  
+**Status**: Completed
+
 **Input**: User description: "Standardize general logging across the template using the existing structured logger. Replace ad hoc console error calls, define event naming and safe metadata conventions, add consistent request/job/component context, and document expected app and worker logging behavior without introducing a new logging platform."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.
@@ -71,7 +72,7 @@ As a developer using the template, I want clear logging conventions and regressi
 - Logging must remain safe when metadata contains nested objects, arrays, error objects, or unknown third-party response shapes.
 - Logging must not break the primary user action if log emission itself fails.
 - Request correlation may be unavailable for startup, scheduled, worker, or CLI-originated work; those events still need stable component and operation context.
-- High-volume request logging must remain configurable and disabled unless explicitly enabled so local development and production deployments can reduce noise.
+- Structured request-completion logging is enabled by default and remains configurable; administrators can explicitly disable it to control high-volume log output (user decision 2026-10-15 supersedes the earlier opt-in policy).
 - Raw full URLs and raw query strings must not be logged because they may contain tokens, callback codes, emails, search text, or sensitive filters.
 - Audit records and operational logs serve different purposes; this feature must not replace audit trail requirements for security-sensitive business actions.
 
@@ -87,11 +88,11 @@ As a developer using the template, I want clear logging conventions and regressi
 - **FR-006**: System MUST redact sensitive metadata fields before log output, including credentials, tokens, cookies, authorization values, and common casing or separator variants of those fields.
 - **FR-006a**: System MUST use stable internal actor identifiers by default and avoid logging emails or display names unless a specific safe-use case is documented.
 - **FR-007**: System MUST replace ad hoc console logging in production app and worker source paths with the standard logging approach.
-- **FR-008**: System MUST preserve existing process-level failure logging and request correlation behavior while replacing default request-start logs with opt-in request completion logs.
+- **FR-008**: System MUST preserve existing process-level failure logging and request correlation behavior while replacing request-start logs with structured request completion logs enabled by default.
 - **FR-009**: System MUST document logging severity guidance, event naming rules, required context fields, redaction expectations, and examples for app and worker code.
 - **FR-010**: System MUST provide regression coverage or validation that detects newly introduced ad hoc console logging in production app and worker source paths where a standard operational log should be used.
 - **FR-011**: System MUST keep operational logging separate from audit trail persistence; audit-required user and security actions must continue to create audit records.
-- **FR-012**: System MUST log important operational events by default while keeping request start/completion logging configurable and opt-in.
+- **FR-012**: System MUST log important operational events and structured request completion events by default, including when ENABLE_REQUEST_LOGGING is unset, while allowing an explicit request-logging opt-out.
 - **FR-013**: System MUST emit request completion logs with proxy-visible response status and elapsed proxy handling duration when request logging is enabled; downstream route handler status requires route-level logging if it is not visible at the proxy boundary.
 - **FR-014**: System MUST log request paths without raw full URLs and MUST include query fields only when those fields are sanitized or explicitly allowlisted.
 
@@ -119,5 +120,5 @@ As a developer using the template, I want clear logging conventions and regressi
 
 - The feature standardizes the template's existing logging foundation instead of introducing a new hosted observability service.
 - Existing audit trail behavior remains the source of truth for business/security audit events.
-- Important operational events are logged by default; request start/completion logs remain configurable and opt-in to control volume.
+- Important operational events and structured request-completion logs are enabled by default; explicit configuration can disable request logs to control volume. The 2026-10-15 user decision supersedes the earlier opt-in clarification.
 - Worker logs should be compatible in shape and terminology with app logs even if the worker runtime uses a different language.

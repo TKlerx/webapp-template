@@ -31,6 +31,20 @@
         "speckit-git-commit"
       ],
       "installed_at": "2026-04-20T23:38:12.377290+00:00"
+    },
+    "archive": {
+      "version": "1.4.0",
+      "source": "local",
+      "manifest_hash": "sha256:cdfc1d14c91467b155327e79008c84df19ecbaeb8d2dcc8cf4f489b7e716e3bf",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "codex": [
+          "speckit.archive.run"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-10-14T22:28:51.531485+00:00"
     }
   }
 }

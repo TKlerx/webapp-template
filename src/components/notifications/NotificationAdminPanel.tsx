@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { useToast } from "@/components/ui/Toast";
@@ -61,11 +61,13 @@ export function NotificationAdminPanel({
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER);
   const [loading, setLoading] = useState(false);
   const [busyEventType, setBusyEventType] = useState<string | null>(null);
+  const latestLogRequest = useRef(0);
 
   async function refreshNotifications(
     nextEventType = eventTypeFilter,
     nextStatus = statusFilter,
   ) {
+    const requestId = ++latestLogRequest.current;
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -85,6 +87,8 @@ export function NotificationAdminPanel({
         notifications?: NotificationLogRow[];
       } | null;
 
+      if (requestId !== latestLogRequest.current) return;
+
       if (!response.ok || !payload?.notifications) {
         pushToast(payload?.error ?? t("loadFailed"));
         return;
@@ -92,7 +96,7 @@ export function NotificationAdminPanel({
 
       setNotifications(payload.notifications);
     } finally {
-      setLoading(false);
+      if (requestId === latestLogRequest.current) setLoading(false);
     }
   }
 

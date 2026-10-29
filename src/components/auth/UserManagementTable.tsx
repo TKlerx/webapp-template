@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/shadcn/select";
 import { withBasePath } from "@/lib/base-path";
+import { apiErrorSchema } from "@/lib/api-response";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 
@@ -54,13 +55,16 @@ export function UserManagementTable({
 
     try {
       const response = await fetch(withBasePath(url), options);
-      const payload =
+      const payload = apiErrorSchema.safeParse(
         response.status === 204
           ? null
-          : await response.json().catch(() => null);
+          : await response.json().catch(() => null),
+      );
 
       if (!response.ok) {
-        pushToast(mapUserError(payload?.error, t));
+        pushToast(
+          mapUserError(payload.success ? payload.data.error : undefined, t),
+        );
         return;
       }
 

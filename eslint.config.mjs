@@ -12,6 +12,7 @@ const config = [
     ignores: [
       "node_modules/**",
       ".next/**",
+      ".artifacts/**",
       "coverage/**",
       "dist/**",
       "build/**",
@@ -27,6 +28,39 @@ const config = [
     ],
   },
   ...nextVitals,
+  {
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-unsafe-argument": "error",
+      "@typescript-eslint/no-unsafe-return": "error",
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-unsafe-call": "error",
+    },
+  },
+  {
+    files: ["src/app/api/**/*.ts", "src/services/api/**/*.ts"],
+    rules: {
+      // ponytail: enforce shared body parsers in API routes/services; full taint analysis needs a dedicated analyzer.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.type='MemberExpression'][arguments.length=0]:matches([callee.property.name=/^(json|text|formData|arrayBuffer|blob|bytes)$/], [callee.property.value=/^(json|text|formData|arrayBuffer|blob|bytes)$/])",
+          message:
+            "Use parseJsonBody or parseFormBody from @/lib/validation to validate request bodies before use.",
+        },
+      ],
+    },
+  },
   {
     plugins: {
       sonarjs,

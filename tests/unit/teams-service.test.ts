@@ -10,6 +10,10 @@ vi.mock("@/services/teams/admin", () => ({
   getOrCreateTeamsConfig: vi.fn(),
 }));
 
+vi.mock("@/services/teams/consent", () => ({
+  getFreshTeamsDelegatedAccessToken: vi.fn(),
+}));
+
 const { createGraphTeamsClient } = vi.hoisted(() => ({
   createGraphTeamsClient: vi.fn(),
 }));
@@ -19,15 +23,20 @@ vi.mock("@/lib/teams/client", () => ({
 }));
 
 import { getOrCreateTeamsConfig } from "@/services/teams/admin";
+import { getFreshTeamsDelegatedAccessToken } from "@/services/teams/consent";
 import {
   queueTeamsMessages,
   safeQueueTeamsMessages,
+  deliverTeamsMessage,
 } from "@/services/teams/service";
 import { processTeamsIntakePoll } from "@/services/teams/intake";
 
 describe("teams service", () => {
   beforeEach(() => {
     process.env.TEAMS_ENABLED = "true";
+    prismaMock.teamsIntegrationConfig.findFirst.mockResolvedValue({
+      sendEnabled: true,
+    } as never);
     prismaMock.$transaction.mockImplementation(async (callback) =>
       callback(prismaMock),
     );
@@ -79,6 +88,111 @@ describe("teams service", () => {
     expect(firstPayload).not.toHaveProperty("delegatedAccessToken");
   });
 
+  it("delivers persisted content using the target owner's delegated grant and preserves receipts on replay", async () => {
+    prismaMock.backgroundJob.findUnique.mockResolvedValue({
+      jobType: "teams_message_delivery",
+      status: "IN_PROGRESS",
+      payload: JSON.stringify({
+        teamsOutboundMessageId: "out-1",
+        content: "untrusted",
+      }),
+    } as never);
+    const outbound = {
+      id: "out-1",
+      status: "SENDING",
+      content: "persisted",
+      contentType: "html",
+      target: {
+        active: true,
+        teamId: "team",
+        channelId: "channel",
+        createdByUserId: "owner",
+        createdBy: { role: "PLATFORM_ADMIN", status: "ACTIVE" },
+      },
+    };
+    prismaMock.teamsOutboundMessage.findUnique.mockResolvedValue(
+      outbound as never,
+    );
+    vi.mocked(getFreshTeamsDelegatedAccessToken).mockResolvedValue(
+      "fresh-token",
+    );
+    const send = vi.fn().mockResolvedValue({ messageId: "graph-1" });
+    createGraphTeamsClient.mockReturnValue({ sendChannelMessage: send });
+    await expect(deliverTeamsMessage("job-1")).resolves.toEqual({
+      id: "graph-1",
+    });
+    expect(getFreshTeamsDelegatedAccessToken).toHaveBeenCalledWith(
+      "owner",
+      prismaMock,
+    );
+    expect(createGraphTeamsClient).toHaveBeenCalledWith({
+      delegatedAccessToken: "fresh-token",
+    });
+    expect(send).toHaveBeenCalledWith({
+      teamId: "team",
+      channelId: "channel",
+      content: "persisted",
+      contentType: "html",
+    });
+    expect(prismaMock.teamsOutboundMessage.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "SENT",
+          graphMessageId: "graph-1",
+        }),
+      }),
+    );
+    prismaMock.teamsOutboundMessage.findUnique.mockResolvedValue({
+      ...outbound,
+      status: "SENT",
+      graphMessageId: "graph-1",
+    } as never);
+    await expect(deliverTeamsMessage("job-1")).resolves.toEqual({
+      id: "graph-1",
+    });
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects unclaimed jobs, missing consent, inactive owners and emergency-disabled sending", async () => {
+    prismaMock.backgroundJob.findUnique.mockResolvedValue({
+      jobType: "teams_message_delivery",
+      status: "PENDING",
+    } as never);
+    await expect(deliverTeamsMessage("job-1")).rejects.toThrow(/claimed/);
+    prismaMock.backgroundJob.findUnique.mockResolvedValue({
+      jobType: "teams_message_delivery",
+      status: "IN_PROGRESS",
+      payload: JSON.stringify({ teamsOutboundMessageId: "out-1" }),
+    } as never);
+    const outbound = {
+      status: "SENDING",
+      target: {
+        active: true,
+        createdByUserId: "owner",
+        createdBy: { role: "PLATFORM_ADMIN", status: "ACTIVE" },
+      },
+    };
+    prismaMock.teamsOutboundMessage.findUnique.mockResolvedValue(
+      outbound as never,
+    );
+    vi.mocked(getFreshTeamsDelegatedAccessToken).mockResolvedValue(null);
+    await expect(deliverTeamsMessage("job-1")).rejects.toThrow(/reconnect/);
+    prismaMock.teamsOutboundMessage.findUnique.mockResolvedValue({
+      ...outbound,
+      target: {
+        ...outbound.target,
+        createdBy: { role: "SCOPE_USER", status: "ACTIVE" },
+      },
+    } as never);
+    await expect(deliverTeamsMessage("job-1")).rejects.toThrow(/administrator/);
+    prismaMock.teamsOutboundMessage.findUnique.mockResolvedValue(
+      outbound as never,
+    );
+    process.env.TEAMS_ENABLED = "false";
+    await expect(deliverTeamsMessage("job-1")).rejects.toThrow(/disabled/);
+    expect(createGraphTeamsClient).not.toHaveBeenCalled();
+  });
+
   it("truncates content above 28KB", async () => {
     prismaMock.teamsDeliveryTarget.findMany.mockResolvedValue([
       { id: "target-1", teamId: "team-1", channelId: "channel-1" },
@@ -116,7 +230,7 @@ describe("teams service", () => {
     expect(prismaMock.teamsDeliveryTarget.findMany).not.toHaveBeenCalled();
   });
 
-  it("ingests delta messages and updates poll state", async () => {
+  it("ingests paged messages and clears the historical delta token", async () => {
     (
       getOrCreateTeamsConfig as unknown as ReturnType<typeof vi.fn>
     ).mockResolvedValue({
@@ -142,7 +256,7 @@ describe("teams service", () => {
     (
       createGraphTeamsClient as unknown as ReturnType<typeof vi.fn>
     ).mockReturnValue({
-      getChannelMessagesDelta: vi.fn().mockResolvedValue({
+      getChannelMessagesPage: vi.fn().mockResolvedValue({
         messages: [
           {
             id: "provider-1",
@@ -155,7 +269,7 @@ describe("teams service", () => {
             senderUserId: "u-1",
           },
         ],
-        deltaToken: "/delta-1",
+        nextLink: null,
       }),
     });
 
@@ -166,7 +280,7 @@ describe("teams service", () => {
     expect(prismaMock.teamsIntakeSubscription.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          deltaToken: "/delta-1",
+          deltaToken: null,
         }),
       }),
     );

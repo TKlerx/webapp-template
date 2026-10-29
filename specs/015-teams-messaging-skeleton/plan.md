@@ -7,13 +7,15 @@
 
 ## Summary
 
-Add Microsoft Teams integration to send operational notifications to Teams channels and read messages from approved Teams conversations. Uses Microsoft Graph API with application permissions, extending the existing Azure AD credentials. Follows the same worker/background-job pattern established by email notifications (spec 014). Skeleton scope: no replies, no webhooks, polling-only intake.
+Add Microsoft Teams integration to send operational notifications using a consenting administrator's delegated Graph grant and read approved channels using application permissions. Reuse the Entra registration and background-job pattern. The worker submits claimed job IDs to the authenticated app delivery endpoint; only the app decrypts/refreshes grants. Skeleton scope: no replies, no webhooks, polling-only intake.
+
+2026-10-15 reconciliation: the user explicitly approved fixing delegated sending and fixed retries before archival, while incomplete 014 remains open. This is the authorized sequencing exception under Constitution V. Target creators supply consent and must remain active platform administrators. A row lock serializes the small-team send and persists the receipt before responding; an ambiguous Graph success followed by database failure still requires operator review because Graph offers no send idempotency key here.
 
 ## Technical Context
 
 **Language/Version**: TypeScript (Next.js 16 App Router) + Python 3.12 (worker)
 **Primary Dependencies**: Microsoft Graph API (`@microsoft/microsoft-graph-client` or raw HTTP via existing `graph.ts` pattern), Prisma 7, Next.js 16
-**Storage**: SQLite (dev) / PostgreSQL (prod) via Prisma 7
+**Storage**: PostgreSQL via Prisma 7 (constitution v2.0.0 supersedes the historical SQLite plan)
 **Testing**: Vitest (unit), Playwright (E2E)
 **Target Platform**: Web application (Docker deployment)
 **Project Type**: Web service with background worker
@@ -31,7 +33,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 | II. Test Coverage               | PASS   | Plan includes unit tests for TeamsClient, service layer, and worker job handlers. Integration tests for API routes.                               |
 | III. Duplication Control        | PASS   | Reuses existing Graph token caching, background job infrastructure, notification event pipeline. TeamsClient follows same pattern as mail client. |
 | IV. Incremental Delivery        | PASS   | Three user stories prioritized P1→P2→P3. P1 (outbound send) delivers standalone value.                                                            |
-| V. Spec Sequencing              | PASS   | Specs 010–014 fully implemented. 015 is next in sequence.                                                                                         |
+| V. Spec Sequencing              | PASS   | Explicit user override on 2026-10-15 permits completing 015 while 014 remains open.                                                               |
 | VI. Continuity And Handoff      | PASS   | CONTINUE.md reviewed. Will update after planning.                                                                                                 |
 | VII. Azure OpenAI Integration   | N/A    | No AI features in this spec.                                                                                                                      |
 | VIII. Web Application Standards | PASS   | UI under Settings -> Integrations -> Teams, reachable from avatar admin navigation. Base path respected. Toast feedback for actions.              |

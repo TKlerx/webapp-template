@@ -23,12 +23,13 @@ var auditActions = []string{
 }
 
 type auditEntry struct {
-	ID         string `json:"id"`
-	Action     string `json:"action"`
-	EntityType string `json:"entityType"`
-	EntityID   string `json:"entityId"`
-	ActorID    string `json:"actorId"`
-	CreatedAt  string `json:"createdAt"`
+	ID         string  `json:"id"`
+	Action     string  `json:"action"`
+	EntityType string  `json:"entityType"`
+	EntityID   string  `json:"entityId"`
+	ActorID    *string `json:"actorId"`
+	Details    string  `json:"details"`
+	CreatedAt  string  `json:"createdAt"`
 }
 
 type auditFilterFlags struct {
@@ -94,11 +95,15 @@ func newAuditListCommand() *cobra.Command {
 			headers := []string{"ID", "Action", "Entity", "Actor", "Date"}
 			rows := make([][]string, 0, len(payload.Data))
 			for _, entry := range payload.Data {
+				actor := "Anonymous"
+				if entry.ActorID != nil {
+					actor = *entry.ActorID
+				}
 				rows = append(rows, []string{
 					entry.ID,
 					entry.Action,
 					entry.EntityType + " " + entry.EntityID,
-					entry.ActorID,
+					actor,
 					entry.CreatedAt,
 				})
 			}

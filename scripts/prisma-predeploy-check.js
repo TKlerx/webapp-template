@@ -1,5 +1,4 @@
 const { spawnSync } = require("child_process");
-const fs = require("fs");
 const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..");
@@ -16,14 +15,9 @@ if (!databaseUrl) {
 
 process.env.DATABASE_URL = databaseUrl;
 
-if (databaseUrl.startsWith("file:")) {
-  const databasePath = databaseUrl.replace("file:", "");
-  if (!fs.existsSync(databasePath)) {
-    console.log(
-      `Local database not found at ${databasePath}; treating as fresh bootstrap and skipping drift check.`,
-    );
-    process.exit(0);
-  }
+if (!/^postgres(?:ql)?:\/\//.test(databaseUrl)) {
+  console.error("Pre-deploy verification requires a PostgreSQL URL.");
+  process.exit(1);
 }
 
 const prismaArgs = ["migrate", "status"];

@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Business App Starter",
-  description: "Reusable internal business app starter",
+  title: "Webapp Template",
+  description: "Reusable web application template",
 };
 
 export default async function RootLayout({

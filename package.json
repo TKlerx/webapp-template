@@ -1,7 +1,7 @@
 {
-  "name": "business-app-starter",
+  "name": "webapp-template",
   "version": "1.0.0",
-  "description": "Reusable internal business app starter",
+  "description": "Reusable web application template",
   "private": true,
   "packageManager": "pnpm@11.21.0",
   "scripts": {
@@ -18,7 +18,7 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "architecture": "depcruise --config .dependency-cruiser.cjs --exclude \"^generated/\" src",
+    "architecture": "depcruise --config .dependency-cruiser.cjs src",
     "duplication": "node scripts/check-duplication.mjs",
     "quality:ts": "pnpm run lint && pnpm run architecture && pnpm run duplication",
     "quality:python": "node scripts/check-python-quality.mjs",
@@ -36,18 +36,20 @@
     "specs:overview:update": "node scripts/update-spec-overview.mjs",
     "specs:overview:check": "node scripts/update-spec-overview.mjs --check",
     "validate:prepush": "pwsh -NoProfile -ExecutionPolicy Bypass -File validate.ps1 prepush",
-    "validate": "pnpm run validate:runtime-credentials && pnpm run typecheck && pnpm run quality:ts && pnpm run quality:python && pnpm run quality:cli && pnpm run logging:guard && pnpm run semgrep && pnpm run test",
-    "validate:full": "pnpm run validate && pnpm run test:e2e",
+    "validate": "pwsh -NoProfile -ExecutionPolicy Bypass -File validate.ps1 all",
+    "validate:full": "pwsh -NoProfile -ExecutionPolicy Bypass -File validate.ps1 full",
+    "validation:inputs": "pnpm exec vitest run tests/unit/validation.test.ts tests/unit/background-jobs-route.test.ts tests/unit/auth/cli-approval-route.test.ts && cd worker && uv run pytest tests/test_main.py -k process_job -q",
     "template:stamp": "node scripts/stamp-template-origin.mjs",
     "prisma:generate": "prisma generate",
-    "prisma:generate:postgres": "prisma generate --config prisma.config.postgres.ts",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:postgres": "prisma migrate deploy --config prisma.config.postgres.ts",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:deploy": "prisma migrate deploy",
+    "db:up": "docker compose -f compose.dev.yml up -d --wait",
+    "db:stop": "docker compose -f compose.dev.yml stop"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
@@ -65,10 +67,6 @@
     "react-dom": "^19.2.8",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.6.7"
-  },
-  "optionalDependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.10.0",
-    "better-sqlite3": "^12.11.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",

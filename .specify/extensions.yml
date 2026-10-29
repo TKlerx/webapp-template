@@ -175,3 +175,7 @@ hooks:
       prompt: Commit after syncing issues?
       description: Auto-commit after tasks-to-issues conversion
       condition: null
+installed:
+  - archive
+settings:
+  auto_execute_hooks: true

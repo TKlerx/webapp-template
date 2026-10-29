@@ -117,6 +117,6 @@ flowchart TD
 
 ## Important Constraints
 
-- auth must work in both SQLite local mode and PostgreSQL deployment mode
+- auth must work with PostgreSQL in local and deployed environments
 - login pages should remain resilient to browser autofill and extension interference
 - account status and role checks must be enforced server-side

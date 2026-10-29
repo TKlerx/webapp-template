@@ -1,52 +1,130 @@
 # Continue
 
-## 2026-10-29 Focused Joern Gate
+## Runtime/PostgreSQL Review And Main Reconciliation (2026-10-29)
 
-- Split the static-analysis sources and controls from draft PR #44 onto current main. No runtime, PostgreSQL conversion, dependency or archival changes are included. Security maintenance was already merged through PR #45 (`f877d61`).
-- Added the pinned Joern 4.0.650/Java 25 CI job with controls, fresh application extraction and uploaded evidence. Main must require both `validate` and `Joern security analysis` before this PR merges.
-- Fixed the extraction gate: only the nine reviewed JavaScript/TypeScript omissions are allowed; additional omissions fail. The real-process regression failed before the fix and passes after it, covering both known omissions and a newly omitted route. Python still requires complete extraction.
-- Kept analysis-only examples/references outside application compilation, lint, Semgrep and Docker build contexts; generated analysis artifacts remain ignored. Existing application security checks stay enabled.
-- Local verification: 225 application tests across 62 files, typecheck, ESLint, formatting and the real-process gate self-check pass. Run the focused PR's complete CI and merge only after both jobs pass. Keep PR #44 draft for the separate runtime/PostgreSQL review.
+- PR #44 remains draft and unmerged. Reconciled its runtime/PostgreSQL/archival branch with main after security PR #45 and focused Joern PR #47 merged. Preserved Python 3.12, the isolated CI PostgreSQL URL, and Joern's explicit extraction-omission guard and regression. Removed the obsolete duplicate credential migration under `migrations-postgres`; the canonical migration remains.
+- Verified all 11 PostgreSQL migrations from main retain identical SQL bytes in `prisma/migrations`. Rehearsed an upgrade from main's migration history in a new isolated `_test` database: all 12 canonical migrations recorded, existing user/audit data preserved, anonymous audits accepted, repeat deploy a no-op. The scratch database was removed; no development/shared/production data was changed. Evidence: `.artifacts/runtime-review-20261029/migrations.log`.
+- Frozen installation and fresh `pnpm run validate` pass all gates, including 290 application tests across 67 files, 26 worker tests, native Windows CLI checks, Semgrep (zero findings), runtime credentials and OpenTofu. Evidence: `.artifacts/runtime-review-20261029/validate.log`. Joern passed on the reconciliation commit; inspect PR #44's current `validate` and `Joern security analysis` checks for the final documentation head before merging. Previous October 28 results below are historical. User requested a readiness review, not a merge.
+- Rollout still requires PostgreSQL URLs and migrations before application startup; SQLite data is retained without automatic transfer. App and worker need the same `TEAMS_DELIVERY_SHARED_SECRET` (at least 32 characters), and the worker needs `APP_INTERNAL_URL`; delegated grant encryption stays app-side. No fresh live Azure/Microsoft 365 tenant verification is claimed. Feature 014 remains incomplete; the existing five CLI release filesystem-tracing build warnings remain a follow-up.
 
-## 2026-10-28 Security-Only Maintenance
+## Security Maintenance (2026-10-28)
 
-- Isolated the security updates from commit `178b050` onto current main. The broader PostgreSQL/runtime/archival and Joern work remains on `codex/consolidate-runtime-and-analysis` in draft PR #44 and is outside this merge's scope.
-- Updated Next.js/eslint-config-next 16.4.3, Better Auth 1.7.13, Zod 4.6.7, Vitest/coverage 4.1.12, Vite 8.3.5 and Go 1.26.10, with patched transitive dependency overrides and a regenerated lockfile. Both production and full pnpm audits report zero known vulnerabilities.
-- Better Auth 1.7 requires credential accountId to equal User.id. Aligned credential creation, login, password changes, mock SSO and test fixtures. Added the preserving data migration to main's existing migration histories; password hashes and external-provider identities remain unchanged. Deploy migrations with the application upgrade.
-- CI's floating Python 3.x selected 3.15, which the locked psycopg binary does not support. Pinned Python 3.12 and provisioned PostgreSQL before the new migration regression. No database architecture change is included here.
-- Local application tests: 225 passed across 62 files. Typecheck and production/full dependency audits pass. CI for the isolated branch is the remaining merge gate; the source branch's broader validation results do not establish this branch's CI status.
-- Joern's first Linux CI job passed on PR #44. Its originating chat is "Investigate missing Dependabot PRs" (`01a13ca3-4694-7c31-9e87-e2e14a6bcd2e`); its rule and CI changes were made on October 15.
+- Updated Next.js/eslint-config-next to 16.4.3, Better Auth to 1.7.13, Zod to 4.6.7, Vitest/coverage to 4.1.12 and Vite to 8.3.5 (minimum ^8.2.4). Updated existing fast-uri and brace-expansion overrides to 3.1.9 and 1.1.21/5.0.12. Regenerated the lockfile; frozen install passes. Both production and full pnpm audits report zero known vulnerabilities; the Python production audit remains clean across nine packages.
+- Updated the CLI Go directive and Docker builder to 1.26.10 for GO-2026-6809. The production Go vulnerability scan and complete CLI quality gate pass. The builder image was not rebuilt.
+- Better Auth 1.7 requires credential accountId to equal User.id. Aligned login, password changes, user/admin creation, mock SSO and browser fixtures. Migration `20261028000000_align_credential_account_ids` preserves password hashes, account row IDs and OAuth identities; its regression also checks repeat application. Replaced the old 1.6-only dependency assertion with an installed-library schema compatibility check.
+- Started development PostgreSQL on loopback port 5432 and test PostgreSQL on 55432. Applied the credential migration to the local development and default test databases; browser tests also applied all 12 migrations to an isolated test database. No shared/production database was changed. Deploy the migration with the application upgrade before using the new credential lookup contract.
+- Final `pnpm run validate` passed every gate, 290 application tests across 67 files and 26 worker tests. Production build passed; browser suite passed 19 tests with one existing Teams test skipped. Regenerated the stale specs overview. Evidence: `.artifacts/security-maintenance-20261028/validation-final.log`, `e2e-final.log`, `build.log` and `audit-*.log` in that directory. No fresh runtime-image audit, live Azure/tenant verification or CI run is claimed.
+- Follow-up: the production build reports five broad filesystem-tracing warnings in `src/services/api/cli-release-service.ts`; scope that tracing before treating the standalone bundle as minimal. Feature 014 remains the only unfinished spec. The user authorized committing and pushing this maintenance on the current branch; this entry supersedes earlier dependency-audit and commit/push status notes.
 
-<!-- continuity:fingerprint=327ecf5abf4b15c8d7507401e047d857bc073b95464288446f2fbf696325d2fc -->
+## Expanded Joern Rules
+
+- 2026-10-15: User requested all useful additional rules from the upstream review. Extended the existing query/CI path with SSRF, SQL injection, path traversal, open redirects, sensitive logging, code injection, Python unsafe deserialization and JavaScript prototype pollution. Existing command-injection rules remain. Added cross-file controls, bounded imported API/type models, credential sources, fixed-origin SSRF modeling, non-mutating library semantics and sink coverage evidence. All 34 unsafe/30 safe/five unrelated input cases and original Express/Flask controls pass. Fresh app scan: zero blocking findings, 17 advisory JavaScript findings (16 redirects/one logging) for guard/redactor precision review, zero Python findings; represented 186/195 JS/TS and 8/8 Python files. Redirect/logging rules are advisory for application findings while every family's controls remain mandatory; all other and unknown rule IDs block. A real-process gate regression verifies blocking/advisory policy, engine-error rejection and source-hash integrity. Precommit, actionlint and workflow formatting passed. See security-analysis/README.md for explicit coverage limits; no claim of a fresh Linux CI run. No scanner dependency or CodeQL CLI requirement added.
+
+## Joern CI Integration
+
+- 2026-10-15: Added a separate Joern job to the Validate workflow (PR/main), with pinned Joern 4.0.650 checksum and Java 25. It runs independent positive/negative controls and fresh current-source command-injection analysis, failing on findings or analysis/control errors and uploading JSON/log evidence. CodeQL comparison remains optional/local. Joern is not invoked by local validate:full. Local runner passed: original controls plus 12 unsafe/12 safe input cases; current application has zero findings, 186/195 JS/TS files represented (nine omissions listed in evidence), 8/8 Python files, 84 Next.js sources and 12 worker payload sources. Actionlint and workflow formatting passed; live Linux CI has not yet run. Secret scans skip generated Joern workspace and CodeQL databases while retaining analysis source coverage.
+
+## Commit And Push Preparation
+
+- Final consolidation: commits `557922f`, `2ef2ef6` and `e0cc321` contain runtime fixes, archival and both advisory analysis kits. Integrated current main and retained its dependency updates and four health regressions; aligned the imported database fixture with PostgreSQL. Post-merge application tests pass (289 across 66 files), typecheck passes, frozen pnpm install and both production audits pass. Push target: `origin/codex/consolidate-runtime-and-analysis`.
+- 2026-10-15: Consolidating yesterday/today work on `codex/consolidate-runtime-and-analysis`, since the previous branch PR was already merged. Separate commits cover runtime/security/dependency fixes, completed-feature archival and the advisory Joern/CodeQL source kit. Feature 014 remains incomplete.
+- Both analysis source kits are retained under `security-analysis/`, including deliberately unsafe analysis-only controls and upstream MIT notices. Generated graphs/databases/results, downloaded tools, environment files and old worktrees remain ignored. The analysis fixtures are excluded from application compilation and mandatory production lint/scans; their dedicated runners verify them separately.
+- Fresh precommit validation passed. The latest application-wide validation passed 285 application tests and 26 worker tests; earlier full validation passed browser and image checks before later runtime reconciliations. New analysis runner verification is recorded in the delivery log.
+
+## Current Archival Work
+
+- Completed the requested archival of every completed feature: 010-013 and 015-022, one feature per run, preserving all original directories. Final memory: 38 stories, 180 FR, 77 SC and 59 AS. 014 is the only unfinished/unarchived feature. This latest entry supersedes the historical pending-work notes below.
+- The user-approved 017 credential-persistence correction and 019 default-on logging reconciliation passed a clean `pnpm run validate`: all gates, 285 application tests across 66 files, 26 worker tests. Evidence: `.runlogs/validation-017-019-final.log`. The earlier TypeScript test-narrowing error was fixed before this successful run. Source completion reviews and separate archive reports record limits: no fresh DeepSec/live tenant/browser/image evidence for these reconciliations.
+- 017/019/021/022 are archived with all tasks checked. Existing main IDs remain stable; compatible story/entity/credential rules were folded without removing requirements. 019 logs structured request completions by default, including with unset ENABLE_REQUEST_LOGGING; false opts out. The status/duration scope remains the proxy boundary. Main-plan/agent consolidation remains outside archive scope. Next recommended implementation is completing 014's documented gaps, after user selection; no new implementation is underway.
+
+- User explicitly chose proper logging by default for 019 on 2026-10-15, authorizing reconciliation while 014/017 remain open. Structured request-completion events now default on when the variable is unset; false opts out. Feature documents, environment examples and regressions are aligned; final validation is pending.
+
+- 2026-10-15: User approved an English-only companion CLI and fixing Windows config ACLs. Both are complete; constitution v3.0.0 records the CLI exception. Native Windows CLI quality checks and all six release-target builds pass. Archived 013 with originals retained; consolidated memory now covers 010-013, 018 and 020 (23 stories, 103 requirements, 39 outcomes, 35 assumptions).
+- User explicitly approved completing 015 delegated sends and fixed retries before archival despite 014 remaining incomplete. The implementation is corrected and 015 is now archived: delegated app-side delivery, fixed retries, supported channel paging, emergency rechecks and actual intake-failure health. Final `pnpm run validate` passed all gates (279 app tests, 26 worker tests); evidence `.runlogs/validation-teams-015-final.log`. Main memory covers 010-013, 015, 018 and 020 (26 stories, 115 FR, 43 SC, 39 AS). Originals remain. No fresh live tenant/browser/image-scan evidence is claimed.
+- Archived 016 after reconciling its obsolete SQLite-local guidance using the user's prior PostgreSQL-only decision. Memory now has 28 stories, 126 FR, 47 SC and 43 AS; all originals remain. The user then explicitly approved fixing 017's raw job credential persistence before archival while 014 stays open. Job creation now rejects detected credentials before database writes; cleanup traverses history in pages and handles result/error-only secrets. The old 011 payload-shape contract now explicitly applies to accepted non-secret payloads. Focused regressions pass; required validation and 017 archival are next, followed by 019/021/022.
+
+## Full Validation Passed
+
+- 2026-10-15: `pnpm run validate:full` completed with exit code 0 and `ALL CHECKS PASSED`. Application tests: 273 across 65 files; worker tests: 22; browser tests: 19. All type, quality, security, credential, logging, encoding, cooldown, provenance, spec, and OpenTofu gates passed.
+- All ten supply-chain results passed with zero findings, including configuration scans, host/image dependency audits, and fresh app/migration/worker runtime image scans. Production pnpm and uv audits also passed.
+- Fixed formatting, worker-test nullability and connection timeouts, the public-secret Semgrep rule with a regression test, documented safe psycopg Identifier false positives, reference/worktree scan scopes, feature 022 stage records, and the unused SQLite peer build policy so clean Docker installs succeed.
+- Evidence: `.runlogs/validation-full-final.log` and `.artifacts/supply-chain-audit/validate-full.json`. Earlier validation blockers recorded below are resolved by this run.
+
+## Auth Alignment, PostgreSQL-Only Storage And Sequential Archival
+
+- 2026-10-15: User selected this order: finish spec 010 auth fixes, remove SQLite, then resume archival of completed specs while preserving originals and asking about conflicts/supersessions.
+- Auth implementation now uses sliding windows with a full cooldown from the threshold and best-effort anonymous failed-login audits. PostgreSQL-only spec 022 removes duplicate app/worker adapters, schemas and migration histories, preserves deployed PostgreSQL migration identifiers, and adds persistent loopback-only local PostgreSQL startup.
+- The local ignored `.env` now points to PostgreSQL; development migrations and admin seed succeeded. Original SQLite data files remain untouched; no automatic data transfer or shared/production migration was performed.
+- Spec 022 is complete: schema valid; 11 retained PostgreSQL migration files match their former paths; all 273 TypeScript tests across 65 files and 22 Python tests pass. All validation gates passed individually; the initial Semgrep fixture-DDL findings cleared on full rerun after review of psycopg Identifier quoting. Development startup/database health and production build pass. All three focused browser checks pass: login/password change, notification creation and admin notification filtering. Chromium was installed for the run. The 014 filter response race is corrected and its regression deliberately delivers an older response last. A transient rebuild module-resolution failure cleared on retry; no dependency change was needed.
+- User requested verifying 014 before archival. Its implementation review found missing scope-assignment notifications, configurable recipient rules, scheduled mailbox polling, scope-admin log access and operational edge cases. Original requirements are retained, completion task T032 is reopened, T033-T038 track gaps, and `completion-review.md` records evidence. Do not archive 014 as completed.
+- Archived 010 using spec+changelog scope after the auth/database work: memory now covers 010/018/020, with 11 stories, 48 requirements, 19 outcomes and 17 assumptions. Existing IDs and all original feature folders are preserved; 42 auth source refs resolve. The archive report is in the originating chat's outputs.
+- On the user's instruction to continue, reconciled 011's old required audit actor with the corrected nullable contract, then archived 011 and 012 separately using the archive skill. Folded compatible entity fields and the shared browser-session assumption. Memory now covers 010-012/018/020: 18 stories, 82 requirements, 32 outcomes, 27 assumptions. Original directories and existing IDs remain intact; per-feature reports are in the originating chat's outputs.
+- Next is 013. Its archive review found an English-only CLI versus constitution IX conflict and a Windows owner-only config-permission gap. Two user decisions are pending: clarify the web-UI internationalization scope versus localize/defer the CLI; and fix Windows ACL enforcement before archival versus keep 013 open. See `specs/013-cli-client/completion-review.md`. No constitution policy has been changed and no 013/later archive writes should proceed around these questions.
+- Corrected one further anonymous-audit consumer: CLI list/export JSON preserves null actors and tabular output labels them Anonymous. The command-level regression, all Go tests and the full CLI quality gate pass (format, vet, production vulnerability scan, staticcheck, complexity and build). This change followed the earlier full validation run, so do not represent that earlier run as including this later correction.
+
+## Production npm And Python Audit Remediation
+
+- 2026-10-15: Added `@types/pg` ^8.23.1 as a direct dev dependency; `pnpm run typecheck` now passes, resolving the missing PostgreSQL declarations noted below.
+- 2026-10-15: Cleared all 12 production npm advisories, including optional dependencies: Next.js 16.3.8, fast-uri 3.1.8, sharp 0.35.5, source-map-js 1.2.2. Updated the Next.js minimum and existing workspace overrides; added a source-map-js override and regenerated the pnpm lockfile. Preserved concurrent PostgreSQL-only changes.
+- Verification: `pnpm audit --prod` reports no known vulnerabilities; `uv audit --frozen --no-dev` reports no known vulnerabilities/adverse statuses across 9 packages (no Python changes needed). Frozen pnpm install and formatting checks passed; all 272 tests across 64 files passed.
+- Typecheck remains blocked by missing `pg` declarations in `tests/integration/anonymous-audit-migration.test.ts` (TS7016), outside the dependency-security changes. No build, image rebuild, or live CI run performed for this remediation.
+
+## Production Go Dependency Audit
+
+- 2026-10-15: Upgraded `cli/go.mod` and `Dockerfile.cli-builder` to Go 1.26.9; CI inherits the module version. Production package audit rerun with govulncheck v1.8.0: no vulnerabilities found. CLI tests: 20 passed across 8 packages. Docker builder image not rebuilt locally.
+- 2026-10-15: Added pinned govulncheck v1.8.0 to the CLI quality gate (PR/main validation) and the CLI release validation job. Package-level scanning starts at the CLI entry package with tests excluded, covering production imports without test/quality-tool dependencies.
+- Existing production audits remain `pnpm audit --prod --no-optional` and `uv audit --no-dev`; the pnpm command intentionally has narrower coverage than `pnpm audit --prod` alone.
+- Verification: 13 analysis/release gate tests passed, including clean/vulnerable/unavailable Go scanner cases. Live Go audit blocked on 11 standard-library package findings in Go 1.26.7, fixed in Go 1.26.9; toolchain remediation remains outstanding. No dependency upgrades or CI run performed.
+
+<!-- continuity:fingerprint=cc93f22e56ee14f0918fcc63ce9f3a2966e6352b6b82e31484deae6ec040db22 -->
 
 ## Current Snapshot
 
-- Updated: 2026-10-29 (Europe/Berlin)
-- Branch: `codex/joern-security-gate`
+- Updated: 2026-10-28 (Europe/Berlin)
+- Branch: `codex/consolidate-runtime-and-analysis`
 
 ## Recent Non-Continuity Commits
 
-- ad5dccd Complete ops health spec convergence (#40)
-- 5da384d Upgrade Spec Kit integration and add converge (#39)
-- 98f0893 Validate boundaries and block committed secrets (#38)
-- 8ddc35e fix: apply security overrides (#37)
-- e2fea0b fix: patch fast-uri and stabilize spec overview validation (#36)
+- 6b4703c security: expand Joern analysis with tested Python and TypeScript rule families
+- e613392 ci: run independent Joern command-injection analysis
+- 67e5fba Merge current main into consolidated runtime and analysis work
+- e0cc321 chore: preserve advisory Joern and CodeQL analysis experiments
+- 2ef2ef6 docs: consolidate completed specifications and preserve incomplete notification work
 
 ## Git Status
 
-- Security dependency updates, credential compatibility/migrations, regression tests, CI compatibility and continuity notes are prepared for the security-only PR. Use `git status --short` for the current checkout state.
+- The previous runtime, archival and Joern work is committed through `6b4703c`; the branch matched its local remote-tracking ref at the start of this maintenance run.
+- The 2026-10-28 security maintenance includes dependency/toolchain updates, the credential identity migration and compatibility changes, regression tests, the regenerated specs overview and refreshed continuity notes. Commit/push was authorized on the current branch. Run `git status --short` for the current checkout state.
 
 ## Active Specs
 
-- No active spec folders detected.
+- Only 014 remains open; see `ACTIVE_SPECS.md`. Every other numbered feature in the repository is completed and archived: 010-013 and 015-022.
 
 ## Next Recommended Actions
 
-1. Fix any failures in the isolated security PR and merge only after CI passes, as requested by the user.
-2. Review the older Joern/runtime work separately in draft PR #44 and its originating chat; do not merge that broader branch under the security-only authorization.
+1. Review CI for the security maintenance branch. Apply the credential identity migration when upgrading other environments.
+2. Review the CLI download service's broad filesystem-tracing build warnings.
+3. Recommended next feature implementation: complete 014's notification requirements in its completion review and T032-T038; do not archive it as complete yet.
 
-## 2026-10-04 security dependencies
+## Spec Kit Archive Trial
 
-- Updated affected application and scanner dependencies; removed obsolete overrides where native ranges suffice.
-- Application frozen lockfile verification passes. Scanner audit is clean, but its existing Vercel packages fail pnpm trust-downgrade verification; policy remains enabled.
-- Application audit retains the unpatched braces 3.0.3 advisory. Full application validation awaits PR CI.
+- 2026-10-15: Installed archive extension v1.4.0 and applied its spec-only workflow to completed feature 020.
+- `.specify/memory/spec.md` is partial: features 018 and 020 (Azure infrastructure and deployment smoke). `specs/base/` remains the existing baseline.
+- `AGENTS.md` now directs future specification/planning work to read relevant consolidated memory and raise contradictions.
+- Validation: all source items/model fields preserved; 13 deployment-smoke tests passed. No live Azure checks or full application suite run.
+- Next: review both archive trials before adopting further archives. The second trial folded shared context; conflicting requirements and supersession remain untested.
+
+## Second Archive Trial
+
+- 2026-10-15: Archived completed feature 018 into the existing partial spec using spec-only scope.
+- Preserved all newer feature 020 content and IDs. Folded shared Azure-target context and Azure/OIDC permission failures; deployment and verification requirements remain separate.
+- Partial memory now contains 8 stories, 34 requirements, 13 outcomes and 13 assumptions. No supersessions or removals.
+- Source/provenance/ID checks passed. No infrastructure apply, live deployment, commit or push performed.
+- Plan and changelog consolidation remain outside the trial scope; supersession handling is still untested.
+
+## Auth Implementation Alignment And Database Direction
+
+- 2026-10-15: User authorized correcting spec 010 implementation before archival, then explicitly chose: finish auth fixes, remove SQLite, resume archival.
+- Auth gaps corrected: sliding windows/full post-threshold cooldown, anonymous failure audits, nullable actor migrations, null-safe audit viewer/exports, translated anonymous labels, and regression coverage.
+- Validation: 266 TypeScript tests and 21 Python tests passed. Both schemas validate. Full validation's initial artifact-lint/overview issues were corrected; lint rerun passed. No deployed database was modified.
+- PostgreSQL-only cleanup is next. Existing local database files remain preserved. Rancher Desktop is installed but the Docker engine was not reachable during the initial check.

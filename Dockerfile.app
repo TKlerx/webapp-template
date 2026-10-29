@@ -42,7 +42,7 @@ ENV APP_DATABASE_URL=postgresql://starter:starter@localhost:5432/business_app_st
 ENV DATABASE_URL=postgresql://starter:starter@localhost:5432/business_app_starter
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm exec prisma generate --config prisma.config.postgres.ts && pnpm run build
+RUN pnpm exec prisma generate --config prisma.config.ts && pnpm run build
 
 FROM base AS migrate-runner
 WORKDIR /app
@@ -58,7 +58,6 @@ COPY --from=migrate-deps /migrate-runtime/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/prisma.config.postgres.ts ./prisma.config.postgres.ts
 COPY --from=builder /app/scripts ./scripts
 RUN rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx \
     && rm -rf /usr/local/lib/node_modules/npm /corepack
@@ -87,10 +86,6 @@ COPY --from=builder /app/generated ./generated
 COPY --from=builder /app/package.json ./package.json
 RUN rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx \
     && rm -rf /usr/local/lib/node_modules/npm /corepack \
-    && rm -rf /app/node_modules/.pnpm/@prisma+adapter-better-sqlite3@* \
-        /app/node_modules/.pnpm/better-sqlite3@* \
-        /app/node_modules/@prisma/adapter-better-sqlite3 \
-        /app/node_modules/better-sqlite3 \
     && groupadd --system --gid 1001 nodejs \
     && useradd --system --uid 1001 --gid nodejs nextjs \
     && mkdir -p /app/uploads /data \

@@ -13,19 +13,11 @@ import {
   hasRealAzureAdConfig,
   trimTrailingSlash,
 } from "@/lib/azure-auth";
-import { hashPassword, verifyPassword } from "@/lib/auth";
-import {
-  getDatabaseProviderForUrl,
-  resolveAppDatabaseUrl,
-} from "@/lib/database-url";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/db";
 
 export const BETTER_AUTH_COOKIE_PREFIX = "business-app-starter";
 export const BETTER_AUTH_API_BASE_PATH = `${getConfiguredBasePath()}/api/auth`;
-
-function getDatabaseProvider() {
-  return getDatabaseProviderForUrl(resolveAppDatabaseUrl());
-}
 
 export function getConfiguredAuthBaseUrl() {
   const configuredOrigin = process.env.AUTH_BASE_URL?.trim();
@@ -65,7 +57,7 @@ export const auth = betterAuth({
   baseURL: getConfiguredAuthBaseUrl(),
   basePath: BETTER_AUTH_API_BASE_PATH,
   database: prismaAdapter(prisma, {
-    provider: getDatabaseProvider(),
+    provider: "postgresql",
   }),
   plugins: [nextCookies()],
   advanced: {

@@ -2,7 +2,8 @@
 
 **Feature Branch**: `021-ops-health-dashboard`  
 **Created**: 2026-06-11  
-**Status**: Draft  
+**Status**: Completed
+
 **Input**: User description: "Create an Ops / Health dashboard for administrators and developers to quickly understand a running environment. It should show app version/build metadata, environment, revision, build id, build time, core runtime health, database connectivity, auth/config sanity, worker/deploy smoke status where available, and clear degraded/unknown states without exposing secrets. Include the existing CONTINUE.md and CONTINUE_LOG.md housekeeping changes in the same PR."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.

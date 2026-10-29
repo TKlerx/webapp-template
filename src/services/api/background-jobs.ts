@@ -18,15 +18,23 @@ const ALLOWED_BACKGROUND_JOB_TYPES = new Set([
 ]);
 const MAX_BACKGROUND_JOB_PAYLOAD_LENGTH = 10 * 1024;
 const SENSITIVE_JOB_KEYS = new Set([
-  "delegatedAccessToken",
-  "accessToken",
-  "refreshToken",
+  "delegatedaccesstoken",
+  "accesstoken",
+  "refreshtoken",
   "authorization",
   "token",
-  "apiKey",
+  "apikey",
+  "idtoken",
+  "apitoken",
+  "sessiontoken",
+  "clientsecret",
+  "password",
+  "secret",
+  "cookie",
+  "setcookie",
 ]);
 
-export function safeParseJobJson(value: string | null) {
+export function safeParseJobJson(value: string | null): unknown {
   if (!value) {
     return null;
   }
@@ -46,7 +54,9 @@ function sanitizeJobValue(value: unknown): unknown {
   if (value && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>).map(
       ([key, entryValue]) => {
-        if (SENSITIVE_JOB_KEYS.has(key)) {
+        if (
+          SENSITIVE_JOB_KEYS.has(key.toLowerCase().replaceAll(/[^a-z0-9]/g, ""))
+        ) {
           return [key, "[REDACTED]"];
         }
 
@@ -56,7 +66,9 @@ function sanitizeJobValue(value: unknown): unknown {
     return Object.fromEntries(entries);
   }
 
-  return value;
+  return typeof value === "string"
+    ? value.replaceAll(/\b(?:Bearer|Basic)\s+[a-z0-9._~+/-]+=*/gi, "[REDACTED]")
+    : value;
 }
 
 function sanitizeJobField(value: string | null) {
@@ -64,13 +76,12 @@ function sanitizeJobField(value: string | null) {
 }
 
 function sanitizeStoredJobJson(value: string | null) {
+  if (value === null) return null;
   const parsed = safeParseJobJson(value);
-  if (parsed === null) {
-    return null;
-  }
-
   const sanitized = sanitizeJobValue(parsed);
-  return JSON.stringify(sanitized ?? {});
+  return JSON.stringify(sanitized) === JSON.stringify(parsed)
+    ? value
+    : JSON.stringify(sanitized ?? {});
 }
 
 export async function listBackgroundJobsForUser(user: SessionUser) {
@@ -119,6 +130,12 @@ export async function createBackgroundJobForUser(
     return { error: jsonError("payload exceeds 10KB limit", 400) };
   }
 
+  if (JSON.stringify(sanitizeJobValue(body.payload ?? {})) !== payloadJson) {
+    return {
+      error: jsonError("Job payload must not contain credentials", 400),
+    };
+  }
+
   const job = await prisma.backgroundJob.create({
     data: {
       jobType,
@@ -139,43 +156,42 @@ export async function createBackgroundJobForUser(
 }
 
 export async function cleanupHistoricalBackgroundJobPayloads(limit = 200) {
-  const jobs = await prisma.backgroundJob.findMany({
-    where: {
-      OR: [
-        { payload: { contains: "delegatedAccessToken" } },
-        { payload: { contains: "accessToken" } },
-        { payload: { contains: "refreshToken" } },
-        { payload: { contains: "authorization" } },
-        { payload: { contains: "apiKey" } },
-      ],
-    },
-    select: {
-      id: true,
-      payload: true,
-      result: true,
-      error: true,
-    },
-    take: limit,
-    orderBy: { createdAt: "asc" },
-  });
-
+  const pageSize = Math.min(Math.max(Math.trunc(limit) || 200, 1), 1000);
+  let cursor: string | undefined;
+  let scanned = 0;
   let updated = 0;
-  for (const job of jobs) {
-    await prisma.backgroundJob.update({
-      where: { id: job.id },
-      data: {
+  // ponytail: scan history in bounded pages; add a cleanup-version marker if
+  // small-team history grows enough to make full maintenance scans expensive.
+  while (true) {
+    const jobs = await prisma.backgroundJob.findMany({
+      select: { id: true, payload: true, result: true, error: true },
+      take: pageSize,
+      orderBy: { id: "asc" },
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+    scanned += jobs.length;
+    for (const job of jobs) {
+      const data = {
         payload: sanitizeStoredJobJson(job.payload) ?? "{}",
-        result: sanitizeStoredJobJson(job.result) ?? "{}",
+        result: sanitizeStoredJobJson(job.result),
         error:
           typeof job.error === "string"
             ? String(sanitizeJobValue(job.error))
             : job.error,
-      },
-    });
-    updated += 1;
+      };
+      if (
+        data.payload === job.payload &&
+        data.result === job.result &&
+        data.error === job.error
+      )
+        continue;
+      await prisma.backgroundJob.update({ where: { id: job.id }, data });
+      updated += 1;
+    }
+    if (jobs.length < pageSize) break;
+    cursor = jobs.at(-1)!.id;
   }
-
-  return { scanned: jobs.length, updated };
+  return { scanned, updated };
 }
 
 export async function runBackgroundJobPayloadCleanupMaintenance() {

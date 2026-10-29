@@ -2,7 +2,7 @@
 
 **Feature Branch**: `018-opentofu-azure-infra`
 **Created**: 2026-06-05
-**Status**: Draft
+**Status**: Completed
 **Input**: User description: "Spec OpenTofu Azure infrastructure deployment automation for this webapp template, including container app runtime, worker, migrations, PostgreSQL, registry, secrets, monitoring, and CI/CD deployment path."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.

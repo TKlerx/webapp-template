@@ -19,10 +19,11 @@ rules:
 
   # ── Next.js: secrets must not leak to the client bundle ──────────
   - id: next-public-env-secret
-    pattern: process.env.NEXT_PUBLIC_$KEY
-    metavariable-regex:
-      metavariable: $KEY
-      regex: ".*(SECRET|KEY|TOKEN|PASSWORD|CREDENTIAL|HAWK).*"
+    patterns:
+      - pattern: process.env.$KEY
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: "NEXT_PUBLIC_.*(SECRET|KEY|TOKEN|PASSWORD|CREDENTIAL|HAWK).*"
     message: >
       NEXT_PUBLIC_ variables are embedded in the client JS bundle.
       Never expose secrets this way — use a server-only env var instead.

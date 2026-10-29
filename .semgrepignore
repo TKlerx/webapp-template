@@ -11,7 +11,10 @@ coverage/
 # Claude Code
 .claude/
 
-# Static-analysis controls deliberately contain unsafe examples; never shipped.
+# Agent skill bundles contain reference/example code, not shipped application source.
+.agents/
+.worktrees/
+# Deliberately unsafe, never-executed analysis controls and upstream query references.
 security-analysis/
 
 # Generated files

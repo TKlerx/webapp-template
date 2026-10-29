@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Business App Starter",
+    "appName": "Webapp Template",
     "signOut": "Se deconnecter",
     "save": "Enregistrer",
     "cancel": "Annuler",
@@ -98,6 +98,7 @@
     "switchedTo": "Theme change en mode {theme}"
   },
   "audit": {
+    "anonymous": "Anonyme",
     "title": "Journal d'audit",
     "action": "Action",
     "actor": "Acteur",

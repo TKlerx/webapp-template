@@ -32,6 +32,7 @@ import { Form } from "@/components/ui/Form";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
+import { apiErrorSchema } from "@/lib/api-response";
 
 const initialForm: {
   email: string;
@@ -64,9 +65,12 @@ export function CreateUserDialog() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    const payload = await response.json();
+    const payload = apiErrorSchema.safeParse(await response.json());
     if (!response.ok) {
-      pushToast(payload.error ?? t("couldNotCreate"));
+      pushToast(
+        (payload.success ? payload.data.error : undefined) ??
+          t("couldNotCreate"),
+      );
       return;
     }
     pushToast(t("userCreated"));
@@ -105,7 +109,14 @@ export function CreateUserDialog() {
           <DialogDescription>{t("createButton")}</DialogDescription>
         </DialogHeader>
 
-        <Form className="mt-2" onSubmit={handleSubmit}>
+        <Form
+          className="mt-2"
+          onSubmit={(event) => {
+            void handleSubmit(event).catch(() =>
+              pushToast(t("couldNotCreate")),
+            );
+          }}
+        >
           <Input
             placeholder={t("emailPlaceholder")}
             type="email"

@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 enum Role {
@@ -185,28 +185,28 @@ model Scope {
 }
 
 model UserScopeAssignment {
-  id        String         @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
   scopeId   String
-  createdAt DateTime       @default(now())
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scope     Scope          @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scope     Scope    @relation(fields: [scopeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, scopeId])
   @@index([scopeId])
 }
 
 model AuditEntry {
-  id         String          @id @default(cuid())
+  id         String      @id @default(cuid())
   action     AuditAction
   entityType String
   entityId   String
-  actorId    String
+  actorId    String?
   scopeId    String?
   details    String
-  createdAt  DateTime        @default(now())
-  actor      User            @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
-  scope      Scope?          @relation(fields: [scopeId], references: [id], onDelete: SetNull)
+  createdAt  DateTime    @default(now())
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+  scope      Scope?      @relation(fields: [scopeId], references: [id], onDelete: SetNull)
 
   @@index([action])
   @@index([entityType, entityId])

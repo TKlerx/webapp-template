@@ -3,6 +3,7 @@ import { logger } from "@/lib/logger";
 import { NotificationEventType } from "../../../generated/prisma/enums";
 import { createGraphTeamsClient } from "@/lib/teams/client";
 import { getOrCreateTeamsConfig } from "@/services/teams/admin";
+import { getFreshTeamsDelegatedAccessToken } from "@/services/teams/consent";
 
 const MAX_TEAMS_CONTENT_BYTES = 28 * 1024;
 const DELIVERY_JOB_TYPE = "teams_message_delivery";
@@ -80,41 +81,70 @@ export async function queueTeamsMessages(input: QueueTeamsInput) {
   });
 }
 
-export async function deliverTeamsMessage(payload: {
-  teamsOutboundMessageId: string;
-  teamId: string;
-  channelId: string;
-  content: string;
-  contentType?: "text" | "html";
-}) {
-  const teamsClient = createGraphTeamsClient();
+export async function deliverTeamsMessage(jobId: string) {
+  const job = await prisma.backgroundJob.findUnique({ where: { id: jobId } });
+  if (job?.jobType !== DELIVERY_JOB_TYPE || job.status !== "IN_PROGRESS") {
+    throw new Error("A claimed Teams delivery job is required.");
+  }
+  const payload: unknown = JSON.parse(job.payload);
+  const id = (payload as { teamsOutboundMessageId?: unknown })
+    ?.teamsOutboundMessageId;
+  if (typeof id !== "string" || !id)
+    throw new Error("Invalid Teams delivery job.");
 
-  const outbound = await prisma.teamsOutboundMessage.update({
-    where: { id: payload.teamsOutboundMessageId },
-    data: {
-      status: "SENDING",
-      attemptCount: {
-        increment: 1,
-      },
+  // ponytail: hold one row lock during this small-team send; use provider idempotency
+  // if throughput requires releasing it sooner.
+  return prisma.$transaction(
+    async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "TeamsOutboundMessage" WHERE id = ${id} FOR UPDATE`;
+      const outbound = await tx.teamsOutboundMessage.findUnique({
+        where: { id },
+        include: { target: { include: { createdBy: true } } },
+      });
+      if (!outbound) throw new Error("Teams outbound message is missing.");
+      if (outbound.status === "SENT") return { id: outbound.graphMessageId };
+      const config = await tx.teamsIntegrationConfig.findFirst({
+        orderBy: { createdAt: "asc" },
+      });
+      const target = outbound.target;
+      if (!isTeamsFeatureEnabled() || !config?.sendEnabled || !target.active) {
+        throw new Error("Teams delivery is disabled.");
+      }
+      if (
+        target.createdBy.status !== "ACTIVE" ||
+        target.createdBy.role !== "PLATFORM_ADMIN"
+      ) {
+        throw new Error(
+          "Teams target owner must be an active platform administrator.",
+        );
+      }
+      const delegatedAccessToken = await getFreshTeamsDelegatedAccessToken(
+        target.createdByUserId,
+        tx,
+      );
+      if (!delegatedAccessToken)
+        throw new Error("Teams target owner must reconnect delegated consent.");
+      const response = await createGraphTeamsClient({
+        delegatedAccessToken,
+      }).sendChannelMessage({
+        teamId: target.teamId,
+        channelId: target.channelId,
+        content: outbound.content,
+        contentType: outbound.contentType === "text" ? "text" : "html",
+      });
+      await tx.teamsOutboundMessage.update({
+        where: { id },
+        data: {
+          status: "SENT",
+          sentAt: new Date(),
+          graphMessageId: response.messageId,
+          lastError: null,
+        },
+      });
+      return { id: response.messageId };
     },
-  });
-
-  const response = await teamsClient.sendChannelMessage({
-    teamId: payload.teamId,
-    channelId: payload.channelId,
-    content: payload.content,
-    contentType: payload.contentType ?? "html",
-  });
-
-  await prisma.teamsOutboundMessage.update({
-    where: { id: outbound.id },
-    data: {
-      status: "SENT",
-      sentAt: new Date(),
-      graphMessageId: response.messageId,
-      lastError: null,
-    },
-  });
+    { timeout: 35_000 },
+  );
 }
 
 function buildTeamsContent(

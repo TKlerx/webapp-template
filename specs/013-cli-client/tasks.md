@@ -1,4 +1,4 @@
-﻿# Tasks: Cross-Platform CLI Client
+# Tasks: Cross-Platform CLI Client
 
 **Input**: Design documents from `/specs/013-cli-client/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/command-schema.md, quickstart.md
@@ -183,7 +183,7 @@
 - [x] T039 Verify exit codes are correct for all error scenarios â€” auth error (2), connection error (3), permission error (4), general error (1), success (0)
 - [x] T040 Run `go vet ./...` and `go test ./...` in `cli/` and fix any issues
 - [x] T041 Update `CONTINUE.md` and `CONTINUE_LOG.md` with CLI feature completion status
-- [x] T041a Update `ACTIVE_SPECS.md` â€” add spec 013 entry at start of implementation; remove entry when all tasks are complete per constitution VI
+- [x] T041a Update `ACTIVE_SPECS.md` â€” add spec 013 entry at start of implementation; remove entry when all tasks are complete per constitution VI (reopened and completed after the 2026-10-15 review).
 
 ---
 
@@ -275,3 +275,14 @@ T019 [P] users role
 - Environment variables `STARTERCTL_SERVER_URL` and `STARTERCTL_TOKEN` override config file
 - Non-interactive detection auto-switches tableâ†’JSON for piped output
 - Update check is non-blocking (goroutine) with 24h cache
+
+## Completion Reconciliation (2026-10-15)
+
+The previous checkmarks describe the original implementation. The archive review found the gaps recorded in `completion-review.md`; retain the original requirements and do not archive this feature as completed until they are resolved.
+
+- [x] T042 [US4] Preserve anonymous audit actors as JSON null in CLI list/export, render Anonymous for tabular output and cover known/anonymous values with a command-level regression.
+- [x] T043 [US1] Resolve the Windows owner-only config-permission gap against FR-004; enforce and verify Windows ACL protection (user approved 2026-10-15).
+- [x] T044 [Governance] Resolve the English-only CLI versus constitution IX policy conflict with the user before archival; recorded the approved CLI exception in constitution 3.0.0, dated 2026-10-15.
+- [x] T045 [Governance] Verify the resolved feature, refresh continuity and remove it from active specs only after its remaining requirements are complete.
+
+Validation: native Windows new/existing-file ACL and locked-file preservation regressions pass, all Go tests and CLI quality checks pass, and builds succeed for Windows/Linux/macOS on amd64/arm64. Audit list/export regressions preserve null actors and event details. No real user token configuration was inspected or changed.

@@ -1,6 +1,6 @@
-# Business App Starter
+# Webapp Template
 
-A reusable internal web-app starter built from the extracted platform core of the original product.
+A reusable web application template built from the extracted platform core of the original product.
 
 Standalone template repo:
 
@@ -17,8 +17,7 @@ These files are intentionally committed into the template so copied repos still 
 ## Includes
 
 - Next.js 16 app router
-- Prisma starter data model with SQLite for local development
-- PostgreSQL-backed Docker deployment
+- Prisma data model with PostgreSQL in development, tests, and deployment
 - Go-based `starterctl` CLI with PAT-backed API access and GoReleaser packaging
 - uv-managed Python worker skeleton for background jobs
 - Azure SSO and local login
@@ -63,6 +62,12 @@ Guidelines:
 
 ## Validation
 
+`pnpm run validate` and `pnpm run validate:full` invoke `validate.ps1 all` and
+`validate.ps1 full`, respectively. CI uses the same full entry point. Install
+worker development tools with `cd worker; uv sync --all-groups --locked`.
+Missing mypy, pytest, Prettier, or E2E specs fail their required phases;
+`full` also blocks production dependency audit failures.
+
 ```powershell
 .\validate.ps1 precommit
 .\validate.ps1 prepush
@@ -74,12 +79,13 @@ Guidelines:
 Playwright E2E defaults to a local PostgreSQL container named
 `webapp-template-e2e-postgres` on host port `55432`. The E2E setup script
 creates or starts that container, ensures the `business_app_starter_e2e_test`
-database exists, resets that database, seeds the initial admin, and runs the app
-with the Postgres Prisma schema. Use a separate database such as
+database exists, applies migrations without resetting existing data, seeds the initial admin, and runs the app
+with the same Prisma schema used by deployments. Use a separate database such as
 `business_app_starter_manual` in the same container for manual exploratory
-testing. Set an explicit `DATABASE_URL=file:./e2e.db` only when you intentionally
-need the legacy SQLite E2E path. Set `E2E_REUSE_SERVER=1` only when you are not
-resetting the database between runs.
+testing. Override test connections with `TEST_DATABASE_URL`, pointing to a dedicated
+database whose name ends in `_test`; ordinary `DATABASE_URL` is never used for test resets.
+Playwright uses a fresh timestamped `_test` database by default. Use an explicit
+`TEST_DATABASE_URL` with `E2E_REUSE_SERVER=1` when reusing a running test server.
 
 `precommit` is the fast local hook phase: TypeScript typecheck,
 dependency-cruiser architecture, and jscpd duplication.
@@ -100,8 +106,11 @@ pnpm run quality:cli
 ```
 
 `quality:ts` runs blocking ESLint complexity, SonarJS cognitive-complexity,
-function-size, and jscpd duplication thresholds plus dependency-cruiser
-import-cycle analysis.
+function-size, and jscpd duplication thresholds. Production TypeScript also
+uses typed ESLint checks for unhandled/misplaced promises and unsafe `any`
+values. Dependency Cruiser blocks runtime import cycles, server imports of UI,
+component imports of services, and component imports of database clients;
+type-only imports remain allowed.
 `quality:python` runs Ruff plus blocking Xenon and complexipy complexity
 thresholds with Radon reporting for the worker package.
 `quality:cli` runs Go formatting checks, `go vet`, Staticcheck, a blocking
@@ -122,6 +131,14 @@ regressions by default:
 To bypass only the numeric threshold blockers during an intentional transition,
 set `QUALITY_THRESHOLDS_BYPASS=1`. Formatting, lint correctness, tests, security
 scans, and other non-threshold checks still run normally.
+
+API routes must read bodies through `parseJsonBody` or `parseFormBody` from
+`src/lib/validation.ts`, using strict Zod schemas. ESLint rejects direct body
+reads in API routes and API services. The form parser rejects duplicate fields. `pnpm run
+validation:inputs` tests malformed JSON/forms, unexpected fields, API error
+response shapes, and worker delivery payloads before side effects. It runs in
+`all`, `full`, `quality`, and `commit`. Python delivery models forbid unknown
+fields and type coercion; Teams content types are limited to `html` and `text`.
 
 ## CLI
 
@@ -152,9 +169,25 @@ $env:CLI_RELEASES_SOURCE_DIR='.\cli\dist'
 pnpm run cli:install-releases
 ```
 
+## Local Development
+
+Configure `.env` from `.env.example`: set `POSTGRES_PASSWORD` and match it in the PostgreSQL `DATABASE_URL`. Start Docker/Rancher Desktop, then:
+
+```powershell
+pnpm run db:up
+pnpm run prisma:generate
+pnpm run prisma:deploy
+pnpm run prisma:seed
+pnpm run dev
+```
+
+`db:up` starts only PostgreSQL on loopback port 5432 with a persistent development volume. `db:stop` stops it without deleting data. The web app, worker and migrations use the same PostgreSQL schema; deployed runtime-specific credentials remain separate. Missing or unsupported database URLs fail explicitly.
+
+For database-backed tests, run `node scripts/ensure-e2e-db.mjs` once before `pnpm test` or the worker tests. It creates a separate test database on port 55432. Existing SQLite files are retained for explicit data export/import if needed; this change does not automatically transfer their contents.
+
 ## Docker Deployment
 
-- Local `pnpm run dev` uses SQLite via `DATABASE_URL=file:./dev.db`.
+- Local development and Docker deployments both use PostgreSQL.
 - Put Docker-only PostgreSQL and initial admin values in `.env.docker` using `.env.docker.example` as the template, then start Docker with `pnpm docker up`.
 - Production-style Docker uses separate database URL names by runtime: `APP_DATABASE_URL`, `WORKER_DATABASE_URL`, and `MIGRATION_DATABASE_URL`.
 - Docker services receive explicit allowlisted environment variables; the Postgres container only receives `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`.
@@ -204,3 +237,9 @@ Reports are written under `.artifacts/supply-chain-audit/`.
 ## Suggested Next Step
 
 Clone the standalone template repo and continue product-specific work from there instead of from the original worktree.
+
+## License
+
+This template is licensed under the [MIT License](LICENSE), allowing private
+and commercial reuse. Third-party dependencies and bundled resources retain
+their respective licenses and notices.

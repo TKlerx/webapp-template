@@ -33,6 +33,11 @@ import {
 
 describe("teams integration API", () => {
   beforeEach(() => {
+    prismaMock.backgroundJob.findMany.mockResolvedValue([] as never);
+    prismaMock.backgroundJob.count.mockResolvedValue(0 as never);
+    prismaMock.teamsIntakeSubscription.findFirst.mockResolvedValue(
+      null as never,
+    );
     requireApiUser.mockResolvedValue({
       user: {
         id: "admin-1",
@@ -51,6 +56,39 @@ describe("teams integration API", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("cleans result-only and nested historical credentials beyond an already-clean first page", async () => {
+    prismaMock.backgroundJob.findMany
+      .mockResolvedValueOnce([
+        { id: "clean", payload: '{ "safe": true }', result: null, error: null },
+      ] as never)
+      .mockResolvedValueOnce([
+        {
+          id: "dirty",
+          payload: '{"safe":true}',
+          result: '{"nested":[{"REFRESH_TOKEN":"private-value"}]}',
+          error: "upstream Bearer private-value",
+        },
+      ] as never)
+      .mockResolvedValueOnce([] as never);
+    await expect(cleanupHistoricalBackgroundJobPayloads(1)).resolves.toEqual({
+      scanned: 2,
+      updated: 1,
+    });
+    expect(prismaMock.backgroundJob.update).toHaveBeenCalledTimes(1);
+    expect(prismaMock.backgroundJob.update).toHaveBeenCalledWith({
+      where: { id: "dirty" },
+      data: {
+        payload: '{"safe":true}',
+        result: '{"nested":[{"REFRESH_TOKEN":"[REDACTED]"}]}',
+        error: "upstream [REDACTED]",
+      },
+    });
+    expect(prismaMock.backgroundJob.findMany).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ cursor: { id: "clean" }, skip: 1, take: 1 }),
+    );
   });
 
   it("returns teams configuration", async () => {

@@ -1,4 +1,3 @@
-import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { headers as nextHeaders } from "next/headers";
 import type { User } from "../../generated/prisma/client";
@@ -18,13 +17,7 @@ export type SessionUser = Pick<
   | "authMethod"
 >;
 
-export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 12);
-}
-
-export async function verifyPassword(password: string, hash: string) {
-  return bcrypt.compare(password, hash);
-}
+export { hashPassword, verifyPassword } from "@/lib/password";
 
 export const PASSWORD_COMPLEXITY_REQUIREMENTS =
   "at least 8 characters, including at least 1 uppercase letter, 1 lowercase letter, and 1 number";

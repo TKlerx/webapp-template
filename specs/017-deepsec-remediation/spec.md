@@ -2,7 +2,7 @@
 
 **Feature Branch**: `017-deepsec-remediation`
 **Created**: 2026-06-01
-**Status**: Draft
+**Status**: Completed
 **Input**: User description: "Fix DeepSec-reported production/runtime security findings: remaining high and high-bug issues around release workflow pinning, delegated Graph token exposure, audit export bounds, login rate-limit keying, and atomic last-admin protections; preserve previously validated auth fixes."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.

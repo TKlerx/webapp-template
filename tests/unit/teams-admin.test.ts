@@ -100,11 +100,18 @@ describe("teams admin service", () => {
     prismaMock.teamsOutboundMessage.findFirst.mockResolvedValue({
       updatedAt: new Date("2026-04-27T09:00:00Z"),
     } as never);
-    prismaMock.teamsInboundMessage.findFirst.mockResolvedValue({
-      updatedAt: new Date("2026-04-27T09:05:00Z"),
+    prismaMock.teamsIntakeSubscription.findFirst.mockResolvedValue({
+      lastPolledAt: new Date("2026-04-27T09:05:00Z"),
     } as never);
     prismaMock.teamsOutboundMessage.count.mockResolvedValue(0 as never);
-    prismaMock.teamsInboundMessage.count.mockResolvedValue(1 as never);
+    prismaMock.backgroundJob.count.mockResolvedValue(1 as never);
+    prismaMock.backgroundJob.findMany.mockResolvedValue([
+      {
+        jobType: "teams_intake_poll",
+        error: "Graph Teams list failed: HTTP 403",
+        updatedAt: new Date(),
+      },
+    ] as never);
     prismaMock.teamsOutboundMessage.findMany.mockResolvedValue([] as never);
     prismaMock.teamsInboundMessage.findMany.mockResolvedValue([] as never);
 
@@ -112,6 +119,16 @@ describe("teams admin service", () => {
     expect(status.sendEnabled).toBe(true);
     expect(status.intakeEnabled).toBe(true);
     expect(status.health.recentIntakeFailures).toBe(1);
+    expect(status.health.lastSuccessfulIntake).toEqual(
+      new Date("2026-04-27T09:05:00Z"),
+    );
+    expect(status.recentActivity).toEqual([
+      expect.objectContaining({
+        type: "intake",
+        messagesIngested: 0,
+        error: "Graph Teams list failed: HTTP 403",
+      }),
+    ]);
   });
 
   it("blocks target deletion when pending outbound messages exist", async () => {

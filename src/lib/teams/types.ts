@@ -24,16 +24,16 @@ export type TeamsMessageListInput = {
   top?: number;
 };
 
-export type TeamsMessageDeltaInput = {
+export type TeamsMessagePageInput = {
   teamId: string;
   channelId: string;
-  deltaToken?: string | null;
+  nextLink?: string | null;
   top?: number;
 };
 
-export type TeamsMessageDeltaResult = {
+export type TeamsMessagePageResult = {
   messages: TeamsChannelMessage[];
-  deltaToken: string | null;
+  nextLink: string | null;
 };
 
 export interface TeamsClient {
@@ -43,7 +43,7 @@ export interface TeamsClient {
   listChannelMessages(
     input: TeamsMessageListInput,
   ): Promise<TeamsChannelMessage[]>;
-  getChannelMessagesDelta(
-    input: TeamsMessageDeltaInput,
-  ): Promise<TeamsMessageDeltaResult>;
+  getChannelMessagesPage(
+    input: TeamsMessagePageInput,
+  ): Promise<TeamsMessagePageResult>;
 }

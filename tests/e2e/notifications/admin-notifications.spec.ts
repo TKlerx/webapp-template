@@ -132,10 +132,32 @@ test("platform admin can manage notification settings and filter the notificatio
   await expect(page.getByText("Role changed for your account")).toBeVisible();
   await expect(page.getByText("Mailbox busy")).toHaveCount(0);
 
+  // Deliver the older filter response last to protect against stale fetch results.
+  let releaseStaleResponse!: () => void;
+  const staleResponseGate = new Promise<void>((resolve) => {
+    releaseStaleResponse = resolve;
+  });
+  await page.route("**/api/notifications?status=SENT", async (route) => {
+    const response = await route.fetch();
+    await staleResponseGate;
+    await route.fulfill({ response });
+  });
+  const staleResponse = page.waitForResponse((response) =>
+    response.url().endsWith("/api/notifications?status=SENT"),
+  );
   await notificationLogSection.getByRole("combobox").nth(0).click();
   await page.getByRole("option", { name: "All events" }).click();
   await notificationLogSection.getByRole("combobox").nth(1).click();
   await page.getByRole("option", { name: "Retrying" }).click();
+  try {
+    await expect(
+      page.getByText("User status update pending retry"),
+    ).toBeVisible();
+  } finally {
+    releaseStaleResponse();
+  }
+  await (await staleResponse).finished();
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByText("User status update pending retry"),
   ).toBeVisible();

@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Business App Starter",
+    "appName": "Webapp Template",
     "signOut": "Sign out",
     "save": "Save",
     "cancel": "Cancel",
@@ -98,6 +98,7 @@
     "switchedTo": "Theme switched to {theme} mode"
   },
   "audit": {
+    "anonymous": "Anonymous",
     "title": "Audit Trail",
     "action": "Action",
     "actor": "Actor",

@@ -11,7 +11,7 @@
 
 ## What This Feature Changes
 
-1. **Rate limiting** on login and change-password endpoints (5 attempts / 15 min per IP, in-memory)
+1. **Rate limiting** on login and change-password endpoints (5 attempts in a sliding 15-minute window; full 15-minute cooldown after the threshold, in-memory). Later trusted-proxy and account protections remain in place.
 2. **Proxy trust hardening** — forwarded headers only trusted when `AUTH_BASE_URL` is explicitly set
 3. **SSO identity safety** — removes unsigned id_token fallback; mock SSO blocked in production
 4. **Status filter validation** — `/api/users?status=INVALID` now returns 400 instead of failing silently
@@ -57,6 +57,15 @@ pnpm run test:e2e
 # Manual verification: attempt 6 rapid login failures
 # → 6th attempt should return 429 with Retry-After header
 ```
+
+## Implementation Alignment (2026-10-15)
+
+- First attempt at 10:00 and fifth at 10:14: subsequent attempts stay blocked until 10:29, not merely until 10:15. Rejected retries do not extend that cooldown.
+- Invalid payloads, wrong passwords (including known users), unknown accounts and rate-limited login attempts create best-effort audit records. Rejected unauthenticated actors are null; target accounts are not misidentified as actors.
+- Unknown/pre-lookup targets use a random LoginAttempt identifier. Submitted passwords and raw email are not stored in these audit details. The existing log-and-continue policy still applies if audit storage fails.
+- Apply migration `20261015010000_allow_anonymous_audit_actors` before deploying the updated handler: `pnpm run prisma:deploy` with the intended PostgreSQL deployment connection configured. Spec 022 supersedes the former dual-database setup.
+- Anonymous records are supported in the translated audit viewer and CSV/PDF exports.
+- Regression command: `pnpm exec vitest run tests/unit/rate-limit.test.ts tests/unit/auth/login-route.test.ts tests/integration/anonymous-audit-migration.test.ts tests/unit/audit.test.ts tests/unit/audit-trail.test.ts`.
 
 ## Environment Variables
 

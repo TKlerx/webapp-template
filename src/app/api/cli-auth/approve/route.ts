@@ -3,10 +3,19 @@ import { NextResponse } from "next/server";
 import { getConfiguredBasePath, getScopedCookiePath } from "@/lib/azure-auth";
 import { jsonError } from "@/lib/http";
 import { requireApiUser } from "@/lib/route-auth";
+import { parseFormBody } from "@/lib/validation";
+import { z } from "zod";
 import {
   CLI_AUTH_CSRF_COOKIE,
   bindAuthCodeToUser,
 } from "@/services/api/cli-auth";
+
+const approvalBodySchema = z
+  .object({
+    request: z.string().min(1),
+    csrfToken: z.string().min(1),
+  })
+  .strict();
 
 function redirectToCliLogin(request: Request) {
   return NextResponse.redirect(
@@ -20,12 +29,9 @@ export async function POST(request: Request) {
     return auth.error;
   }
 
-  const formData = await request.formData().catch(() => null);
-  const requestId = formData?.get("request");
-  const csrfToken = formData?.get("csrfToken");
-  if (typeof requestId !== "string" || typeof csrfToken !== "string") {
-    return jsonError("Invalid CLI approval request", 400);
-  }
+  const parsed = await parseFormBody(request, approvalBodySchema);
+  if ("error" in parsed) return parsed.error;
+  const { request: requestId, csrfToken } = parsed.data;
 
   const cookieStore = await cookies();
   const expectedCsrfToken = cookieStore.get(CLI_AUTH_CSRF_COOKIE)?.value;

@@ -16,7 +16,7 @@ Verify that app, worker, and migration contexts can run with separate credential
 APP_DATABASE_URL=postgresql://app:...@postgres:5432/business_app_starter?connection_limit=10
 WORKER_DATABASE_URL=postgresql://worker:...@postgres:5432/business_app_starter?connection_limit=10
 MIGRATION_DATABASE_URL=postgresql://migrator:...@postgres:5432/business_app_starter?connection_limit=2
-DATABASE_URL=file:./dev.db
+DATABASE_URL=postgresql://starter:...@127.0.0.1:5432/business_app_starter
 ```
 
 ## Validation Commands

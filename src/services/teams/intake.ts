@@ -27,47 +27,61 @@ export async function processTeamsIntakePoll() {
   let duplicates = 0;
 
   for (const subscription of subscriptions) {
-    const result = await client.getChannelMessagesDelta({
-      teamId: subscription.teamId,
-      channelId: subscription.channelId,
-      deltaToken: subscription.deltaToken,
-      top: 50,
-    });
-
-    for (const message of result.messages) {
-      const exists = await prisma.teamsInboundMessage.findUnique({
-        where: { providerMessageId: message.id },
-        select: { id: true },
+    // ponytail: rescan channel pages and deduplicate for this small-team skeleton;
+    // use change notifications if historical channel volume makes polling too costly.
+    let nextLink: string | null = null;
+    const visited = new Set<string>();
+    do {
+      const result = await client.getChannelMessagesPage({
+        teamId: subscription.teamId,
+        channelId: subscription.channelId,
+        nextLink,
+        top: 50,
       });
-      if (exists) {
-        duplicates += 1;
-        continue;
+
+      for (const message of result.messages) {
+        const exists = await prisma.teamsInboundMessage.findUnique({
+          where: { providerMessageId: message.id },
+          select: { id: true },
+        });
+        if (exists) {
+          duplicates += 1;
+          continue;
+        }
+
+        const prepared = truncateUtf8(
+          message.content,
+          MAX_INBOUND_CONTENT_BYTES,
+        );
+        await prisma.teamsInboundMessage.create({
+          data: {
+            subscriptionId: subscription.id,
+            providerMessageId: message.id,
+            teamId: message.teamId,
+            channelId: message.channelId,
+            senderDisplayName: message.senderDisplayName,
+            senderUserId: message.senderUserId,
+            content: prepared.content,
+            contentType: message.contentType,
+            truncated: prepared.truncated,
+            messageCreatedAt: message.createdAt
+              ? new Date(message.createdAt)
+              : new Date(),
+          },
+        });
+        created += 1;
       }
 
-      const prepared = truncateUtf8(message.content, MAX_INBOUND_CONTENT_BYTES);
-      await prisma.teamsInboundMessage.create({
-        data: {
-          subscriptionId: subscription.id,
-          providerMessageId: message.id,
-          teamId: message.teamId,
-          channelId: message.channelId,
-          senderDisplayName: message.senderDisplayName,
-          senderUserId: message.senderUserId,
-          content: prepared.content,
-          contentType: message.contentType,
-          truncated: prepared.truncated,
-          messageCreatedAt: message.createdAt
-            ? new Date(message.createdAt)
-            : new Date(),
-        },
-      });
-      created += 1;
-    }
+      nextLink = result.nextLink;
+      if (nextLink && visited.has(nextLink))
+        throw new Error("Teams paging link repeated.");
+      if (nextLink) visited.add(nextLink);
+    } while (nextLink);
 
     await prisma.teamsIntakeSubscription.update({
       where: { id: subscription.id },
       data: {
-        deltaToken: result.deltaToken,
+        deltaToken: null,
         lastPolledAt: new Date(),
       },
     });

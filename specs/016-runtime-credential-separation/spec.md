@@ -2,7 +2,7 @@
 
 **Feature Branch**: `016-runtime-credential-separation`
 **Created**: 2026-05-27
-**Status**: Draft
+**Status**: Completed
 **Input**: User description: "Add a smaller version of rag-agent runtime least privilege for this template: separate app, worker, migration/provisioning, and local-development credentials where practical."
 
 > Before drafting or implementing this feature, review `/CONTINUE.md` for the latest handoff context and current recommended next steps.
@@ -74,7 +74,7 @@ An operator can run a lightweight validation check that catches obvious wrong-ru
 ### Edge Cases
 
 - A small deployment intentionally uses the same database role for app and worker until separate roles are provisioned.
-- Local development keeps `DATABASE_URL=file:./dev.db` for convenience and should not require multiple SQLite URLs.
+- Local development keeps a single PostgreSQL `DATABASE_URL` for convenience and need not define separate runtime URLs locally. The user-approved PostgreSQL-only policy and constitution v2.0.0 supersede the original SQLite-local example (2026-10-15).
 - Docker Compose interpolation may require compatibility variables while services transition to runtime-specific names.
 - Graph credentials may be intentionally shared between SSO, mail, and Teams in small tenants, but this must be visible as an exception rather than hidden in a shared env block.
 - Migration and seed flows may require broader database privileges than either app or worker runtime.
@@ -104,7 +104,7 @@ An operator can run a lightweight validation check that catches obvious wrong-ru
 - **App Runtime**: The Next.js web process serving user-facing pages and API routes.
 - **Worker Runtime**: The Python background worker that polls jobs and performs asynchronous mail or Teams work.
 - **Migration/Provisioning Runtime**: The migration and seed execution context that prepares database schema and initial data.
-- **Local Development Context**: Developer workstation flow that can use SQLite and simplified values without defining every production credential separately.
+- **Local Development Context**: Developer workstation flow that uses PostgreSQL and simplified runtime URL configuration without defining every production credential separately.
 - **Credential Exception**: A documented reason why a setting is intentionally shared across runtimes, including owner, rationale, and review date.
 
 ### Assumptions

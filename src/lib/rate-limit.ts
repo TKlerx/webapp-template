@@ -1,6 +1,6 @@
 type RateLimitEntry = {
-  count: number;
-  windowStart: number;
+  attempts: number[];
+  blockedUntil: number;
   windowMs: number;
   maxAttempts: number;
 };
@@ -24,7 +24,13 @@ function getKey(ip: string, endpoint: string) {
 
 function cleanupExpiredEntries(now: number) {
   for (const [key, entry] of rateLimitStore.entries()) {
-    if (now - entry.windowStart >= entry.windowMs) {
+    if (
+      now >=
+      Math.max(
+        entry.blockedUntil,
+        (entry.attempts.at(-1) ?? 0) + entry.windowMs,
+      )
+    ) {
       rateLimitStore.delete(key);
     }
   }
@@ -103,30 +109,29 @@ export function checkRateLimit(
   const maxAttempts = options?.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const now = Date.now();
   const compositeKey = getKey(key, endpoint);
-  const existing = rateLimitStore.get(compositeKey);
+  const entry = rateLimitStore.get(compositeKey) ?? {
+    attempts: [],
+    blockedUntil: 0,
+    windowMs,
+    maxAttempts,
+  };
 
-  if (!existing || now - existing.windowStart >= existing.windowMs) {
-    rateLimitStore.set(compositeKey, {
-      count: 1,
-      windowStart: now,
-      windowMs,
-      maxAttempts,
-    });
-    return { allowed: true, retryAfterMs: 0 };
-  }
-
-  if (existing.count >= existing.maxAttempts) {
+  if (now < entry.blockedUntil) {
     return {
       allowed: false,
-      retryAfterMs: Math.max(
-        0,
-        existing.windowMs - (now - existing.windowStart),
-      ),
+      retryAfterMs: entry.blockedUntil - now,
     };
   }
 
-  existing.count += 1;
-  rateLimitStore.set(compositeKey, existing);
+  // ponytail: bounded per-process buckets; use shared storage before horizontal scaling.
+  entry.attempts = entry.attempts.filter(
+    (attempt) => now - attempt < entry.windowMs,
+  );
+  entry.attempts.push(now);
+  if (entry.attempts.length >= entry.maxAttempts) {
+    entry.blockedUntil = now + entry.windowMs;
+  }
+  rateLimitStore.set(compositeKey, entry);
   return { allowed: true, retryAfterMs: 0 };
 }
 

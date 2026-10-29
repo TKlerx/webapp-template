@@ -159,14 +159,12 @@ Includes key user-admin and auth events, such as:
 - `COMPLETED`
 - `FAILED`
 
-## Dual Database Model
+## Database Model
 
-- SQLite schema:
-  - `prisma/schema.prisma`
-- PostgreSQL schema:
-  - `prisma/schema.postgres.prisma`
-
-The structural intent should remain aligned across both.
+- PostgreSQL in development, tests and deployment.
+- Single schema: `prisma/schema.prisma`.
+- Single migration history: `prisma/migrations/`, preserving deployed migration identifiers.
+- Anonymous rejected login events have a nullable audit actor. Known user foreign keys remain enforced.
 
 ## Design Expectations
 

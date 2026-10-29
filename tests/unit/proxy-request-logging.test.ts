@@ -24,7 +24,8 @@ describe("proxy request logging", () => {
     vi.unstubAllEnvs();
   });
 
-  it("does not emit request logs by default", async () => {
+  it("does not emit request logs when explicitly disabled", async () => {
+    vi.stubEnv("ENABLE_REQUEST_LOGGING", "false");
     const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
     const { proxy } = await import("@/proxy");
 
@@ -38,8 +39,8 @@ describe("proxy request logging", () => {
     expect(infoSpy).not.toHaveBeenCalled();
   });
 
-  it("emits opt-in request completion logs with proxy-visible status and duration", async () => {
-    vi.stubEnv("ENABLE_REQUEST_LOGGING", "true");
+  it("emits redacted request completion logs by default with proxy-visible status and duration", async () => {
+    vi.stubEnv("ENABLE_REQUEST_LOGGING", undefined);
     const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
     const { proxy } = await import("@/proxy");
 

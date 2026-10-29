@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import { safeLogAudit } from "@/lib/audit";
@@ -36,13 +37,24 @@ const loginBodySchema = z
   })
   .strict();
 
-export async function POST(request: Request) {
+async function auditLoginRejection(reason: string, userId?: string) {
+  await safeLogAudit({
+    action: AuditAction.AUTH_LOGIN_REJECTED,
+    actorId: null,
+    entityType: userId ? "User" : "LoginAttempt",
+    entityId: userId ?? randomUUID(),
+    details: { reason },
+  });
+}
+
+async function performLogin(request: Request) {
   const parsed = await parseJsonBody(
     request,
     loginBodySchema,
     "Email and password are required",
   );
   if ("error" in parsed) {
+    await auditLoginRejection("invalid_request");
     return parsed.error;
   }
   const body = parsed.data;
@@ -53,6 +65,7 @@ export async function POST(request: Request) {
     clientIp === "unknown" ? `email:${email}` : `ip:${clientIp}`;
   const rateLimit = checkRateLimit(loginBucketKey, "login");
   if (!rateLimit.allowed) {
+    await auditLoginRejection("rate_limited");
     const response = jsonError(
       "Too many login attempts. Please try again later.",
       429,
@@ -68,6 +81,7 @@ export async function POST(request: Request) {
     maxAttempts: 10,
   });
   if (!accountLimit.allowed) {
+    await auditLoginRejection("rate_limited");
     const response = jsonError(
       "Too many login attempts for this account. Please try again later.",
       429,
@@ -99,19 +113,12 @@ export async function POST(request: Request) {
   const validPassword = await verifyPassword(body.password, passwordHash);
 
   if (!user || !credentialAccount?.password || !validPassword) {
+    await auditLoginRejection("invalid_credentials", user?.id);
     return jsonError("Invalid email or password", 401);
   }
 
   if (user.status === UserStatus.INACTIVE) {
-    await safeLogAudit({
-      action: AuditAction.AUTH_LOGIN_REJECTED,
-      entityType: "User",
-      entityId: user.id,
-      actorId: user.id,
-      details: {
-        reason: "inactive_account",
-      },
-    });
+    await auditLoginRejection("inactive_account", user.id);
     return jsonError("Invalid email or password", 401);
   }
 
@@ -125,15 +132,7 @@ export async function POST(request: Request) {
   });
 
   if (!authResponse.ok) {
-    await safeLogAudit({
-      action: AuditAction.AUTH_LOGIN_REJECTED,
-      entityType: "User",
-      entityId: user.id,
-      actorId: user.id,
-      details: {
-        reason: "invalid_credentials",
-      },
-    });
+    await auditLoginRejection("invalid_credentials", user.id);
     return jsonError("Invalid email or password", 401);
   }
 
@@ -172,4 +171,13 @@ export async function POST(request: Request) {
   });
 
   return applySetCookieHeaders(response, authResponse);
+}
+
+export async function POST(request: Request) {
+  try {
+    return await performLogin(request);
+  } catch (error) {
+    await auditLoginRejection("internal_error");
+    throw error;
+  }
 }

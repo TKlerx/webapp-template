@@ -20,7 +20,7 @@ Auto-generated from all feature plans. Last updated: 2026-06-11
 - No new storage; operational logs remain process output; audit records remain Prisma-backed and separate (019-logging-standardization)
 
 - TypeScript 5.9 on Next.js 16 App Router, React 19, Python 3.12 worker where affected, PowerShell validation scripts + Prisma 7, Better Auth, Zod, Vitest, Playwright, GitHub Actions, GoReleaser, DeepSec 2.0.12 (017-deepsec-remediation)
-- SQLite for local development, PostgreSQL for Docker/shared deployments; background job and audit data persisted via Prisma models (017-deepsec-remediation)
+- PostgreSQL for local development, automated database tests and Docker/shared deployments; background job and audit data persisted via Prisma models (017-deepsec-remediation, superseded storage policy recorded by 022)
 
 - TypeScript 5.9 on Next.js 16 App Router (React 19) + Next.js 16, React 19, Prisma 7, Better Auth, Zod, Vitest, Playwright, jscpd (011-route-refactor)
 
@@ -53,4 +53,19 @@ TypeScript 5.9 on Next.js 16 App Router (React 19): Follow standard conventions
 <!-- MANUAL ADDITIONS START -->
 
 @AI_TESTING.md
+
+- Before specification or planning work, read the relevant sections of `.specify/memory/spec.md` alongside `specs/base/`. Consolidated memory covers completed features 010-013 and 015-022; incomplete 014 remains in its original folder. Raise contradictions for review; archival decisions and current work are tracked in `CONTINUE.md`.
+
+- PostgreSQL is the only supported database (spec 022, user-approved 2026-10-15). Earlier SQLite-local plans are historical; preserve original feature folders and local database files.
+
 <!-- MANUAL ADDITIONS END -->
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

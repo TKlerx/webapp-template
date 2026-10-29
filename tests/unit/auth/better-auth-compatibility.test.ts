@@ -3,10 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { getSchema } from "better-auth/db";
 
-const prismaSchemas = [
-  "prisma/schema.prisma",
-  "prisma/schema.postgres.prisma",
-].map((schemaPath) =>
+const prismaSchemas = ["prisma/schema.prisma"].map((schemaPath) =>
   fs.readFileSync(path.resolve(process.cwd(), schemaPath), "utf8"),
 );
 

@@ -38,7 +38,15 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <Form className="mt-8" onSubmit={handleSubmit}>
+    <Form
+      className="mt-8"
+      onSubmit={(event) => {
+        void handleSubmit(event).catch(() => {
+          setSubmitting(false);
+          pushToast(t("couldNotUpdatePassword"));
+        });
+      }}
+    >
       <label className="block text-sm font-medium">
         {t("currentPassword")}
         <Input

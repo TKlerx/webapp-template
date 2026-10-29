@@ -7,6 +7,8 @@
 
 ## Summary
 
+2026-10-15 reconciliation: the user explicitly approved fixing credential persistence and narrowing 011's old shape-preservation wording before archival while 014 remains unfinished (Constitution V exception). Reject detected credential-bearing job inputs before persistence; preserve accepted non-secret payload shapes. Historical cleanup scans bounded pages across payloads, results and errors, without rewriting clean values or null results.
+
 Remediate the refreshed DeepSec production/runtime findings in two priorities. Phase 1 fixes all unresolved HIGH and HIGH_BUG findings: delegated Graph token exposure through background jobs, release workflow supply-chain pinning and permission scope, audit export/list bounds, login rate-limit client identity, and atomic last-admin protections. Phase 2 will account for the remaining MEDIUM and BUG findings under the same spec unless task planning shows a separate spec is cleaner.
 
 The implementation should stay close to existing Next.js, Prisma, Better Auth, worker, and GitHub Actions patterns. It should prefer small focused changes, regression tests for each security invariant, and refreshed DeepSec exports as validation evidence.
@@ -15,7 +17,7 @@ The implementation should stay close to existing Next.js, Prisma, Better Auth, w
 
 **Language/Version**: TypeScript 5.9 on Next.js 16 App Router, React 19, Python 3.12 worker where affected, PowerShell validation scripts
 **Primary Dependencies**: Prisma 7, Better Auth, Zod, Vitest, Playwright, GitHub Actions, GoReleaser, DeepSec 2.0.12
-**Storage**: SQLite for local development, PostgreSQL for Docker/shared deployments; background job and audit data persisted via Prisma models
+**Storage**: PostgreSQL for local development and Docker/shared deployments; the user-approved PostgreSQL-only policy and constitution v2.0.0 supersede the historical SQLite-local design. Background job and audit data persist via Prisma models.
 **Testing**: Vitest unit/integration tests, Playwright E2E where auth flow coverage is needed, `pnpm run typecheck`, `pnpm run lint`, `pnpm test`, targeted DeepSec scan/revalidation
 **Target Platform**: Docker-capable web application template with local Windows/PowerShell development and GitHub release automation
 **Project Type**: Web application with API routes, background worker, CLI support, and release workflow

@@ -133,7 +133,14 @@ export function CreateTokenDialog() {
             <DialogTitle>{t("createTitle")}</DialogTitle>
             <DialogDescription>{t("createDescription")}</DialogDescription>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={handleSubmit}>
+          <form
+            className="grid gap-4"
+            onSubmit={(event) => {
+              void handleSubmit(event).catch(() =>
+                pushToast(t("createFailed")),
+              );
+            }}
+          >
             <div className="grid gap-2">
               <label className="text-sm font-medium" htmlFor="token-name">
                 {t("nameLabel")}

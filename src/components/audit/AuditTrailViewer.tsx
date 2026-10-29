@@ -12,7 +12,7 @@ type AuditRow = {
   entityId: string;
   details: string;
   createdAt: string;
-  actor: { name: string; email: string };
+  actor: { name: string; email: string } | null;
   scope?: { name: string } | null;
 };
 
@@ -179,9 +179,11 @@ export function AuditTrailViewer() {
                       {new Date(row.createdAt).toLocaleString()}
                     </td>
                     <td className="px-4 py-4">
-                      <div className="font-medium">{row.actor.name}</div>
+                      <div className="font-medium">
+                        {row.actor?.name ?? t("anonymous")}
+                      </div>
                       <div className="text-xs text-[var(--muted-foreground)]">
-                        {row.actor.email}
+                        {row.actor?.email ?? ""}
                       </div>
                     </td>
                     <td className="px-4 py-4">

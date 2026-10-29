@@ -1,7 +1,8 @@
 # Business App Starter Constitution
 
 > Project constitution for the Business App Starter web application.
-> Last updated: 2026-03-19
+> Last updated: 2026-10-15
+> Policy version: 3.0.0 — user-approved English-only companion CLI exception to Principle IX (2026-10-15). This narrows the prior all-user-facing-text rule for the CLI only; web UI requirements remain unchanged. Version 2.0.0 introduced the PostgreSQL-only policy, superseding SQLite-local guidance in earlier plans; original feature folders remain as history.
 
 ## Core Principles
 
@@ -97,13 +98,19 @@ feedback via toast notifications displayed for approximately
 
 ### IX. Internationalization
 
-All user-facing text MUST use translation keys via next-intl.
+All user-facing text outside the companion CLI MUST use translation keys via next-intl.
 No hardcoded strings in components or pages. Supported locales
 are English, German, Spanish, French, and Portuguese (en, de, es,
 fr, pt). The user's locale preference is stored in a cookie and
 switchable at runtime. New features MUST include translation keys
 for all supported locales. Server components use `getTranslations`,
 client components use `useTranslations`.
+
+The companion CLI MAY use English-only help, diagnostics and output. It is
+explicitly exempt from next-intl and the five-locale requirement. The user
+approved this exception on 2026-10-15 so the standalone Go developer tool
+does not require the web translation runtime. This exception does not relax
+the application's web UI translation requirements.
 
 ### X. Responsive Design
 
@@ -123,8 +130,11 @@ visually before merge.
   (user-selectable, persisted per user). Dark mode via
   `[data-theme="dark"]` selector and Tailwind `dark:` variants.
 - **ORM**: Prisma 7 for database access and schema management.
-- **Database**: SQLite for local development. Docker and shared
-  deployments use PostgreSQL.
+- **Database**: PostgreSQL for local development, automated database tests,
+  Docker and shared deployments. Maintain one Prisma schema and one
+  PostgreSQL migration history. Missing or unsupported connection URLs
+  MUST fail explicitly. Database tests MUST use an isolated test database;
+  destructive test setup MUST NOT target development or shared runtime data.
 - **Authentication**: Dual auth support -- Azure SSO and local
   username/password. Email is the unique user identifier across
   both methods. Azure SSO via BetterAuth (with Admin + SSO plugins).
