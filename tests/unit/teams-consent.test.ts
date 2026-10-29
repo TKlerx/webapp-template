@@ -9,14 +9,35 @@ import {
   decryptGrantToken,
   encryptGrantToken,
   getFreshTeamsDelegatedAccessToken,
+  getTeamsAuthorizeUrl,
   saveTeamsDelegatedGrant,
 } from "@/services/teams/consent";
 
 describe("teams delegated grant token handling", () => {
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
     delete process.env.TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY;
+  });
+
+  it("keeps consent authorization on Microsoft while request and state values remain query data", () => {
+    vi.stubEnv("AUTH_BASE_URL", "https://app.example.com");
+    vi.stubEnv("NEXT_PUBLIC_BASE_PATH", "/starter");
+    vi.stubEnv("AZURE_AD_CLIENT_ID", "client");
+    vi.stubEnv("AZURE_AD_TENANT_ID", "tenant");
+    const url = getTeamsAuthorizeUrl(
+      new Request("https://untrusted.invalid/consent"),
+      "opaque&redirect_uri=https://untrusted.invalid",
+    );
+    expect(url.origin).toBe("https://login.microsoftonline.com");
+    expect(url.pathname).toBe("/tenant/oauth2/v2.0/authorize");
+    expect(url.searchParams.get("redirect_uri")).toBe(
+      "https://app.example.com/starter/api/integrations/teams/consent/callback",
+    );
+    expect(url.searchParams.get("state")).toBe(
+      "opaque&redirect_uri=https://untrusted.invalid",
+    );
   });
 
   it("encrypts and decrypts delegated grant tokens", () => {

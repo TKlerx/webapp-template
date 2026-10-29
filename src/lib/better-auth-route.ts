@@ -3,6 +3,8 @@ import {
   BETTER_AUTH_API_BASE_PATH,
   getConfiguredAuthBaseUrl,
 } from "@/lib/better-auth";
+import { getConfiguredBasePath } from "@/lib/azure-auth";
+import { safeLocalRedirectPath } from "@/lib/local-redirect";
 
 const STRIPPED_AUTH_BASE_PATH = "/api/auth";
 
@@ -29,6 +31,24 @@ export function getBetterAuthAbsolutePath(pathname: string) {
 }
 
 export function getAbsoluteAppUrl(pathname: string) {
-  const basePath = process.env.BASE_PATH ?? "";
-  return `${getConfiguredAuthBaseUrl()}${basePath}${pathname}`;
+  if (!safeLocalRedirectPath(pathname)) {
+    throw new Error("Invalid local redirect path");
+  }
+  const configuredBasePath = getConfiguredBasePath();
+  if (
+    configuredBasePath &&
+    (!safeLocalRedirectPath(configuredBasePath) ||
+      /[?#]/.test(configuredBasePath))
+  ) {
+    throw new Error("Invalid app base path");
+  }
+  const basePath = configuredBasePath.replace(/\/+$/, "");
+  const pathWithoutQuery = pathname.split(/[?#]/, 1)[0];
+  const scopedPath =
+    basePath &&
+    (pathWithoutQuery === basePath ||
+      pathWithoutQuery.startsWith(`${basePath}/`))
+      ? pathname
+      : `${basePath}${pathname}`;
+  return `${new URL(getConfiguredAuthBaseUrl()).origin}${scopedPath}`;
 }

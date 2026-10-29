@@ -143,6 +143,23 @@ Heavier validation:
 - no unsupported dependency-tooling environment
 - shared app shell changes should be validated at mobile, tablet, and desktop widths when they affect navigation, dropdowns, or theme tokens
 
+## Joern Advisory Remediation Contract (2026-10-29)
+
+- Review every reported path against its complete source-to-sink behavior before
+  changing application code. Several paths may share one behavior and one fix.
+- Apply warranted boundary fixes together with behavior regressions. Prove local
+  redirect origin/path policy, accepted and rejected OAuth destinations, consent
+  outcome/query preservation, and the separation of secret names from values.
+- Retain raw advisory findings and document individual dispositions with evidence.
+  Reviewed model limitations do not require cosmetic application rewrites or
+  source/sink/rule suppressions. Zero open provider alerts is a separate metric
+  from zero raw static-analysis candidates.
+- A fresh Joern run MUST retain all unsafe/safe controls, extraction-coverage,
+  source/query-integrity and engine-failure gates. Both `validate` and
+  `Joern security analysis` remain required before merging.
+- Preserve historical feature sources; maintain the current baseline and
+  consolidated requirements without renumbering archived requirement IDs.
+
 ## Residual Risks
 
 Even when the baseline validation passes, the following still deserve conscious attention:

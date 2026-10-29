@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getConfiguredBasePath, getScopedCookiePath } from "@/lib/azure-auth";
+import { getScopedCookiePath } from "@/lib/azure-auth";
+import { getAbsoluteAppUrl } from "@/lib/better-auth-route";
 import { jsonError } from "@/lib/http";
 import { requireApiUser } from "@/lib/route-auth";
 import { parseFormBody } from "@/lib/validation";
@@ -17,10 +18,8 @@ const approvalBodySchema = z
   })
   .strict();
 
-function redirectToCliLogin(request: Request) {
-  return NextResponse.redirect(
-    new URL(`${getConfiguredBasePath()}/cli-login?error=1`, request.url),
-  );
+function redirectToCliLogin() {
+  return NextResponse.redirect(getAbsoluteAppUrl("/cli-login?error=1"));
 }
 
 export async function POST(request: Request) {
@@ -46,7 +45,7 @@ export async function POST(request: Request) {
 
   const result = await bindAuthCodeToUser(requestId, auth.user.id);
   if ("error" in result) {
-    return redirectToCliLogin(request);
+    return redirectToCliLogin();
   }
 
   const redirectUrl = new URL(result.authCode.callbackUrl);

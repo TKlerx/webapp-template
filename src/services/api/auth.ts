@@ -9,7 +9,7 @@ import { auth } from "@/lib/better-auth";
 import { applySetCookieHeaders } from "@/lib/better-auth-http";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
-import { getConfiguredBasePath } from "@/lib/azure-auth";
+import { getAbsoluteAppUrl } from "@/lib/better-auth-route";
 import type { SessionUser } from "@/lib/auth";
 import { AuditAction } from "../../../generated/prisma/enums";
 import { NextResponse } from "next/server";
@@ -112,9 +112,6 @@ export async function signOutUser(
     });
   }
 
-  const url = new URL(request.url);
-  const response = NextResponse.redirect(
-    new URL(`${getConfiguredBasePath()}/login`, url),
-  );
+  const response = NextResponse.redirect(getAbsoluteAppUrl("/login"));
   return applySetCookieHeaders(response, authResponse);
 }

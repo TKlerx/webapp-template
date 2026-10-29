@@ -1988,3 +1988,15 @@
 ## 2026-10-29 — Joern advisory triage
 
 PR #49 and its main CI are green. Reviewed the 17 Joern advisory paths, fixed shared local redirect validation, and bounded alias receiver semantics while retaining unsafe mutation/return controls. Fresh local application scan has zero blocking and 15 advisory JS paths, all individually reviewed; Python zero. Evidence: `.artifacts/joern-triage-20261029/` and the tracked advisory triage note. Final local full validation passes: 296 app tests/69 files, 26 worker tests and all quality/security/infra gates. Full Joern controls pass (37 unsafe, 32 safe, five unrelated cases and gate regressions); new PR CI remains pending. Teams setup remains deferred.
+
+## 2026-10-29 — Individual Joern follow-up and redirect boundaries
+
+User authorized reviewing all 15 residual paths and implementing warranted changes as one batch with spec reconciliation. PR #50 and main CI 40895796304 are green with zero open provider Dependabot/secret alerts. On `codex/joern-redirect-boundaries`, pin local redirects to configured auth origin, validate local/base paths and Microsoft provider destinations, preserve Teams return queries/fragments/colons, and add behavior/diagnostic regressions. All 15 decisions and fingerprints are documented; base auth/quality specs and consolidated FR-038 are aligned without rewriting archived originals. Feature 014 and live Teams setup remain deferred. 315 app tests/72 files, 26 worker tests and all other local validation gates pass; the initial test-import type error was corrected and typecheck rerun successfully. Reduced-heap application Joern passes with zero blocking, six advisory JS paths and no Python findings; all six are reviewed in the triage record. Fresh full CI remains required. No detection controls are weakened.
+
+## 2026-10-29 — Joern follow-up CI URL compatibility correction
+
+PR #51's initial head `6af8ce4` passed fresh Joern controls/application analysis and all dependency/image audits, but CI 40902789288 caught four browser SSO failures. The newly shared path exposed `getAbsoluteAppUrl` doubling the base path when legacy `AUTH_BASE_URL` already contains an app path. Extract the configured origin before applying the base path once; the new regression fails on the prior builder and passes after the correction. Browser tests and configuration are unchanged. Verify the local browser run and fresh required CI before merging.
+
+## 2026-10-29 — Joern follow-up browser verification complete
+
+The origin-only normalization correction passes all 19 enabled production-mode browser tests locally, including the four SSO cases that failed the initial CI. The existing live-Teams case remains skipped; no real Teams setup/send was performed. The added legacy-URL regression and focused boundary/CLI tests pass. Implementation and the 15-path review are complete; consult PR #51 for authoritative corrected-head CI/merge evidence and retain both required checks before merging.

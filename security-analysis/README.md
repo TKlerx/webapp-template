@@ -57,6 +57,16 @@ The CodeQL runner scans the current app and worker plus the original Express/Fla
 
 ## Evidence and limits
 
+The October 29 follow-up reviews each of the 15 remaining paths individually and
+implements the warranted redirect-boundary and return-query fixes, with updated
+base/consolidated specs. The fresh reduced-heap application scan has six advisory
+JavaScript paths, zero blocking and no Python findings, with unchanged extraction
+coverage and detection policy. All six residual paths are explained in the
+[triage record](joern/advisory-triage-2026-10-29.md). Local validation passes 315 app
+and 26 worker tests; a test-only import typing correction passed a final typecheck
+rerun. A prior native-memory failure of the full local Joern runner is recorded;
+fresh CI remains the complete controls/application verification.
+
 The October 29 full control rerun passed all 37 unsafe, 32 safe and five unrelated-object input cases, the original Express/Flask controls and the CI gate regressions. The October 29 advisory review fixed shared local redirect validation for login, SSO and Teams consent, and corrected synthetic receiver propagation for verified alias imports. The fresh local application scan represents 187/196 JavaScript/TypeScript files and 8/8 Python files: zero blocking findings, 15 advisory JavaScript paths and no Python findings. Every remaining path is reviewed in [the triage record](joern/advisory-triage-2026-10-29.md); the raw count is retained.
 
 The expanded-rule rerun on October 15 passed all 34 unsafe, 30 safe and five unrelated-object input cases, the original Express/Flask controls and the CI gate regressions. The application scan represented 186/195 JavaScript/TypeScript files and 8/8 Python files, with zero blocking findings and 17 advisory JavaScript candidates (16 redirects, one logging); Python had zero findings. Advisory candidates include guarded OAuth redirects and infrastructure diagnostics that print secret names, so they require guard/redactor precision review rather than automatic vulnerability claims. Evidence is retained locally in `.runlogs/joern-expanded-final.log` and generated application summaries; CI uploads the equivalent evidence. A fresh Linux CI execution is not claimed by this local Windows run.

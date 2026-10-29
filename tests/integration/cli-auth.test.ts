@@ -40,30 +40,41 @@ describe("cli auth routes", () => {
     __resetRateLimitStore();
   });
 
-  it("redirects valid localhost callback requests into the login flow", async () => {
-    createAuthCode.mockResolvedValue({
-      id: "cli-request-1",
-      expiresAt: new Date("2026-06-10T12:00:00.000Z"),
-    });
+  it.each(["state-123", "https://untrusted.invalid/?next=1&scope=admin"])(
+    "keeps CLI approval local while carrying opaque state: %s",
+    async (state) => {
+      createAuthCode.mockResolvedValue({
+        id: "cli-request-1",
+        expiresAt: new Date("2026-06-10T12:00:00.000Z"),
+      });
 
-    const response = await authorizeCliAuth(
-      new Request(
-        "http://localhost/api/cli-auth/authorize?callback_url=http://localhost:4545/callback&state=state-123",
-      ),
-    );
+      const response = await authorizeCliAuth(
+        new Request(
+          `http://localhost/api/cli-auth/authorize?callback_url=http://localhost:4545/callback&state=${encodeURIComponent(state)}`,
+        ),
+      );
 
-    expect(response.status).toBe(307);
-    const location = response.headers.get("location");
-    expect(location).toContain(
-      "http://localhost:3280/app-starter/login?redirectTo=",
-    );
-    const redirectTo = new URL(location!).searchParams.get("redirectTo");
-    expect(redirectTo).toMatch(/^\/cli-login\?request=cli-request-1&approval=/);
-    expect(response.headers.get("set-cookie")).toContain(
-      "starter_app_cli_auth_csrf=",
-    );
-    expect(cleanupExpiredCodes).toHaveBeenCalledOnce();
-  });
+      expect(response.status).toBe(307);
+      const location = response.headers.get("location");
+      expect(location).toContain(
+        "http://localhost:3280/app-starter/login?redirectTo=",
+      );
+      expect(new URL(location!).origin).toBe("http://localhost:3280");
+      expect(new URL(location!).pathname).toBe("/app-starter/login");
+      expect(createAuthCode).toHaveBeenCalledWith(
+        "http://localhost:4545/callback",
+        state,
+      );
+      const redirectTo = new URL(location!).searchParams.get("redirectTo");
+      expect(redirectTo).toMatch(
+        /^\/cli-login\?request=cli-request-1&approval=/,
+      );
+      expect(response.headers.get("set-cookie")).toContain(
+        "starter_app_cli_auth_csrf=",
+      );
+      expect(cleanupExpiredCodes).toHaveBeenCalledOnce();
+    },
+  );
 
   it("rejects non-localhost callback URLs and missing state", async () => {
     const invalidCallbackResponse = await authorizeCliAuth(
