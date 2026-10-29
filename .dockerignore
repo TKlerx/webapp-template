@@ -4,7 +4,6 @@ workspace/
 .agents/
 .claude/
 .codex/
-.deepsec/
 .git/
 .worktrees/
 security-analysis/

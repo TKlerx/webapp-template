@@ -128,3 +128,9 @@
 - Auth gaps corrected: sliding windows/full post-threshold cooldown, anonymous failure audits, nullable actor migrations, null-safe audit viewer/exports, translated anonymous labels, and regression coverage.
 - Validation: 266 TypeScript tests and 21 Python tests passed. Both schemas validate. Full validation's initial artifact-lint/overview issues were corrected; lint rerun passed. No deployed database was modified.
 - PostgreSQL-only cleanup is next. Existing local database files remain preserved. Rancher Desktop is installed but the Docker engine was not reachable during the initial check.
+
+## Remove obsolete DeepSec workspace (2026-10-29)
+
+- Removed the unreferenced manual DeepSec workspace and its vulnerable standalone dependency graph. Active CI uses Trivy, Semgrep, Joern and the repository validation scripts; none executes DeepSec.
+- Removed obsolete scanner/container exclusion entries. Historical remediation evidence remains under specs/017-deepsec-remediation and docs/security.
+- Verified workflow/script/package references before removal; production application dependencies are unchanged.
