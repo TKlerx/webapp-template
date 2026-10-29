@@ -50,5 +50,5 @@ export function getAbsoluteAppUrl(pathname: string) {
       pathWithoutQuery.startsWith(`${basePath}/`))
       ? pathname
       : `${basePath}${pathname}`;
-  return `${getConfiguredAuthBaseUrl()}${scopedPath}`;
+  return `${new URL(getConfiguredAuthBaseUrl()).origin}${scopedPath}`;
 }

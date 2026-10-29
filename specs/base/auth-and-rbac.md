@@ -134,7 +134,8 @@ FR-038 (original auth-hardening FR-004); existing requirement IDs remain stable.
   backslashes and TAB/CR/LF. The URL builder MUST reject invalid local paths and
   base paths; base paths MUST NOT contain query or fragment delimiters.
 - Apply the configured base path once, including when a return path already
-  contains it. Preserve permitted query data and fragments. Use the existing
+  contains it or a legacy `AUTH_BASE_URL` includes an app path. Extract the
+  configured origin separately from that path. Preserve permitted query data and fragments. Use the existing
   `NEXT_PUBLIC_BASE_PATH`/`BASE_PATH` configuration precedence.
 - A Microsoft SSO response with a redirect location MUST target HTTPS on
   `login.microsoftonline.com`, at the configured tenant's

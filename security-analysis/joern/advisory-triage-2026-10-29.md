@@ -107,7 +107,7 @@ scan; this batch does not promise zero candidates or alter Joern detection polic
 The reduced-heap application rerun passes: 187/196 JS/TS files (the same nine
 frontend omissions), 8/8 Python files, zero blocking findings, six advisory JS
 paths (five redirects, one logging), and no Python findings. All 204 captured
-source-file hashes match the current working files. The query and detection
+source-file hashes matched the working files at that rerun. The query and detection
 policy are unchanged. This application rerun uses the existing controls for that
 same query hash; fresh CI must rebuild the complete controls and application.
 The earlier full local attempt failed on native Java allocation during a control
@@ -129,3 +129,12 @@ checks. The first full command recorded a test-only JS import typing error;
 that was corrected and a separate final typecheck passed. Evidence:
 `.artifacts/joern-triage-20261029/boundaries-*.log` and
 `security-analysis/joern/codeql-port/application-boundaries-20261029-a/`.
+
+The first PR CI run passed Joern, dependency/image audits and unit/worker checks
+but exposed four browser SSO failures: the existing test configuration supplies
+`AUTH_BASE_URL` with an app path. Routing SSO through the shared builder exposed
+its existing concatenation of that path with the configured base path. The builder
+now extracts the configured URL's origin before applying the base path once. A
+new legacy-URL regression fails before this correction and passes after it. Keep
+the browser tests and their configuration unchanged; require fresh CI on the
+corrected source rather than treating the earlier snapshot as final evidence.
