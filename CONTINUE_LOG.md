@@ -1973,3 +1973,14 @@
 - User approved commit/push/CI/merge of the Docker bootstrap correction and requested clean security reports, deferring Teams setup. Found 25 GitHub Dependabot alerts, all from the separate DeepSec workspace. Regenerated its dependency graph with patched versions, retained no-downgrade publishing trust with attested Vercel pins, and verified the CLI/Sandbox validation API. Both npm workspaces now audit clean.
 - Upgraded dev-only certifi to 2026.10.19; all 39 Python packages and the full Go module graph audit clean. Added required-workflow audits covering application, scanner, worker and CLI dependencies and explicit scanner Dependabot monitoring.
 - Enabled GitHub secret scanning and push protection; initial open-secret inventory is empty. Isolated the E2E server on loopback and generated fallback auth/mock-SSO secrets per run to address the historical test-network finding. No detector, production guard, unsafe-control test or alert dismissal is used to conceal findings. Await full CI and final main GitHub alert counts before claiming completion.
+
+## Remove obsolete DeepSec workspace (2026-10-29)
+
+- Removed the unreferenced manual DeepSec workspace and its vulnerable standalone dependency graph. Active CI uses Trivy, Semgrep, Joern and the repository validation scripts; none executes DeepSec.
+- Removed obsolete scanner/container exclusion entries. Historical remediation evidence remains under specs/017-deepsec-remediation and docs/security.
+- Verified workflow/script/package references before removal; production application dependencies are unchanged.
+
+## 2026-10-29 — Reconcile security cleanup with current main
+
+- Main concurrently merged certifi update #46 and unused DeepSec removal #48. Preserved the retired workspace removal and removed this branchs now-obsolete scanner upgrades/audit entries; the earlier prepared scanner-update notes are superseded. GitHub now reports zero open Dependabot alerts. Local scanner output/dependencies are retained under ignored artifacts rather than reintroduced to the repository.
+- PR #49 retains the Docker bootstrap correction/regression, certifi 2026.10.19 security fix, full app/Python/Go dependency audits, E2E loopback isolation and per-run fallback secrets. Existing Trivy/Semgrep/Joern controls remain. Fresh CI on the reconciled head is required.

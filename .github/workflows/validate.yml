@@ -88,14 +88,6 @@ jobs:
       - name: Audit all application dependencies
         run: pnpm audit --audit-level low
 
-      - name: Audit scanner workspace dependencies
-        working-directory: .deepsec
-        run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          pnpm audit --audit-level low
-          pnpm exec deepsec --help
-          node check-dependencies.mjs
-
       - name: Install worker dependencies
         working-directory: worker
         run: uv sync --all-groups --locked

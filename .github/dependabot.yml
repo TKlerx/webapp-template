@@ -12,10 +12,3 @@ updates:
         update-types:
           - minor
           - patch
-  - package-ecosystem: npm
-    open-pull-requests-limit: 0
-    directory: /.deepsec
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
