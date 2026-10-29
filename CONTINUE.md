@@ -1,5 +1,13 @@
 # Continue
 
+## Joern Redirect Boundary Follow-up (2026-10-29)
+
+- PR #50 merged as `1dadc332ff77a838e5612808e3e85744eaf73129`; both required checks passed again on main in run 40895796304. Fresh GitHub Dependabot and secret-scanning open-alert counts were zero. The previous pending-CI notes below are historical.
+- User requested a second individual review of all 15 remaining advisory paths, implementation of all warranted changes together, and specification updates. All 15 decisions and baseline evidence fingerprints are recorded in `security-analysis/joern/advisory-triage-2026-10-29.md`. These are eight shared behaviors, not 15 independent vulnerabilities.
+- On `codex/joern-redirect-boundaries`, local SSO/logout/CLI-error/Teams-outcome redirects now use the existing configured-origin builder, with local/base-path validation and base-path application once. SSO provider locations must match the configured Microsoft HTTPS tenant endpoint without credentials. Teams outcomes preserve existing queries/fragments and state-cookie return paths containing colons. Role, state, session-cookie and validated CLI loopback behavior remain intact; no live Teams configuration or send.
+- Added behavior regressions that fail on the old request-origin/provider/query behavior, plus positive OAuth/CLI controls and a real infrastructure-script diagnostic test proving secret names are printed without values. Updated the authoritative base specs and consolidated FR-038; archived originals and IDs remain unchanged. Unfinished feature 014 remains deferred under the user's security-maintenance authorization.
+- All 315 application tests across 72 files, 26 worker tests and local lint/format/architecture/duplication/security/credential/infra gates pass. The first local full validation run recorded a JS-entry-point test typing error, corrected and verified with a successful typecheck rerun. Local full Joern stopped on native Java memory allocation during a control query; this is tooling failure, not clean scan evidence. The separate reduced-heap application scan passes: 187/196 JS/TS files, 8/8 Python, zero blocking, six advisory JS paths, Python zero; unchanged source/query policy and omission list. All six residual paths were re-read and documented. Fresh full CI remains required. No query, detector, rule policy or extraction allowlist changed.
+
 ## Joern Advisory Triage (2026-10-29)
 
 - PR #49 is merged as `d5ecbaa8c1da3ea3057b717271ea1233a08466ee`; both required main checks passed in run 40885832668. GitHub open Dependabot and provider secret alerts were zero after merge. DeepSec remains retired and Teams setup remains deferred.

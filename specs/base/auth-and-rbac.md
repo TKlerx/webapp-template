@@ -120,3 +120,34 @@ flowchart TD
 - auth must work with PostgreSQL in local and deployed environments
 - login pages should remain resilient to browser autofill and extension interference
 - account status and role checks must be enforced server-side
+
+## Redirect Destination Contract (2026-10-29)
+
+This maintenance clarification implements the trusted-origin policy in consolidated
+FR-038 (original auth-hardening FR-004); existing requirement IDs remain stable.
+
+- Local SSO outcomes, logout, CLI approval errors and Teams consent outcomes MUST
+  use the configured auth origin (`AUTH_BASE_URL`, or Better Auth's explicit
+  localhost/`PORT` development fallback). Request URLs and forwarded host/protocol
+  headers MUST NOT choose these destinations.
+- Local return paths MUST begin with one slash and MUST reject network paths,
+  backslashes and TAB/CR/LF. The URL builder MUST reject invalid local paths and
+  base paths; base paths MUST NOT contain query or fragment delimiters.
+- Apply the configured base path once, including when a return path already
+  contains it. Preserve permitted query data and fragments. Use the existing
+  `NEXT_PUBLIC_BASE_PATH`/`BASE_PATH` configuration precedence.
+- A Microsoft SSO response with a redirect location MUST target HTTPS on
+  `login.microsoftonline.com`, at the configured tenant's
+  `/<tenant>/oauth2/v2.0/authorize` endpoint, without URL credentials. Malformed or
+  unexpected locations MUST yield a controlled local sign-in error. Valid OAuth
+  query data and state cookies MUST survive.
+- Teams consent MUST keep its role and state checks. The state-cookie separator
+  MUST NOT truncate colons in a local return query. Outcome parameters MUST merge
+  with existing queries, rather than appending a second query delimiter.
+- A successful CLI approval may redirect to its previously validated loopback
+  callback. The local-destination rule does not remove that explicit CLI contract.
+
+Acceptance checks: an untrusted request origin cannot change local redirect
+authority; unsafe paths/configuration are rejected; a legitimate scoped path and
+OAuth flow remain intact; invalid consent state cannot exchange a code or persist
+a grant; diagnostics can report secret names without printing secret values.

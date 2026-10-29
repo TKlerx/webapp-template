@@ -12,6 +12,9 @@ vi.mock("@/lib/azure-auth", () => ({
   getConfiguredBasePath: () => "",
   getScopedCookiePath: () => "/",
 }));
+vi.mock("@/lib/better-auth-route", () => ({
+  getAbsoluteAppUrl: (path: string) => `https://app.example.com/starter${path}`,
+}));
 vi.mock("@/services/api/cli-auth", () => ({
   CLI_AUTH_CSRF_COOKIE: "cli-csrf",
   bindAuthCodeToUser,
@@ -75,5 +78,15 @@ describe("CLI approval boundary", () => {
     const response = await POST(request("request=request-1&csrfToken=wrong"));
     expect(response.status).toBe(403);
     expect(bindAuthCodeToUser).not.toHaveBeenCalled();
+  });
+
+  it("keeps failed approvals on the configured app origin", async () => {
+    bindAuthCodeToUser.mockResolvedValue({ error: "expired" });
+    const response = await POST(
+      request("request=request-1&csrfToken=csrf-value"),
+    );
+    expect(response.headers.get("location")).toBe(
+      "https://app.example.com/starter/cli-login?error=1",
+    );
   });
 });

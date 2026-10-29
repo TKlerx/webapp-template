@@ -13,9 +13,8 @@ import { hasRealAzureAdConfig } from "@/lib/azure-auth";
 import { hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-function redirectTo(request: Request, target: string) {
-  const basePath = process.env.BASE_PATH ?? "";
-  return NextResponse.redirect(new URL(`${basePath}${target}`, request.url));
+function redirectTo(target: string) {
+  return NextResponse.redirect(getAbsoluteAppUrl(target));
 }
 
 function isAuthorizedProductionMockSso(request: Request) {
@@ -116,17 +115,14 @@ export async function GET(request: Request) {
     });
 
     if (!authResponse.ok) {
-      return redirectTo(request, "/login?error=sso-mock-failed");
+      return redirectTo("/login?error=sso-mock-failed");
     }
 
-    return applySetCookieHeaders(
-      redirectTo(request, redirectTarget),
-      authResponse,
-    );
+    return applySetCookieHeaders(redirectTo(redirectTarget), authResponse);
   }
 
   if (!hasRealAzureAdConfig()) {
-    return redirectTo(request, "/login?error=sso-config");
+    return redirectTo("/login?error=sso-config");
   }
 
   const authResponse = await auth.api.signInSocial({
@@ -140,7 +136,24 @@ export async function GET(request: Request) {
 
   const location = authResponse.headers.get("location");
   if (location) {
-    return applySetCookieHeaders(NextResponse.redirect(location), authResponse);
+    try {
+      const destination = new URL(location);
+      if (
+        destination.origin === "https://login.microsoftonline.com" &&
+        destination.pathname ===
+          `/${process.env.AZURE_AD_TENANT_ID}/oauth2/v2.0/authorize` &&
+        !destination.username &&
+        !destination.password
+      ) {
+        return applySetCookieHeaders(
+          NextResponse.redirect(destination),
+          authResponse,
+        );
+      }
+    } catch {
+      // Malformed provider destinations follow the same controlled failure path.
+    }
+    return redirectTo("/login?error=sso-provider");
   }
 
   return authResponse;

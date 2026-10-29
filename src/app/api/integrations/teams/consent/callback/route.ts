@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { safeLocalRedirectPath } from "@/lib/local-redirect";
+import { getAbsoluteAppUrl } from "@/lib/better-auth-route";
 import { requireApiUserWithRoles } from "@/lib/route-auth";
 import {
   exchangeTeamsConsentCode,
@@ -27,28 +28,29 @@ export async function GET(request: Request) {
     path: getTeamsConsentCookiePath(),
   });
 
-  const [expectedState, redirectToFromState] = cookieValue.split(":", 2);
-  const redirectTo = safeLocalRedirectPath(redirectToFromState);
+  const [expectedState] = cookieValue.split(":", 1);
+  const redirectTo = safeLocalRedirectPath(
+    cookieValue.slice(expectedState.length + 1),
+  );
   const safeRedirect = redirectTo
     ? getTeamsConsentAppRedirectPath(redirectTo)
     : "/admin/integrations/teams";
   const finalRedirect = getTeamsConsentAppRedirectPath(safeRedirect);
+  function redirectWithOutcome(outcome: string) {
+    const target = new URL(getAbsoluteAppUrl(finalRedirect));
+    target.searchParams.set("teamsConsent", outcome);
+    return NextResponse.redirect(target);
+  }
 
   if (!code || !state || !expectedState || state !== expectedState) {
-    return NextResponse.redirect(
-      new URL(`${finalRedirect}?teamsConsent=state-error`, request.url),
-    );
+    return redirectWithOutcome("state-error");
   }
 
   try {
     const token = await exchangeTeamsConsentCode(request, code);
     await saveTeamsDelegatedGrant(auth.user.id, token);
-    return NextResponse.redirect(
-      new URL(`${finalRedirect}?teamsConsent=connected`, request.url),
-    );
+    return redirectWithOutcome("connected");
   } catch {
-    return NextResponse.redirect(
-      new URL(`${finalRedirect}?teamsConsent=failed`, request.url),
-    );
+    return redirectWithOutcome("failed");
   }
 }
