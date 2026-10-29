@@ -1954,3 +1954,9 @@
 - Deployment conditions and remaining limits are recorded at the top of CONTINUE.md. Evidence: .artifacts/runtime-review-20261029/.
 
 - Fresh local pnpm run validate completed successfully after reconciliation: all gates, 290 application tests across 67 files, 26 worker tests, native Windows CLI checks, zero Semgrep findings, runtime credential validation and OpenTofu. Joern CI passed on the reconciliation commit; check both required statuses on the final documentation head before merge. Full browser/image CI remains separately reported in PR #44 checks.
+
+## Remove obsolete DeepSec workspace (2026-10-29)
+
+- Removed the unreferenced manual DeepSec workspace and its vulnerable standalone dependency graph. Active CI uses Trivy, Semgrep, Joern and the repository validation scripts; none executes DeepSec.
+- Removed obsolete scanner/container exclusion entries. Historical remediation evidence remains under specs/017-deepsec-remediation and docs/security.
+- Verified workflow/script/package references before removal; production application dependencies are unchanged.
