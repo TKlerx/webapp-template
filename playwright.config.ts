@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { randomBytes } from "node:crypto";
 
 const port = Number(process.env.E2E_PORT ?? "3280");
 const normalizedBasePath = process.env.E2E_BASE_PATH ?? "/app-starter";
@@ -17,6 +18,8 @@ process.env.DATABASE_URL = databaseUrl;
 process.env.TEST_DATABASE_URL = databaseUrl;
 process.env.APP_DATABASE_URL = databaseUrl;
 process.env.MIGRATION_DATABASE_URL = databaseUrl;
+process.env.E2E_MOCK_SSO_SECRET ??= randomBytes(32).toString("hex");
+process.env.BETTERAUTH_SECRET ??= randomBytes(32).toString("hex");
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -28,7 +31,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "pnpm run prisma:generate && pnpm run build && pnpm run start",
+    command: `pnpm run prisma:generate && pnpm run build && pnpm exec next start --hostname 127.0.0.1 --port ${port}`,
     env: {
       ...process.env,
       PORT: String(port),
@@ -40,13 +43,10 @@ export default defineConfig({
         process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
       INITIAL_ADMIN_PASSWORD:
         process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
-      BETTERAUTH_SECRET:
-        process.env.BETTERAUTH_SECRET ??
-        "e2e-test-secret-not-for-production-use-only",
+      BETTERAUTH_SECRET: process.env.BETTERAUTH_SECRET,
       E2E_TESTING: "1",
       E2E_MOCK_SSO: "1",
-      E2E_MOCK_SSO_SECRET:
-        process.env.E2E_MOCK_SSO_SECRET ?? "e2e-mock-sso-secret",
+      E2E_MOCK_SSO_SECRET: process.env.E2E_MOCK_SSO_SECRET,
       E2E_DISABLE_RATE_LIMIT: "1",
       AZURE_AD_CLIENT_ID: process.env.AZURE_AD_CLIENT_ID ?? "replace-me",
       AZURE_AD_CLIENT_SECRET:

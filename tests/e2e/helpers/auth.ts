@@ -3,8 +3,7 @@ import { expect, type Page } from "@playwright/test";
 export const appBasePath = process.env.E2E_BASE_PATH ?? "";
 export const appOrigin = `http://localhost:${process.env.E2E_PORT ?? "3280"}`;
 export const mockSsoHeaders = {
-  "x-e2e-mock-sso-secret":
-    process.env.E2E_MOCK_SSO_SECRET ?? "e2e-mock-sso-secret",
+  "x-e2e-mock-sso-secret": process.env.E2E_MOCK_SSO_SECRET ?? "",
 };
 
 export async function loginWithPassword(

@@ -7,6 +7,27 @@ scan output is gitignored.
 
 Currently configured project: `webapp-template` (target: `..`).
 
+## Dependency security
+
+CI installs this workspace with its frozen lockfile, audits every severity, and
+checks that the DeepSec CLI starts. The parent application audit does not cover
+this separate workspace. Dependabot also monitors this directory.
+
+DeepSec 2.3.10 still requests Sandbox 1.x, which pins vulnerable Zod 3. The scoped
+Sandbox 2.9.2 override uses Zod 4; keep the CLI and sandbox validation checks when
+updating it. Existing undici, Hono and qs overrides point to patched releases.
+Exact release-age exceptions cover only those security patches.
+
+Vercel OIDC 3.8.1, CLI Config 0.2.1 and CLI Exec 1.0.0 are the latest compatible
+releases with registry publishing attestations. Newer releases currently fail
+`trustPolicy: no-downgrade`; the trust policy remains enabled. Zod is updated
+independently so those trust pins do not retain a vulnerable schema library.
+
+Tracked findings and manifests are historical scan snapshots, not a current
+open-alert list. The old E2E-network-exposure finding is addressed by binding
+the test server to loopback and generating fallback signing/mock-SSO secrets
+per run. Current validation evidence is recorded in the parent `CONTINUE.md`.
+
 ## Setup
 
 1. `pnpm install` — installs deepsec.
