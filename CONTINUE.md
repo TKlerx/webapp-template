@@ -1,5 +1,10 @@
 # Continue
 
+## Project-local TDD Skill (2026-11-03)
+
+- Installed the existing TDD skill under `.agents/skills/tdd` with a relative `.claude/skills/tdd` link. The global installation was removed after both webapp-template and wd-joyday copies were verified byte-for-byte.
+- Skill instructions and supporting files are unchanged; application code and deferred work are unchanged.
+
 ## Final Joern State And Conservative Detection Decision (2026-10-29)
 
 - PR #51 is merged into main as `96cd974cc1c1341ce47e4b93a1cc6ab698fdf55c`. Both required checks (`validate` and `Joern security analysis`) passed on the final PR head in run 40906388131 and on merged main in run 40908284383. Earlier pending-CI and pre-merge notes below are historical.
