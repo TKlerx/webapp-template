@@ -36,6 +36,7 @@
     "authFailed": "Authentifizierung fehlgeschlagen. Bitte erneut versuchen.",
     "changePassword": "Passwort andern",
     "changePasswordDescription": "Lokale Konten mussen ein neues Passwort festlegen, bevor sie das Dashboard betreten konnen.",
+    "changeExistingPasswordDescription": "Gib dein aktuelles Passwort ein und wähle ein neues.",
     "currentPassword": "Aktuelles Passwort",
     "newPassword": "Neues Passwort",
     "saving": "Speichern...",

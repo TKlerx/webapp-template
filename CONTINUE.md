@@ -1,5 +1,10 @@
 # Continue
 
+## Local password change (2026-11-10)
+
+- Added a voluntary password change link to the account menu for local-password users. The page keeps the first-login reset flow and uses the existing credential verification for later changes.
+
+
 ## Final Joern State And Conservative Detection Decision (2026-10-29)
 
 - PR #51 is merged into main as `96cd974cc1c1341ce47e4b93a1cc6ab698fdf55c`. Both required checks (`validate` and `Joern security analysis`) passed on the final PR head in run 40906388131 and on merged main in run 40908284383. Earlier pending-CI and pre-merge notes below are historical.
