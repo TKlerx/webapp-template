@@ -36,6 +36,7 @@
     "authFailed": "Error de autenticacion. Intentelo de nuevo.",
     "changePassword": "Cambiar contrasena",
     "changePasswordDescription": "Las cuentas locales deben establecer una nueva contrasena antes de acceder al panel.",
+    "changeExistingPasswordDescription": "Introduce tu contraseña actual y elige una nueva.",
     "currentPassword": "Contrasena actual",
     "newPassword": "Nueva contrasena",
     "saving": "Guardando...",

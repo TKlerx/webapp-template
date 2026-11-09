@@ -9,6 +9,7 @@ import {
   HeartPulse,
   KeyRound,
   ListChecks,
+  LockKeyhole,
   LogOut,
   RadioTower,
   ShieldCheck,
@@ -17,7 +18,7 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useTransition } from "react";
-import { Role } from "../../../generated/prisma/enums";
+import { AuthMethod, Role } from "../../../generated/prisma/enums";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +63,7 @@ export function UserMenu({
 }) {
   const t = useTranslations("nav");
   const common = useTranslations("common");
+  const auth = useTranslations("auth");
   const [, startLocaleTransition] = useTransition();
 
   function switchLocale(nextLocale: string) {
@@ -79,6 +81,15 @@ export function UserMenu({
   }
 
   const links = [
+    ...(user.authMethod !== AuthMethod.SSO
+      ? [
+          {
+            href: "/change-password",
+            label: auth("changePassword"),
+            icon: LockKeyhole,
+          },
+        ]
+      : []),
     { href: "/settings/tokens", label: t("tokens"), icon: KeyRound },
     { href: "/docs/api", label: t("apiDocs"), icon: BookOpen },
   ];

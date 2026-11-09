@@ -36,6 +36,7 @@
     "authFailed": "Echec de l'authentification. Veuillez reessayer.",
     "changePassword": "Changer votre mot de passe",
     "changePasswordDescription": "Les comptes locaux doivent definir un nouveau mot de passe avant d'acceder au tableau de bord.",
+    "changeExistingPasswordDescription": "Saisissez votre mot de passe actuel et choisissez-en un nouveau.",
     "currentPassword": "Mot de passe actuel",
     "newPassword": "Nouveau mot de passe",
     "saving": "Enregistrement...",

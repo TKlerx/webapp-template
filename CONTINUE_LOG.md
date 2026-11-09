@@ -2004,3 +2004,7 @@ The origin-only normalization correction passes all 19 enabled production-mode b
 ## 2026-10-29 — Final Joern state and decision to retain six advisories
 
 PR #51 merged as 96cd974cc1c1341ce47e4b93a1cc6ab698fdf55c. Both required checks passed on the final PR head (40906388131) and merged main (40908284383); browser, worker and all ten supply-chain checks passed. The final scan retains six reviewed JavaScript advisory paths, zero blocking findings and no Python findings. The user explicitly chose to keep these visible modeling advisories rather than risk false negatives from further calibration. Preserve all existing security controls and the raw findings; no cosmetic suppression or weakening is authorized. The unfinished precision experiment was saved in the local stash named Deferred Joern precision experiment; retain conservative advisories on codex/joern-false-positive-models, with no detector changes pushed or merged. Main remains the committed runtime baseline; no further Joern implementation is active. Teams setup and feature 014 remain deferred.
+
+## 2026-11-10 · Local password change
+
+- Added a voluntary password change link to the account menu for local-password users. The page keeps the first-login reset flow and uses the existing credential verification for later changes.

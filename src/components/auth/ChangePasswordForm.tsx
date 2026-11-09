@@ -52,6 +52,7 @@ export function ChangePasswordForm() {
         <Input
           className="mt-2"
           type="password"
+          autoComplete="current-password"
           value={currentPassword}
           onChange={(event) => setCurrentPassword(event.target.value)}
           required
@@ -62,6 +63,7 @@ export function ChangePasswordForm() {
         <Input
           className="mt-2"
           type="password"
+          autoComplete="new-password"
           value={newPassword}
           onChange={(event) => setNewPassword(event.target.value)}
           required
