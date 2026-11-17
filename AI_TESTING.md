@@ -31,3 +31,7 @@ When using AI to generate tests:
 - First draft a short test plan listing scenarios, risks covered, and expected outcomes.
 - Then implement the tests.
 - Then critique the generated tests against the quality goals above.
+
+## Mutation testing
+
+The Validate workflow runs the focused TypeScript and Python mutation suites on pull requests and pushes to main. Both require a 95% score. Validate also runs the existing CLI release checks with `pnpm run test:mutation:critical` and fails on any survivor. Run them locally with `pnpm run test:mutation:next` (request validation, HTTP errors and API response schemas) and `pnpm run test:mutation:python` (Teams Graph delivery).

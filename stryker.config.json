@@ -1,0 +1,16 @@
+{
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "mutate": ["src/lib/{api-response,http,validation}.ts"],
+  "ignorePatterns": [
+    "**",
+    "!vitest.config.ts",
+    "!tsconfig.json",
+    "!package.json",
+    "!src/lib/{api-response,http,validation}.ts",
+    "!tests/unit/validation.test.ts"
+  ],
+  "reporters": ["clear-text", "progress"],
+  "thresholds": { "break": 95 },
+  "concurrency": 2
+}
