@@ -85,12 +85,30 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Audit all application dependencies
-        run: pnpm audit --audit-level low
-
       - name: Install worker dependencies
         working-directory: worker
         run: uv sync --all-groups --locked
+
+      - name: Run CLI release mutation tests
+        run: pnpm run test:mutation:critical
+
+      - name: Run API mutation tests
+        run: pnpm run test:mutation:next
+
+      - name: Run worker mutation tests
+        run: |
+          pnpm run test:mutation:python
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const { summary, skipped_files } = JSON.parse(readFileSync("worker/coverage/gremlins/gremlins.json", "utf8"));
+            if (!(summary.total > 0 && summary.zapped / summary.total >= 0.95) ||
+                summary.error || summary.timeout || Object.keys(skipped_files ?? {}).length) {
+              throw new Error("Worker mutation check failed: " + JSON.stringify(summary));
+            }
+          '
+
+      - name: Audit all application dependencies
+        run: pnpm audit --audit-level low
 
       - name: Audit all worker dependencies
         working-directory: worker

@@ -12,9 +12,12 @@ allowBuilds:
   unrs-resolver: true
 
 overrides:
+  # Keep Stryker on the patched runtime dependencies.
+  "@stryker-mutator/core>minimatch": 11.0.5
+  "typed-rest-client@2.3.1>qs": ^6.16.1
   minimatch@>=7.0.0 <11.0.1: 11.0.1
   "@prisma/config>deepmerge-ts": 8.0.2
-  "@babel/core": ^7.29.1
+  "@babel/core@7": ^7.29.1
   "minimatch@3>brace-expansion": 1.1.21
   "minimatch@10>brace-expansion": 5.0.12
   esbuild: ^0.28.1

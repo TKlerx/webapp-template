@@ -41,3 +41,6 @@ dev = [
     "ruff>=0.15.11",
     "xenon>=0.9.3",
 ]
+mutation = [
+    "pytest-gremlins>=1.13.2",
+]
