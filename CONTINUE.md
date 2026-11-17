@@ -1,5 +1,10 @@
 # Continue
 
+## Password change and dependency cleanup (2026-11-17)
+
+- Brought the local password change onto the branch from current main. Updated Prisma to 7.10.1 in the app and migration image, aligned the CLI image with Go 1.26.11, and removed obsolete pnpm overrides. The `qs` and `minimatch` overrides from mutation CI remain in place.
+- The pnpm audit flags `picomatch` (GHSA-fc5q-39xc-vjpf) in the lockfile on main and this branch. The registry still lists 4.0.7 as latest, and the upstream fix is awaiting review.
+
 ## Local password change (2026-11-10)
 
 - Added a voluntary password change link to the account menu for local-password users. The page keeps the first-login reset flow and uses the existing credential verification for later changes.
