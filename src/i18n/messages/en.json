@@ -5,7 +5,7 @@
     "close": "Close assistant",
     "subtitle": "Chat or speak to your app",
     "conversation": "Assistant conversation",
-    "empty": "How can I help? Try “Open my background jobs” or “What is my role?”",
+    "empty": "How can I help? Try “Open my API tokens” or “What is my role?”",
     "you": "You",
     "tool": "Application action",
     "thinking": "Working…",

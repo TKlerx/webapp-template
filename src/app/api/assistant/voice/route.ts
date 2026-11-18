@@ -1,13 +1,24 @@
 import { jsonError } from "@/lib/http";
-import { readAssistantRequest } from "@/services/assistant";
+import { z } from "zod";
+import {
+  assistantInstructions,
+  assistantAzureConfigured,
+  assistantAzureHeaders,
+  createAssistantTools,
+  readAssistantRequest,
+} from "@/services/assistant";
 
 export async function POST(request: Request) {
   const input = await readAssistantRequest(request);
   if ("error" in input) return input.error;
   const resource = process.env.AZURE_OPENAI_RESOURCE_NAME;
-  const apiKey = process.env.AZURE_OPENAI_API_KEY;
   const model = process.env.AZURE_OPENAI_REALTIME_DEPLOYMENT;
-  if (!resource || !/^[a-z0-9-]+$/i.test(resource) || !apiKey || !model) {
+  if (
+    !resource ||
+    !/^[a-z0-9-]+$/i.test(resource) ||
+    !assistantAzureConfigured() ||
+    !model
+  ) {
     return jsonError("Voice is not configured", 503);
   }
   if (
@@ -19,23 +30,34 @@ export async function POST(request: Request) {
   const endpoint = `https://${resource}.openai.azure.com/openai/v1/realtime`;
   const signal = AbortSignal.any([request.signal, AbortSignal.timeout(30_000)]);
   try {
+    const authorization = await assistantAzureHeaders();
     const secretResponse = await fetch(`${endpoint}/client_secrets`, {
       method: "POST",
       signal,
-      headers: { "Content-Type": "application/json", "api-key": apiKey },
+      headers: { "Content-Type": "application/json", ...authorization },
       body: JSON.stringify({
         session: {
           type: "realtime",
           model,
-          instructions:
-            "Read the assistant response provided in each response instruction aloud verbatim, in its original language.",
+          instructions: assistantInstructions,
+          output_modalities: ["audio"],
+          max_output_tokens: 1500,
+          tools: Object.entries(createAssistantTools(input.user)).map(
+            ([name, definition]) => ({
+              type: "function",
+              name,
+              description: definition.description,
+              parameters: z.toJSONSchema(definition.inputSchema as z.ZodType),
+            }),
+          ),
           audio: {
             input: {
               transcription: { model: "whisper-1" },
               turn_detection: {
                 type: "server_vad",
-                create_response: false,
+                create_response: true,
                 interrupt_response: true,
+                silence_duration_ms: 700,
               },
             },
             output: {

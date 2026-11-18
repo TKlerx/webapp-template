@@ -45,11 +45,34 @@ Configure `AZURE_OPENAI_RESOURCE_NAME`, `AZURE_OPENAI_API_KEY`, and
 `AZURE_OPENAI_REALTIME_VOICE` (defaults to `marin`). Configure these in the app's
 server environment; the API key stays on the server. Voice requires HTTPS or
 localhost and browser microphone permission. Closing the panel stops the microphone.
+API-key authentication is the default. For keyless authentication, set
+`AZURE_OPENAI_AUTH_MODE=entra` to use `DefaultAzureCredential`, or `azure-cli`
+for a local Azure CLI login (optionally selecting `AZURE_TENANT_ID`). Grant that
+identity access to the chosen Azure OpenAI resource. No API key is needed in
+either keyless mode; resource/deployment settings remain environment configuration.
+
+The real Azure audio smoke test is optional and skipped by ordinary validation
+and CI. In a temporary shell, configure Azure as above, set
+`ASSISTANT_LIVE_AUDIO=1` and `ASSISTANT_LIVE_AUDIO_FILE` to an absolute path to a
+48 kHz mono synthetic speech WAV (with several seconds of leading silence), then
+run `pnpm exec playwright test tests/e2e/assistant-live.spec.ts`. It uses an isolated
+test account/database, verifies a real profile tool call and non-silent received
+audio, and checks microphone cleanup. It consumes Azure capacity. Unset the opt-in
+flag afterward; never commit deployment values, keys or access tokens.
 Conversation text, tool results, and enabled microphone audio are sent to Azure
 OpenAI; chat history is kept in browser memory, without new database storage.
 
-Voice transcriptions use the same chat agent and tools as typed requests. Extend
-the tools in `src/services/assistant.ts` using existing authenticated services
+Voice uses native Realtime speech input and streamed spoken replies, with live
+transcripts in the panel. Speak over a reply or use **Stop response** to interrupt
+without ending the microphone session. Typed messages also enter the live
+conversation while voice is enabled. Voice sessions end after five minutes or
+when the panel closes; the next session receives the recent text conversation.
+
+Text chat and Realtime share server-owned tool definitions and instructions.
+Voice tool calls go through the authenticated `/api/assistant/tools` route,
+which rechecks the current session and validates arguments on every call. This
+transport needs no process-local session registry or additional database tables.
+Extend the tools in `src/services/assistant.ts` using existing authenticated services
 when adding product-specific actions. Without Azure configuration the rest of
 the template works, and the panel reports that the assistant is unavailable.
 

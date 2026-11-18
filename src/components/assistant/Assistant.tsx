@@ -6,7 +6,7 @@ import { ArrowUp, MessageSquare, Mic, MicOff, Square, X } from "lucide-react";
 import { Popover } from "radix-ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -24,8 +24,6 @@ export function Assistant() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
-  const [voiceBusy, setVoiceBusy] = useState(false);
-  const speak = useRef<(text: string) => void>(() => {});
   const transport = useMemo(
     () =>
       new DefaultChatTransport<AssistantMessage>({
@@ -47,7 +45,7 @@ export function Assistant() {
       }),
     [],
   );
-  const { messages, sendMessage, status, error, stop } =
+  const { messages, setMessages, sendMessage, status, error, stop } =
     useChat<AssistantMessage>({
       transport,
       onFinish: ({ message, isAbort, isError }) => {
@@ -61,26 +59,24 @@ export function Assistant() {
             if (page.success) router.push(assistantPages[page.data]);
           }
         }
-        speak.current(
-          message.parts
-            .filter((part) => part.type === "text")
-            .map((part) => part.text)
-            .join("\n"),
-        );
       },
     });
-  const busy = status === "streaming" || status === "submitted";
-  const voice = useVoice((text) => {
-    if (busy) {
-      setVoiceBusy(true);
-      return;
-    }
-    setVoiceBusy(false);
-    void sendMessage({ text });
+  const textBusy = status === "streaming" || status === "submitted";
+  const voice = useVoice({
+    onTurn: ({ id, role, text }) =>
+      setMessages((previous) => {
+        const message: AssistantMessage = {
+          id,
+          role,
+          parts: [{ type: "text", text }],
+        };
+        return previous.some((entry) => entry.id === id)
+          ? previous.map((entry) => (entry.id === id ? message : entry))
+          : [...previous, message].slice(-24);
+      }),
+    onNavigate: (page) => router.push(assistantPages[page]),
   });
-  useEffect(() => {
-    speak.current = voice.speak;
-  }, [voice.speak]);
+  const busy = textBusy || voice.busy;
 
   return (
     <Popover.Root
@@ -185,16 +181,14 @@ export function Assistant() {
                 {t("voiceError")}
               </p>
             )}
-            {voiceBusy && (
-              <p role="status" className="mb-3 text-xs text-muted-foreground">
-                {t("wait")}
-              </p>
-            )}
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                if (!draft.trim() || busy) return;
-                void sendMessage({ text: draft.trim() });
+                if (!draft.trim() || busy || voice.status === "connecting")
+                  return;
+                if (voice.status === "listening") {
+                  if (!voice.sendText(draft.trim())) return;
+                } else void sendMessage({ text: draft.trim() });
                 setDraft("");
               }}
               className="flex flex-col gap-3"
@@ -213,8 +207,25 @@ export function Assistant() {
                   variant="outline"
                   size="sm"
                   aria-pressed={voice.status !== "off"}
+                  disabled={textBusy}
                   onClick={() => {
-                    if (voice.status === "off") void voice.start();
+                    if (voice.status === "off")
+                      void voice.start(
+                        messages.flatMap((message) =>
+                          message.role === "system"
+                            ? []
+                            : [
+                                {
+                                  id: message.id,
+                                  role: message.role,
+                                  text: message.parts
+                                    .filter((part) => part.type === "text")
+                                    .map((part) => part.text)
+                                    .join("\n"),
+                                },
+                              ],
+                        ),
+                      );
                     else voice.stop();
                   }}
                 >
@@ -233,7 +244,7 @@ export function Assistant() {
                     aria-label={t("stop")}
                     onClick={() => {
                       void stop();
-                      voice.stop();
+                      voice.interrupt();
                     }}
                   >
                     <Square />
@@ -243,7 +254,7 @@ export function Assistant() {
                     type="submit"
                     size="icon"
                     aria-label={t("send")}
-                    disabled={!draft.trim()}
+                    disabled={!draft.trim() || voice.status === "connecting"}
                   >
                     <ArrowUp />
                   </Button>

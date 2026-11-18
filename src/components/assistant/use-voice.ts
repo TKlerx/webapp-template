@@ -1,152 +1,90 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { withBasePath } from "@/lib/base-path";
+import { startRealtimeVoice, type VoiceTurn } from "./realtime-voice";
 
 type VoiceSession = {
   abort: AbortController;
-  stream?: MediaStream;
-  peer?: RTCPeerConnection;
-  channel?: RTCDataChannel;
-  audio?: HTMLAudioElement;
-  timer?: ReturnType<typeof setTimeout>;
+  live?: Awaited<ReturnType<typeof startRealtimeVoice>>;
 };
 
-export function useVoice(onTranscript: (text: string) => void) {
+export function useVoice(callbacks: {
+  onTurn: (turn: VoiceTurn) => void;
+  onNavigate: Parameters<typeof startRealtimeVoice>[1]["onNavigate"];
+}) {
   const [status, setStatus] = useState<"off" | "connecting" | "listening">(
     "off",
   );
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const session = useRef<VoiceSession | null>(null);
-  const transcriptHandler = useRef(onTranscript);
+  const handlers = useRef(callbacks);
   useEffect(() => {
-    transcriptHandler.current = onTranscript;
-  }, [onTranscript]);
-
+    handlers.current = callbacks;
+  }, [callbacks]);
   const stop = useCallback(() => {
     const current = session.current;
     session.current = null;
     current?.abort.abort();
-    clearTimeout(current?.timer);
-    current?.stream?.getTracks().forEach((track) => track.stop());
-    current?.channel?.close();
-    current?.peer?.close();
-    if (current?.audio) {
-      current.audio.pause();
-      current.audio.srcObject = null;
-    }
+    current?.live?.stop();
     setStatus("off");
+    setBusy(false);
   }, []);
-
   useEffect(() => stop, [stop]);
-
-  const speak = useCallback((text: string) => {
-    const channel = session.current?.channel;
-    if (channel?.readyState !== "open" || !text.trim()) return;
-    channel.send(
-      JSON.stringify({
-        type: "response.create",
-        response: {
-          output_modalities: ["audio"],
-          instructions:
-            "Read this assistant response aloud exactly as written: " +
-            JSON.stringify(text.slice(0, 6000)),
-        },
-      }),
-    );
-  }, []);
-
-  const start = useCallback(async () => {
-    if (session.current) return;
-    const current: VoiceSession = { abort: new AbortController() };
-    session.current = current;
-    setError(false);
-    setStatus("connecting");
-    const fail = () => {
-      if (session.current !== current) return;
-      setError(true);
-      stop();
-    };
-    try {
-      current.stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true },
-      });
-      if (current.abort.signal.aborted) {
-        current.stream.getTracks().forEach((track) => track.stop());
-        return;
-      }
-      const peer = new RTCPeerConnection();
-      current.peer = peer;
-      const audio = new Audio();
-      audio.autoplay = true;
-      current.audio = audio;
-      peer.ontrack = (event) => {
-        audio.srcObject = event.streams[0];
-        void audio.play().catch(fail);
+  const start = useCallback(
+    async (history: VoiceTurn[]) => {
+      if (session.current) return;
+      const current: VoiceSession = {
+        abort: new AbortController(),
       };
-      current.stream
-        .getTracks()
-        .forEach((track) => peer.addTrack(track, current.stream!));
-      const channel = peer.createDataChannel("assistant-events");
-      current.channel = channel;
-      channel.onopen = () => {
-        setStatus("listening");
-        clearTimeout(current.timer);
-        current.timer = setTimeout(stop, 5 * 60_000);
-      };
-      channel.onclose = () => {
-        if (session.current === current) stop();
-      };
-      channel.onmessage = (event) => {
-        try {
-          if (typeof event.data !== "string") return;
-          const data: unknown = JSON.parse(event.data);
-          if (!data || typeof data !== "object" || !("type" in data)) return;
-          if (
-            data.type ===
-              "conversation.item.input_audio_transcription.completed" &&
-            "transcript" in data &&
-            typeof data.transcript === "string"
-          ) {
-            transcriptHandler.current(data.transcript.slice(0, 6000));
-          }
-          if (
-            data.type === "error" ||
-            data.type === "conversation.item.input_audio_transcription.failed"
-          ) {
-            fail();
-          }
-        } catch {
-          fail();
+      session.current = current;
+      setError(false);
+      setStatus("connecting");
+      const active = () =>
+        session.current === current && !current.abort.signal.aborted;
+      try {
+        const live = await startRealtimeVoice(
+          history,
+          {
+            onTurn: (turn) => {
+              if (active()) handlers.current.onTurn(turn);
+            },
+            onNavigate: (page) => {
+              if (active()) handlers.current.onNavigate(page);
+            },
+            onBusy: (value) => {
+              if (active()) setBusy(value);
+            },
+            onReady: () => {
+              if (active()) setStatus("listening");
+            },
+            onClose: () => {
+              if (active()) stop();
+            },
+            onError: () => {
+              if (active()) setError(true);
+            },
+          },
+          current.abort.signal,
+        );
+        if (!active()) live.stop();
+        else current.live = live;
+      } catch {
+        if (active()) {
+          setError(true);
+          stop();
         }
-      };
-      peer.onconnectionstatechange = () => {
-        if (
-          peer.connectionState === "failed" ||
-          peer.connectionState === "disconnected"
-        ) {
-          fail();
-        }
-      };
-      current.timer = setTimeout(fail, 30_000);
-      await peer.setLocalDescription(await peer.createOffer());
-      const response = await fetch(withBasePath("/api/assistant/voice"), {
-        method: "POST",
-        body: peer.localDescription?.sdp,
-        headers: { "Content-Type": "application/sdp" },
-        signal: current.abort.signal,
-      });
-      if (!response.ok) throw new Error("Voice unavailable");
-      await peer.setRemoteDescription({
-        type: "answer",
-        sdp: await response.text(),
-      });
-    } catch {
-      if (!current.abort.signal.aborted) {
-        fail();
       }
-    }
-  }, [stop]);
-
-  return { status, error, start, stop, speak };
+    },
+    [stop],
+  );
+  return {
+    status,
+    busy,
+    error,
+    start,
+    stop,
+    interrupt: () => session.current?.live?.interrupt(),
+    sendText: (text: string) => session.current?.live?.sendText(text) ?? false,
+  };
 }

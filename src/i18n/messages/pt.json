@@ -5,7 +5,7 @@
     "close": "Fechar assistente",
     "subtitle": "Converse ou fale com a aplicação",
     "conversation": "Conversa com o assistente",
-    "empty": "Como posso ajudar? Experimente « Abre as minhas tarefas » ou « Qual é a minha função? »",
+    "empty": "Como posso ajudar? Experimente « Abre os meus tokens de API » ou « Qual é a minha função? »",
     "you": "Você",
     "tool": "Ação da aplicação",
     "thinking": "A processar…",

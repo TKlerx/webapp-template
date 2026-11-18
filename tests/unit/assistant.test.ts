@@ -8,10 +8,16 @@ import {
 import type { SessionUser } from "@/lib/auth";
 import { __resetRateLimitStore } from "@/lib/rate-limit";
 
-const { authenticate, listJobs, stream } = vi.hoisted(() => ({
+const { authenticate, listJobs, stream, token } = vi.hoisted(() => ({
   authenticate: vi.fn(),
   listJobs: vi.fn(),
   stream: vi.fn(),
+  token: vi.fn(),
+}));
+vi.mock("@azure/identity", () => ({
+  AzureCliCredential: class {},
+  DefaultAzureCredential: class {},
+  getBearerTokenProvider: () => token,
 }));
 vi.mock("@/services/api/route-context", () => ({
   requireRouteUser: authenticate,
@@ -26,6 +32,7 @@ vi.mock("ai", async (importOriginal) => ({
 
 import { POST as chat } from "@/app/api/assistant/chat/route";
 import { POST as voice } from "@/app/api/assistant/voice/route";
+import { POST as runTool } from "@/app/api/assistant/tools/route";
 import { createAssistant } from "@/services/assistant";
 
 const user: SessionUser = {
@@ -56,11 +63,58 @@ function request(body: unknown = conversation) {
 }
 
 beforeEach(() => {
+  token.mockResolvedValue("test-bearer-token");
+  vi.stubEnv("AZURE_OPENAI_AUTH_MODE", "api-key");
   authenticate.mockResolvedValue({ user });
   vi.stubEnv("AZURE_OPENAI_RESOURCE_NAME", "assistant-test");
   vi.stubEnv("AZURE_OPENAI_API_KEY", "test-key");
   vi.stubEnv("AZURE_OPENAI_CHAT_DEPLOYMENT", "test-deployment");
   vi.stubEnv("AZURE_OPENAI_REALTIME_DEPLOYMENT", "test-realtime");
+});
+
+it.each(["entra", "azure-cli"])(
+  "uses a server-only bearer token in %s mode",
+  async (mode) => {
+    vi.stubEnv("AZURE_OPENAI_AUTH_MODE", mode);
+    vi.stubEnv("AZURE_OPENAI_API_KEY", "");
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ value: "ephemeral-secret" }))
+      .mockResolvedValueOnce(new Response("v=0\r\nanswer"));
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await voice(
+      new Request("http://localhost/api/assistant/voice", {
+        method: "POST",
+        body: "v=0\r\noffer",
+        headers: { "Content-Type": "application/sdp" },
+      }),
+    );
+    expect(response.status).toBe(201);
+    expect(fetchMock.mock.calls[0][1].headers).toEqual({
+      "Content-Type": "application/json",
+      Authorization: "Bearer test-bearer-token",
+    });
+    expect(await response.text()).not.toContain("test-bearer-token");
+  },
+);
+
+it("does not expose credential errors or fall back from an invalid authentication mode", async () => {
+  vi.stubEnv("AZURE_OPENAI_AUTH_MODE", "azure-cli");
+  token.mockRejectedValue(new Error("private credential diagnostic"));
+  const fetchMock = vi.fn();
+  vi.stubGlobal("fetch", fetchMock);
+  const incoming = () =>
+    new Request("http://localhost/api/assistant/voice", {
+      method: "POST",
+      body: "v=0\r\n",
+      headers: { "Content-Type": "application/sdp" },
+    });
+  const response = await voice(incoming());
+  expect(response.status).toBe(502);
+  expect(await response.text()).not.toContain("private credential diagnostic");
+  vi.stubEnv("AZURE_OPENAI_AUTH_MODE", "invalid");
+  expect((await voice(incoming())).status).toBe(503);
+  expect(fetchMock).not.toHaveBeenCalled();
 });
 afterEach(() => {
   vi.clearAllMocks();
@@ -70,7 +124,37 @@ afterEach(() => {
 });
 
 describe("assistant access and input validation", () => {
-  it.each([chat, voice])(
+  it.each(["jobs", "audit"] as const)(
+    "allows admin navigation to %s",
+    async (page) => {
+      const agent = createAssistant({ ...user, role: Role.PLATFORM_ADMIN });
+      expect(
+        await agent.tools.navigate.execute!(
+          { page },
+          { toolCallId: "test", messages: [], context: {} },
+        ),
+      ).toMatchObject({ page, path: expect.any(String) });
+    },
+  );
+  it.each(["jobs", "audit"] as const)(
+    "rejects non-admin navigation to %s in both text and voice tools",
+    async (page) => {
+      const agent = createAssistant(user);
+      expect(
+        await agent.tools.navigate.execute!(
+          { page },
+          { toolCallId: "test", messages: [], context: {} },
+        ),
+      ).toEqual({ error: expect.any(String) });
+      const response = await runTool(
+        request({ name: "navigate", arguments: { page } }),
+      );
+      expect(await response.json()).toEqual({
+        output: { error: expect.any(String) },
+      });
+    },
+  );
+  it.each([chat, voice, runTool])(
     "requires authentication before calling a provider",
     async (route) => {
       authenticate.mockResolvedValue({
@@ -91,6 +175,23 @@ describe("assistant access and input validation", () => {
     incoming.headers.set("sec-fetch-site", "cross-site");
     expect((await chat(incoming)).status).toBe(403);
     expect(stream).not.toHaveBeenCalled();
+  });
+  it.each([
+    { name: "__proto__", arguments: {} },
+    { name: "navigate", arguments: { page: "https://example.com" } },
+    { name: "getMyProfile", arguments: { userId: "someone-else" } },
+  ])("rejects unsupported voice tools or arguments", async (body) => {
+    expect((await runTool(request(body))).status).toBe(400);
+    expect(listJobs).not.toHaveBeenCalled();
+  });
+  it("uses the current authenticated profile for voice tools", async () => {
+    const response = await runTool(
+      request({ name: "getMyProfile", arguments: {} }),
+    );
+    expect(await response.json()).toEqual({
+      output: { name: "Ada", role: "SCOPE_USER" },
+    });
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
   });
   it("limits assistant requests for each user", async () => {
     vi.stubEnv("AZURE_OPENAI_CHAT_DEPLOYMENT", "");
@@ -156,7 +257,7 @@ describe("assistant access and input validation", () => {
     const agent = createAssistant(user);
     const result = await agent.tools.listJobs.execute!(
       {},
-      { toolCallId: "test", messages: [], context: undefined },
+      { toolCallId: "test", messages: [], context: {} },
     );
     expect(listJobs).toHaveBeenCalledWith(user);
     expect(result).toEqual([
@@ -210,4 +311,14 @@ it("exchanges SDP server-side without returning provider credentials", async () 
       },
     }),
   );
+  const session = JSON.parse(fetchMock.mock.calls[0][1].body as string).session;
+  expect(session.audio.input.turn_detection).toMatchObject({
+    create_response: true,
+    interrupt_response: true,
+  });
+  expect(session.tools.map((tool: { name: string }) => tool.name)).toEqual([
+    "navigate",
+    "getMyProfile",
+    "listJobs",
+  ]);
 });

@@ -5,7 +5,7 @@
     "close": "Fermer l’assistant",
     "subtitle": "Discutez ou parlez à votre application",
     "conversation": "Conversation avec l’assistant",
-    "empty": "Comment puis-je vous aider ? Essayez « Ouvre mes tâches » ou « Quel est mon rôle ? »",
+    "empty": "Comment puis-je vous aider ? Essayez « Ouvre mes jetons API » ou « Quel est mon rôle ? »",
     "you": "Vous",
     "tool": "Action dans l’application",
     "thinking": "En cours…",
