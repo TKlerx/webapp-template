@@ -1,4 +1,25 @@
 {
+  "assistant": {
+    "title": "Asistente",
+    "open": "Abrir asistente",
+    "close": "Cerrar asistente",
+    "subtitle": "Chatea o habla con tu aplicación",
+    "conversation": "Conversación con el asistente",
+    "empty": "¿Cómo puedo ayudarte? Prueba « Abre mis tareas » o « ¿Cuál es mi rol? »",
+    "you": "Tú",
+    "tool": "Acción de la aplicación",
+    "thinking": "Procesando…",
+    "error": "El asistente no pudo responder. Revisa su configuración e inténtalo de nuevo.",
+    "voiceError": "No se pudo conectar la voz. Revisa el micrófono y la configuración de voz.",
+    "wait": "Espera la respuesta actual antes de volver a hablar.",
+    "message": "Mensaje",
+    "placeholder": "Haz una pregunta o solicita una acción…",
+    "connecting": "Conectando…",
+    "listening": "Voz activa",
+    "voice": "Activar voz",
+    "stop": "Detener respuesta",
+    "send": "Enviar mensaje"
+  },
   "common": {
     "appName": "Webapp Template",
     "signOut": "Cerrar sesion",

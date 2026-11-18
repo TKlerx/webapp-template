@@ -1,4 +1,25 @@
 {
+  "assistant": {
+    "title": "Assistant",
+    "open": "Open assistant",
+    "close": "Close assistant",
+    "subtitle": "Chat or speak to your app",
+    "conversation": "Assistant conversation",
+    "empty": "How can I help? Try “Open my background jobs” or “What is my role?”",
+    "you": "You",
+    "tool": "Application action",
+    "thinking": "Working…",
+    "error": "The assistant could not reply. Check its configuration and try again.",
+    "voiceError": "Voice could not connect. Check microphone permission and the voice configuration.",
+    "wait": "Please wait for the current reply, then speak again.",
+    "message": "Message",
+    "placeholder": "Ask or request an action…",
+    "connecting": "Connecting…",
+    "listening": "Voice on",
+    "voice": "Start voice",
+    "stop": "Stop response",
+    "send": "Send message"
+  },
   "common": {
     "appName": "Webapp Template",
     "signOut": "Sign out",

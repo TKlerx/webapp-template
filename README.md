@@ -25,11 +25,33 @@ These files are intentionally committed into the template so copied repos still 
 - role-based access control
 - user administration
 - dashboard home screen
+- globally available chat and voice assistant with authenticated app tools
 - audit trail and export
 - i18n, theme toggle, responsive UI
 - Vitest, Playwright, Semgrep, duplication checks
 - repo-local pnpm and uv dependency cooldown policy
 - continuity workflow with `CONTINUE.md` and `CONTINUE_LOG.md`
+
+## Chat and voice assistant
+
+The Assistant button is available throughout the signed-in app. It retains the
+conversation during page navigation and when closed and reopened; refreshing or
+signing out clears it. Starter tools open supported pages, read your profile,
+and list job statuses through the existing permission checks.
+
+Configure `AZURE_OPENAI_RESOURCE_NAME`, `AZURE_OPENAI_API_KEY`, and
+`AZURE_OPENAI_CHAT_DEPLOYMENT` for chat. Voice additionally requires
+`AZURE_OPENAI_REALTIME_DEPLOYMENT` (an Azure Realtime deployment) and optionally
+`AZURE_OPENAI_REALTIME_VOICE` (defaults to `marin`). Configure these in the app's
+server environment; the API key stays on the server. Voice requires HTTPS or
+localhost and browser microphone permission. Closing the panel stops the microphone.
+Conversation text, tool results, and enabled microphone audio are sent to Azure
+OpenAI; chat history is kept in browser memory, without new database storage.
+
+Voice transcriptions use the same chat agent and tools as typed requests. Extend
+the tools in `src/services/assistant.ts` using existing authenticated services
+when adding product-specific actions. Without Azure configuration the rest of
+the template works, and the panel reports that the assistant is unavailable.
 
 ## Base Spec
 

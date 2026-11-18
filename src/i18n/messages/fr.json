@@ -1,4 +1,25 @@
 {
+  "assistant": {
+    "title": "Assistant",
+    "open": "Ouvrir l’assistant",
+    "close": "Fermer l’assistant",
+    "subtitle": "Discutez ou parlez à votre application",
+    "conversation": "Conversation avec l’assistant",
+    "empty": "Comment puis-je vous aider ? Essayez « Ouvre mes tâches » ou « Quel est mon rôle ? »",
+    "you": "Vous",
+    "tool": "Action dans l’application",
+    "thinking": "En cours…",
+    "error": "L’assistant n’a pas pu répondre. Vérifiez sa configuration et réessayez.",
+    "voiceError": "Connexion vocale impossible. Vérifiez le microphone et la configuration vocale.",
+    "wait": "Attendez la réponse en cours avant de parler à nouveau.",
+    "message": "Message",
+    "placeholder": "Posez une question ou demandez une action…",
+    "connecting": "Connexion…",
+    "listening": "Voix active",
+    "voice": "Activer la voix",
+    "stop": "Arrêter la réponse",
+    "send": "Envoyer"
+  },
   "common": {
     "appName": "Webapp Template",
     "signOut": "Se deconnecter",

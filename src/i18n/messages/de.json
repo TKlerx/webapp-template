@@ -1,4 +1,25 @@
 {
+  "assistant": {
+    "title": "Assistent",
+    "open": "Assistent öffnen",
+    "close": "Assistent schließen",
+    "subtitle": "Mit deiner App chatten oder sprechen",
+    "conversation": "Gespräch mit dem Assistenten",
+    "empty": "Wie kann ich helfen? Zum Beispiel „Öffne meine Hintergrundaufträge“ oder „Welche Rolle habe ich?“",
+    "you": "Du",
+    "tool": "App-Aktion",
+    "thinking": "Wird bearbeitet…",
+    "error": "Der Assistent konnte nicht antworten. Prüfe die Konfiguration und versuche es erneut.",
+    "voiceError": "Sprachverbindung fehlgeschlagen. Prüfe Mikrofonberechtigung und Sprachkonfiguration.",
+    "wait": "Warte auf die aktuelle Antwort und sprich dann erneut.",
+    "message": "Nachricht",
+    "placeholder": "Stelle eine Frage oder fordere eine Aktion an…",
+    "connecting": "Verbindung wird hergestellt…",
+    "listening": "Sprache aktiv",
+    "voice": "Sprache starten",
+    "stop": "Antwort stoppen",
+    "send": "Nachricht senden"
+  },
   "common": {
     "appName": "Webapp Template",
     "signOut": "Abmelden",
