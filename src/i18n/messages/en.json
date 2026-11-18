@@ -36,6 +36,7 @@
     "authFailed": "Authentication failed. Please try again.",
     "changePassword": "Change your password",
     "changePasswordDescription": "Local accounts must set a new password before entering the dashboard.",
+    "changeExistingPasswordDescription": "Enter your current password and choose a new one.",
     "currentPassword": "Current password",
     "newPassword": "New password",
     "saving": "Saving...",

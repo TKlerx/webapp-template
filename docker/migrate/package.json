@@ -7,7 +7,7 @@
     "bcryptjs": "3.0.3",
     "dotenv": "17.4.2",
     "pg": "8.23.0",
-    "prisma": "7.10.0",
+    "prisma": "7.10.1",
     "typescript": "6.0.3"
   }
 }

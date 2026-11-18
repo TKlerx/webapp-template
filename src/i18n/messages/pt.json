@@ -36,6 +36,7 @@
     "authFailed": "Falha na autenticacao. Tente novamente.",
     "changePassword": "Alterar palavra-passe",
     "changePasswordDescription": "As contas locais devem definir uma nova palavra-passe antes de aceder ao painel.",
+    "changeExistingPasswordDescription": "Introduza a sua palavra-passe atual e escolha uma nova.",
     "currentPassword": "Palavra-passe atual",
     "newPassword": "Nova palavra-passe",
     "saving": "Salvando...",
