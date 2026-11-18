@@ -2013,3 +2013,16 @@ Implemented a minimal repair-assistant-style chat/voice panel on `codex/global-c
 User authorized full validation, commit, push and a separate assistant PR. All 335 app tests, 35 worker tests, 20 enabled browser tests, ten supply-chain checks (including three fresh runtime image scans), type/quality/security/infra/credential gates and all three mutation suites pass. Initial full validation returned nonzero only for Staticcheck's inability to read local Go 1.27.4 export data; the full CLI quality gate passes with Go 1.26.11, without source changes or suppressed checks. TypeScript/Python mutations killed 44/44 and 43/43; CLI killed all critical mutants. Logs are under `.artifacts/assistant-*`, supply-chain report at `.artifacts/supply-chain-audit/validate-full.json`. Live Azure chat/audio remains a manual configuration/smoke-test requirement; assistant Joern evidence will come from PR CI. No EDEKA repository was modified. The picomatch advisory was withdrawn November 18, and fresh audits of the assistant and PR #55 lockfiles are clean. Reran #55's failed validation job: run 44197191704 now has both required checks green. Updated #55's description and marked it ready under the prior authorization, without merging or copying its changes into this feature.
 
 Assistant implementation committed as `5d90b44` and pushed on `codex/global-chat-voice`; opened PR #56 against main (https://github.com/TKlerx/webapp-template/pull/56). Verified the PR's 21-file diff excludes PR #55's implementation and all EDEKA code. CI is pending at publication; no merge performed. This continuity-only follow-up records publication without changing validated runtime code.
+
+
+## 2026-11-10 · Local password change
+
+- Added a voluntary password change link to the account menu for local-password users. The page keeps the first-login reset flow and uses the existing credential verification for later changes.
+
+- 2026-11-17: Brought forward the local password-change feature and the remaining dependency cleanup from current main. Preserved mutation CI from PR #54. The existing picomatch advisory affects both dependency graphs and awaits an upstream release.
+
+## 2026-11-18 — Merge PR #55 and update assistant main
+
+User authorized merging #55, updating #56 onto main and checking its CI. Verified #55's required checks green and merged its exact reviewed head as `db31f0a621748eb052586114ebc00093bf941f5e`. Merged updated main into the assistant branch, resolving only package/lockfile and continuity conflicts. Main's dependency cleanup and password changes remain the base; the assistant diff adds only its four dependencies and existing feature files. Frozen installation passes; EDEKA remains untouched. Fresh updated-head local/CI checks are in progress; previous assistant validation does not substitute for these checks.
+
+Post-merge local integration checks pass: regenerated Prisma 7.10.1 client, TypeScript, all 335 application tests across 73 files, formatting/conflict checks and a clean pnpm audit. Publishing the normal merge without rewriting history; follow both required checks on the updated PR #56 head for CI completion. No merge of #56 is authorized.

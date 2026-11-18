@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { AuthMethod, Role, UserStatus } from "../../../generated/prisma/enums";
-import { appBasePath, expectOnDashboard, loginWithSso } from "../helpers/auth";
+import {
+  appBasePath,
+  expectOnDashboard,
+  loginWithSso,
+  openUserMenu,
+} from "../helpers/auth";
 import { seedSsoUser, updateUserStatus } from "../helpers/db";
 
 test("inactive SSO user is redirected to login with a revoked-access message on next protected request", async ({
@@ -20,6 +25,12 @@ test("inactive SSO user is redirected to login with a revoked-access message on 
     email,
     name: "E2E Revoked SSO",
   });
+  await expectOnDashboard(page);
+  await openUserMenu(page);
+  await expect(
+    page.getByRole("menuitem", { name: "Change your password" }),
+  ).toHaveCount(0);
+  await page.goto(`${appBasePath}/change-password`);
   await expectOnDashboard(page);
 
   await updateUserStatus(email, UserStatus.INACTIVE);

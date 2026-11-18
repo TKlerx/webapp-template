@@ -1,5 +1,10 @@
 # Continue
 
+## PR #55 Merged And Assistant Main Update (2026-11-18)
+
+- Merged PR #55 after both required checks passed, as main commit `db31f0a621748eb052586114ebc00093bf941f5e`. Brought that main into `codex/global-chat-voice` for PR #56 using a normal merge. Resolved only continuity and dependency-manifest conflicts; application changes merged cleanly. Preserved main's Prisma 7.10.1, removed overrides and Go 1.26.11 builder while retaining the four assistant dependencies. The resulting dependency diff against updated main is exactly the assistant additions; frozen install passes.
+- PR #56 remains the separate assistant change; EDEKA repositories are untouched. Frozen install, regenerated Prisma client, typecheck and all 335 application tests pass on the merged graph; pnpm audit reports zero findings. Previous pre-merge validation evidence below is historical. Follow both CI checks on PR #56's updated head to completion; GitHub is authoritative for those results. No assistant merge is authorized by this request.
+
 ## Global Chat And Voice Assistant (2026-11-18)
 
 - Implementation on `codex/global-chat-voice`, branched from main (`1b7a141`), separate from PR #55 and all EDEKA work. Uses the repair assistant's basic approach: a globally openable signed-in panel, streaming AI SDK chat, and Azure Realtime voice feeding the same authenticated agent. Conversation survives client navigation/close/reopen, without database storage.
@@ -7,6 +12,16 @@
 - Full validation exercised all gates: 335 application tests/73 files, 35 worker tests, 20 enabled production-mode browser tests, typechecks, quality/security/infra/credential checks, all ten supply-chain checks and three freshly built runtime image scans pass. The initial `validate:full` exit was nonzero only because local Go 1.27.4 cannot be decoded by pinned Staticcheck; rerunning the complete CLI quality gate with `GOTOOLCHAIN=go1.26.11` passes without source changes or bypasses. All three mutation checks pass (TypeScript 44/44, Python 43/43; CLI all killed). Evidence: `.artifacts/assistant-validation-full.log`, `assistant-cli-recheck.log`, `assistant-mutation-*.log` and `.artifacts/supply-chain-audit/validate-full.json`. Desktop/mobile previews were inspected and the launcher raised above the version badge. Existing CLI filesystem-tracing build warnings remain. Live Azure chat/audio still needs configured deployments and a manual smoke test; assistant-branch Joern runs in PR CI.
 - Committed assistant implementation as `5d90b44`, pushed and opened standalone PR #56: https://github.com/TKlerx/webapp-template/pull/56. PR CI results are pending at publication. Keep this branch independent of PR #55 and EDEKA; next functional check is a live Azure chat/voice smoke test. PostgreSQL test container was started and the dedicated `_test` database migrated; browser tests use timestamped `_test` databases. Development/production databases and other repositories were not modified.
 - PR #55's former picomatch blocker was withdrawn upstream on November 18. Fresh audits of both branches are clean without exceptions/overrides. Reran its failed CI job in run `44197191704`: both required checks now pass. Updated its description and marked it ready for review under the earlier user authorization; it remains unmerged. Review/merge #55 separately; the assistant does not include its password/dependency changes.
+
+## Password change and dependency cleanup (2026-11-17)
+
+- Brought the local password change onto the branch from current main. Updated Prisma to 7.10.1 in the app and migration image, aligned the CLI image with Go 1.26.11, and removed obsolete pnpm overrides. The `qs` and `minimatch` overrides from mutation CI remain in place.
+- The pnpm audit flags `picomatch` (GHSA-fc5q-39xc-vjpf) in the lockfile on main and this branch. The registry still lists 4.0.7 as latest, and the upstream fix is awaiting review.
+
+## Local password change (2026-11-10)
+
+- Added a voluntary password change link to the account menu for local-password users. The page keeps the first-login reset flow and uses the existing credential verification for later changes.
+
 
 ## Final Joern State And Conservative Detection Decision (2026-10-29)
 
