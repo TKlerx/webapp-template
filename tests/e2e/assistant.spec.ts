@@ -63,6 +63,9 @@ test("assistant opens on the dashboard and retains conversation while navigating
     .getByRole("button", { name: "Open assistant", exact: true })
     .click();
   await page
+    .getByRole("button", { name: "New conversation", exact: true })
+    .click();
+  await page
     .getByRole("textbox", { name: "Message", exact: true })
     .fill("Open my API tokens");
   await page.getByRole("button", { name: "Send message", exact: true }).click();
@@ -202,6 +205,9 @@ test("native voice streams into chat, runs authenticated tools and interrupts wi
   await page
     .getByRole("button", { name: "Open assistant", exact: true })
     .click();
+  await page
+    .getByRole("button", { name: "New conversation", exact: true })
+    .click();
   await page.getByRole("button", { name: "Start voice", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Voice on", exact: true }),
@@ -266,6 +272,18 @@ test("native voice streams into chat, runs authenticated tools and interrupts wi
       () => (window as unknown as LiveVoiceWindow).assistantLive.stopped,
     ),
   ).toBe(0);
+  const conversationId = await page
+    .getByRole("combobox", { name: "Saved conversations" })
+    .inputValue();
+  await expect
+    .poll(async () => {
+      const response = await page.request.get(
+        `${appBasePath}/api/assistant/conversations?id=${conversationId}`,
+      );
+      const row = (await response.json()) as { messages: { text: string }[] };
+      return row.messages.map((turn) => turn.text);
+    })
+    .toEqual(["Show my tokens", "Opening your tokens."]);
   await page
     .getByRole("button", { name: "Close assistant", exact: true })
     .click();

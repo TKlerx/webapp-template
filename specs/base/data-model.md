@@ -165,6 +165,7 @@ Includes key user-admin and auth events, such as:
 - Single schema: `prisma/schema.prisma`.
 - Single migration history: `prisma/migrations/`, preserving deployed migration identifiers.
 - Anonymous rejected login events have a nullable audit actor. Known user foreign keys remain enforced.
+- `AssistantConversation` belongs to one user, with cascading deletion when that user is deleted. It stores a generated ID, title, JSON user/assistant text turns, revision and timestamps. Every history query and mutation includes the authenticated owner; optimistic revision checks reject stale writes/deletes. Raw audio, system instructions and tool payloads are excluded. The history list returns the 50 most recently updated conversations, and each conversation retains at most 100 text turns.
 
 ## Design Expectations
 

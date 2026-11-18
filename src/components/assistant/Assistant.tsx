@@ -2,7 +2,16 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { ArrowUp, MessageSquare, Mic, MicOff, Square, X } from "lucide-react";
+import {
+  ArrowUp,
+  MessageSquare,
+  Mic,
+  MicOff,
+  Square,
+  X,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { Popover } from "radix-ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -18,6 +27,7 @@ import { withBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 import type { AssistantMessage } from "@/services/assistant";
 import { useVoice } from "./use-voice";
+import { useConversations } from "./use-conversations";
 
 export function Assistant() {
   const t = useTranslations("assistant");
@@ -45,22 +55,29 @@ export function Assistant() {
       }),
     [],
   );
-  const { messages, setMessages, sendMessage, status, error, stop } =
-    useChat<AssistantMessage>({
-      transport,
-      onFinish: ({ message, isAbort, isError }) => {
-        if (isAbort || isError) return;
-        for (const part of message.parts) {
-          if (
-            part.type === "tool-navigate" &&
-            part.state === "output-available"
-          ) {
-            const page = assistantPageSchema.safeParse(part.output.page);
-            if (page.success) router.push(assistantPages[page.data]);
-          }
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    status,
+    error,
+    stop,
+    clearError,
+  } = useChat<AssistantMessage>({
+    transport,
+    onFinish: ({ message, isAbort, isError }) => {
+      if (isAbort || isError) return;
+      for (const part of message.parts) {
+        if (
+          part.type === "tool-navigate" &&
+          part.state === "output-available"
+        ) {
+          const page = assistantPageSchema.safeParse(part.output.page);
+          if (page.success) router.push(assistantPages[page.data]);
         }
-      },
-    });
+      }
+    },
+  });
   const textBusy = status === "streaming" || status === "submitted";
   const voice = useVoice({
     onTurn: ({ id, role, text }) =>
@@ -72,18 +89,51 @@ export function Assistant() {
         };
         return previous.some((entry) => entry.id === id)
           ? previous.map((entry) => (entry.id === id ? message : entry))
-          : [...previous, message].slice(-24);
+          : [...previous, message].slice(-100);
       }),
     onNavigate: (page) => router.push(assistantPages[page]),
   });
   const busy = textBusy || voice.busy;
+  const savedTurns = useMemo(
+    () =>
+      messages
+        .flatMap((message) => {
+          if (message.role === "system") return [];
+          const text = message.parts
+            .filter((part) => part.type === "text")
+            .map((part) => part.text)
+            .join("\n")
+            .slice(0, 6000);
+          return text.trim() && text !== "…"
+            ? [{ id: message.id, role: message.role, text }]
+            : [];
+        })
+        .slice(-100),
+    [messages],
+  );
+  const history = useConversations(open, savedTurns, (turns) => {
+    setDraft("");
+    clearError();
+    setMessages(
+      turns.map((turn) => ({
+        id: turn.id,
+        role: turn.role,
+        parts: [{ type: "text", text: turn.text }],
+      })),
+    );
+  });
+  const historyLocked = !history.ready || busy || history.status === "saving";
+  const conflict = history.status === "conflict";
 
   return (
     <Popover.Root
       open={open}
       onOpenChange={(value) => {
         setOpen(value);
-        if (!value) voice.stop();
+        if (!value) {
+          voice.stop();
+          void history.save();
+        }
       }}
     >
       <Popover.Trigger asChild>
@@ -118,6 +168,91 @@ export function Assistant() {
               </Button>
             </Popover.Close>
           </header>
+          <div className="space-y-2 border-b border-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <select
+                aria-label={t("conversations")}
+                value={history.id}
+                disabled={historyLocked}
+                className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-2 text-sm"
+                onChange={(event) => {
+                  voice.stop();
+                  void history.open(event.target.value);
+                }}
+              >
+                {!history.id && (
+                  <option value="">{t("newConversation")}</option>
+                )}
+                {history.conversations.map((row) => (
+                  <option key={row.id} value={row.id}>
+                    {row.title || t("newConversation")}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label={t("newConversation")}
+                title={t("newConversation")}
+                disabled={historyLocked || conflict}
+                onClick={() => {
+                  voice.stop();
+                  void history.open();
+                }}
+              >
+                <Plus aria-hidden="true" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={t("deleteConversation")}
+                title={t("deleteConversation")}
+                disabled={historyLocked || conflict}
+                onClick={() => {
+                  if (window.confirm(t("deleteConfirm"))) {
+                    voice.stop();
+                    void history.remove();
+                  }
+                }}
+              >
+                <Trash2 aria-hidden="true" />
+              </Button>
+            </div>
+            <p role="status" className="text-xs text-muted-foreground">
+              {t(`historyStatus.${history.status}`)}
+            </p>
+            {history.status === "error" && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (history.ready) void history.save();
+                  else void history.reload();
+                }}
+              >
+                {t("retryHistory")}
+              </Button>
+            )}
+            {conflict && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={busy}
+                onClick={() => {
+                  if (window.confirm(t("reloadConfirm"))) {
+                    voice.stop();
+                    void history.reload();
+                  }
+                }}
+              >
+                {t("reloadHistory")}
+              </Button>
+            )}
+          </div>
           <Conversation aria-label={t("conversation")}>
             <ConversationContent>
               {messages.length === 0 && (
@@ -184,7 +319,13 @@ export function Assistant() {
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                if (!draft.trim() || busy || voice.status === "connecting")
+                if (
+                  !history.ready ||
+                  conflict ||
+                  !draft.trim() ||
+                  busy ||
+                  voice.status === "connecting"
+                )
                   return;
                 if (voice.status === "listening") {
                   if (!voice.sendText(draft.trim())) return;
@@ -197,6 +338,7 @@ export function Assistant() {
                 aria-label={t("message")}
                 placeholder={t("placeholder")}
                 value={draft}
+                disabled={!history.ready || conflict}
                 maxLength={6000}
                 onChange={(event) => setDraft(event.target.value)}
                 rows={2}
@@ -207,7 +349,7 @@ export function Assistant() {
                   variant="outline"
                   size="sm"
                   aria-pressed={voice.status !== "off"}
-                  disabled={textBusy}
+                  disabled={textBusy || !history.ready || conflict}
                   onClick={() => {
                     if (voice.status === "off")
                       void voice.start(
@@ -254,7 +396,12 @@ export function Assistant() {
                     type="submit"
                     size="icon"
                     aria-label={t("send")}
-                    disabled={!draft.trim() || voice.status === "connecting"}
+                    disabled={
+                      !history.ready ||
+                      conflict ||
+                      !draft.trim() ||
+                      voice.status === "connecting"
+                    }
                   >
                     <ArrowUp />
                   </Button>

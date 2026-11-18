@@ -34,10 +34,19 @@ These files are intentionally committed into the template so copied repos still 
 
 ## Chat and voice assistant
 
-The Assistant button is available throughout the signed-in app. It retains the
-conversation during page navigation and when closed and reopened; refreshing or
-signing out clears it. Starter tools open supported pages, read your profile,
-and list job statuses through the existing permission checks.
+The Assistant button is available throughout the signed-in app. Chat and voice
+transcripts autosave to PostgreSQL for the signed-in user and survive refresh
+and later sign-ins. Use the conversation selector to reopen recent chats, or
+the New and Delete buttons to start fresh or remove a conversation. Starter
+tools open supported pages, read your profile, and list job statuses through
+the existing permission checks.
+
+Apply migrations with `pnpm exec prisma migrate deploy` before deploying this
+version: saved history requires the new `AssistantConversation` table. Each
+conversation stores up to 100 text turns; the selector shows the 50 most recently
+updated conversations. Only the owner can read or change a conversation.
+Save failures retain the current messages and offer Retry; conflicting changes
+from another tab require an explicit reload before continuing.
 
 Configure `AZURE_OPENAI_RESOURCE_NAME`, `AZURE_OPENAI_API_KEY`, and
 `AZURE_OPENAI_CHAT_DEPLOYMENT` for chat. Voice additionally requires
@@ -60,7 +69,9 @@ test account/database, verifies a real profile tool call and non-silent received
 audio, and checks microphone cleanup. It consumes Azure capacity. Unset the opt-in
 flag afterward; never commit deployment values, keys or access tokens.
 Conversation text, tool results, and enabled microphone audio are sent to Azure
-OpenAI; chat history is kept in browser memory, without new database storage.
+OpenAI. Saved history contains only user/assistant text, including voice
+transcripts; raw audio, system instructions and tool results are not persisted.
+The model receives the most recent 24 text turns, independently of saved history.
 
 Voice uses native Realtime speech input and streamed spoken replies, with live
 transcripts in the panel. Speak over a reply or use **Stop response** to interrupt

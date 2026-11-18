@@ -1,5 +1,30 @@
 import { z } from "zod";
 
+// Persist text only: tool invocations, audio and system instructions cannot be replayed.
+export const savedTurnsSchema = z
+  .array(
+    z
+      .object({
+        id: z.string().min(1).max(100),
+        role: z.enum(["user", "assistant"]),
+        text: z.string().min(1).max(6000),
+      })
+      .strict(),
+  )
+  .max(100);
+export type SavedTurn = z.infer<typeof savedTurnsSchema>[number];
+export const conversationSummarySchema = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  revision: z.number().int(),
+  updatedAt: z.string(),
+});
+export const savedConversationSchema = conversationSummarySchema.extend({
+  messages: savedTurnsSchema,
+});
+export type ConversationSummary = z.infer<typeof conversationSummarySchema>;
+export type SavedConversation = z.infer<typeof savedConversationSchema>;
+
 export const assistantPages = {
   dashboard: "/dashboard",
   jobs: "/background-jobs",

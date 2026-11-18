@@ -18,7 +18,21 @@
     "listening": "Voice on",
     "voice": "Start voice",
     "stop": "Stop response",
-    "send": "Send message"
+    "send": "Send message",
+    "conversations": "Saved conversations",
+    "newConversation": "New conversation",
+    "deleteConversation": "Delete conversation",
+    "deleteConfirm": "Permanently delete this conversation?",
+    "retryHistory": "Retry history",
+    "reloadHistory": "Reload saved history",
+    "reloadConfirm": "Discard local changes and reload saved history?",
+    "historyStatus": {
+      "loading": "Loading conversations…",
+      "ready": "Autosave on",
+      "saving": "Saving conversation…",
+      "error": "Could not load or save history. Retry to continue.",
+      "conflict": "This conversation changed or was deleted elsewhere. Reload saved history to continue."
+    }
   },
   "common": {
     "appName": "Webapp Template",

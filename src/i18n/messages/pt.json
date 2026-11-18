@@ -18,7 +18,21 @@
     "listening": "Voz ativa",
     "voice": "Ativar voz",
     "stop": "Parar resposta",
-    "send": "Enviar mensagem"
+    "send": "Enviar mensagem",
+    "conversations": "Conversas guardadas",
+    "newConversation": "Nova conversa",
+    "deleteConversation": "Eliminar conversa",
+    "deleteConfirm": "Eliminar permanentemente esta conversa?",
+    "retryHistory": "Tentar novamente",
+    "reloadHistory": "Recarregar histórico",
+    "reloadConfirm": "Descartar alterações locais e recarregar o histórico guardado?",
+    "historyStatus": {
+      "loading": "A carregar conversas…",
+      "ready": "Gravação automática ativa",
+      "saving": "A guardar conversa…",
+      "error": "Não foi possível carregar ou guardar o histórico. Tente novamente.",
+      "conflict": "Esta conversa foi alterada ou eliminada noutro local. Recarregue o histórico."
+    }
   },
   "common": {
     "appName": "Webapp Template",

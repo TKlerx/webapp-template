@@ -18,7 +18,21 @@
     "listening": "Sprache aktiv",
     "voice": "Sprache starten",
     "stop": "Antwort stoppen",
-    "send": "Nachricht senden"
+    "send": "Nachricht senden",
+    "conversations": "Gespeicherte Gespräche",
+    "newConversation": "Neues Gespräch",
+    "deleteConversation": "Gespräch löschen",
+    "deleteConfirm": "Dieses Gespräch dauerhaft löschen?",
+    "retryHistory": "Erneut versuchen",
+    "reloadHistory": "Gespeicherten Verlauf laden",
+    "reloadConfirm": "Lokale Änderungen verwerfen und den gespeicherten Verlauf laden?",
+    "historyStatus": {
+      "loading": "Gespräche werden geladen…",
+      "ready": "Automatisches Speichern aktiv",
+      "saving": "Gespräch wird gespeichert…",
+      "error": "Verlauf konnte nicht geladen oder gespeichert werden. Bitte erneut versuchen.",
+      "conflict": "Dieses Gespräch wurde anderswo geändert oder gelöscht. Lade den gespeicherten Verlauf."
+    }
   },
   "common": {
     "appName": "Webapp Template",
