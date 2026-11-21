@@ -2010,3 +2010,7 @@ PR #51 merged as 96cd974cc1c1341ce47e4b93a1cc6ab698fdf55c. Both required checks 
 - Added a voluntary password change link to the account menu for local-password users. The page keeps the first-login reset flow and uses the existing credential verification for later changes.
 
 - 2026-11-17: Brought forward the local password-change feature and the remaining dependency cleanup from current main. Preserved mutation CI from PR #54. The existing picomatch advisory affects both dependency graphs and awaits an upstream release.
+
+## Security dependency follow-up (2026-11-20)
+
+Patched only the dependencies named in current GitHub alerts; existing quality and security gates remain required. Full validation results are recorded in the security PR. No database, deployment or feature changes.

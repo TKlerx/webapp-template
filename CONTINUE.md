@@ -189,3 +189,7 @@
 - Removed the unreferenced manual DeepSec workspace and its vulnerable standalone dependency graph. Active CI uses Trivy, Semgrep, Joern and the repository validation scripts; none executes DeepSec.
 - Removed obsolete scanner/container exclusion entries. Historical remediation evidence remains under specs/017-deepsec-remediation and docs/security.
 - Verified workflow/script/package references before removal; production application dependencies are unchanged.
+
+## Security dependency follow-up (2026-11-20)
+
+Patched only the dependencies named in current GitHub alerts; existing quality and security gates remain required. Full validation results are recorded in the security PR. No database, deployment or feature changes.
