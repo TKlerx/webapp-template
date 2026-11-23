@@ -167,8 +167,12 @@ uses typed ESLint checks for unhandled/misplaced promises and unsafe `any`
 values. Dependency Cruiser blocks runtime import cycles, server imports of UI,
 component imports of services, and component imports of database clients;
 type-only imports remain allowed.
-`quality:python` runs Ruff plus blocking Xenon and complexipy complexity
-thresholds with Radon reporting for the worker package.
+`quality:python` runs Ruff, including its Bandit-derived `S` security rules, and
+standalone Bandit against worker production code, plus blocking Xenon and
+complexipy complexity thresholds with Radon reporting. Bandit is a locked development
+dependency and blocks on findings of any severity. Ruff also scans tests, allowing
+assertions only in `tests/`; reviewed scanner exceptions have line-specific
+explanations beside the affected code.
 `quality:cli` runs Go formatting checks, `go vet`, Staticcheck, a blocking
 gocyclo complexity threshold, `go test`, and `go build` for the CLI package.
 

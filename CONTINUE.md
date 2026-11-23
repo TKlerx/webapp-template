@@ -1,5 +1,18 @@
 # Continue
 
+## Standalone Bandit (2026-11-23)
+
+- Added Bandit 1.9.4 as a worker development dependency, locked with its new Stevedore dependency; the existing one-week dependency cooldown remains in force. `quality:python` now runs `uv run --locked bandit -r src` alongside Ruff. Existing validation/CI entry points invoke it automatically, with no severity/confidence filters, global rule skips or baseline. Ruff continues scanning source and tests; Bandit scans production source.
+- Reviewed the findings: five URL-opening calls have rule-specific `nosec B310` comments with the existing fixed Microsoft HTTPS/validated app HTTP(S) explanations. Simplified both token caches to empty dictionaries, matching their readers' existing defaults and removing false credential warnings without suppressing `B105`. EDEKA is untouched.
+- Worker quality/complexity checks, all 35 worker tests, mypy, script ESLint/format checks, lock consistency and `uv audit --frozen` pass. A direct Bandit probe rejects unsafe eval and assertions with exit code 1; the final source scan reports no findings or skipped files. Evidence: `.artifacts/bandit-quality.log`, `bandit-initial.json` and `bandit-probe.py`. User subsequently authorized commit/push: publishing the eight-file Ruff/Bandit diff to existing PR #56 on `codex/global-chat-voice`, never directly to main. Fresh precommit checks pass (secret scan, TypeScript, architecture, duplication), along with staged UTF-8/LF and diff checks; evidence `.artifacts/bandit-precommit.log`. No new full application/CI pass is claimed; follow latest-head PR checks.
+- Repository inventory found no unrelated uncommitted files in this checkout or the three other linked worktrees. Five historical stashes remain untouched, including EDEKA move backups and the deferred Joern experiment. Separate PR #58 adds report-only Bandit workflow annotations; it is unchanged by this work and overlaps with this blocking integration. Coordinate that overlap before merging both PRs.
+
+## Ruff Python Security Rules (2026-11-23)
+
+- Enabled Ruff's stable Bandit-derived `S` rules in the existing worker lint configuration. Existing local validation and CI already run this configuration; no dependency, workflow or lockfile changes are needed. `S101` is ignored only for test files. Eight reviewed `S310` URL-opening warnings have line-specific explanations: fixed Microsoft HTTPS origins or the existing HTTP(S)-validated internal app URL. No runtime behavior changed.
+- Validation passes: worker quality/complexity checks, all 35 worker tests and mypy for eight source files. Direct lint probes confirm `eval` is rejected in both source and tests and assertions are rejected only in source; the new inline exceptions were checked for unused suppressions. Earlier full application/CI evidence applies to the previously published history head `ef67cf5`, not these local lint changes.
+- These changes are local on `codex/global-chat-voice`; no commit/push or new full application validation was requested for this follow-up. EDEKA remains untouched.
+
 ## Per-user Saved Assistant Conversations (2026-11-18)
 
 - Added PostgreSQL-backed chat/voice text history on `codex/global-chat-voice` for existing PR #56. Autosave continues while the panel is closed; users can reopen recent conversations, create a new one and delete the selected conversation. The selector lists 50 recent conversations; each retains up to 100 text turns. No new dependency or EDEKA changes/configuration were introduced.

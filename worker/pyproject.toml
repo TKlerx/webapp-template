@@ -29,11 +29,16 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "B"]
+select = ["E", "F", "B", "S"]
 ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Assertions are test expectations; production assertions remain flagged.
+"tests/**/*.py" = ["S101"]
 
 [dependency-groups]
 dev = [
+    "bandit>=1.9.4",
     "complexipy>=5.3.0",
     "mypy>=1.16.0",
     "pytest>=8.4.0",
