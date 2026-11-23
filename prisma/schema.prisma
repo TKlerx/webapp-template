@@ -403,6 +403,7 @@ model TeamsOutboundMessage {
   truncated       Boolean            @default(false)
   status          TeamsMessageStatus @default(QUEUED)
   graphMessageId  String?
+  sendReservedAt  DateTime?
   attemptCount    Int                @default(0)
   lastError       String?
   sentAt          DateTime?
@@ -438,7 +439,7 @@ model TeamsIntakeSubscription {
 model TeamsInboundMessage {
   id               String             @id @default(cuid())
   subscriptionId   String
-  providerMessageId String            @unique
+  providerMessageId String
   teamId           String
   channelId        String
   senderDisplayName String?
@@ -453,6 +454,7 @@ model TeamsInboundMessage {
   updatedAt        DateTime           @updatedAt
   subscription     TeamsIntakeSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
 
+  @@unique([teamId, channelId, providerMessageId], map: "teams_inbound_channel_message_key")
   @@index([subscriptionId, createdAt])
   @@index([processingStatus, createdAt])
   @@index([channelId, messageCreatedAt])

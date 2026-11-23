@@ -35,8 +35,12 @@ export function TokenValueDisplay({
   const currentToken = token;
 
   async function copyToken() {
-    await navigator.clipboard.writeText(currentToken.tokenValue);
-    pushToast(t("copied"));
+    try {
+      await navigator.clipboard.writeText(currentToken.tokenValue);
+      pushToast(t("copied"));
+    } catch {
+      pushToast(t("copyFailed"));
+    }
   }
 
   return (

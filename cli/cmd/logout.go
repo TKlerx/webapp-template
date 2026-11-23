@@ -14,7 +14,7 @@ func newLogoutCommand() *cobra.Command {
 		Short:   "Remove the stored token from local config",
 		Example: "starterctl logout",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			cfg, err := config.Load()
+			cfg, err := config.LoadPersisted()
 			if err != nil {
 				return err
 			}

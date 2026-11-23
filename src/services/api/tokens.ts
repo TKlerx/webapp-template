@@ -57,10 +57,12 @@ export function hashToken(tokenValue: string) {
 }
 
 export function getTokenDisplayPrefix(tokenValue: string) {
-  const separatorIndex = tokenValue.lastIndexOf("_");
-  const suffix =
-    separatorIndex >= 0 ? tokenValue.slice(separatorIndex + 1) : tokenValue;
-  return suffix.slice(0, TOKEN_SEGMENT_LENGTH);
+  // 32 random bytes encode to 43 unpadded base64url characters.
+  const separator =
+    tokenValue.at(-44) === "_"
+      ? tokenValue.length - 44
+      : tokenValue.lastIndexOf("_");
+  return tokenValue.slice(separator + 1, separator + 1 + TOKEN_SEGMENT_LENGTH);
 }
 
 function buildExpiryDate(expiresInDays: number) {
@@ -186,6 +188,12 @@ export async function createToken(
   } catch (error) {
     if (error instanceof Response) {
       return { error };
+    }
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return { error: jsonError("A token with this name already exists", 409) };
     }
     throw error;
   }
@@ -371,19 +379,40 @@ export async function renewToken(
     return { error: jsonError("Revoked tokens cannot be renewed", 409) };
   }
 
+  const now = new Date();
+  if (existing.expiresAt <= now) {
+    return { error: jsonError("Expired tokens cannot be renewed", 409) };
+  }
+
   const tokenValue = generateToken();
-  const token = await prisma.personalAccessToken.update({
-    where: { id: existing.id },
-    data: {
-      tokenHash: hashToken(tokenValue),
-      tokenPrefix: getTokenDisplayPrefix(tokenValue),
-      expiresAt: buildExpiryDate(expiresInDays),
-      renewalCount: {
-        increment: 1,
+  const token = await prisma.personalAccessToken
+    .update({
+      where: {
+        id: existing.id,
+        userId,
+        status: TokenStatus.ACTIVE,
+        expiresAt: { gt: now },
+        tokenHash: existing.tokenHash,
       },
-      revokedAt: null,
-    },
-  });
+      data: {
+        tokenHash: hashToken(tokenValue),
+        tokenPrefix: getTokenDisplayPrefix(tokenValue),
+        expiresAt: buildExpiryDate(expiresInDays),
+        renewalCount: {
+          increment: 1,
+        },
+        revokedAt: null,
+      },
+    })
+    .catch((error: unknown) => {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      )
+        return null;
+      throw error;
+    });
+  if (!token) return { error: jsonError("Token changed before renewal", 409) };
 
   return {
     token: {

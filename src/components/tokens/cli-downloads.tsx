@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, ExternalLink, Terminal } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
 import { withBasePath } from "@/lib/base-path";
 
@@ -17,21 +17,36 @@ type CliReleaseResponse = {
   checksumsAvailable: boolean;
 };
 
+const subscribeToOrigin = () => () => {};
+const clientOrigin = () =>
+  window.location.origin + withBasePath("/").replace(/\/$/, "");
+const serverOrigin = () => "<APP_URL>";
+
 export function CliDownloads() {
-  const [serverUrl] = useState(() =>
-    typeof window === "undefined"
-      ? "<APP_URL>"
-      : (window.location.href.split("/settings/tokens")[0] ??
-        window.location.origin),
+  const serverUrl = useSyncExternalStore(
+    subscribeToOrigin,
+    clientOrigin,
+    serverOrigin,
   );
   const [downloads, setDownloads] = useState<CliReleaseResponse | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [request, setRequest] = useState(0);
 
   useEffect(() => {
-    void fetch(withBasePath("/api/downloads/cli"))
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: CliReleaseResponse | null) => setDownloads(payload))
-      .catch(() => setDownloads(null));
-  }, []);
+    const controller = new AbortController();
+    void fetch(withBasePath("/api/downloads/cli"), {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Could not load CLI downloads");
+        return response.json();
+      })
+      .then((payload: CliReleaseResponse) => setDownloads(payload))
+      .catch(() => {
+        if (!controller.signal.aborted) setLoadError(true);
+      });
+    return () => controller.abort();
+  }, [request]);
 
   const assets = downloads?.assets.filter((asset) => asset.available) ?? [];
 
@@ -71,6 +86,23 @@ starterctl health`}
             </Button>
           ))}
         </div>
+      ) : loadError ? (
+        <div className="mt-4 space-y-2">
+          <p role="alert">Could not load CLI downloads.</p>
+          <Button
+            type="button"
+            onClick={() => {
+              setLoadError(false);
+              setRequest((value) => value + 1);
+            }}
+          >
+            Retry
+          </Button>
+        </div>
+      ) : !downloads ? (
+        <p className="mt-4 text-sm" role="status">
+          Loading CLI downloads…
+        </p>
       ) : (
         <p className="mt-4 rounded-lg border border-dashed border-[var(--border)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
           No hosted CLI artifacts are available on this deployment yet.

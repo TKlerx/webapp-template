@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { safeLocalRedirectPath } from "@/lib/local-redirect";
+import {
+  requiredPasswordChangePath,
+  safeLocalRedirectPath,
+} from "@/lib/local-redirect";
 import { NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import { safeLogAudit } from "@/lib/audit";
@@ -159,7 +162,7 @@ async function performLogin(request: Request) {
     },
     mustChangePassword: user.mustChangePassword,
     redirectTo: user.mustChangePassword
-      ? "/change-password"
+      ? requiredPasswordChangePath(body.redirectTo)
       : (safeLocalRedirectPath(body.redirectTo) ?? "/dashboard"),
   });
 

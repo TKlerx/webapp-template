@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { locales, type Locale } from "@/i18n/config";
 import { getUserLocaleCookieHeaders } from "@/i18n/locale";
+import { getSessionUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { parseJsonBody } from "@/lib/validation";
 import { z } from "zod";
 
@@ -20,6 +22,9 @@ export async function POST(request: Request) {
   }
 
   const locale = body.locale as Locale;
+  const user = await getSessionUser();
+  if (user)
+    await prisma.user.update({ where: { id: user.id }, data: { locale } });
   const response = NextResponse.json({ ok: true });
 
   for (const cookie of getUserLocaleCookieHeaders(locale)) {

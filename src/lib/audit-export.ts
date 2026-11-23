@@ -1,9 +1,13 @@
+import PDFDocument from "pdfkit";
+import path from "node:path";
 import { prisma } from "@/lib/db";
 import { buildAuditFilters } from "@/services/api/audit-filters";
 import type { AuditFilters } from "@/services/api/types";
 import { AuditAction } from "../../generated/prisma/enums";
 
 const MAX_AUDIT_EXPORT_ROWS = 1000;
+const CJK_RUN =
+  /((?:\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}|\p{Script=Bopomofo}|[\u3000-\u303f])+)/u;
 
 export async function getAuditEntries(filters: AuditFilters = {}) {
   const where = buildAuditFilters(filters);
@@ -29,7 +33,7 @@ export async function getAuditEntries(filters: AuditFilters = {}) {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(filters.page && filters.limit
         ? {
             skip: (filters.page - 1) * filters.limit,
@@ -100,13 +104,6 @@ export async function exportToCSV(filters: AuditFilters = {}) {
   };
 }
 
-function escapePdfText(value: string) {
-  return value
-    .replaceAll("\\", "\\\\")
-    .replaceAll("(", "\\(")
-    .replaceAll(")", "\\)");
-}
-
 export async function exportToPDF(filters: AuditFilters = {}) {
   const { total, entries } = await getAuditEntries({
     ...filters,
@@ -125,60 +122,50 @@ export async function exportToPDF(filters: AuditFilters = {}) {
     ]),
   ];
 
-  const linesPerPage = 52;
-  const pageChunks: string[][] = [];
-  for (let index = 0; index < lines.length; index += linesPerPage) {
-    pageChunks.push(lines.slice(index, index + linesPerPage));
-  }
-
-  const objects: string[] = [];
-  objects.push("1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj");
-  const firstPageId = 4;
-  const pageKids = pageChunks
-    .map((_, pageIndex) => `${firstPageId + pageIndex * 2} 0 R`)
-    .join(" ");
-  objects.push(
-    `2 0 obj << /Type /Pages /Kids [${pageKids}] /Count ${pageChunks.length} >> endobj`,
-  );
-  objects.push(
-    "3 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
-  );
-
-  pageChunks.forEach((pageLines, pageIndex) => {
-    const pageId = firstPageId + pageIndex * 2;
-    const contentId = pageId + 1;
-    const stream = pageLines
-      .map(
-        (line, lineIndex) =>
-          `BT /F1 10 Tf 40 ${780 - lineIndex * 14} Td (${escapePdfText(line)}) Tj ET`,
-      )
-      .join("\n");
-    const content = Buffer.from(stream, "utf8");
-
-    objects.push(
-      `${pageId} 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >> endobj`,
+  const buffer = await new Promise<Buffer<ArrayBuffer>>((resolve, reject) => {
+    const defaultFont = path.join(
+      process.cwd(),
+      "public",
+      "fonts",
+      "DejaVuSans.ttf",
     );
-    objects.push(
-      `${contentId} 0 obj << /Length ${content.length} >> stream\n${stream}\nendstream endobj`,
+    const cjkFont = path.join(
+      process.cwd(),
+      "public",
+      "fonts",
+      "NotoSansCJK-Regular.woff",
     );
+    const pdf = new PDFDocument({
+      pdfVersion: "1.4",
+      size: "LETTER",
+      margin: 44,
+      font: defaultFont,
+      info: { Title: "Audit Trail Export" },
+    });
+    const chunks: Buffer[] = [];
+    pdf.on("data", (chunk: Buffer) => chunks.push(chunk));
+    pdf.on("error", reject);
+    pdf.on("end", () => resolve(Buffer.concat(chunks)));
+
+    pdf.fontSize(10);
+    for (const line of lines) {
+      const runs = line
+        .split(CJK_RUN)
+        .map((text, index) => ({
+          text,
+          font: index % 2 ? cjkFont : defaultFont,
+        }))
+        .filter(({ text }) => text.length > 0);
+      if (runs.length === 0) pdf.moveDown(0.5);
+      for (const [index, { text, font }] of runs.entries()) {
+        pdf.font(font).text(text, { continued: index < runs.length - 1 });
+      }
+    }
+    pdf.end();
   });
 
-  let pdf = "%PDF-1.4\n";
-  const offsets = [0];
-  for (const object of objects) {
-    offsets.push(Buffer.byteLength(pdf, "utf8"));
-    pdf += `${object}\n`;
-  }
-  const xrefOffset = Buffer.byteLength(pdf, "utf8");
-  pdf += `xref\n0 ${objects.length + 1}\n`;
-  pdf += "0000000000 65535 f \n";
-  for (let index = 1; index < offsets.length; index += 1) {
-    pdf += `${String(offsets[index]).padStart(10, "0")} 00000 n \n`;
-  }
-  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-
   return {
-    buffer: Buffer.from(pdf, "utf8"),
+    buffer,
     truncated: total > entries.length,
     total,
     exportedCount: entries.length,

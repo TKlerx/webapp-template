@@ -41,7 +41,13 @@ export async function processTeamsIntakePoll() {
 
       for (const message of result.messages) {
         const exists = await prisma.teamsInboundMessage.findUnique({
-          where: { providerMessageId: message.id },
+          where: {
+            teamId_channelId_providerMessageId: {
+              teamId: message.teamId,
+              channelId: message.channelId,
+              providerMessageId: message.id,
+            },
+          },
           select: { id: true },
         });
         if (exists) {
@@ -100,16 +106,13 @@ function truncateUtf8(value: string, maxBytes: number) {
     return { content: value, truncated: false };
   }
 
-  const marker = "...";
-  let candidate = value;
-  while (candidate.length > 0) {
-    candidate = candidate.slice(0, -1);
-    if (new TextEncoder().encode(candidate + marker).byteLength <= maxBytes) {
-      return { content: `${candidate}${marker}`, truncated: true };
-    }
-  }
-
-  return { content: marker, truncated: true };
+  const marker = "...".slice(0, maxBytes);
+  let end = maxBytes - marker.length;
+  while (end > 0 && (encoded[end] & 0xc0) === 0x80) end -= 1;
+  return {
+    content: new TextDecoder().decode(encoded.subarray(0, end)) + marker,
+    truncated: true,
+  };
 }
 
 function isTeamsFeatureEnabled() {

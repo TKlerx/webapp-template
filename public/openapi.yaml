@@ -189,6 +189,8 @@ paths:
         "201":
           description: Token created
   /api/tokens/{id}/revoke:
+    parameters:
+      - $ref: "#/components/parameters/TokenId"
     post:
       tags: [Tokens]
       summary: Revoke a personal access token
@@ -196,6 +198,8 @@ paths:
         "200":
           description: Token revoked
   /api/tokens/{id}/renew:
+    parameters:
+      - $ref: "#/components/parameters/TokenId"
     post:
       tags: [Tokens]
       summary: Renew a personal access token
@@ -203,6 +207,8 @@ paths:
         "200":
           description: Token renewed
   /api/tokens/{id}:
+    parameters:
+      - $ref: "#/components/parameters/TokenId"
     delete:
       tags: [Tokens]
       summary: Delete a personal access token
@@ -220,6 +226,8 @@ paths:
         "200":
           description: Admin token list
   /api/admin/tokens/{id}/revoke:
+    parameters:
+      - $ref: "#/components/parameters/TokenId"
     post:
       tags: [Admin Tokens]
       summary: Revoke a token as an admin
@@ -230,6 +238,8 @@ paths:
         "200":
           description: Token revoked
   /api/admin/tokens/{id}:
+    parameters:
+      - $ref: "#/components/parameters/TokenId"
     delete:
       tags: [Admin Tokens]
       summary: Delete a token as an admin
@@ -271,6 +281,13 @@ paths:
         "200":
           description: YAML document
 components:
+  parameters:
+    TokenId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
   securitySchemes:
     teamsDeliveryAuth:
       type: http

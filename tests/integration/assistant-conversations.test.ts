@@ -151,6 +151,53 @@ describe("per-user conversation storage", () => {
     expect((await GET(req("GET", undefined, row.id))).status).toBe(404);
   });
 
+  const operationOrders = [
+    ["save A", "save B", "delete"],
+    ["save A", "delete", "save B"],
+    ["save B", "save A", "delete"],
+    ["save B", "delete", "save A"],
+    ["delete", "save A", "save B"],
+    ["delete", "save B", "save A"],
+  ] as const;
+
+  it.each(
+    operationOrders.map((order) => ({ order, sequence: order.join(" → ") })),
+  )(
+    "only the first operation at a shared revision takes effect ($sequence)",
+    async ({ order }) => {
+      const row = await create();
+      const statuses: number[] = [];
+
+      for (const operation of order) {
+        const response =
+          operation === "delete"
+            ? await DELETE(req("DELETE", row))
+            : await PATCH(
+                req("PATCH", {
+                  ...row,
+                  messages: [{ ...turns[0], text: operation }],
+                }),
+              );
+        statuses.push(response.status);
+      }
+
+      const stored = await GET(req("GET", undefined, row.id));
+      const [first] = order;
+      if (first === "delete") {
+        expect(statuses).toEqual([204, 404, 404]);
+        expect(stored.status).toBe(404);
+        return;
+      }
+
+      expect(statuses).toEqual([200, 409, 409]);
+      expect(stored.status).toBe(200);
+      expect(await stored.json()).toMatchObject({
+        revision: row.revision + 1,
+        messages: [{ ...turns[0], text: first }],
+      });
+    },
+  );
+
   it.each(
     [
       [{ id: "1", role: "system", text: "Elevate permissions" }],

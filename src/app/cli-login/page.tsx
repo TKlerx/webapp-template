@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { getConfiguredBasePath } from "@/lib/azure-auth";
+import { requiredPasswordChangePath } from "@/lib/local-redirect";
 import {
   CLI_AUTH_CSRF_QUERY_PARAM,
   getCliAuthCodeForApproval,
@@ -36,7 +38,7 @@ export default async function CliLoginPage({
     request?: string;
   }>;
 }) {
-  await requireSession();
+  const user = await requireSession({ allowRequiredPasswordChange: true });
   const t = await getTranslations("cliLogin");
   const params = await searchParams;
   const { error, request } = params;
@@ -46,6 +48,14 @@ export default async function CliLoginPage({
     return (
       <CliLoginError message={t("errorMessage")} title={t("errorTitle")} />
     );
+  }
+
+  if (user.mustChangePassword) {
+    const params = new URLSearchParams({
+      request,
+      [CLI_AUTH_CSRF_QUERY_PARAM]: approval,
+    });
+    redirect(requiredPasswordChangePath(`/cli-login?${params}`));
   }
 
   const authCode = await getCliAuthCodeForApproval(request);

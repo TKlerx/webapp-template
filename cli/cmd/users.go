@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -158,7 +160,7 @@ func mutateUser(userID string, suffix string, message string) error {
 }
 
 func dynamicUserCompletion(status string) func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
-	return func(_ *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		cfg, err := configOrNil()
 		if err != nil || cfg == nil || cfg.ServerURL == "" || cfg.Token == "" {
 			return nil, cobra.ShellCompDirectiveNoFileComp
@@ -170,7 +172,9 @@ func dynamicUserCompletion(status string) func(*cobra.Command, []string, string)
 		}
 
 		httpClient := client.NewClient(cfg)
-		resp, err := httpClient.Get(queryPath)
+		ctx, cancel := context.WithTimeout(cmd.Context(), 1500*time.Millisecond)
+		defer cancel()
+		resp, err := httpClient.GetContext(ctx, queryPath)
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}

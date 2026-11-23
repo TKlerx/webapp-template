@@ -20,11 +20,12 @@ export type SessionUser = Pick<
 export { hashPassword, verifyPassword } from "@/lib/password";
 
 export const PASSWORD_COMPLEXITY_REQUIREMENTS =
-  "at least 8 characters, including at least 1 uppercase letter, 1 lowercase letter, and 1 number";
+  "at least 8 characters, including at least 1 uppercase letter, 1 lowercase letter, and 1 number, and fit within 72 UTF-8 bytes";
 
 export function validatePasswordComplexity(password: string) {
   return (
     password.length >= 8 &&
+    Buffer.byteLength(password, "utf8") <= 72 &&
     /[a-z]/.test(password) &&
     /[A-Z]/.test(password) &&
     /[0-9]/.test(password)
@@ -56,7 +57,9 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   return null;
 }
 
-export async function requireSession() {
+export async function requireSession({
+  allowRequiredPasswordChange = false,
+} = {}) {
   const user = await getSessionUser();
 
   if (!user) {
@@ -65,6 +68,10 @@ export async function requireSession() {
 
   if (user.status === UserStatus.PENDING_APPROVAL) {
     redirect("/pending");
+  }
+
+  if (user.mustChangePassword && !allowRequiredPasswordChange) {
+    redirect("/change-password");
   }
 
   return user;

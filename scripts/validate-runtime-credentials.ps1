@@ -86,7 +86,7 @@ function Test-RuntimeCredentialDocument([string]$DocumentPath) {
             $errors += "Exception $id status must be accepted or proposed."
         }
 
-        $exceptionIds[$id] = $true
+        $exceptionIds[$id] = @($settings -split '[,\s]+' | ForEach-Object { Normalize-Cell $_ } | Where-Object { $_ })
     }
 
     $inventoryRows = Get-MarkdownTableRows $lines "Credential Inventory"
@@ -112,6 +112,8 @@ function Test-RuntimeCredentialDocument([string]$DocumentPath) {
 
         if ($exception -and -not $exceptionIds.ContainsKey($exception)) {
             $errors += "Credential '$setting' references unknown exception '$exception'."
+        } elseif ($exception -and $setting -notin $exceptionIds[$exception]) {
+            $errors += "Exception '$exception' does not cover credential '$setting'."
         }
     }
 
@@ -138,6 +140,8 @@ function Test-RuntimeCredentialDocument([string]$DocumentPath) {
 
         if ($exception -and -not $exceptionIds.ContainsKey($exception)) {
             $errors += "Runtime exposure '$runtime/$setting' references unknown exception '$exception'."
+        } elseif ($exception -and $setting -notin $exceptionIds[$exception]) {
+            $errors += "Exception '$exception' does not cover runtime exposure '$runtime/$setting'."
         }
 
         if ($runtime -eq "app" -and $forbiddenAppSettings.Contains($setting) -and -not $exception) {
@@ -166,6 +170,7 @@ if ($SelfTest) {
     Invoke-OneValidation "scripts/testdata/runtime-credentials/missing-owner.md" $false
     Invoke-OneValidation "scripts/testdata/runtime-credentials/app-has-migration-url.md" $false
     Invoke-OneValidation "scripts/testdata/runtime-credentials/app-has-worker-graph-secret.md" $false
+    Invoke-OneValidation "scripts/testdata/runtime-credentials/mismatched-exception.md" $false
     Invoke-OneValidation "scripts/testdata/runtime-credentials/shared-without-exception.md" $false
     Invoke-OneValidation "scripts/testdata/runtime-credentials/expired-exception.md" $false
 }

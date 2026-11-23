@@ -134,6 +134,10 @@
     "switchedTo": "Theme switched to {theme} mode"
   },
   "audit": {
+    "paginationLabel": "Audit trail pages",
+    "previousPage": "Previous",
+    "nextPage": "Next",
+    "pageIndicator": "Page {page} of {total}",
     "anonymous": "Anonymous",
     "title": "Audit Trail",
     "action": "Action",
@@ -250,6 +254,7 @@
     "loadFailed": "Could not load tokens",
     "updateFailed": "Could not update token",
     "copied": "Token copied to clipboard",
+    "copyFailed": "Could not copy the token. Select and copy it manually.",
     "copy": "Copy token",
     "done": "Done",
     "tokenValueTitle": "Save {name}",
@@ -304,6 +309,7 @@
     "disabledSaved": "Notification type disabled",
     "saveFailed": "Could not save notification setting",
     "loadFailed": "Could not load notifications",
+    "retry": "Retry",
     "updatedAt": "Updated {value}",
     "allEvents": "All events",
     "eventFilter": "Filter by event",
@@ -340,6 +346,8 @@
     "loading": "Refreshing notifications..."
   },
   "apiDocs": {
+    "loadError": "Could not load the API reference.",
+    "retry": "Retry",
     "title": "API reference",
     "description": "Browse the current OpenAPI specification with interactive Swagger UI."
   },
@@ -382,7 +390,7 @@
     "health": {
       "title": "Integration health",
       "sendFailures": "Send failures (24h)",
-      "intakeFailures": "Intake failures (24h)",
+      "intakeFailures": "Unresolved intake errors (24h)",
       "lastSend": "Last successful send",
       "lastIntake": "Last successful intake"
     },

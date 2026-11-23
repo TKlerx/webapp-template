@@ -13,8 +13,6 @@ import (
 	"github.com/TKlerx/webapp-template/cli/internal/update"
 )
 
-const defaultFormat = "table"
-
 var (
 	version = "dev"
 
@@ -43,7 +41,7 @@ var (
 func init() {
 	rootCmd.SetOut(stdout)
 	rootCmd.SetErr(stderr)
-	rootCmd.PersistentFlags().StringVarP(&formatFlag, "format", "f", defaultFormat, "Output format: table, json, csv")
+	rootCmd.PersistentFlags().StringVarP(&formatFlag, "format", "f", "", "Output format: table, json, csv")
 	rootCmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "Show request and response details")
 	_ = rootCmd.RegisterFlagCompletionFunc("format", staticCompletion(formatChoices))
 

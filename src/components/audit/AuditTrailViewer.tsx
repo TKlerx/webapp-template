@@ -23,6 +23,8 @@ export function AuditTrailViewer() {
     action: "",
     entityType: "",
   });
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,15 +44,20 @@ export function AuditTrailViewer() {
       setError(null);
 
       try {
-        const suffix = queryString ? `?${queryString}` : "";
+        const params = new URLSearchParams(queryString);
+        params.set("page", String(page));
+        const suffix = `?${params}`;
         const response = await fetch(withBasePath(`/api/audit${suffix}`), {
           signal: controller.signal,
         });
         const payload = (await response.json().catch(() => null)) as {
           data?: AuditRow[];
           error?: string;
+          total?: number;
+          limit?: number;
         } | null;
 
+        if (controller.signal.aborted) return;
         if (!response.ok) {
           setError(payload?.error ?? commonT("error"));
           setRows([]);
@@ -58,6 +65,12 @@ export function AuditTrailViewer() {
         }
 
         setRows(payload?.data ?? []);
+        setPageCount(
+          Math.max(
+            1,
+            Math.ceil((payload?.total ?? 0) / (payload?.limit || 25)),
+          ),
+        );
       } catch (fetchError) {
         if ((fetchError as Error).name !== "AbortError") {
           setError(commonT("error"));
@@ -73,7 +86,7 @@ export function AuditTrailViewer() {
     void loadAuditRows();
 
     return () => controller.abort();
-  }, [commonT, queryString]);
+  }, [commonT, page, queryString]);
 
   return (
     <div className="space-y-6">
@@ -85,12 +98,13 @@ export function AuditTrailViewer() {
             </span>
             <input
               className="min-h-11 rounded-lg border border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-              onChange={(event) =>
+              onChange={(event) => {
+                setPage(1);
                 setFilters((current) => ({
                   ...current,
                   action: event.target.value,
-                }))
-              }
+                }));
+              }}
               placeholder={t("action")}
               value={filters.action}
             />
@@ -101,12 +115,13 @@ export function AuditTrailViewer() {
             </span>
             <input
               className="min-h-11 rounded-lg border border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-              onChange={(event) =>
+              onChange={(event) => {
+                setPage(1);
                 setFilters((current) => ({
                   ...current,
                   entityType: event.target.value,
-                }))
-              }
+                }));
+              }}
               placeholder={t("entity")}
               value={filters.entityType}
             />
@@ -206,6 +221,32 @@ export function AuditTrailViewer() {
               : null}
           </tbody>
         </table>
+        {(page > 1 || pageCount > 1) && (
+          <nav
+            className="flex flex-wrap items-center justify-end gap-4 border-t p-4"
+            aria-label={t("paginationLabel")}
+          >
+            <button
+              type="button"
+              className="underline disabled:opacity-50"
+              disabled={loading || page <= 1}
+              onClick={() => setPage(page - 1)}
+            >
+              {t("previousPage")}
+            </button>
+            <span aria-live="polite">
+              {t("pageIndicator", { page, total: pageCount })}
+            </span>
+            <button
+              type="button"
+              className="underline disabled:opacity-50"
+              disabled={loading || Boolean(error) || page >= pageCount}
+              onClick={() => setPage(page + 1)}
+            >
+              {t("nextPage")}
+            </button>
+          </nav>
+        )}
       </div>
     </div>
   );

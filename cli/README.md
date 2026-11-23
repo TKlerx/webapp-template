@@ -97,49 +97,17 @@ starterctl completion install powershell
 
 This is the fastest local verification path on Windows PowerShell.
 
-1. Create a local `.env` if you do not already have one.
-
-```dotenv
-DATABASE_URL="file:./dev.db"
-PORT=3270
-AUTH_BASE_URL=http://localhost:3270
-BETTER_AUTH_SECRET=dev-secret-change-me-in-production
-INITIAL_ADMIN_EMAIL=admin@example.com
-INITIAL_ADMIN_PASSWORD=ChangeMe123!
-PAT_TOKEN_PREFIX=starter_pat
-```
-
-2. Bootstrap the local SQLite database and seed the admin user.
-
-```powershell
-node scripts/ensure-local-db.mjs
-```
-
-3. Start the app.
-
-```powershell
-pnpm run dev
-```
-
-4. In another terminal, build the CLI.
+1. Follow the [PostgreSQL development setup](../README.md#local-development) from the repository root.
+2. Start the app with `pnpm run dev`.
+3. Sign in with the seeded administrator and complete the required password change.
+4. Build the CLI in another terminal.
 
 ```powershell
 cd cli
 go build -o starterctl.exe .
 ```
 
-5. Create a PAT from the running app.
-
-You can do that in the UI, or by logging in and calling the API:
-
-```powershell
-$session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-$loginBody = @{ email='admin@example.com'; password='ChangeMe123!' } | ConvertTo-Json
-Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:3270/api/auth/login' -Method POST -ContentType 'application/json' -Body $loginBody -WebSession $session
-$tokenBody = @{ name='CLI Smoke Test'; expiresInDays=90 } | ConvertTo-Json
-$tokenResponse = Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:3270/api/tokens' -Method POST -ContentType 'application/json' -Body $tokenBody -WebSession $session
-($tokenResponse.Content | ConvertFrom-Json).token.tokenValue
-```
+5. Open **Settings → Tokens** in the running app and create a personal access token.
 
 6. Configure the CLI and run a few live commands.
 

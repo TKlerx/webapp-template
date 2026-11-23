@@ -67,3 +67,5 @@ export const assistantBodySchema = z
       .max(24),
   })
   .strict();
+
+export const MAX_CHAT_REQUEST_BYTES = 64 * 1024;

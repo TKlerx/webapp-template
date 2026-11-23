@@ -2,7 +2,8 @@ import { CreateTokenDialog } from "@/components/tokens/create-token-dialog";
 import { CliDownloads } from "@/components/tokens/cli-downloads";
 import { TokenList } from "@/components/tokens/token-list";
 import { requireSession } from "@/lib/auth";
-import { listTokens } from "@/services/api/tokens";
+import { getDefaultTokenExpiryDays, listTokens } from "@/services/api/tokens";
+import { TokenType } from "../../../../../generated/prisma/enums";
 import { getTranslations } from "next-intl/server";
 
 export default async function TokensPage() {
@@ -37,7 +38,9 @@ export default async function TokensPage() {
       <CliDownloads />
 
       <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
-        <CreateTokenDialog />
+        <CreateTokenDialog
+          defaultExpiry={getDefaultTokenExpiryDays(TokenType.PAT)}
+        />
         <TokenList initialTokens={tokens} />
       </div>
     </div>

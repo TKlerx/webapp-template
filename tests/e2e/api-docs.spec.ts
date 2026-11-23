@@ -21,11 +21,21 @@ test("authenticated users can open the API docs page and see Swagger content", a
   await loginWithPassword(page, "e2e-docs@example.com", "DocsPass123");
   await expectOnDashboard(page);
 
+  await page.route(
+    "**/vendor/swagger-ui/swagger-ui-bundle.js",
+    (route) => route.abort(),
+    { times: 1 },
+  );
   await page.goto(`${appBasePath}/docs/api`);
   await expect(
     page.getByRole("heading", { name: "API reference" }),
   ).toBeVisible();
-  await expect(page.locator("#swagger-ui")).toBeVisible();
+  await expect(
+    page
+      .getByRole("alert")
+      .filter({ hasText: "Could not load the API reference" }),
+  ).toContainText("Could not load the API reference");
+  await page.getByRole("button", { name: "Retry", exact: true }).click();
   await expect(page.locator("#swagger-ui")).toContainText("/api/tokens", {
     timeout: 30000,
   });

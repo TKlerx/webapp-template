@@ -96,16 +96,31 @@ export async function PATCH(request: Request) {
       where: { id, userId: input.user.id, revision },
       data: {
         messages,
-        title:
-          messages.find((turn) => turn.role === "user")?.text.slice(0, 100) ??
-          "",
+        title: Array.from(
+          messages.find((turn) => turn.role === "user")?.text ?? "",
+        )
+          .slice(0, 100)
+          .join(""),
         revision: { increment: 1 },
       },
       select: summary,
     });
-    return rows[0]
-      ? Response.json(rows[0], { headers })
-      : await missingOrConflict(id, input.user.id);
+    if (rows[0]) return Response.json(rows[0], { headers });
+    const existing = await prisma.assistantConversation.findFirst({
+      where: { id, userId: input.user.id, revision: revision + 1 },
+      select: { ...summary, messages: true },
+    });
+    if (existing) {
+      const { messages: current, ...currentSummary } = existing;
+      const previous = savedTurnsSchema.safeParse(current);
+      if (
+        previous.success &&
+        JSON.stringify(previous.data) === JSON.stringify(messages)
+      ) {
+        return Response.json(currentSummary, { headers });
+      }
+    }
+    return missingOrConflict(id, input.user.id);
   } catch {
     return jsonError("Conversation storage is unavailable", 503);
   }

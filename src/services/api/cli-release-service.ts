@@ -71,10 +71,7 @@ const targetDefinitions: Array<
 const cliReleaseTargets = targetDefinitions.map(({ target }) => target);
 
 export function getCliReleasesDir() {
-  return (
-    process.env.CLI_RELEASES_DIR ??
-    path.join(process.cwd(), "data", "cli-releases")
-  );
+  return process.env.CLI_RELEASES_DIR ?? "data/cli-releases";
 }
 
 function isCliReleaseTarget(value: string): value is CliReleaseTarget {
@@ -87,19 +84,37 @@ async function findArchive(
   arch: string,
   extension: string,
 ) {
-  let entries: string[];
+  let entries;
   try {
-    entries = await readdir(dir);
-  } catch {
-    return null;
+    entries = await readdir(/*turbopackIgnore: true*/ dir, {
+      withFileTypes: true,
+    });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
   }
 
   const suffix = `_${goos}_${arch}.${extension}`;
+  const checksums = await readCliChecksums();
+  const published =
+    checksums === null
+      ? null
+      : new Set(
+          checksums.split(/\r?\n/).flatMap((line) => {
+            const match = line.match(/^[a-f0-9]{64}\s+\*?(\S+)$/i);
+            return match ? [match[1]] : [];
+          }),
+        );
   return (
     entries
       .filter(
-        (entry) => entry.startsWith("starterctl_") && entry.endsWith(suffix),
+        (entry) =>
+          entry.isFile() &&
+          entry.name.startsWith("starterctl_") &&
+          entry.name.endsWith(suffix) &&
+          (!published || published.has(entry.name)),
       )
+      .map((entry) => entry.name)
       .sort()
       .at(-1) ?? null
   );
@@ -116,12 +131,26 @@ export async function listCliReleaseAssets(): Promise<CliReleaseAsset[]> {
         definition.arch,
         definition.extension,
       );
-      if (!filename) {
-        return { ...definition, filename: "", size: 0, available: false };
+      if (filename) {
+        const fileStat = await stat(
+          /*turbopackIgnore: true*/ path.join(
+            /*turbopackIgnore: true*/ dir,
+            filename,
+          ),
+        ).catch((error: NodeJS.ErrnoException) => {
+          if (error.code === "ENOENT") return null;
+          throw error;
+        });
+        if (fileStat?.isFile()) {
+          return {
+            ...definition,
+            filename,
+            size: fileStat.size,
+            available: true,
+          };
+        }
       }
-
-      const fileStat = await stat(path.join(dir, filename));
-      return { ...definition, filename, size: fileStat.size, available: true };
+      return { ...definition, filename: "", size: 0, available: false };
     }),
   );
 }
@@ -147,13 +176,17 @@ export async function readCliReleaseAsset(target: string) {
     return null;
   }
 
-  const resolvedDir = path.resolve(dir);
-  const resolvedFile = path.resolve(resolvedDir, filename);
-  if (!resolvedFile.startsWith(`${resolvedDir}${path.sep}`)) {
-    return null;
-  }
-
-  const buffer = await readFile(resolvedFile);
+  // The archive name is a single entry returned by readdir.
+  const buffer = await readFile(
+    /*turbopackIgnore: true*/ path.join(
+      /*turbopackIgnore: true*/ dir,
+      filename,
+    ),
+  ).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT" || error.code === "EISDIR") return null;
+    throw error;
+  });
+  if (!buffer) return null;
   return {
     ...definition,
     filename,
@@ -166,10 +199,14 @@ export async function readCliReleaseAsset(target: string) {
 export async function readCliChecksums() {
   try {
     return await readFile(
-      path.join(getCliReleasesDir(), "checksums.txt"),
+      /*turbopackIgnore: true*/ path.join(
+        /*turbopackIgnore: true*/ getCliReleasesDir(),
+        "checksums.txt",
+      ),
       "utf8",
     );
-  } catch {
-    return null;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
   }
 }

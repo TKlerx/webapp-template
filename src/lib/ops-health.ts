@@ -62,8 +62,9 @@ export function createEnvironmentIdentity(
   versionInfo: AppVersionInfo = getAppVersionInfo(),
 ): EnvironmentIdentity {
   return {
-    environment: versionInfo.environment || UNKNOWN,
-    version: versionInfo.version || UNKNOWN,
+    environment:
+      (versionInfo.deployedEnvironment ?? versionInfo.environment) || UNKNOWN,
+    version: (versionInfo.deployedVersion ?? versionInfo.version) || UNKNOWN,
     revision: versionInfo.shortRevision || versionInfo.revision || UNKNOWN,
     buildId: versionInfo.buildId || UNKNOWN,
     builtAt: versionInfo.builtAt || UNKNOWN,
@@ -223,17 +224,17 @@ async function getWorkerHealth(capturedAt: string): Promise<HealthCheckResult> {
   const cutoff = new Date(Date.now() - WORKER_EVIDENCE_MAX_AGE_MS);
   const recentJob = await prisma.backgroundJob.findFirst({
     where: {
-      updatedAt: { gte: cutoff },
+      finishedAt: { gte: cutoff },
       status: { in: ["COMPLETED", "FAILED"] },
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: { finishedAt: "desc" },
     select: {
       status: true,
-      updatedAt: true,
+      finishedAt: true,
     },
   });
 
-  if (!recentJob || recentJob.updatedAt < cutoff) {
+  if (!recentJob?.finishedAt || recentJob.finishedAt < cutoff) {
     return {
       key: "worker",
       status: "unknown",
@@ -242,7 +243,7 @@ async function getWorkerHealth(capturedAt: string): Promise<HealthCheckResult> {
     };
   }
 
-  const checkedAt = recentJob.updatedAt.toISOString();
+  const checkedAt = recentJob.finishedAt.toISOString();
   if (recentJob.status === "FAILED") {
     return {
       key: "worker",

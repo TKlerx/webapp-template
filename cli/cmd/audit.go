@@ -1,8 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/url"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -13,12 +16,18 @@ import (
 var auditActions = []string{
 	"USER_CREATED",
 	"ROLE_CHANGED",
+	"SCOPE_ASSIGNMENT_CHANGED",
 	"USER_STATUS_CHANGED",
 	"USER_THEME_CHANGED",
 	"AUTH_LOGIN_SUCCEEDED",
 	"AUTH_LOGIN_REJECTED",
 	"AUTH_PASSWORD_CHANGED",
 	"AUTH_LOGOUT_SUCCEEDED",
+	"AUDIT_EXPORT_REQUESTED",
+	"PAT_CREATED",
+	"PAT_REVOKED",
+	"PAT_RENEWED",
+	"PAT_DELETED",
 	"CLI_LOGIN_COMPLETED",
 }
 
@@ -148,22 +157,18 @@ func newAuditExportCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				if resp.Header.Get("X-Audit-Export-Truncated") == "1" {
+					return fmt.Errorf("CSV export exceeds the server limit of %s records; narrow the date range", resp.Header.Get("X-Audit-Export-Count"))
+				}
 				_, err = stdout.Write(resp.Body)
 				return err
 			}
 
-			resp, err := httpClient.Get("/api/audit" + filters.QueryString())
+			entries, err := fetchAuditExport(httpClient, filters)
 			if err != nil {
 				return err
 			}
-
-			payload := struct {
-				Data []auditEntry `json:"data"`
-			}{}
-			if err := json.Unmarshal(resp.Body, &payload); err != nil {
-				return err
-			}
-			return renderer.RenderData(payload.Data)
+			return renderer.RenderData(entries)
 		},
 	}
 
@@ -171,6 +176,36 @@ func newAuditExportCommand() *cobra.Command {
 	cmd.Flags().StringVar(&exportFormat, "format", "", "Override output format")
 	_ = cmd.RegisterFlagCompletionFunc("format", staticCompletion(formatChoices))
 	return cmd
+}
+
+func fetchAuditExport(httpClient *client.Client, filters auditFilterFlags) ([]auditEntry, error) {
+	values, _ := url.ParseQuery(strings.TrimPrefix(filters.QueryString(), "?"))
+	values.Set("limit", "100")
+	if filters.To == "" {
+		values.Set("dateTo", time.Now().UTC().Format(time.RFC3339Nano))
+	}
+	entries := []auditEntry{}
+	for page := 1; ; page++ {
+		values.Set("page", strconv.Itoa(page))
+		response, err := httpClient.Get("/api/audit?" + values.Encode())
+		if err != nil {
+			return nil, err
+		}
+		var payload struct {
+			Data  []auditEntry `json:"data"`
+			Total int          `json:"total"`
+		}
+		if err := response.DecodeJSON(&payload); err != nil {
+			return nil, err
+		}
+		entries = append(entries, payload.Data...)
+		if len(entries) >= payload.Total {
+			return entries, nil
+		}
+		if len(payload.Data) == 0 {
+			return nil, fmt.Errorf("audit export ended before all records were received")
+		}
+	}
 }
 
 func (f *auditFilterFlags) Bind(cmd *cobra.Command) {

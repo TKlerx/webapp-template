@@ -56,7 +56,9 @@ class WorkerTests(unittest.TestCase):
         self.assertIn("processedAt", result)
 
     def test_process_job_notification_delivery_sends_mail(self) -> None:
-        with patch("starter_worker.main.send_graph_mail") as send_graph_mail:
+        with patch(
+            "starter_worker.main.send_graph_mail", return_value="<sent@example.com>"
+        ) as send_graph_mail:
             result = process_job(
                 type(
                     "Job",
@@ -77,6 +79,8 @@ class WorkerTests(unittest.TestCase):
         send_graph_mail.assert_called_once()
         self.assertEqual(result["notificationId"], "notification-1")
         self.assertEqual(result["status"], "sent")
+        self.assertEqual(result["providerStatus"], "accepted")
+        self.assertEqual(result["providerMessageId"], "<sent@example.com>")
         self.assertIn("processedAt", result)
 
     def test_process_job_rejects_invalid_notification_payload(self) -> None:
@@ -268,6 +272,49 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(inbound_link["linkedEntityId"], "scope-7")
         self.assertEqual(bounced_notification["status"], "BOUNCED")
 
+    def test_provider_reference_from_a_sent_notification_correlates_a_bounce(self) -> None:
+        provider_reference = "<new-delivery@provider.example>"
+        self._insert_notification("new-delivery")
+        with self._connect() as connection:
+            connection.execute(
+                """UPDATE "Notification" SET status = 'QUEUED', "providerMessageId" = NULL
+                    WHERE id = 'new-delivery'"""
+            )
+        self._insert_job("deliver", "notification_delivery", {
+            "notificationId": "new-delivery",
+            "recipientEmail": "recipient@example.com",
+            "recipientName": "Recipient",
+            "subject": "Notice",
+            "bodyText": "Message",
+        })
+        store = self._make_store()
+        job = store.claim_next_job()
+        assert job is not None
+        with (
+            patch("starter_worker.graph_mail._resolve_mailbox", return_value="mail@example.com"),
+            patch("starter_worker.graph_mail._get_graph_access_token", return_value="test-token"),
+            patch("starter_worker.graph_mail._graph_request", side_effect=[
+                {"id": "immutable-draft-id", "internetMessageId": provider_reference},
+                {},
+            ]) as graph_request,
+        ):
+            result = process_job(job)
+        self.assertTrue(graph_request.call_args.args[1].endswith("/messages/immutable-draft-id/send"))
+        self.assertTrue(store.complete_job(job, result))
+        self.assertEqual(self._fetch_notification("new-delivery")["providerMessageId"], provider_reference)
+
+        with (
+            patch("starter_worker.main.list_graph_mail_messages", return_value=[{"id": "new-bounce"}]),
+            patch("starter_worker.main.get_graph_mail_message", return_value={
+                "subject": "Undeliverable",
+                "from": {"emailAddress": {"address": "postmaster@provider.example"}},
+                "internetMessageHeaders": [{"name": "References", "value": provider_reference}],
+            }),
+        ):
+            result = process_inbound_mail_poll(store, {"mailbox": "mail@example.com"})
+        self.assertEqual(result["bounced"], 1)
+        self.assertEqual(self._fetch_notification("new-delivery")["status"], "BOUNCED")
+
     def test_process_inbound_mail_poll_ignores_spoofed_bounce_content(self) -> None:
         with (
             patch(
@@ -329,7 +376,7 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(job.job_type, "noop")
         self.assertEqual(job.attempt_count, 1)
 
-        store.complete_job(job.id, {"message": "done"})
+        store.complete_job(job, {"message": "done"})
         row = self._fetch_job("job-1")
 
         self.assertEqual(row["status"], "COMPLETED")
@@ -347,7 +394,7 @@ class WorkerTests(unittest.TestCase):
 
         self.assertIsNotNone(job)
         assert job is not None
-        store.fail_job(job.id, "bad job")
+        store.fail_job(job, "bad job")
         row = self._fetch_job("job-2")
 
         self.assertEqual(row["status"], "PENDING")
@@ -364,7 +411,7 @@ class WorkerTests(unittest.TestCase):
 
         self.assertIsNotNone(job)
         assert job is not None
-        store.fail_job(job.id, "bad job")
+        store.fail_job(job, "bad job")
         row = self._fetch_job("job-3")
 
         self.assertEqual(row["status"], "FAILED")
@@ -380,7 +427,7 @@ class WorkerTests(unittest.TestCase):
             job = store.claim_next_job()
             assert job is not None
             self.assertEqual(job.attempt_count, attempt)
-            store.fail_job(job.id, "send failed")
+            store.fail_job(job, "send failed")
             row = self._fetch_job(job.id)
             if attempt == 3:
                 self.assertEqual(row["status"], "FAILED")
@@ -437,6 +484,39 @@ class WorkerTests(unittest.TestCase):
         self.assertIsNone(row["lockedAt"])
         self.assertIsNone(row["workerId"])
 
+    def test_worker_renews_only_the_current_claim_and_caps_stale_retries(self) -> None:
+        self._insert_job("lease", "notification_delivery", {"notificationId": "stale"})
+        self._insert_notification("stale")
+        with self._connect() as connection:
+            connection.execute("""UPDATE "Notification" SET status = 'SENDING' WHERE id = 'stale'""")
+        store = self._make_store(stale_lock_seconds=60, max_attempts=2)
+        first = store.claim_next_job()
+        assert first is not None
+
+        def expire_claim() -> None:
+            with self._connect() as connection:
+                connection.execute(
+                    """UPDATE "BackgroundJob" SET "lockedAt" = NOW() - INTERVAL '2 minutes'
+                        WHERE id = 'lease'"""
+                )
+
+        expire_claim()
+        self.assertTrue(store.renew_claim(first))
+        self.assertEqual(store.requeue_stale_jobs(), 0)
+        expire_claim()
+        self.assertEqual(store.requeue_stale_jobs(), 1)
+        second = store.claim_next_job()
+        assert second is not None
+        self.assertEqual(second.attempt_count, 2)
+        self.assertFalse(store.renew_claim(first))
+        self.assertFalse(store.complete_job(first, {"providerMessageId": "old"}))
+        self.assertFalse(store.fail_job(first, "obsolete failure"))
+        expire_claim()
+        self.assertEqual(store.requeue_stale_jobs(), 1)
+        self.assertEqual(self._fetch_job("lease")["status"], "FAILED")
+        self.assertEqual(self._fetch_notification("stale")["status"], "FAILED")
+        self.assertIsNone(store.claim_next_job())
+
     def test_process_teams_intake_poll_stores_messages_and_updates_delta(self) -> None:
         with self._connect() as connection:
             connection.execute('''INSERT INTO "TeamsIntegrationConfig" (id, "intakeEnabled", "updatedAt") VALUES ('default', true, NOW())''')
@@ -452,18 +532,15 @@ class WorkerTests(unittest.TestCase):
             connection.commit()
 
         with patch(
-            "starter_worker.main.list_teams_channel_messages",
-            return_value={
-                "value": [
+            "starter_worker.main.iter_teams_channel_pages",
+            return_value=[[
                     {
                         "id": "teams-msg-1",
                         "createdDateTime": "2026-04-27T10:00:00Z",
                         "body": {"contentType": "html", "content": "<p>hi</p>"},
                         "from": {"user": {"id": "u-1", "displayName": "User One"}},
                     }
-                ],
-                "@odata.deltaLink": "/delta-token-1",
-            },
+            ]],
         ):
             store = self._make_store()
             with patch.dict(os.environ, {"TEAMS_ENABLED": "true"}):
@@ -484,7 +561,7 @@ class WorkerTests(unittest.TestCase):
 
         with self._connect() as connection:
             connection.execute('UPDATE "TeamsIntegrationConfig" SET "intakeEnabled" = false')
-        with patch.dict(os.environ, {"TEAMS_ENABLED": "true"}), patch("starter_worker.main.list_teams_channel_messages") as graph:
+        with patch.dict(os.environ, {"TEAMS_ENABLED": "true"}), patch("starter_worker.main.iter_teams_channel_pages") as graph:
             self.assertEqual(process_teams_intake_poll(store)["subscriptions"], 0)
             graph.assert_not_called()
 

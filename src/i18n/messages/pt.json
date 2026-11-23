@@ -134,6 +134,10 @@
     "switchedTo": "Tema alterado para modo {theme}"
   },
   "audit": {
+    "paginationLabel": "Páginas do registo de auditoria",
+    "previousPage": "Anterior",
+    "nextPage": "Seguinte",
+    "pageIndicator": "Página {page} de {total}",
     "anonymous": "Anónimo",
     "title": "Auditoria",
     "action": "Acao",
@@ -250,6 +254,7 @@
     "loadFailed": "Could not load tokens",
     "updateFailed": "Could not update token",
     "copied": "Token copied to clipboard",
+    "copyFailed": "Não foi possível copiar o token. Selecione e copie-o manualmente.",
     "copy": "Copy token",
     "done": "Done",
     "tokenValueTitle": "Save {name}",
@@ -304,6 +309,7 @@
     "disabledSaved": "Tipo de notificacao desativado",
     "saveFailed": "Nao foi possivel salvar a configuracao de notificacao",
     "loadFailed": "Nao foi possivel carregar as notificacoes",
+    "retry": "Tentar novamente",
     "updatedAt": "Atualizado {value}",
     "allEvents": "Todos os eventos",
     "eventFilter": "Filtrar por evento",
@@ -340,6 +346,8 @@
     "loading": "Atualizando notificacoes..."
   },
   "apiDocs": {
+    "loadError": "Não foi possível carregar a referência da API.",
+    "retry": "Tentar novamente",
     "title": "API reference",
     "description": "Browse the current OpenAPI specification with interactive Swagger UI."
   },
@@ -382,7 +390,7 @@
     "health": {
       "title": "Integration health",
       "sendFailures": "Send failures (24h)",
-      "intakeFailures": "Intake failures (24h)",
+      "intakeFailures": "Erros de receção por resolver (24 h)",
       "lastSend": "Last successful send",
       "lastIntake": "Last successful intake"
     },

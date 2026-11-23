@@ -66,10 +66,12 @@ func (r *Renderer) RenderData(data any) error {
 
 func ResolveFormat(format string, interactive bool) Format {
 	switch strings.ToLower(strings.TrimSpace(format)) {
-	case "", "table":
+	case "":
 		if !interactive {
 			return FormatJSON
 		}
+		return FormatTable
+	case "table":
 		return FormatTable
 	case "json":
 		return FormatJSON

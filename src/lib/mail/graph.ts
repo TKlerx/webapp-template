@@ -122,6 +122,7 @@ export function createGraphMailClient(
         scope: GRAPH_SCOPE,
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
@@ -151,10 +152,12 @@ export function createGraphMailClient(
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${accessToken}`,
+        Prefer: 'IdType="ImmutableId"',
         ...(init?.body ? { "Content-Type": "application/json" } : {}),
         ...(init?.headers ?? {}),
       },
       cache: "no-store",
+      signal: init?.signal ?? AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
@@ -196,6 +199,7 @@ export function createGraphMailClient(
 
       if (input.unreadOnly) {
         search.set("$filter", "isRead eq false");
+        search.delete("$orderby");
       }
 
       const payload = await graphRequest<GraphListMessagesResponse>(

@@ -22,6 +22,11 @@ pnpm --dir ../.. run smoke:azure -- \
   --migration-job-name "$(tofu output -raw migration_job_name)"
 ```
 
+Pass `--app-revision`, `--worker-revision`, and `--build-id` from the deployment
+workflow to verify a specific release. The workflow supplies these values
+automatically. `--timeout-seconds` bounds each check, including the combined
+list and inspect requests when discovering a migration execution.
+
 The command exits `0` only when all required checks pass. It exits `1` when a smoke check fails and `2` when configuration is missing or invalid.
 
 ## JSON Output

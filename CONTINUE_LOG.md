@@ -549,7 +549,7 @@
 
 ## 2026-04-10 12:55:00
 
-- Branch snapshot refreshed for  12-openapi-and-pat.
+- Branch snapshot refreshed for `012-openapi-and-pat`.
 - Active spec 012 is in progress with PAT auth, admin token management, OpenAPI docs, and CLI browser login support implemented.
 - Remaining 012 work is focused on migrations execution follow-through plus integration/E2E validation tasks (T005, T006, T011, T019b, T025a, T030a, T030b, T036a, T036b, T043a, T046, T047, T047a, T049).
 - Validation passed with
@@ -2066,3 +2066,17 @@ Ruff/Bandit commit `6056ccc` was pushed to PR #56. GitHub could not start its PR
 ## 2026-11-23 — Consolidate Bandit in PR #56
 
 PR #58 merged first. Updated #56 from main and removed the duplicate report-only workflow step so the existing Python quality gate runs locked Bandit once. Both required checks passed on the previous head; fresh PR CI covers the consolidated workflow.
+
+## 2026-11-23 — Assistant conversation permutation coverage
+
+Added six PostgreSQL integration cases for all orderings of two saves and a delete using the same revision. The first operation takes effect, and later operations leave the winning content or deletion intact. All 372 application tests passed, along with TypeScript, focused ESLint, and formatting checks.
+
+
+## 2026-11-23 Project review remediation
+
+- Addressed findings R01–R118 across deployment, recovery, account handling, worker processing, operator interfaces, and validation.
+- Added migrations for scoped Teams IDs, Teams send reservations, and notification reconciliation. Recorded the Graph mail permission change and verification evidence in the review log.
+
+## 2026-11-23 Mutation report portability
+
+- PR #59 exposed a change in assertion stack formatting on the CI Node 24 runtime. The critical mutation runner now uses structured Vitest error types. The three release mutants were killed on Node 24, and a fixture with a broken import was reported as a collection failure.

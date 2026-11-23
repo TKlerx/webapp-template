@@ -68,7 +68,7 @@ resource "azurerm_container_app_job" "migration" {
 
       command = ["/bin/sh", "-c"]
       args = [
-        "node scripts/postgres-provision-roles.mjs && node scripts/prisma-predeploy-check.js && ./node_modules/.bin/prisma migrate deploy --config prisma.config.postgres.ts && node scripts/seed-initial-admin.mjs",
+        "node scripts/postgres-provision-roles.mjs && node scripts/prisma-predeploy-check.js && ./node_modules/.bin/prisma migrate deploy --config prisma.config.ts && node scripts/postgres-provision-roles.mjs --worker-grants-only && node scripts/seed-initial-admin.mjs",
       ]
 
       env {
@@ -78,7 +78,7 @@ resource "azurerm_container_app_job" "migration" {
 
       env {
         name  = "PRISMA_CONFIG_PATH"
-        value = "prisma.config.postgres.ts"
+        value = "prisma.config.ts"
       }
 
       env {

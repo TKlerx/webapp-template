@@ -1,5 +1,16 @@
 # Continue
 
+## Project review remediation (2026-11-23)
+
+- Implemented fixes for R01–R118. The remediation matrix and verification notes are in [docs/project-review.md](docs/project-review.md#remediation-pass).
+- The change includes three Prisma migrations. Graph mail delivery uses mailbox-scoped draft creation and requires `Mail.ReadWrite` alongside `Mail.Send`.
+- Vitest, Go, Python, and the Playwright checks passed with a focused rerun of the last-admin case. The review log records the remaining live deployment and provider verification.
+
+## Assistant conversation permutation coverage (2026-11-23)
+
+- Added all six orderings of two saves and a delete at the same revision to the PostgreSQL integration suite. Each case verifies that only the first operation takes effect and checks the final stored state. The existing Vitest, pytest, and Go suites already include parameterized cases.
+- All 372 application tests across 75 files passed, including the six new cases. TypeScript, focused ESLint, and test formatting checks passed.
+
 ## Assistant PR and Bandit consolidation (2026-11-23)
 
 - Both required checks passed on assistant PR #56 at `de7a220`. PR #58 merged separately as `f916802` and added a report-only Bandit scan. Brought that main into #56 and removed the duplicate workflow step. The existing Python quality gate runs locked Bandit once and fails validation on findings. Verify fresh CI on #56 before merging.

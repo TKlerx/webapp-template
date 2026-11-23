@@ -46,8 +46,30 @@ function extractTitle(specContent, fallback) {
 }
 
 function countTasks(tasksContent) {
-  const total = (tasksContent.match(/^- \[(?: |x|X)\] /gm) ?? []).length;
-  const checked = (tasksContent.match(/^- \[(?:x|X)\] /gm) ?? []).length;
+  let fence = null;
+  let total = 0;
+  let checked = 0;
+  for (const line of tasksContent.split(/\r?\n/)) {
+    const delimiter = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    if (fence) {
+      if (
+        delimiter &&
+        delimiter[1][0] === fence[0] &&
+        delimiter[1].length >= fence.length &&
+        !delimiter[2].trim()
+      )
+        fence = null;
+      continue;
+    }
+    if (delimiter) {
+      fence = delimiter[1];
+      continue;
+    }
+    const checkbox = line.match(/^- \[([ xX])\] /);
+    if (!checkbox) continue;
+    total += 1;
+    if (checkbox[1] !== " ") checked += 1;
+  }
   return { total, checked, unchecked: total - checked };
 }
 

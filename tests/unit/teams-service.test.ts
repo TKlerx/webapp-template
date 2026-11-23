@@ -18,7 +18,8 @@ const { createGraphTeamsClient } = vi.hoisted(() => ({
   createGraphTeamsClient: vi.fn(),
 }));
 
-vi.mock("@/lib/teams/client", () => ({
+vi.mock("@/lib/teams/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/teams/client")>()),
   createGraphTeamsClient,
 }));
 
@@ -37,6 +38,7 @@ describe("teams service", () => {
     prismaMock.teamsIntegrationConfig.findFirst.mockResolvedValue({
       sendEnabled: true,
     } as never);
+    prismaMock.teamsOutboundMessage.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.$transaction.mockImplementation(async (callback) =>
       callback(prismaMock),
     );
@@ -150,6 +152,13 @@ describe("teams service", () => {
     await expect(deliverTeamsMessage("job-1")).resolves.toEqual({
       id: "graph-1",
     });
+    prismaMock.teamsOutboundMessage.findUnique.mockResolvedValue({
+      ...outbound,
+      sendReservedAt: new Date(),
+    } as never);
+    await expect(deliverTeamsMessage("job-1")).rejects.toThrow(
+      /outcome is unknown/,
+    );
     expect(send).toHaveBeenCalledTimes(1);
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useTransition } from "react";
+import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { SessionUser } from "@/lib/auth";
 import { withBasePath } from "@/lib/base-path";
@@ -14,14 +14,8 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
   const { theme, setTheme } = useTheme();
   const { pushToast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const lastPersistedTheme = useRef<Theme>(theme);
   const t = useTranslations("common");
   const tTheme = useTranslations("theme");
-
-  useEffect(() => {
-    setTheme(user.themePreference as Theme);
-    lastPersistedTheme.current = user.themePreference as Theme;
-  }, [setTheme, user.themePreference]);
 
   const nextTheme: Theme = theme === "LIGHT" ? "DARK" : "LIGHT";
 
@@ -44,7 +38,6 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
       throw new Error(payload?.error ?? "Failed to update theme");
     }
 
-    lastPersistedTheme.current = nextValue;
     pushToast(
       tTheme("switchedTo", { theme: nextValue === "DARK" ? "dark" : "light" }),
     );
@@ -61,7 +54,7 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
           try {
             await updateTheme(nextTheme, user);
           } catch (error) {
-            setTheme(lastPersistedTheme.current || previousTheme);
+            setTheme(previousTheme);
             pushToast(
               error instanceof Error ? error.message : "Failed to update theme",
             );

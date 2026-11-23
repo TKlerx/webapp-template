@@ -2,8 +2,10 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 
 const args = process.argv.slice(2);
+const allowMissingEnv = args[0] === "--allow-missing-env";
+if (allowMissingEnv) args.shift();
 
-if (!existsSync(".env.docker")) {
+if (!allowMissingEnv && !existsSync(".env.docker")) {
   console.error("Missing .env.docker.");
   console.error(
     "Create it from .env.docker.example, then run this command again:",
@@ -14,10 +16,9 @@ if (!existsSync(".env.docker")) {
 
 const composeArgs = [
   "compose",
-  "--env-file",
-  ".env",
-  "--env-file",
-  ".env.docker",
+  ...[".env", ".env.docker"]
+    .filter((file) => existsSync(file))
+    .flatMap((file) => ["--env-file", file]),
 ];
 const commandArgs =
   args[0] === "up" && !args.includes("--build") && !args.includes("--no-build")

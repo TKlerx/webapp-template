@@ -73,12 +73,54 @@ async function grantRuntimeAccess(client, role, migrationRole) {
   );
 }
 
+const workerTableGrants = {
+  BackgroundJob: "select, insert, update",
+  InboundEmail: "select, insert, update",
+  Notification: "select, update",
+  TeamsInboundMessage: "select, insert",
+  TeamsIntakeSubscription: "select, update",
+  TeamsIntegrationConfig: "select",
+  TeamsOutboundMessage: "select, update",
+};
+
+async function grantWorkerAccess(client, worker, migration) {
+  const workerRole = quoteIdentifier(worker.username);
+  const migrationRole = quoteIdentifier(migration.username);
+  await client.query(`grant usage on schema public to ${workerRole}`);
+  await client.query(
+    `revoke all on all tables in schema public from ${workerRole}`,
+  );
+  await client.query(
+    `revoke all on all sequences in schema public from ${workerRole}`,
+  );
+  await client.query(
+    `alter default privileges for role ${migrationRole} in schema public revoke all on tables from ${workerRole}`,
+  );
+  await client.query(
+    `alter default privileges for role ${migrationRole} in schema public revoke all on sequences from ${workerRole}`,
+  );
+  const { rows } = await client.query(
+    "select tablename from pg_tables where schemaname = 'public' and tablename = any($1)",
+    [Object.keys(workerTableGrants)],
+  );
+  for (const { tablename } of rows) {
+    await client.query(
+      `grant ${workerTableGrants[tablename]} on table public.${quoteIdentifier(tablename)} to ${workerRole}`,
+    );
+  }
+}
+
 async function main() {
   const roles = {
     app: parseRoleUrl("APP_DATABASE_URL"),
     worker: parseRoleUrl("WORKER_DATABASE_URL"),
     migration: parseRoleUrl("MIGRATION_DATABASE_URL"),
   };
+  if (new Set(Object.values(roles).map((role) => role.username)).size !== 3) {
+    throw new Error(
+      "Cloud runtime provisioning requires distinct app, worker and migration roles.",
+    );
+  }
 
   const client = new Client({
     connectionString: readRequiredEnv("POSTGRES_ADMIN_DATABASE_URL"),
@@ -89,16 +131,17 @@ async function main() {
   try {
     await client.query("begin");
 
-    for (const role of Object.values(roles)) {
-      await ensureLoginRole(client, role);
+    if (!process.argv.includes("--worker-grants-only")) {
+      for (const role of Object.values(roles)) {
+        await ensureLoginRole(client, role);
+      }
+      const migrationRoleName = quoteIdentifier(roles.migration.username);
+      await client.query(
+        `grant create, usage on schema public to ${migrationRoleName}`,
+      );
+      await grantRuntimeAccess(client, roles.app, roles.migration);
     }
-
-    const migrationRoleName = quoteIdentifier(roles.migration.username);
-    await client.query(
-      `grant create, usage on schema public to ${migrationRoleName}`,
-    );
-    await grantRuntimeAccess(client, roles.app, roles.migration);
-    await grantRuntimeAccess(client, roles.worker, roles.migration);
+    await grantWorkerAccess(client, roles.worker, roles.migration);
 
     await client.query("commit");
     console.log("PostgreSQL runtime roles provisioned.");

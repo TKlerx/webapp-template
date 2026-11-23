@@ -57,18 +57,23 @@ function parseSharedFilters(
     return parsedAction;
   }
 
+  const dates = ["dateFrom", "dateTo"].map((key) => {
+    const value = searchParams.get(key);
+    return value ? new Date(value) : null;
+  });
+  if (dates.some((value) => value && !Number.isFinite(value.getTime()))) {
+    return { error: jsonError("Invalid audit date filter", 400) };
+  }
+  const [dateFrom, dateTo] = dates;
+
   return {
     filters: {
       action: parsedAction.action,
       entityType: searchParams.get("entityType"),
       scopeId: searchParams.get("scopeId"),
       actorId: searchParams.get("actorId"),
-      dateFrom: searchParams.get("dateFrom")
-        ? new Date(searchParams.get("dateFrom")!)
-        : null,
-      dateTo: searchParams.get("dateTo")
-        ? new Date(searchParams.get("dateTo")!)
-        : null,
+      dateFrom,
+      dateTo,
     } satisfies AuditFilters,
   };
 }

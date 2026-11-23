@@ -59,6 +59,12 @@ type TeamsClientOptions = {
   fetchImpl?: typeof fetch;
 };
 
+export class GraphTeamsHttpError extends Error {
+  constructor(public readonly status: number) {
+    super(`Graph Teams request failed: HTTP ${status}`);
+  }
+}
+
 export function hasRealGraphTeamsConfig() {
   return Boolean(
     process.env.AZURE_AD_CLIENT_ID &&
@@ -155,12 +161,7 @@ export function createGraphTeamsClient(
       signal: AbortSignal.timeout(15_000),
     });
 
-    if (!response.ok) {
-      const details = await response.text();
-      throw new Error(
-        `Graph Teams request failed: ${response.status} ${details}`,
-      );
-    }
+    if (!response.ok) throw new GraphTeamsHttpError(response.status);
 
     if (response.status === 202 || response.status === 204) {
       return undefined as T;

@@ -14,12 +14,12 @@ class WorkerConfig(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", hide_input_in_errors=True)
 
     database_url: str
-    poll_interval_seconds: float = Field(gt=0)
+    poll_interval_seconds: float = Field(gt=0, allow_inf_nan=False)
     worker_id: str
     max_attempts: int = Field(ge=1)
-    retry_backoff_seconds: float = Field(ge=0)
-    stale_lock_seconds: float = Field(gt=0)
-    teams_poll_interval_seconds: float = Field(gt=0)
+    retry_backoff_seconds: float = Field(ge=0, allow_inf_nan=False)
+    stale_lock_seconds: float = Field(gt=0, allow_inf_nan=False)
+    teams_poll_interval_seconds: float = Field(gt=0, allow_inf_nan=False)
 
     def max_attempts_for(self, job_type: str) -> int:
         return min(self.max_attempts, 3) if job_type == "teams_message_delivery" else self.max_attempts

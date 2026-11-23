@@ -115,8 +115,16 @@ func newJobsCreateCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(stdout, "Created job %s (%s)\n", body.Job.ID, body.Job.Status)
-			return nil
+			renderer := output.NewRenderer(output.Options{Format: formatFlag, Stdout: stdout, Interactive: output.IsInteractiveWriter(stdout)})
+			switch renderer.Format() {
+			case output.FormatJSON:
+				return renderer.RenderData(body.Job)
+			case output.FormatCSV:
+				return renderer.RenderTable([]string{"ID", "Type", "Status", "Created"}, [][]string{{body.Job.ID, body.Job.JobType, body.Job.Status, body.Job.CreatedAt}})
+			default:
+				_, err := fmt.Fprintf(stdout, "Created job %s (%s)\n", body.Job.ID, body.Job.Status)
+				return err
+			}
 		},
 	}
 

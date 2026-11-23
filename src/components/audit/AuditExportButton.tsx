@@ -12,6 +12,7 @@ type AuditExportButtonProps = {
 
 export function AuditExportButton({ queryString }: AuditExportButtonProps) {
   const t = useTranslations("audit");
+  const common = useTranslations("common");
   const { pushToast } = useToast();
   const [busyFormat, setBusyFormat] = useState<"csv" | "pdf" | null>(null);
   const suffix = queryString ? `&${queryString}` : "";
@@ -23,7 +24,7 @@ export function AuditExportButton({ queryString }: AuditExportButtonProps) {
         withBasePath(`/api/audit/export?format=${format}${suffix}`),
       );
       if (!response.ok) {
-        pushToast(t("empty"));
+        pushToast(common("error"));
         return;
       }
 
@@ -41,6 +42,8 @@ export function AuditExportButton({ queryString }: AuditExportButtonProps) {
         const count = response.headers.get("X-Audit-Export-Count") ?? "0";
         pushToast(t("exportTruncated", { count }));
       }
+    } catch {
+      pushToast(common("error"));
     } finally {
       setBusyFormat(null);
     }

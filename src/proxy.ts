@@ -42,18 +42,23 @@ function deleteCookies(response: NextResponse, names: string[]) {
   return response;
 }
 
-function buildNextResponse(request: NextRequest) {
-  const startedAt = performance.now();
-  const requestId = request.headers.get("x-request-id") ?? createRequestId();
+function buildNextResponse(request: NextRequest, requestId: string) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", requestId);
 
-  const response = NextResponse.next({
+  return NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
+}
 
+function completeProxyResponse(
+  request: NextRequest,
+  response: NextResponse,
+  requestId: string,
+  startedAt: number,
+) {
   response.headers.set("x-request-id", requestId);
 
   if (shouldEmitRequestLog(request.nextUrl.pathname)) {
@@ -109,6 +114,10 @@ function redirectForUserStatus(
 }
 
 export async function proxy(request: NextRequest) {
+  const startedAt = performance.now();
+  const requestId = request.headers.get("x-request-id") ?? createRequestId();
+  const complete = (response: NextResponse) =>
+    completeProxyResponse(request, response, requestId, startedAt);
   const pathname = stripBasePath(request.nextUrl.pathname);
   const betterAuthCookieNames = getBetterAuthCookieNames();
   const redirectTo = (target: string) => {
@@ -128,7 +137,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api/auth/") ||
     PUBLIC_PATHS.includes(pathname)
   ) {
-    return buildNextResponse(request);
+    return complete(buildNextResponse(request, requestId));
   }
 
   const hasBetterAuthCookie = betterAuthCookieNames.some((name) =>
@@ -137,7 +146,7 @@ export async function proxy(request: NextRequest) {
 
   if (!hasBetterAuthCookie && !pathname.startsWith("/api")) {
     const loginUrl = redirectTo("/login");
-    return NextResponse.redirect(loginUrl);
+    return complete(NextResponse.redirect(loginUrl));
   }
 
   if (hasBetterAuthCookie && !pathname.startsWith("/api")) {
@@ -146,9 +155,11 @@ export async function proxy(request: NextRequest) {
     });
 
     if (!session) {
-      return deleteCookies(
-        NextResponse.redirect(redirectTo("/login")),
-        betterAuthCookieNames,
+      return complete(
+        deleteCookies(
+          NextResponse.redirect(redirectTo("/login")),
+          betterAuthCookieNames,
+        ),
       );
     }
 
@@ -159,11 +170,11 @@ export async function proxy(request: NextRequest) {
       betterAuthCookieNames,
     );
     if (restricted) {
-      return restricted;
+      return complete(restricted);
     }
   }
 
-  return buildNextResponse(request);
+  return complete(buildNextResponse(request, requestId));
 }
 
 export const config = {

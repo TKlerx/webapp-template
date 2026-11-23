@@ -61,3 +61,54 @@ func TestAuditCommandsPreserveAnonymousAndKnownActors(t *testing.T) {
 		t.Fatalf("actor labels missing: %s", out.String())
 	}
 }
+
+func TestAuditExportPaginatesJSONAndRejectsTruncatedCSV(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/audit":
+			page := r.URL.Query().Get("page")
+			if page != "1" && page != "2" {
+				t.Errorf("unexpected page: %q", page)
+			}
+			if r.URL.Query().Get("dateTo") == "" {
+				t.Error("export queries must use a fixed upper date bound")
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"data": []auditEntry{{ID: page}}, "total": 2,
+			})
+		case "/api/audit/export":
+			w.Header().Set("X-Audit-Export-Truncated", "1")
+			w.Header().Set("X-Audit-Export-Count", "1000")
+			_, _ = w.Write([]byte("incomplete csv"))
+		default:
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("STARTERCTL_CONFIG_DIR", t.TempDir())
+	t.Setenv("STARTERCTL_SERVER_URL", server.URL)
+	t.Setenv("STARTERCTL_TOKEN", "test-token")
+	oldOut, oldErr, oldFormat := stdout, stderr, formatFlag
+	t.Cleanup(func() { SetIO(oldOut, oldErr); formatFlag = oldFormat })
+
+	var out, diagnostics bytes.Buffer
+	SetIO(&out, &diagnostics)
+	formatFlag = "json"
+	if err := newAuditExportCommand().Execute(); err != nil {
+		t.Fatal(err)
+	}
+	var rows []auditEntry
+	if err := json.Unmarshal(out.Bytes(), &rows); err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 2 || rows[0].ID != "1" || rows[1].ID != "2" {
+		t.Fatalf("unexpected audit export: %s", out.String())
+	}
+
+	out.Reset()
+	formatFlag = "csv"
+	err := newAuditExportCommand().Execute()
+	if err == nil || !strings.Contains(err.Error(), "1000 records") || out.Len() != 0 {
+		t.Fatalf("expected failure without partial CSV output, got %q and %v", out.String(), err)
+	}
+}

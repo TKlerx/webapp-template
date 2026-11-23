@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { requireApiUser } from "@/lib/route-auth";
+import { getConfiguredBasePath } from "@/lib/azure-auth";
 
 export async function GET(request: Request) {
   const auth = await requireApiUser(request);
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
 
   const filePath = path.join(process.cwd(), "public", "openapi.yaml");
   const source = await readFile(filePath, "utf8");
-  const basePath = process.env.BASE_PATH ?? "";
+  const basePath = getConfiguredBasePath();
   const yaml = source.replace("__BASE_PATH__", basePath || "/");
 
   return new Response(yaml, {

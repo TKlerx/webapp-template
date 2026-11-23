@@ -37,6 +37,7 @@ describe("last admin protection", () => {
     prismaMock.user.findUnique.mockResolvedValue({
       id: "admin_1",
       role: Role.PLATFORM_ADMIN,
+      status: UserStatus.ACTIVE,
     } as never);
     prismaMock.user.count.mockResolvedValue(1);
 

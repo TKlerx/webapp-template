@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   basePath,
   output: "standalone",
   // Azure's Node credential helpers resolve platform executables at runtime.
-  serverExternalPackages: ["@azure/identity"],
+  serverExternalPackages: ["@azure/identity", "pdfkit"],
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },

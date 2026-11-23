@@ -28,21 +28,22 @@ func newVersionCommand() *cobra.Command {
 			httpClient := client.NewClient(cfg)
 			httpClient.SetVerbose(verboseFlag)
 			httpClient.SetStderr(stderr)
-			resp, err := httpClient.Get("/api/health")
-			if err != nil {
-				return nil
-			}
-
-			var payload map[string]any
-			if err := resp.DecodeJSON(&payload); err != nil {
-				return nil
-			}
-
 			fmt.Fprintf(stdout, "server %s\n", cfg.ServerURL)
-			if versionValue, ok := payload["version"]; ok {
-				fmt.Fprintf(stdout, "server_version %v\n", versionValue)
-			}
+			fmt.Fprintf(stdout, "server_version %s\n", serverVersion(httpClient))
 			return nil
 		},
 	}
+}
+
+func serverVersion(httpClient *client.Client) string {
+	response, err := httpClient.Get("/api/version")
+	if err == nil {
+		var metadata struct {
+			Version string `json:"version"`
+		}
+		if response.DecodeJSON(&metadata) == nil && metadata.Version != "" {
+			return metadata.Version
+		}
+	}
+	return "unknown"
 }

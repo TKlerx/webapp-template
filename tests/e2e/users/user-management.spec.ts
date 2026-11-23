@@ -6,11 +6,7 @@ import {
   expectOnDashboard,
   loginWithPassword,
 } from "../helpers/auth";
-import {
-  findUserByEmail,
-  seedLocalUser,
-  updateUserStatus,
-} from "../helpers/db";
+import { seedLocalUser, updateUserStatuses } from "../helpers/db";
 
 test.setTimeout(60000);
 
@@ -142,31 +138,16 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
     await adminRow.getByRole("button", { name: "Deactivate" }).click();
     await expect(adminPage.getByText("User deactivated").first()).toBeVisible();
 
-    const priorAdminRow = adminPage.locator("tr", {
-      hasText: "e2e-admin-manage@example.com",
-    });
-    if (await priorAdminRow.count()) {
-      await priorAdminRow
-        .first()
-        .getByRole("button", { name: "Deactivate" })
-        .click();
-      await expect(
-        adminPage.getByText("User deactivated").first(),
-      ).toBeVisible();
-    }
-
-    for (const email of [
-      "e2e-admin-manage@example.com",
-      "e2e-admin@example.com",
-      "e2e-event-admin@example.com",
-      "e2e-notifications-admin@example.com",
-      "e2e-secondary-admin@example.com",
-      "e2e-tokens-mobile@example.com",
-    ]) {
-      if (findUserByEmail(email)) {
-        updateUserStatus(email, UserStatus.INACTIVE);
-      }
-    }
+    updateUserStatuses(
+      [
+        "e2e-admin-manage@example.com",
+        "e2e-admin@example.com",
+        "e2e-event-admin@example.com",
+        "e2e-notifications-admin@example.com",
+        "e2e-tokens-mobile@example.com",
+      ],
+      UserStatus.INACTIVE,
+    );
     await adminPage.reload();
 
     const selfRow = adminPage.getByRole("row", {

@@ -4,9 +4,8 @@ import { UserStatus } from "../../generated/prisma/enums";
 
 function getTokenValueFromRequest(request: Request) {
   const authorization = request.headers.get("authorization");
-  if (authorization?.startsWith("Bearer ")) {
-    return authorization.slice("Bearer ".length).trim();
-  }
+  const bearer = authorization?.match(/^Bearer +(.+)$/i);
+  if (bearer) return bearer[1].trim();
 
   const apiKey = request.headers.get("x-api-key")?.trim();
   return apiKey || null;

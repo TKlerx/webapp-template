@@ -54,7 +54,7 @@ describe("teams client", () => {
         channelId: "channel-1",
         content: "Hello team",
       }),
-    ).rejects.toThrow(/Graph Teams request failed: 403/);
+    ).rejects.toThrow(/Graph Teams request failed: HTTP 403/);
   });
 
   it("has no reply/update/delete methods (FR-011)", () => {

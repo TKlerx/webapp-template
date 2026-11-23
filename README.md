@@ -46,13 +46,18 @@ version: saved history requires the new `AssistantConversation` table. Each
 conversation stores up to 100 text turns; the selector shows the 50 most recently
 updated conversations. Only the owner can read or change a conversation.
 Save failures retain the current messages and offer Retry; conflicting changes
-from another tab require an explicit reload before continuing.
+from another tab require an explicit reload before continuing. The current tab
+keeps unsaved text in session storage so a reload can recover it. Successful
+autosave removes the temporary draft.
 
 Configure `AZURE_OPENAI_RESOURCE_NAME`, `AZURE_OPENAI_API_KEY`, and
 `AZURE_OPENAI_CHAT_DEPLOYMENT` for chat. Voice additionally requires
 `AZURE_OPENAI_REALTIME_DEPLOYMENT` (an Azure Realtime deployment) and optionally
 `AZURE_OPENAI_REALTIME_VOICE` (defaults to `marin`). Configure these in the app's
-server environment; the API key stays on the server. Voice requires HTTPS or
+server environment. For Compose, set them in `.env.docker` or `.env`. The API key stays on the server. For keyless Compose deployments, provide a
+managed identity or workload identity that the app container can use. For
+workload identity, set `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and
+`AZURE_FEDERATED_TOKEN_FILE`, and mount the token file read-only at that path. Voice requires HTTPS or
 localhost and browser microphone permission. Closing the panel stops the microphone.
 API-key authentication is the default. For keyless authentication, set
 `AZURE_OPENAI_AUTH_MODE=entra` to use `DefaultAzureCredential`, or `azure-cli`
@@ -133,15 +138,15 @@ Missing mypy, pytest, Prettier, or E2E specs fail their required phases;
 ```
 
 Playwright E2E defaults to a local PostgreSQL container named
-`webapp-template-e2e-postgres` on host port `55432`. The E2E setup script
-creates or starts that container, ensures the `business_app_starter_e2e_test`
-database exists, applies migrations without resetting existing data, seeds the initial admin, and runs the app
-with the same Prisma schema used by deployments. Use a separate database such as
-`business_app_starter_manual` in the same container for manual exploratory
-testing. Override test connections with `TEST_DATABASE_URL`, pointing to a dedicated
-database whose name ends in `_test`; ordinary `DATABASE_URL` is never used for test resets.
-Playwright uses a fresh timestamped `_test` database by default. Use an explicit
-`TEST_DATABASE_URL` with `E2E_REUSE_SERVER=1` when reusing a running test server.
+`webapp-template-e2e-postgres` on host port `55432`. Playwright creates a
+uniquely named `_test` database in that container and removes it when the run
+ends. A separate database such as
+`business_app_starter_manual` can be used for manual exploration.
+
+Set `TEST_DATABASE_URL` to use an existing PostgreSQL database whose name ends in
+`_test`. The setup applies Prisma migrations and seeds an empty database.
+An explicit URL works with native PostgreSQL and stays in place after the run.
+Use `E2E_REUSE_SERVER=1` with an explicit URL to reuse a running test server.
 
 `precommit` is the fast local hook phase: TypeScript typecheck,
 dependency-cruiser architecture, and jscpd duplication.

@@ -37,7 +37,7 @@ describe("audit export", () => {
         action: AuditAction.AUTH_LOGIN_REJECTED,
         entityType: "LoginAttempt",
         entityId: "attempt-1",
-        details: '{"reason":"rate_limited"}',
+        details: '{"reason":"rate_limited","description":"Müller – 東京"}',
         createdAt: new Date("2026-10-15T00:00:00Z"),
         actor: null,
         scope: null,
@@ -46,7 +46,8 @@ describe("audit export", () => {
     const csv = await exportToCSV();
     const pdf = await exportToPDF();
     expect(csv.buffer.toString("utf8")).toContain('"Anonymous",""');
-    expect(pdf.buffer.toString("utf8")).toContain("Actor: Anonymous");
+    expect(pdf.buffer.toString("latin1")).toContain("/FontFile2");
+    expect(pdf.buffer.toString("latin1")).toContain("/FontFile3");
   });
 
   it("exports CSV with the expected fields", async () => {

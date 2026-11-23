@@ -29,11 +29,11 @@ describe("cli-release-service", () => {
     );
     await writeFile(
       join(tempDir, "checksums.txt"),
-      "abc  starterctl_1.2.3_windows_amd64.zip\n",
+      `${"a".repeat(64)}  starterctl_1.2.3_windows_amd64.zip\n${"b".repeat(64)}  starterctl_1.2.3_linux_arm64.tar.gz\n`,
     );
 
-    await expect(readCliChecksums()).resolves.toContain("starterctl_1.2.3");
-    await expect(listCliReleaseAssets()).resolves.toEqual(
+    expect(await readCliChecksums()).toContain("starterctl_1.2.3");
+    expect(await listCliReleaseAssets()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           target: "windows-amd64",
@@ -59,8 +59,8 @@ describe("cli-release-service", () => {
       "bytes",
     );
 
-    await expect(readCliReleaseAsset("nope")).resolves.toBeNull();
-    await expect(readCliReleaseAsset("linux-amd64")).resolves.toEqual(
+    expect(await readCliReleaseAsset("nope")).toBeNull();
+    expect(await readCliReleaseAsset("linux-amd64")).toEqual(
       expect.objectContaining({
         filename: "starterctl_1.2.3_linux_amd64.tar.gz",
         contentType: "application/gzip",

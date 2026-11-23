@@ -36,13 +36,17 @@ locals {
     graph-tenant-id      = var.graph_tenant_id
   } : {}
 
-  teams_secret_values = var.enable_teams ? {
-    teams-delivery-shared-secret         = random_password.teams_delivery[0].result
-    azure-ad-client-id                   = var.azure_ad_client_id
-    azure-ad-client-secret               = var.azure_ad_client_secret
-    azure-ad-tenant-id                   = var.azure_ad_tenant_id
-    teams-delegated-grant-encryption-key = length(trimspace(var.teams_delegated_grant_key)) > 0 ? var.teams_delegated_grant_key : random_password.better_auth.result
-  } : {}
+  teams_secret_values = merge(
+    (var.enable_microsoft_sso || var.enable_teams) ? {
+      azure-ad-client-id     = var.azure_ad_client_id
+      azure-ad-client-secret = var.azure_ad_client_secret
+      azure-ad-tenant-id     = var.azure_ad_tenant_id
+    } : {},
+    var.enable_teams ? {
+      teams-delivery-shared-secret         = random_password.teams_delivery[0].result
+      teams-delegated-grant-encryption-key = length(trimspace(var.teams_delegated_grant_key)) > 0 ? var.teams_delegated_grant_key : random_password.better_auth.result
+    } : {},
+  )
 
   secret_values = merge(
     local.required_secret_values,

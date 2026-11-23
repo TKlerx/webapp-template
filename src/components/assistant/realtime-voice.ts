@@ -290,6 +290,7 @@ export async function startRealtimeVoice(
         .finally(() => {
           pendingCalls--;
           resume();
+          updateBusy();
         })
         .catch(fail);
     }

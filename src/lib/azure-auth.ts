@@ -24,7 +24,7 @@ export function getExternalOrigin(request: Request) {
 }
 
 export function getAuthBaseUrl(request: Request) {
-  return `${getExternalOrigin(request)}${getConfiguredBasePath()}`;
+  return `${new URL(getExternalOrigin(request)).origin}${getConfiguredBasePath()}`;
 }
 
 export function getAzureRedirectUri(request: Request) {

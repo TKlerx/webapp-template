@@ -29,13 +29,13 @@ import {
 
 const EXPIRY_OPTIONS = [7, 30, 60, 90, 180, 365];
 
-export function CreateTokenDialog() {
+export function CreateTokenDialog({ defaultExpiry = 90 } = {}) {
   const router = useRouter();
   const t = useTranslations("tokens");
   const { pushToast } = useToast();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [expiresInDays, setExpiresInDays] = useState("90");
+  const [expiresInDays, setExpiresInDays] = useState(String(defaultExpiry));
   const [submitting, setSubmitting] = useState(false);
   const [createdToken, setCreatedToken] = useState<TokenValuePayload | null>(
     null,
@@ -53,7 +53,9 @@ export function CreateTokenDialog() {
         },
         body: JSON.stringify({
           name,
-          expiresInDays: Number(expiresInDays),
+          ...(Number(expiresInDays) === defaultExpiry
+            ? {}
+            : { expiresInDays: Number(expiresInDays) }),
         }),
       });
 
@@ -101,7 +103,7 @@ export function CreateTokenDialog() {
       );
       setOpen(false);
       setName("");
-      setExpiresInDays("90");
+      setExpiresInDays(String(defaultExpiry));
       router.refresh();
     } finally {
       setSubmitting(false);
@@ -167,11 +169,15 @@ export function CreateTokenDialog() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-lg border-[var(--border)]">
-                  {EXPIRY_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={value.toString()}>
-                      {t(`expiryOptions.${value}`)}
-                    </SelectItem>
-                  ))}
+                  {[...new Set([...EXPIRY_OPTIONS, defaultExpiry])]
+                    .sort((a, b) => a - b)
+                    .map((value) => (
+                      <SelectItem key={value} value={value.toString()}>
+                        {EXPIRY_OPTIONS.includes(value)
+                          ? t(`expiryOptions.${value}`)
+                          : `${value}`}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>

@@ -19,7 +19,7 @@ export default async function DashboardLayout({
         <UserMenu user={user} locale={locale} />
       </div>
       <main className="min-h-[100dvh]">{children}</main>
-      <Assistant key={user.id} />
+      <Assistant key={user.id} userId={user.id} />
     </div>
   );
 }

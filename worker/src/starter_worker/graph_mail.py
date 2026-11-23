@@ -6,6 +6,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Iterator
 from typing import Any
 
 
@@ -15,7 +16,7 @@ GRAPH_SCOPE = "https://graph.microsoft.com/.default"
 _TOKEN_CACHE: dict[str, Any] = {}
 
 
-def send_graph_mail(payload: dict[str, Any]) -> None:
+def send_graph_mail(payload: dict[str, Any]) -> str:
     mailbox = _resolve_mailbox()
     access_token = _get_graph_access_token()
 
@@ -32,8 +33,12 @@ def send_graph_mail(payload: dict[str, Any]) -> None:
     if not body_html and not body_text:
         raise ValueError("notification_delivery job payload is missing bodyHtml/bodyText.")
 
-    request_body = {
-        "message": {
+    mailbox_path = f"/users/{urllib.parse.quote(mailbox, safe='')}"
+    draft = _graph_request(
+        access_token,
+        f"{mailbox_path}/messages",
+        method="POST",
+        payload={
             "subject": subject,
             "body": {
                 "contentType": "HTML" if body_html else "Text",
@@ -52,20 +57,35 @@ def send_graph_mail(payload: dict[str, Any]) -> None:
                 }
             ],
         },
-        "saveToSentItems": True,
-    }
+        error_prefix="Graph create notification draft failed",
+    )
+
+    draft_id = draft.get("id")
+    if not isinstance(draft_id, str) or not draft_id:
+        raise RuntimeError("Graph did not return a draft ID.")
+    draft_path = f"{mailbox_path}/messages/{urllib.parse.quote(draft_id, safe='')}"
+    internet_message_id = draft.get("internetMessageId")
+    if not internet_message_id:
+        metadata = _graph_request(
+            access_token,
+            f"{draft_path}?$select=internetMessageId",
+            error_prefix="Graph read notification draft reference failed",
+        )
+        internet_message_id = metadata.get("internetMessageId")
+    if not isinstance(internet_message_id, str) or not internet_message_id:
+        raise RuntimeError("Graph did not assign an Internet Message-ID to the draft.")
 
     _graph_request(
         access_token,
-        f"/users/{urllib.parse.quote(mailbox)}/sendMail",
+        f"{draft_path}/send",
         method="POST",
-        payload=request_body,
         allow_empty=True,
-        error_prefix="Graph sendMail failed",
+        error_prefix="Graph send notification draft failed",
     )
+    return internet_message_id
 
 
-def list_graph_mail_messages(payload: dict[str, Any]) -> list[dict[str, Any]]:
+def list_graph_mail_messages(payload: dict[str, Any]) -> Iterator[dict[str, Any]]:
     mailbox = str(payload.get("mailbox") or "").strip() or _resolve_mailbox()
     folder = str(payload.get("folder") or "inbox").strip() or "inbox"
     top = int(payload.get("top") or 25)
@@ -78,15 +98,30 @@ def list_graph_mail_messages(payload: dict[str, Any]) -> list[dict[str, Any]]:
     }
     if unread_only:
         query["$filter"] = "isRead eq false"
+        query.pop("$orderby")
 
-    search = urllib.parse.urlencode(query)
-    response = _graph_request(
-        _get_graph_access_token(),
-        f"/users/{urllib.parse.quote(mailbox)}/mailFolders/{urllib.parse.quote(folder)}/messages?{search}",
-        error_prefix="Graph list messages failed",
-    )
-    value = response.get("value")
-    return value if isinstance(value, list) else []
+    mailbox_path = f"/users/{urllib.parse.quote(mailbox, safe='')}/mailFolders/{urllib.parse.quote(folder, safe='')}/messages"
+    path = f"{mailbox_path}?{urllib.parse.urlencode(query)}"
+    token = _get_graph_access_token()
+    visited = {path}
+    while True:
+        response = _graph_request(token, path, error_prefix="Graph list messages failed")
+        value = response.get("value")
+        if isinstance(value, list):
+            yield from value
+        link = response.get("@odata.nextLink")
+        if not link:
+            return
+        parsed = urllib.parse.urlsplit(str(link))
+        if (
+            parsed.scheme != "https" or parsed.netloc != "graph.microsoft.com" or parsed.fragment
+            or urllib.parse.unquote(parsed.path) != urllib.parse.unquote("/v1.0" + mailbox_path)
+        ):
+            raise ValueError("Mail paging link must stay within the requested mailbox folder.")
+        path = f"{mailbox_path}?{parsed.query}"
+        if path in visited:
+            raise ValueError("Mail paging link repeated.")
+        visited.add(path)
 
 
 def get_graph_mail_message(mailbox: str, message_id: str) -> dict[str, Any]:
@@ -183,6 +218,7 @@ def _graph_request(
         headers={
             "Authorization": f"Bearer {access_token}",
             "Accept": "application/json",
+            "Prefer": 'IdType="ImmutableId"',
             **({"Content-Type": "application/json"} if payload is not None else {}),
         },
     )

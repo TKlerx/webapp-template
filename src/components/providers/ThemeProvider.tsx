@@ -18,6 +18,12 @@ export function ThemeProvider({
 }) {
   const [theme, setTheme] = useState<Theme>(initialTheme);
 
+  const [loadedTheme, setLoadedTheme] = useState(initialTheme);
+  if (loadedTheme !== initialTheme) {
+    setLoadedTheme(initialTheme);
+    setTheme(initialTheme);
+  }
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme.toLowerCase();
   }, [theme]);

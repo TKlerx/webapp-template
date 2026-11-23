@@ -80,6 +80,7 @@ module "secrets" {
   graph_client_secret           = var.graph_client_secret
   graph_tenant_id               = var.graph_tenant_id
   enable_teams                  = var.enable_teams
+  enable_microsoft_sso          = var.enable_microsoft_sso
   azure_ad_client_id            = var.azure_ad_client_id
   azure_ad_client_secret        = var.azure_ad_client_secret
   azure_ad_tenant_id            = var.azure_ad_tenant_id
@@ -123,6 +124,7 @@ module "runtime" {
   custom_domain                       = var.custom_domain
   enable_mail                         = var.enable_mail
   enable_teams                        = var.enable_teams
+  enable_microsoft_sso                = var.enable_microsoft_sso
   teams_poll_interval_seconds         = var.teams_poll_interval_seconds
   admin_database_url_secret_id        = module.secrets.admin_database_url_secret_id
   app_database_url_secret_id          = module.secrets.app_database_url_secret_id
