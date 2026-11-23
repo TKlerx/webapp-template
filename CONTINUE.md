@@ -6,6 +6,7 @@
 - Reviewed the findings: five URL-opening calls have rule-specific `nosec B310` comments with the existing fixed Microsoft HTTPS/validated app HTTP(S) explanations. Simplified both token caches to empty dictionaries, matching their readers' existing defaults and removing false credential warnings without suppressing `B105`. EDEKA is untouched.
 - Worker quality/complexity checks, all 35 worker tests, mypy, script ESLint/format checks, lock consistency and `uv audit --frozen` pass. A direct Bandit probe rejects unsafe eval and assertions with exit code 1; the final source scan reports no findings or skipped files. Evidence: `.artifacts/bandit-quality.log`, `bandit-initial.json` and `bandit-probe.py`. User subsequently authorized commit/push: publishing the eight-file Ruff/Bandit diff to existing PR #56 on `codex/global-chat-voice`, never directly to main. Fresh precommit checks pass (secret scan, TypeScript, architecture, duplication), along with staged UTF-8/LF and diff checks; evidence `.artifacts/bandit-precommit.log`. No new full application/CI pass is claimed; follow latest-head PR checks.
 - Repository inventory found no unrelated uncommitted files in this checkout or the three other linked worktrees. Five historical stashes remain untouched, including EDEKA move backups and the deferred Joern experiment. Separate PR #58 adds report-only Bandit workflow annotations; it is unchanged by this work and overlaps with this blocking integration. Coordinate that overlap before merging both PRs.
+- Ruff/Bandit was committed and pushed as `6056ccc`. GitHub then reported conflicts with main's security follow-up #57, preventing PR CI. Merged main `9664e31` normally, preserving both continuity histories, the assistant dependencies and main's patched Effect 3.22.1 override. Frozen install, clean all-dependency pnpm audit, TypeScript, all 366 application tests/75 files and staged text/diff checks pass on the merged graph. Evidence: `.artifacts/bandit-merge-*.log`. Publish this merge to #56 and follow its new exact-head CI; no push to main or merge of #56 is authorized.
 
 ## Ruff Python Security Rules (2026-11-23)
 
@@ -236,3 +237,7 @@
 - Removed the unreferenced manual DeepSec workspace and its vulnerable standalone dependency graph. Active CI uses Trivy, Semgrep, Joern and the repository validation scripts; none executes DeepSec.
 - Removed obsolete scanner/container exclusion entries. Historical remediation evidence remains under specs/017-deepsec-remediation and docs/security.
 - Verified workflow/script/package references before removal; production application dependencies are unchanged.
+
+## Security dependency follow-up (2026-11-20)
+
+Patched only the dependencies named in current GitHub alerts; existing quality and security gates remain required. Full validation results are recorded in the security PR. No database, deployment or feature changes.

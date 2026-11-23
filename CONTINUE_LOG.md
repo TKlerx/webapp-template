@@ -2054,3 +2054,11 @@ User additionally requested standalone Bandit. Added development-only Bandit 1.9
 User then authorized commit/push and asked about PR routing and other local changes. The current eight-file diff is entirely the Ruff/Bandit implementation and continuity/docs; all three other linked worktrees are clean. Historical stashes remain untouched. PR #56 is still open on this branch, so publication goes there rather than main. Discovered separate PR #58 with report-only Bandit annotations; leave its branch/worktree untouched and flag the overlap in #56. Fresh precommit checks precede the commit; previous full-suite evidence does not substitute for the new pushed-head CI.
 
 Fresh publication checks pass: precommit secret scan, TypeScript, architecture and duplication; staged UTF-8/LF, diff and documentation/script formatting checks also pass. Evidence `.artifacts/bandit-precommit.log`. Publishing the reviewed eight-file diff to existing PR #56 without touching main or the other worktrees/stashes. The PR description retains prior full-suite evidence as historical and flags separate #58's report-only overlap; new exact-head CI remains authoritative.
+
+## Security dependency follow-up (2026-11-20)
+
+Patched only the dependencies named in current GitHub alerts; existing quality and security gates remain required. Full validation results are recorded in the security PR. No database, deployment or feature changes.
+
+## 2026-11-23 — Restore assistant PR mergeability
+
+Ruff/Bandit commit `6056ccc` was pushed to PR #56. GitHub could not start its PR workflow because main's security follow-up #57 conflicted in the continuity log and pnpm lockfile. Merged current main `9664e31` normally, retaining both histories, assistant-specific dependencies and main's patched Effect 3.22.1 override. Frozen installation, clean all-dependency pnpm audit, TypeScript, 366 application tests/75 files and staged text/diff checks pass. Evidence `.artifacts/bandit-merge-*.log`. Push this merge to the existing assistant PR and verify mergeability/new CI startup; no changes to main, PR #58, EDEKA or other worktrees/stashes.
