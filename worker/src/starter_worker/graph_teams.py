@@ -12,10 +12,7 @@ from typing import Any
 GRAPH_BASE_URL = "https://graph.microsoft.com/v1.0"
 GRAPH_SCOPE = "https://graph.microsoft.com/.default"
 
-_TOKEN_CACHE: dict[str, Any] = {
-    "access_token": None,
-    "expires_at": 0.0,
-}
+_TOKEN_CACHE: dict[str, Any] = {}
 
 
 def send_teams_channel_message(job_id: str) -> dict[str, Any]:
@@ -26,7 +23,7 @@ def send_teams_channel_message(job_id: str) -> dict[str, Any]:
         raise ValueError("APP_INTERNAL_URL must be an HTTP(S) app base URL.")
     if len(secret) < 32:
         raise ValueError("TEAMS_DELIVERY_SHARED_SECRET must contain at least 32 characters.")
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310 - app_url is validated as HTTP(S) above.
         f"{app_url}/api/internal/teams/deliver",
         data=json.dumps({"jobId": job_id}).encode("utf-8"),
         method="POST",
@@ -34,7 +31,7 @@ def send_teams_channel_message(job_id: str) -> dict[str, Any]:
     )
     try:
         # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-        with urllib.request.urlopen(request, timeout=45) as response:
+        with urllib.request.urlopen(request, timeout=45) as response:  # noqa: S310 - app_url is validated as HTTP(S) above.  # nosec B310
             result = json.loads(response.read().decode("utf-8"))
             if not isinstance(result, dict):
                 raise ValueError("Invalid Teams delivery receipt.")
@@ -125,7 +122,7 @@ def _get_access_token(client_id: str, client_secret: str, tenant_id: str) -> str
 
     try:
         # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-        with urllib.request.urlopen(token_request, timeout=30) as response:
+        with urllib.request.urlopen(token_request, timeout=30) as response:  # noqa: S310 - Fixed Microsoft HTTPS origin.  # nosec B310
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         raise RuntimeError(f"Graph token request failed: HTTP {error.code}") from error
@@ -150,7 +147,7 @@ def _graph_request(
     payload: dict[str, Any] | None = None,
     error_prefix: str,
 ) -> dict[str, Any]:
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310 - Fixed Microsoft Graph HTTPS base; paging links are checked.
         f"{GRAPH_BASE_URL}{path}",
         data=json.dumps(payload).encode("utf-8") if payload is not None else None,
         method=method,
@@ -163,7 +160,7 @@ def _graph_request(
 
     try:
         # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-        with urllib.request.urlopen(request, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310 - Fixed Microsoft Graph HTTPS base.  # nosec B310
             body = response.read().decode("utf-8")
             return json.loads(body) if body else {}
     except urllib.error.HTTPError as error:

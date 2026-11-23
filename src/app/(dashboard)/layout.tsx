@@ -2,6 +2,7 @@ import { DashboardSidebar } from "@/components/ui/DashboardSidebar";
 import { UserMenu } from "@/components/ui/UserMenu";
 import { requireSession } from "@/lib/auth";
 import { getLocale } from "next-intl/server";
+import { Assistant } from "@/components/assistant/Assistant";
 
 export default async function DashboardLayout({
   children,
@@ -18,6 +19,7 @@ export default async function DashboardLayout({
         <UserMenu user={user} locale={locale} />
       </div>
       <main className="min-h-[100dvh]">{children}</main>
+      <Assistant key={user.id} />
     </div>
   );
 }

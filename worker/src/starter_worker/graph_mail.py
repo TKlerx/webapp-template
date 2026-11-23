@@ -12,10 +12,7 @@ from typing import Any
 GRAPH_BASE_URL = "https://graph.microsoft.com/v1.0"
 GRAPH_SCOPE = "https://graph.microsoft.com/.default"
 
-_TOKEN_CACHE: dict[str, Any] = {
-    "access_token": None,
-    "expires_at": 0.0,
-}
+_TOKEN_CACHE: dict[str, Any] = {}
 
 
 def send_graph_mail(payload: dict[str, Any]) -> None:
@@ -153,7 +150,7 @@ def _get_access_token(client_id: str, client_secret: str, tenant_id: str) -> str
 
     try:
         # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-        with urllib.request.urlopen(token_request, timeout=30) as response:
+        with urllib.request.urlopen(token_request, timeout=30) as response:  # noqa: S310 - Fixed Microsoft HTTPS origin.  # nosec B310
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         raise RuntimeError(f"Graph token request failed: HTTP {error.code}") from error
@@ -179,7 +176,7 @@ def _graph_request(
     allow_empty: bool = False,
     error_prefix: str,
 ) -> dict[str, Any]:
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310 - Fixed Microsoft Graph HTTPS base; callers supply paths.
         f"{GRAPH_BASE_URL}{path}",
         data=json.dumps(payload).encode("utf-8") if payload is not None else None,
         method=method,
@@ -192,7 +189,7 @@ def _graph_request(
 
     try:
         # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-        with urllib.request.urlopen(request, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310 - Fixed Microsoft Graph HTTPS base.  # nosec B310
             status = response.getcode()
             if allow_empty and status in {202, 204}:
                 return {}

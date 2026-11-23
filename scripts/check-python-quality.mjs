@@ -89,6 +89,7 @@ if (bypassThresholds) {
 
 if (runLint) {
   runUv(["run", "ruff", "check", "src", "tests"]);
+  runUv(["run", "--locked", "bandit", "-r", "src"]);
 }
 
 if (runComplexity) {

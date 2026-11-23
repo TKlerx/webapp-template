@@ -25,11 +25,67 @@ These files are intentionally committed into the template so copied repos still 
 - role-based access control
 - user administration
 - dashboard home screen
+- globally available chat and voice assistant with authenticated app tools
 - audit trail and export
 - i18n, theme toggle, responsive UI
 - Vitest, Playwright, Semgrep, duplication checks
 - repo-local pnpm and uv dependency cooldown policy
 - continuity workflow with `CONTINUE.md` and `CONTINUE_LOG.md`
+
+## Chat and voice assistant
+
+The Assistant button is available throughout the signed-in app. Chat and voice
+transcripts autosave to PostgreSQL for the signed-in user and survive refresh
+and later sign-ins. Use the conversation selector to reopen recent chats, or
+the New and Delete buttons to start fresh or remove a conversation. Starter
+tools open supported pages, read your profile, and list job statuses through
+the existing permission checks.
+
+Apply migrations with `pnpm exec prisma migrate deploy` before deploying this
+version: saved history requires the new `AssistantConversation` table. Each
+conversation stores up to 100 text turns; the selector shows the 50 most recently
+updated conversations. Only the owner can read or change a conversation.
+Save failures retain the current messages and offer Retry; conflicting changes
+from another tab require an explicit reload before continuing.
+
+Configure `AZURE_OPENAI_RESOURCE_NAME`, `AZURE_OPENAI_API_KEY`, and
+`AZURE_OPENAI_CHAT_DEPLOYMENT` for chat. Voice additionally requires
+`AZURE_OPENAI_REALTIME_DEPLOYMENT` (an Azure Realtime deployment) and optionally
+`AZURE_OPENAI_REALTIME_VOICE` (defaults to `marin`). Configure these in the app's
+server environment; the API key stays on the server. Voice requires HTTPS or
+localhost and browser microphone permission. Closing the panel stops the microphone.
+API-key authentication is the default. For keyless authentication, set
+`AZURE_OPENAI_AUTH_MODE=entra` to use `DefaultAzureCredential`, or `azure-cli`
+for a local Azure CLI login (optionally selecting `AZURE_TENANT_ID`). Grant that
+identity access to the chosen Azure OpenAI resource. No API key is needed in
+either keyless mode; resource/deployment settings remain environment configuration.
+
+The real Azure audio smoke test is optional and skipped by ordinary validation
+and CI. In a temporary shell, configure Azure as above, set
+`ASSISTANT_LIVE_AUDIO=1` and `ASSISTANT_LIVE_AUDIO_FILE` to an absolute path to a
+48 kHz mono synthetic speech WAV (with several seconds of leading silence), then
+run `pnpm exec playwright test tests/e2e/assistant-live.spec.ts`. It uses an isolated
+test account/database, verifies a real profile tool call and non-silent received
+audio, and checks microphone cleanup. It consumes Azure capacity. Unset the opt-in
+flag afterward; never commit deployment values, keys or access tokens.
+Conversation text, tool results, and enabled microphone audio are sent to Azure
+OpenAI. Saved history contains only user/assistant text, including voice
+transcripts; raw audio, system instructions and tool results are not persisted.
+The model receives the most recent 24 text turns, independently of saved history.
+
+Voice uses native Realtime speech input and streamed spoken replies, with live
+transcripts in the panel. Speak over a reply or use **Stop response** to interrupt
+without ending the microphone session. Typed messages also enter the live
+conversation while voice is enabled. Voice sessions end after five minutes or
+when the panel closes; the next session receives the recent text conversation.
+
+Text chat and Realtime share server-owned tool definitions and instructions.
+Voice tool calls go through the authenticated `/api/assistant/tools` route,
+which rechecks the current session and validates arguments on every call. This
+transport needs no process-local session registry or additional database tables.
+Extend the tools in `src/services/assistant.ts` using existing authenticated services
+when adding product-specific actions. Without Azure configuration the rest of
+the template works, and the panel reports that the assistant is unavailable.
 
 ## Base Spec
 
@@ -111,8 +167,12 @@ uses typed ESLint checks for unhandled/misplaced promises and unsafe `any`
 values. Dependency Cruiser blocks runtime import cycles, server imports of UI,
 component imports of services, and component imports of database clients;
 type-only imports remain allowed.
-`quality:python` runs Ruff plus blocking Xenon and complexipy complexity
-thresholds with Radon reporting for the worker package.
+`quality:python` runs Ruff, including its Bandit-derived `S` security rules, and
+standalone Bandit against worker production code, plus blocking Xenon and
+complexipy complexity thresholds with Radon reporting. Bandit is a locked development
+dependency and blocks on findings of any severity. Ruff also scans tests, allowing
+assertions only in `tests/`; reviewed scanner exceptions have line-specific
+explanations beside the affected code.
 `quality:cli` runs Go formatting checks, `go vet`, Staticcheck, a blocking
 gocyclo complexity threshold, `go test`, and `go build` for the CLI package.
 
