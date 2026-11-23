@@ -831,7 +831,7 @@ The fixes cover all 118 recorded findings, including 8 P1, 62 P2, and 48 P3 find
 ### Verification
 
 - 375 Vitest tests passed. The full suite used a 15-second timeout for tests that spawn subprocesses. Python passed 37 tests and 9 subtests, along with its quality gate. The Go quality gate, dependency scan, and Windows cross-build passed.
-- The isolated CLI release runner killed all three mutants. Stryker killed 39 mutants and timed out on 5 with zero survivors. Gremlins killed all 42 configured worker mutants.
+- The isolated CLI release runner killed all three mutants on Node 24 and Node 26. Its structured Vitest reporter separates assertion failures from collection and runner errors. Stryker killed 39 mutants and timed out on 5 with zero survivors. Gremlins killed all 42 configured worker mutants.
 - The standalone build excluded unrelated checkout directories. OpenTofu validated using initialized providers. Compose and deployment workflow YAML parsed, and shell syntax checks passed.
 - Isolated PostgreSQL checks covered private and collision-safe backups, rollback on restore failure, migration reconciliation, runtime grants, and test database ownership and cleanup. A production-server check confirmed that proxy redirects include a request ID. PDF text extraction preserved the original Japanese example, mixed-language text, and the final line of a three-page export.
 - Playwright passed 26 cases in the full run against native PostgreSQL and skipped two opt-in provider cases. The last-admin case timed out during fixture setup. Batching its fixture updates removed the timeout and the focused rerun passed.

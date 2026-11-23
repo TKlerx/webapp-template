@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const testFiles = ["tests/unit/cli-release-service.test.ts"];
 
@@ -54,17 +55,15 @@ function verifyTestFailure(status, reportFile, output, name) {
       `Mutation run did not write a test report for ${name}.\n${output}`,
     );
   }
-  const failed = report.testResults.flatMap(({ assertionResults }) =>
-    assertionResults.filter(({ status }) => status === "failed"),
-  );
   if (
     status !== 1 ||
-    report.testResults.length !== 1 ||
-    failed.length === 0 ||
-    !failed.every(({ failureMessages }) =>
-      failureMessages.some((message) =>
-        /AssertionError|at Assertion\./.test(message),
-      ),
+    report.reason !== "failed" ||
+    report.moduleCount !== 1 ||
+    report.infrastructureErrorCount !== 0 ||
+    report.failures.length === 0 ||
+    !report.failures.every(
+      (errors) =>
+        errors.length > 0 && errors.every((name) => name === "AssertionError"),
     )
   ) {
     throw new Error(
@@ -92,12 +91,18 @@ const temp = mkdtempSync(path.join(tmpdir(), "critical-mutation-"));
 const configFile = path.join(temp, "vitest.config.mjs");
 const mutatedFile = path.join(temp, "cli-release-service.ts");
 const report = path.join(temp, "report.json");
+const reporter = fileURLToPath(
+  new URL("./critical-mutation-reporter.mjs", import.meta.url),
+);
 try {
   writeFileSync(
     configFile,
     `export default ${JSON.stringify({
       root: process.cwd(),
-      test: { include: testFiles },
+      test: {
+        include: testFiles,
+        reporters: ["default", [reporter, { outputFile: report }]],
+      },
       resolve: { alias: { "@/services/api/cli-release-service": mutatedFile } },
     })};\n`,
   );
@@ -109,10 +114,7 @@ try {
     );
     rmSync(report, { force: true });
     console.log(`\nMutant: ${mutant.name}`);
-    const { status, output } = runVitest(
-      ["--config", configFile, "--reporter=json", "--outputFile", report],
-      true,
-    );
+    const { status, output } = runVitest(["--config", configFile], true);
     if (status === 0) {
       survivors.push(mutant.name);
       console.error(`Survived: ${mutant.name}`);

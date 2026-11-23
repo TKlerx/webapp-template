@@ -2076,3 +2076,7 @@ Added six PostgreSQL integration cases for all orderings of two saves and a dele
 
 - Addressed findings R01–R118 across deployment, recovery, account handling, worker processing, operator interfaces, and validation.
 - Added migrations for scoped Teams IDs, Teams send reservations, and notification reconciliation. Recorded the Graph mail permission change and verification evidence in the review log.
+
+## 2026-11-23 Mutation report portability
+
+- PR #59 exposed a change in assertion stack formatting on the CI Node 24 runtime. The critical mutation runner now uses structured Vitest error types. The three release mutants were killed on Node 24, and a fixture with a broken import was reported as a collection failure.
