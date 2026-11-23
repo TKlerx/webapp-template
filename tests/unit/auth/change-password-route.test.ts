@@ -18,8 +18,8 @@ const {
   verifyPassword: vi.fn(),
 }));
 
-const { revokeOtherSessions } = vi.hoisted(() => ({
-  revokeOtherSessions: vi.fn(),
+const { getSession } = vi.hoisted(() => ({
+  getSession: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -40,7 +40,7 @@ vi.mock("@/lib/route-auth", () => ({
 vi.mock("@/lib/better-auth", () => ({
   auth: {
     api: {
-      revokeOtherSessions,
+      getSession,
     },
   },
 }));
@@ -68,7 +68,10 @@ describe("change password route", () => {
     prismaMock.$transaction.mockImplementation(async (operations) =>
       Promise.all(operations as unknown as Promise<unknown>[]),
     );
-    revokeOtherSessions.mockResolvedValue(undefined);
+    getSession.mockResolvedValue({
+      user: { id: "user-1" },
+      session: { id: "current-session" },
+    });
 
     const response = await POST(
       new Request("http://localhost/api/auth/change-password", {
@@ -103,8 +106,8 @@ describe("change password route", () => {
         password: "new-hash",
       },
     });
-    expect(revokeOtherSessions).toHaveBeenCalledWith({
-      headers: expect.any(Headers),
+    expect(prismaMock.session.deleteMany).toHaveBeenCalledWith({
+      where: { userId: "user-1", id: { not: "current-session" } },
     });
     if (!response) {
       throw new Error("Expected response");
@@ -131,7 +134,7 @@ describe("change password route", () => {
     );
 
     expect(verifyPassword).not.toHaveBeenCalled();
-    expect(revokeOtherSessions).not.toHaveBeenCalled();
+    expect(getSession).not.toHaveBeenCalled();
     if (!response) {
       throw new Error("Expected response");
     }

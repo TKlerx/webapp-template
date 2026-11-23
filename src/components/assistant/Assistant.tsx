@@ -22,14 +22,18 @@ import {
 } from "@/components/ai-elements/conversation";
 import { Button } from "@/components/shadcn/button";
 import { Textarea } from "@/components/shadcn/textarea";
-import { assistantPages, assistantPageSchema } from "@/lib/assistant";
+import {
+  assistantPages,
+  assistantPageSchema,
+  MAX_CHAT_REQUEST_BYTES,
+} from "@/lib/assistant";
 import { withBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 import type { AssistantMessage } from "@/services/assistant";
 import { useVoice } from "./use-voice";
 import { useConversations } from "./use-conversations";
 
-export function Assistant() {
+export function Assistant({ userId }: { userId: string }) {
   const t = useTranslations("assistant");
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -38,20 +42,37 @@ export function Assistant() {
     () =>
       new DefaultChatTransport<AssistantMessage>({
         api: withBasePath("/api/assistant/chat"),
-        prepareSendMessagesRequest: ({ messages }) => ({
-          body: {
-            messages: messages
-              .map((message) => ({
-                id: message.id,
-                role: message.role,
-                parts: message.parts
-                  .filter((part) => part.type === "text")
-                  .map((part) => ({ type: "text", text: part.text })),
-              }))
-              .filter((message) => message.parts.length > 0)
-              .slice(-24),
-          },
-        }),
+        prepareSendMessagesRequest: ({ messages }) => {
+          const turns = messages
+            .flatMap(({ id, role, parts }) =>
+              role === "system"
+                ? []
+                : [
+                    {
+                      id,
+                      role,
+                      parts: parts
+                        .filter((part) => part.type === "text")
+                        .slice(0, 8)
+                        .map(({ text }) => ({
+                          type: "text",
+                          text: text.slice(0, 6000),
+                        })),
+                    },
+                  ],
+            )
+            .filter((message) => message.parts.length > 0)
+            .slice(-24);
+          const encoder = new TextEncoder();
+          while (
+            turns.length > 1 &&
+            encoder.encode(JSON.stringify({ messages: turns })).byteLength >
+              MAX_CHAT_REQUEST_BYTES
+          ) {
+            turns.shift();
+          }
+          return { body: { messages: turns } };
+        },
       }),
     [],
   );
@@ -111,7 +132,7 @@ export function Assistant() {
         .slice(-100),
     [messages],
   );
-  const history = useConversations(open, savedTurns, (turns) => {
+  const history = useConversations(open, userId, savedTurns, (turns) => {
     setDraft("");
     clearError();
     setMessages(
@@ -228,10 +249,7 @@ export function Assistant() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  if (history.ready) void history.save();
-                  else void history.reload();
-                }}
+                onClick={() => void history.retry()}
               >
                 {t("retryHistory")}
               </Button>
@@ -329,7 +347,19 @@ export function Assistant() {
                   return;
                 if (voice.status === "listening") {
                   if (!voice.sendText(draft.trim())) return;
-                } else void sendMessage({ text: draft.trim() });
+                } else {
+                  const message = {
+                    id: crypto.randomUUID(),
+                    role: "user" as const,
+                    text: draft.trim(),
+                  };
+                  history.journalTurns([...savedTurns, message].slice(-100));
+                  void sendMessage({
+                    id: message.id,
+                    role: message.role,
+                    parts: [{ type: "text", text: message.text }],
+                  });
+                }
                 setDraft("");
               }}
               className="flex flex-col gap-3"

@@ -100,8 +100,11 @@ The first configurable event types are:
 
 For shared mailbox usage, the Entra application typically needs Graph application permissions such as:
 
-- `Mail.Read` or `Mail.ReadBasic.All`
-- `Mail.Send`
+- `Mail.ReadWrite` for the worker to create a draft and read the Internet Message-ID used to correlate nondelivery reports
+- `Mail.Send` for submitting the draft
+
+The worker records Graph acceptance as `SENT`. Nondelivery reports can subsequently
+move the notification to `BOUNCED`.
 
 In production, scope access as tightly as possible. If the app should only reach one or a few mailboxes, use Exchange application access policies or the newer mailbox-scoping controls available in your tenant.
 

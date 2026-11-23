@@ -45,7 +45,7 @@ Secret exposure:
   deployment-time secret writes can be performed from explicitly allowed
   operator or CI public IPv4/CIDR ranges in `key_vault_allowed_ip_rules`; keep
   that list empty when OpenTofu runs from inside the VNet.
-- App runtime: `app-database-url`, `betterauth-secret`; Teams secrets only when `enable_teams=true`.
+- App runtime: `app-database-url`, `betterauth-secret`; Entra sign-in secrets when `enable_microsoft_sso=true` or `enable_teams=true`. Teams-only secrets require `enable_teams=true`.
 - Worker runtime: `worker-database-url`; Graph mail secrets only when `enable_mail=true`; Teams worker secrets only when `enable_teams=true`.
 - Migration job: `migration-database-url`, `initial-admin-*`, plus `admin-database-url`, `app-database-url`, and `worker-database-url` for the one-time PostgreSQL role bootstrap path.
 - Optional mail and Teams secrets are not created or bound when their `enable_*` flag is false.

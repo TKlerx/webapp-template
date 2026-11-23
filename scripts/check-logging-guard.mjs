@@ -1,25 +1,28 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
+import ts from "typescript";
 
-const APP_PATTERNS = [
-  {
-    pattern: /\bconsole\.(log|info|warn|error|debug)\s*\(/,
-    remediation: "Use the structured logger from src/lib/logger.ts.",
-  },
-];
-const WORKER_PATTERNS = [
-  {
-    pattern: /\bprint\s*\(/,
-    remediation:
-      "Use the worker structured logger from starter_worker.logging.",
-  },
-  {
-    pattern: /\blogger\.(info|warning|error|exception)\s*\(/,
-    remediation:
-      "Use worker_logger lifecycle helpers or structured WorkerLogger calls.",
-  },
-];
+const consoleCalls = new Set(["log", "info", "warn", "error", "debug"]);
+const pythonScanner = `
+import ast, json, pathlib, sys
+
+findings = []
+for filename in json.load(sys.stdin):
+    source = pathlib.Path(filename).read_text(encoding="utf-8")
+    for node in ast.walk(ast.parse(source, filename=filename)):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if isinstance(func, ast.Name) and func.id == "print":
+            findings.append([filename, node.lineno, "print"])
+        elif (isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name)
+              and func.value.id == "logger" and func.attr in ("info", "warning", "error", "exception")):
+            findings.append([filename, node.lineno, "logger"])
+print(json.dumps(findings))
+`;
+
 const PRODUCTION_PATHS = [
   "src/app",
   "src/lib",
@@ -63,48 +66,84 @@ function walk(root, relativePath) {
   return files;
 }
 
-function getPatternsForFile(filePath) {
-  if (filePath.endsWith(".py")) {
-    return WORKER_PATTERNS;
+function scanAppFile(root, filePath) {
+  const source = ts.createSourceFile(
+    filePath,
+    fs.readFileSync(path.join(root, filePath), "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const findings = [];
+  function visit(node) {
+    if (ts.isCallExpression(node)) {
+      const callee = node.expression;
+      const access =
+        ts.isPropertyAccessExpression(callee) ||
+        ts.isElementAccessExpression(callee);
+      if (
+        access &&
+        ts.isIdentifier(callee.expression) &&
+        callee.expression.text === "console"
+      ) {
+        const method = ts.isPropertyAccessExpression(callee)
+          ? callee.name.text
+          : ts.isStringLiteral(callee.argumentExpression)
+            ? callee.argumentExpression.text
+            : undefined;
+        if (method && consoleCalls.has(method)) {
+          findings.push({
+            path: filePath,
+            line:
+              source.getLineAndCharacterOfPosition(node.getStart(source)).line +
+              1,
+            pattern: `console.${method}`,
+            remediation: "Use the structured logger from src/lib/logger.ts.",
+          });
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
   }
-  return APP_PATTERNS;
+  visit(source);
+  return findings;
+}
+
+function scanPythonFiles(root, files) {
+  if (files.length === 0) return [];
+  const options = { cwd: root, encoding: "utf8", input: JSON.stringify(files) };
+  const args = ["-c", pythonScanner];
+  let result = spawnSync("python3", args, options);
+  if (result.error?.code === "ENOENT")
+    result = spawnSync("python", args, options);
+  if (result.error) throw result.error;
+  if (result.status !== 0)
+    throw new Error(result.stderr || "Worker source parsing failed.");
+  return JSON.parse(result.stdout).map(([file, line, pattern]) => ({
+    path: file,
+    line,
+    pattern,
+    remediation:
+      "Use the worker structured logger from starter_worker.logging.",
+  }));
 }
 
 export function scanLoggingGuard(options = {}) {
   const root = options.root ? path.resolve(options.root) : process.cwd();
-  const candidateFiles =
+  const candidates =
     options.files?.map(normalizePath) ??
     PRODUCTION_PATHS.flatMap((productionPath) => walk(root, productionPath));
-  const findings = [];
-
-  for (const filePath of candidateFiles) {
-    const normalized = normalizePath(filePath);
-    if (EXCLUDED_PATHS.has(normalized)) {
-      continue;
-    }
-
-    const absolutePath = path.join(root, normalized);
-    if (!fs.existsSync(absolutePath) || !isSourceFile(normalized)) {
-      continue;
-    }
-
-    const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
-    const patterns = getPatternsForFile(normalized);
-    lines.forEach((line, index) => {
-      for (const rule of patterns) {
-        if (rule.pattern.test(line)) {
-          findings.push({
-            path: normalized,
-            line: index + 1,
-            pattern: String(rule.pattern),
-            remediation: rule.remediation,
-          });
-        }
-      }
-    });
-  }
-
-  return findings;
+  const files = candidates.filter(
+    (file) =>
+      !EXCLUDED_PATHS.has(file) &&
+      isSourceFile(file) &&
+      fs.existsSync(path.join(root, file)),
+  );
+  const app = files.filter((file) => !file.endsWith(".py"));
+  const worker = files.filter((file) => file.endsWith(".py"));
+  return [
+    ...app.flatMap((file) => scanAppFile(root, file)),
+    ...scanPythonFiles(root, worker),
+  ];
 }
 
 function main() {

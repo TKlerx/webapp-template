@@ -60,6 +60,7 @@ export function NotificationAdminPanel({
   const [eventTypeFilter, setEventTypeFilter] = useState(ALL_FILTER);
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [busyEventType, setBusyEventType] = useState<string | null>(null);
   const latestLogRequest = useRef(0);
 
@@ -69,6 +70,8 @@ export function NotificationAdminPanel({
   ) {
     const requestId = ++latestLogRequest.current;
     setLoading(true);
+    setLoadError(false);
+    setNotifications([]);
     try {
       const params = new URLSearchParams();
       if (nextEventType !== ALL_FILTER) {
@@ -90,11 +93,13 @@ export function NotificationAdminPanel({
       if (requestId !== latestLogRequest.current) return;
 
       if (!response.ok || !payload?.notifications) {
-        pushToast(payload?.error ?? t("loadFailed"));
+        setLoadError(true);
         return;
       }
 
       setNotifications(payload.notifications);
+    } catch {
+      if (requestId === latestLogRequest.current) setLoadError(true);
     } finally {
       if (requestId === latestLogRequest.current) setLoading(false);
     }
@@ -236,13 +241,18 @@ export function NotificationAdminPanel({
               </SelectTrigger>
               <SelectContent className="rounded-lg border-[var(--border)]">
                 <SelectItem value={ALL_FILTER}>{t("allStatuses")}</SelectItem>
-                {["QUEUED", "RETRYING", "SENT", "FAILED", "BOUNCED"].map(
-                  (status) => (
-                    <SelectItem key={status} value={status}>
-                      {t(`statuses.${status}`)}
-                    </SelectItem>
-                  ),
-                )}
+                {[
+                  "QUEUED",
+                  "SENDING",
+                  "RETRYING",
+                  "SENT",
+                  "FAILED",
+                  "BOUNCED",
+                ].map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {t(`statuses.${status}`)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -254,7 +264,18 @@ export function NotificationAdminPanel({
           <SummaryCard label={t("summaryFailed")} value={summary.failed} />
         </div>
 
-        {notifications.length === 0 ? (
+        {loadError ? (
+          <div className="space-y-2">
+            <p role="alert">{t("loadFailed")}</p>
+            <button
+              type="button"
+              onClick={() => void refreshNotifications()}
+              className="underline"
+            >
+              {t("retry")}
+            </button>
+          </div>
+        ) : loading ? null : notifications.length === 0 ? (
           <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--panel)] p-6 text-sm text-[var(--muted-foreground)]">
             {t("empty")}
           </div>

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
 
-export function ChangePasswordForm() {
+export function ChangePasswordForm({ destination = "/dashboard" } = {}) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -34,7 +34,7 @@ export function ChangePasswordForm() {
     }
 
     pushToast(t("passwordChanged"));
-    window.location.assign(withBasePath("/dashboard"));
+    window.location.assign(withBasePath(destination));
   }
 
   return (

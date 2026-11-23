@@ -189,16 +189,20 @@ export async function queueUserStatusChangedNotifications(input: {
 
 async function queueNotifications(input: QueueNotificationContext) {
   const config = await getNotificationTypeConfiguration(input.eventType);
-  if (!config.enabled) {
-    return;
-  }
+  const eventId =
+    config.enabled && input.recipients.length > 0
+      ? await queueEmailNotifications(input)
+      : undefined;
+  await safeQueueTeamsMessages({
+    actorId: input.actorId,
+    eventType: input.eventType,
+    eventId,
+    payload: input.payload,
+  });
+}
 
-  if (input.recipients.length === 0) {
-    return;
-  }
-
-  let createdEventId: string | null = null;
-  await prisma.$transaction(async (tx) => {
+async function queueEmailNotifications(input: QueueNotificationContext) {
+  return prisma.$transaction(async (tx) => {
     const event = await tx.notificationEvent.create({
       data: {
         eventType: input.eventType,
@@ -207,7 +211,6 @@ async function queueNotifications(input: QueueNotificationContext) {
         payload: JSON.stringify(input.payload),
       },
     });
-    createdEventId = event.id;
 
     for (const recipient of input.recipients) {
       const rendered = renderNotificationTemplate({
@@ -269,16 +272,8 @@ async function queueNotifications(input: QueueNotificationContext) {
         },
       });
     }
+    return event.id;
   });
-
-  if (createdEventId) {
-    await safeQueueTeamsMessages({
-      actorId: input.actorId,
-      eventType: input.eventType,
-      eventId: createdEventId,
-      payload: input.payload,
-    });
-  }
 }
 
 async function buildRecipients(actorId: string, user: NotificationUser) {

@@ -10,6 +10,7 @@ import type {
 
 export async function requireRouteUser(
   request?: Request,
+  { allowRequiredPasswordChange = false } = {},
 ): Promise<RouteUserResult> {
   const user =
     (await getSessionUser()) ??
@@ -21,6 +22,10 @@ export async function requireRouteUser(
 
   if (user.status === UserStatus.PENDING_APPROVAL) {
     return { error: jsonError("Your account is pending approval", 403) };
+  }
+
+  if (user.mustChangePassword && !allowRequiredPasswordChange) {
+    return { error: jsonError("Change your password first", 403) };
   }
 
   return request ? { user, request } : { user };

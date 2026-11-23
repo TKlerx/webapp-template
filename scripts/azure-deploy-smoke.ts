@@ -9,6 +9,9 @@ export type SmokeTarget = {
   resourceGroup: string;
   appName: string;
   workerName: string;
+  appRevision?: string;
+  workerRevision?: string;
+  buildId?: string;
   migrationJobName: string;
   migrationExecutionName?: string;
   timeoutSeconds: number;
@@ -48,7 +51,10 @@ export type CommandResult = {
   stderr: string;
 };
 
-export type CommandRunner = (args: string[]) => Promise<CommandResult>;
+export type CommandRunner = (
+  args: string[],
+  timeoutMs?: number,
+) => Promise<CommandResult>;
 
 export type SmokeRunners = {
   http: HttpRunner;
@@ -134,6 +140,11 @@ export function parseSmokeTarget(
       read("worker-name", "SMOKE_WORKER_NAME"),
       "worker-name",
     ),
+    appRevision:
+      read("app-revision", "SMOKE_APP_REVISION")?.trim() || undefined,
+    workerRevision:
+      read("worker-revision", "SMOKE_WORKER_REVISION")?.trim() || undefined,
+    buildId: read("build-id", "SMOKE_BUILD_ID")?.trim() || undefined,
     migrationJobName: requireValue(
       read("migration-job-name", "SMOKE_MIGRATION_JOB_NAME"),
       "migration-job-name",
@@ -224,14 +235,21 @@ export function renderHumanReport(report: SmokeReport): string {
 export async function main(
   argv = process.argv.slice(2),
   env = process.env,
-  runners: SmokeRunners = {
-    http: defaultHttpRunner,
-    command: defaultCommandRunner,
-  },
+  runners?: SmokeRunners,
 ): Promise<number> {
   try {
     const target = parseSmokeTarget(argv, env);
-    const report = await runSmoke(target, runners);
+    const report = await runSmoke(
+      target,
+      runners ?? {
+        http: defaultHttpRunner,
+        command: (args, timeoutMs) =>
+          defaultCommandRunner(
+            args,
+            timeoutMs ?? Math.ceil(target.timeoutSeconds * 1000),
+          ),
+      },
+    );
     const output = target.json
       ? JSON.stringify(report, null, 2)
       : renderHumanReport(report);
@@ -275,10 +293,16 @@ async function checkMigration(
   target: SmokeTarget,
   command: CommandRunner,
 ): Promise<Omit<SmokeCheck, "durationMs">> {
+  const deadline = performance.now() + target.timeoutSeconds * 1000;
+  const withinCheck = (args: string[]) => {
+    const remaining = Math.ceil(deadline - performance.now());
+    if (remaining <= 0) throw new Error("The migration check timed out.");
+    return command(args, remaining);
+  };
   const executionName =
     target.migrationExecutionName ??
-    (await latestMigrationExecution(target, command));
-  const result = await command([
+    (await latestMigrationExecution(target, withinCheck));
+  const result = await withinCheck([
     "containerapp",
     "job",
     "execution",
@@ -320,6 +344,10 @@ async function checkRevision(
   appName: string,
   command: CommandRunner,
 ): Promise<Omit<SmokeCheck, "durationMs">> {
+  const isApp = appName === target.appName;
+  const name = isApp ? "app-revision" : "worker-revision";
+  const expected = isApp ? target.appRevision : target.workerRevision;
+  const revisionTarget = `${appName}/${expected ?? "active"}`;
   const result = await command([
     "containerapp",
     "revision",
@@ -336,36 +364,47 @@ async function checkRevision(
 
   if (result.status !== 0) {
     return {
-      name: appName === target.appName ? "app-revision" : "worker-revision",
+      name,
       status: "fail",
-      target: `${appName}/active`,
+      target: revisionTarget,
       message: "Active revisions could not be read",
       details: { stderr: result.stderr },
     };
   }
 
-  const revisions = parseJsonArray(result.stdout);
+  const activeRevisions = parseJsonArray(result.stdout);
+  const revisions = activeRevisions.filter((revision) => {
+    if (!revision || typeof revision !== "object") return false;
+    if (expected && (!("name" in revision) || revision.name !== expected))
+      return false;
+    return !target.buildId || revisionBuildId(revision) === target.buildId;
+  });
   const unhealthy = revisions.filter(
     (revision) => !isHealthyRevision(revision),
   );
   if (revisions.length > 0 && unhealthy.length === 0) {
     return {
-      name: appName === target.appName ? "app-revision" : "worker-revision",
+      name,
       status: "pass",
-      target: `${appName}/active`,
+      target: revisionTarget,
       message: `${revisions.length} active revision(s) healthy`,
     };
   }
 
   return {
-    name: appName === target.appName ? "app-revision" : "worker-revision",
+    name,
     status: "fail",
-    target: `${appName}/active`,
+    target: revisionTarget,
     message:
       revisions.length === 0
-        ? "No active revisions found"
+        ? expected || target.buildId
+          ? "Expected revision is not active"
+          : "No active revisions found"
         : "One or more active revisions are unhealthy",
-    details: { revisions },
+    details: {
+      activeRevisionCount: activeRevisions.length,
+      matchingRevisionCount: revisions.length,
+    },
   };
 }
 
@@ -426,7 +465,14 @@ async function defaultHttpRunner(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, {
+      signal: controller.signal,
+      redirect: "manual",
+    });
+    if (response.status >= 300 && response.status < 400) {
+      await response.body?.cancel();
+      return { status: response.status, body: null };
+    }
     const text = await response.text();
     return {
       status: response.status,
@@ -437,10 +483,15 @@ async function defaultHttpRunner(
   }
 }
 
-async function defaultCommandRunner(args: string[]): Promise<CommandResult> {
+async function defaultCommandRunner(
+  args: string[],
+  timeoutMs: number,
+): Promise<CommandResult> {
   const result = spawnSync("az", args, {
     encoding: "utf8",
     maxBuffer: 1024 * 1024 * 10,
+    timeout: timeoutMs,
+    killSignal: "SIGKILL",
   });
   return {
     status: result.status ?? 1,
@@ -484,6 +535,19 @@ function requireValue(value: string | undefined, name: string): string {
 function parseJsonArray(value: string): unknown[] {
   const parsed = JSON.parse(value || "[]") as unknown;
   return Array.isArray(parsed) ? parsed : [];
+}
+
+function revisionBuildId(revision: object) {
+  const data = revision as {
+    properties?: {
+      template?: {
+        containers?: { env?: { name?: string; value?: string }[] }[];
+      };
+    };
+  };
+  return data.properties?.template?.containers
+    ?.flatMap((container) => container.env ?? [])
+    .find((variable) => variable.name === "APP_BUILD_ID")?.value;
 }
 
 function isHealthyRevision(revision: unknown): boolean {

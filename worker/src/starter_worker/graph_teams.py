@@ -6,6 +6,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Iterator
 from typing import Any
 
 
@@ -43,6 +44,10 @@ def send_teams_channel_message(job_id: str) -> dict[str, Any]:
 
 
 def list_teams_channel_messages(payload: dict[str, Any]) -> dict[str, Any]:
+    return {"value": [message for page in iter_teams_channel_pages(payload) for message in page]}
+
+
+def iter_teams_channel_pages(payload: dict[str, Any]) -> Iterator[list[dict[str, Any]]]:
     team_id = str(payload.get("teamId") or "").strip()
     channel_id = str(payload.get("channelId") or "").strip()
     top = int(payload.get("top") or 25)
@@ -56,16 +61,16 @@ def list_teams_channel_messages(payload: dict[str, Any]) -> dict[str, Any]:
     channel_path = f"/teams/{urllib.parse.quote(team_id, safe='')}/channels/{urllib.parse.quote(channel_id, safe='')}/messages"
     path = f"{channel_path}?$top={top}"
     access_token = _get_graph_access_token()
-    messages: list[dict[str, Any]] = []
     visited: set[str] = set()
     # ponytail: rescan/deduplicate small-team channel history; use change notifications
     # when historical volume makes complete polling too costly.
     while True:
         response = _graph_request(access_token, path, error_prefix="Graph Teams list failed")
-        messages.extend(response.get("value") or [])
+        messages = response.get("value")
+        yield messages if isinstance(messages, list) else []
         next_link = response.get("@odata.nextLink")
         if not next_link:
-            return {"value": messages}
+            return
         if next_link in visited:
             raise ValueError("Teams paging link repeated.")
         visited.add(next_link)

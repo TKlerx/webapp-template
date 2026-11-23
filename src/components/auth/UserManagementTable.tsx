@@ -70,6 +70,8 @@ export function UserManagementTable({
 
       pushToast(successMessage);
       router.refresh();
+    } catch {
+      pushToast(t("couldNotUpdate"));
     } finally {
       setBusyKey(null);
     }

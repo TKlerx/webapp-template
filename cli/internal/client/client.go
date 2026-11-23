@@ -71,22 +71,30 @@ func (c *Client) SetStderr(writer io.Writer) {
 }
 
 func (c *Client) Get(path string) (*Response, error) {
-	return c.do(context.Background(), http.MethodGet, path, nil)
+	return c.GetContext(context.Background(), path)
+}
+
+func (c *Client) GetContext(ctx context.Context, path string) (*Response, error) {
+	return c.do(ctx, http.MethodGet, path, nil, 0)
+}
+
+func (c *Client) GetAcceptingStatus(path string, status int) (*Response, error) {
+	return c.do(context.Background(), http.MethodGet, path, nil, status)
 }
 
 func (c *Client) Post(path string, body any) (*Response, error) {
-	return c.do(context.Background(), http.MethodPost, path, body)
+	return c.do(context.Background(), http.MethodPost, path, body, 0)
 }
 
 func (c *Client) Patch(path string, body any) (*Response, error) {
-	return c.do(context.Background(), http.MethodPatch, path, body)
+	return c.do(context.Background(), http.MethodPatch, path, body, 0)
 }
 
 func (c *Client) Delete(path string) (*Response, error) {
-	return c.do(context.Background(), http.MethodDelete, path, nil)
+	return c.do(context.Background(), http.MethodDelete, path, nil, 0)
 }
 
-func (c *Client) do(ctx context.Context, method string, path string, body any) (*Response, error) {
+func (c *Client) do(ctx context.Context, method string, path string, body any, acceptedStatus int) (*Response, error) {
 	if c.baseURL == nil || c.baseURL.Scheme == "" || c.baseURL.Host == "" {
 		return nil, &AppError{Message: "server URL is not configured", Code: 1}
 	}
@@ -137,11 +145,15 @@ func (c *Client) do(ctx context.Context, method string, path string, body any) (
 		Body:       responseBody,
 	}
 
-	if httpResp.StatusCode >= 200 && httpResp.StatusCode < 300 {
+	if resp.accepted(acceptedStatus) {
 		return resp, nil
 	}
 
 	return nil, mapHTTPError(httpResp.StatusCode, responseBody)
+}
+
+func (r *Response) accepted(extraStatus int) bool {
+	return r.StatusCode == extraStatus || (r.StatusCode >= 200 && r.StatusCode < 300)
 }
 
 func joinURL(base *url.URL, path string) string {

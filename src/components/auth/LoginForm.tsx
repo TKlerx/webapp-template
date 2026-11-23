@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
@@ -23,7 +23,6 @@ export function LoginForm() {
     clientSnapshot,
     serverSnapshot,
   );
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { pushToast } = useToast();
   const t = useTranslations("auth");
@@ -55,7 +54,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push(payload.redirectTo ?? "/dashboard");
+      window.location.assign(withBasePath(payload.redirectTo ?? "/dashboard"));
     } catch {
       setLoading(false);
       setLoginError(t("loginFailed"));

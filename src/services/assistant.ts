@@ -1,3 +1,4 @@
+import { MAX_CHAT_REQUEST_BYTES } from "@/lib/assistant";
 import { createAzure } from "@ai-sdk/azure";
 import {
   AzureCliCredential,
@@ -100,7 +101,10 @@ export async function readAssistantRequest(
       if (done) break;
       length += value.byteLength;
       if (
-        length > (bucket === "assistant-history" ? 3 * 1024 * 1024 : 64 * 1024)
+        length >
+        (bucket === "assistant-history"
+          ? 3 * 1024 * 1024
+          : MAX_CHAT_REQUEST_BYTES)
       ) {
         await reader.cancel();
         return { error: jsonError("Request body is too large", 413) };

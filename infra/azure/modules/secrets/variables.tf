@@ -114,24 +114,30 @@ variable "graph_tenant_id" {
   type        = string
 }
 
+variable "enable_microsoft_sso" {
+  description = "Whether to store Entra credentials for app sign-in."
+  type        = bool
+  default     = false
+}
+
 variable "enable_teams" {
   description = "Whether optional Teams secrets are created."
   type        = bool
 }
 
 variable "azure_ad_client_id" {
-  description = "Azure AD client id stored when enable_teams is true."
+  description = "Azure AD client id stored when Microsoft SSO or Teams is enabled."
   type        = string
 }
 
 variable "azure_ad_client_secret" {
-  description = "Azure AD client secret stored when enable_teams is true."
+  description = "Azure AD client secret stored when Microsoft SSO or Teams is enabled."
   type        = string
   sensitive   = true
 }
 
 variable "azure_ad_tenant_id" {
-  description = "Azure AD tenant id stored when enable_teams is true."
+  description = "Azure AD tenant id stored when Microsoft SSO or Teams is enabled."
   type        = string
 }
 

@@ -61,16 +61,19 @@ function runTofu(args, env, stdio) {
     stdio,
   });
   if ((result.status ?? 1) !== 0) {
-    process.exit(result.status ?? 1);
+    throw new Error(
+      `OpenTofu ${args[1]} failed (${result.error?.message ?? result.signal ?? result.status}).`,
+    );
   }
 }
 
 function runTofuJson(args, env) {
   const result = spawnSync("tofu", args, { encoding: "utf8", env });
   if ((result.status ?? 1) !== 0) {
-    process.stdout.write(result.stdout ?? "");
     process.stderr.write(result.stderr ?? "");
-    process.exit(result.status ?? 1);
+    throw new Error(
+      `OpenTofu ${args[1]} failed (${result.error?.message ?? result.signal ?? result.status}).`,
+    );
   }
   return JSON.parse(result.stdout);
 }

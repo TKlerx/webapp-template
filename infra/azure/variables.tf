@@ -242,6 +242,12 @@ variable "graph_tenant_id" {
   default     = ""
 }
 
+variable "enable_microsoft_sso" {
+  description = "Whether the app offers Microsoft Entra sign-in independently of Teams."
+  type        = bool
+  default     = false
+}
+
 variable "enable_teams" {
   description = "Whether Teams integration secrets are required."
   type        = bool

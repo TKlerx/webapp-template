@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import pg from "pg";
 
 const DEFAULT_E2E_DATABASE_URL =
   "postgresql://starter:starter_e2e_password@127.0.0.1:55432/business_app_starter_e2e_test";
@@ -29,28 +30,77 @@ const postgresDb =
   parsed.pathname.replace(/^\//, "") || "business_app_starter_e2e_test";
 const hostPort = parsed.port || "55432";
 
-ensureDockerPostgres();
-ensureTargetDatabase();
+const ownsDatabase =
+  databaseUrl === process.env.E2E_OWNED_DATABASE_URL &&
+  parsed.hostname === "127.0.0.1" &&
+  /^business_app_starter_e2e_[a-f0-9]{16}_test$/.test(postgresDb);
 
-const env = {
-  DATABASE_URL: databaseUrl,
-  MIGRATION_DATABASE_URL: databaseUrl,
-  INITIAL_ADMIN_EMAIL: process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
-  INITIAL_ADMIN_PASSWORD: process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
-  PRISMA_CONFIG_PATH: "prisma.config.ts",
-};
+if (process.argv.includes("--cleanup")) {
+  if (!ownsDatabase)
+    throw new Error("Cleanup requires a Playwright-owned database.");
+  runDockerStep("Drop Playwright test database", [
+    "exec",
+    containerName,
+    "psql",
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-U",
+    postgresUser,
+    "-d",
+    "postgres",
+    "-c",
+    `DROP DATABASE IF EXISTS ${quoteSqlIdentifier(postgresDb)} WITH (FORCE)`,
+  ]);
+} else {
+  await provision();
+}
 
-runStep(
-  "Generate PostgreSQL Prisma client",
-  "pnpm exec prisma generate --config prisma.config.ts",
-  env,
-);
-runStep(
-  "Apply PostgreSQL test migrations",
-  "pnpm exec prisma migrate deploy --config prisma.config.ts",
-  env,
-);
-runStep("Seed PostgreSQL E2E data", "pnpm exec tsx prisma/seed.ts", env);
+async function provision() {
+  if (
+    ownsDatabase ||
+    !process.env.TEST_DATABASE_URL ||
+    process.env.E2E_PROVISION_DOCKER === "1"
+  ) {
+    if (parsed.hostname !== "127.0.0.1") {
+      throw new Error(
+        "Docker E2E provisioning requires a loopback PostgreSQL URL.",
+      );
+    }
+    ensureDockerPostgres();
+    ensureTargetDatabase();
+  } else {
+    const existing = new pg.Client({
+      connectionString: databaseUrl,
+      connectionTimeoutMillis: 5_000,
+    });
+    try {
+      await existing.connect();
+    } finally {
+      await existing.end();
+    }
+  }
+
+  const env = {
+    DATABASE_URL: databaseUrl,
+    MIGRATION_DATABASE_URL: databaseUrl,
+    INITIAL_ADMIN_EMAIL: process.env.INITIAL_ADMIN_EMAIL ?? "admin@example.com",
+    INITIAL_ADMIN_PASSWORD:
+      process.env.INITIAL_ADMIN_PASSWORD ?? "ChangeMe123!",
+    PRISMA_CONFIG_PATH: "prisma.config.ts",
+  };
+
+  runStep(
+    "Generate PostgreSQL Prisma client",
+    "pnpm exec prisma generate --config prisma.config.ts",
+    env,
+  );
+  runStep(
+    "Apply PostgreSQL test migrations",
+    "pnpm exec prisma migrate deploy --config prisma.config.ts",
+    env,
+  );
+  runStep("Seed PostgreSQL E2E data", "pnpm exec tsx prisma/seed.ts", env);
+}
 
 function ensureDockerPostgres() {
   const existing = runDockerCaptured([

@@ -29,7 +29,7 @@ describe("cli-release-service", () => {
     );
     await writeFile(
       join(tempDir, "checksums.txt"),
-      "abc  starterctl_1.2.3_windows_amd64.zip\n",
+      `${"a".repeat(64)}  starterctl_1.2.3_windows_amd64.zip\n${"b".repeat(64)}  starterctl_1.2.3_linux_arm64.tar.gz\n`,
     );
 
     await expect(readCliChecksums()).resolves.toContain("starterctl_1.2.3");

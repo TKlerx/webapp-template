@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -44,6 +45,10 @@ type callbackPayload struct {
 }
 
 func LoginWithBrowser(options Options) (*Result, error) {
+	parsed, err := url.Parse(strings.TrimSpace(options.ServerURL))
+	if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		return nil, fmt.Errorf("server URL must be an absolute HTTP or HTTPS URL")
+	}
 	state, err := randomState()
 	if err != nil {
 		return nil, err
@@ -75,7 +80,7 @@ func LoginWithBrowser(options Options) (*Result, error) {
 				return
 			}
 
-			_, _ = io.WriteString(writer, "Login complete. You can close this tab.")
+			_, _ = io.WriteString(writer, "Approval received. Return to starterctl to finish signing in.")
 			callbackCh <- callbackPayload{Code: code}
 		}),
 	}
@@ -85,7 +90,7 @@ func LoginWithBrowser(options Options) (*Result, error) {
 	}()
 	defer server.Shutdown(context.Background())
 
-	authorizeURL := buildAuthorizeURL(options.ServerURL, callbackURL, state)
+	authorizeURL := buildAuthorizeURL(parsed, callbackURL, state)
 	if err := OpenBrowser(authorizeURL); err != nil && options.Stderr != nil {
 		fmt.Fprintf(options.Stderr, "Open this URL in your browser:\n%s\n", authorizeURL)
 	}
@@ -101,8 +106,7 @@ func LoginWithBrowser(options Options) (*Result, error) {
 	}
 }
 
-func buildAuthorizeURL(serverURL string, callbackURL string, state string) string {
-	parsed, _ := url.Parse(strings.TrimSpace(serverURL))
+func buildAuthorizeURL(parsed *url.URL, callbackURL string, state string) string {
 	query := parsed.Query()
 	query.Set("callback_url", callbackURL)
 	query.Set("state", state)
@@ -113,17 +117,23 @@ func buildAuthorizeURL(serverURL string, callbackURL string, state string) strin
 
 func exchangeCode(options Options, code string, state string) (*Result, error) {
 	httpClient := client.NewClient(&config.Config{ServerURL: options.ServerURL})
-	httpClient.SetVerbose(options.Verbose)
-	httpClient.SetStderr(options.Stderr)
+	// The token response may contain credentials even if the exchange fails.
 	resp, err := httpClient.Post("/api/cli-auth/token", map[string]string{
 		"code":  code,
 		"state": state,
 	})
 	if err != nil {
+		var appError *client.AppError
+		if errors.As(err, &appError) {
+			return nil, &client.AppError{Message: "browser login token exchange failed", Code: appError.Code}
+		}
 		return nil, err
 	}
 
 	result := &Result{}
+	if options.Verbose && options.Stderr != nil {
+		fmt.Fprintf(options.Stderr, "POST /api/cli-auth/token -> %d\n", resp.StatusCode)
+	}
 	if err := json.Unmarshal(resp.Body, result); err != nil {
 		return nil, err
 	}

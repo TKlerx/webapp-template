@@ -28,6 +28,10 @@ permissions:
   contents: read
   id-token: write
 
+concurrency:
+  group: deploy-azure-${{ inputs.environment }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy ${{ inputs.environment }}
@@ -148,7 +152,7 @@ jobs:
             echo "TF_VAR_app_built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } >> "$GITHUB_ENV"
 
-      - name: Provision infrastructure
+      - name: Provision migration infrastructure
         id: provision
         shell: bash
         env:
@@ -157,6 +161,8 @@ jobs:
           TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
           TF_STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER || 'tfstate' }}
           TF_STATE_KEY_PREFIX: ${{ vars.TF_STATE_KEY_PREFIX || 'app' }}
+          MIGRATION_REPOSITORY: ${{ steps.validate-inputs.outputs.migration_repository }}
+          MIGRATION_IMAGE_TAG: ${{ steps.validate-inputs.outputs.migration_image_tag }}
         run: |
           set -euo pipefail
 
@@ -170,14 +176,14 @@ jobs:
 
           tofu plan -input=false \
             -var-file="environments/$TARGET_ENVIRONMENT.tfvars" \
+            -var="migration_image_repository=$MIGRATION_REPOSITORY" \
+            -var="migration_image_tag=$MIGRATION_IMAGE_TAG" \
+            -target=module.runtime.azurerm_container_app_job.migration \
             -out=tfplan
           tofu apply -input=false -auto-approve tfplan
 
           {
             echo "resource_group_name=$(tofu output -raw resource_group_name)"
-            echo "app_endpoint=$(tofu output -raw app_endpoint)"
-            echo "app_container_app_name=$(tofu output -raw app_container_app_name)"
-            echo "worker_container_app_name=$(tofu output -raw worker_container_app_name)"
             echo "migration_job_name=$(tofu output -raw migration_job_name)"
           } >> "$GITHUB_OUTPUT"
 
@@ -238,42 +244,37 @@ jobs:
         if: ${{ steps.migrate.outcome == 'success' }}
         shell: bash
         env:
-          RESOURCE_GROUP: ${{ steps.provision.outputs.resource_group_name }}
-          APP_CONTAINER_APP_NAME: ${{ steps.provision.outputs.app_container_app_name }}
-          WORKER_CONTAINER_APP_NAME: ${{ steps.provision.outputs.worker_container_app_name }}
-          ACR_LOGIN_SERVER: ${{ vars.ACR_LOGIN_SERVER }}
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
           APP_REPOSITORY: ${{ steps.validate-inputs.outputs.app_repository }}
           WORKER_REPOSITORY: ${{ steps.validate-inputs.outputs.worker_repository }}
           APP_IMAGE_TAG: ${{ inputs.app_image_tag }}
           WORKER_IMAGE_TAG: ${{ inputs.worker_image_tag }}
+          MIGRATION_REPOSITORY: ${{ steps.validate-inputs.outputs.migration_repository }}
+          MIGRATION_IMAGE_TAG: ${{ steps.validate-inputs.outputs.migration_image_tag }}
         run: |
           set -euo pipefail
 
-          app_image="$ACR_LOGIN_SERVER/$APP_REPOSITORY:$APP_IMAGE_TAG"
-          worker_image="$ACR_LOGIN_SERVER/$WORKER_REPOSITORY:$WORKER_IMAGE_TAG"
+          cd infra/azure
+          tofu plan -input=false \
+            -var-file="environments/$TARGET_ENVIRONMENT.tfvars" \
+            -var="app_image_repository=$APP_REPOSITORY" \
+            -var="worker_image_repository=$WORKER_REPOSITORY" \
+            -var="migration_image_repository=$MIGRATION_REPOSITORY" \
+            -var="app_image_tag=$APP_IMAGE_TAG" \
+            -var="worker_image_tag=$WORKER_IMAGE_TAG" \
+            -var="migration_image_tag=$MIGRATION_IMAGE_TAG" \
+            -out=tfplan
+          tofu apply -input=false -auto-approve tfplan
 
-          az containerapp update \
-            --resource-group "$RESOURCE_GROUP" \
-            --name "$APP_CONTAINER_APP_NAME" \
-            --image "$app_image" \
-            --revision-suffix "app-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          RESOURCE_GROUP="$(tofu output -raw resource_group_name)"
+          APP_CONTAINER_APP_NAME="$(tofu output -raw app_container_app_name)"
+          WORKER_CONTAINER_APP_NAME="$(tofu output -raw worker_container_app_name)"
 
           app_revision="$(az containerapp show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$APP_CONTAINER_APP_NAME" \
             --query properties.latestRevisionName \
             --output tsv)"
-
-          az containerapp ingress traffic set \
-            --resource-group "$RESOURCE_GROUP" \
-            --name "$APP_CONTAINER_APP_NAME" \
-            --revision-weight "$app_revision=100"
-
-          az containerapp update \
-            --resource-group "$RESOURCE_GROUP" \
-            --name "$WORKER_CONTAINER_APP_NAME" \
-            --image "$worker_image" \
-            --revision-suffix "worker-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
 
           worker_revision="$(az containerapp show \
             --resource-group "$RESOURCE_GROUP" \
@@ -282,6 +283,9 @@ jobs:
             --output tsv)"
 
           {
+            echo "app_endpoint=$(tofu output -raw app_endpoint)"
+            echo "app_container_app_name=$APP_CONTAINER_APP_NAME"
+            echo "worker_container_app_name=$WORKER_CONTAINER_APP_NAME"
             echo "app_revision=$app_revision"
             echo "worker_revision=$worker_revision"
           } >> "$GITHUB_OUTPUT"
@@ -292,10 +296,12 @@ jobs:
         shell: bash
         env:
           TARGET_ENVIRONMENT: ${{ inputs.environment }}
-          APP_ENDPOINT: ${{ steps.provision.outputs.app_endpoint }}
+          APP_ENDPOINT: ${{ steps.promote-app-worker.outputs.app_endpoint }}
           RESOURCE_GROUP: ${{ steps.provision.outputs.resource_group_name }}
-          APP_CONTAINER_APP_NAME: ${{ steps.provision.outputs.app_container_app_name }}
-          WORKER_CONTAINER_APP_NAME: ${{ steps.provision.outputs.worker_container_app_name }}
+          APP_CONTAINER_APP_NAME: ${{ steps.promote-app-worker.outputs.app_container_app_name }}
+          WORKER_CONTAINER_APP_NAME: ${{ steps.promote-app-worker.outputs.worker_container_app_name }}
+          APP_REVISION: ${{ steps.promote-app-worker.outputs.app_revision }}
+          WORKER_REVISION: ${{ steps.promote-app-worker.outputs.worker_revision }}
           MIGRATION_JOB_NAME: ${{ steps.provision.outputs.migration_job_name }}
           MIGRATION_EXECUTION: ${{ steps.migrate.outputs.migration_execution }}
         run: |
@@ -306,6 +312,9 @@ jobs:
             --resource-group "$RESOURCE_GROUP" \
             --app-name "$APP_CONTAINER_APP_NAME" \
             --worker-name "$WORKER_CONTAINER_APP_NAME" \
+            --app-revision "$APP_REVISION" \
+            --build-id "$TF_VAR_app_build_id" \
+            --worker-revision "$WORKER_REVISION" \
             --migration-job-name "$MIGRATION_JOB_NAME" \
             --migration-execution "$MIGRATION_EXECUTION" 2>&1)"
           status=$?

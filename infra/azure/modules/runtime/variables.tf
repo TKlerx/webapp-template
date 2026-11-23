@@ -109,6 +109,12 @@ variable "enable_mail" {
   type        = bool
 }
 
+variable "enable_microsoft_sso" {
+  description = "Whether to expose Entra credentials to the app for sign-in."
+  type        = bool
+  default     = false
+}
+
 variable "enable_teams" {
   description = "Whether Teams integration is enabled."
   type        = bool

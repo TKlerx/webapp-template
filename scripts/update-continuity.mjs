@@ -193,8 +193,7 @@ function buildContinueContent({
       : ["1. No unchecked tasks detected in the active specs."];
 
   return [
-    "# Continue",
-    "",
+    "<!-- continuity:generated:start -->",
     `<!-- continuity:fingerprint=${fingerprint} -->`,
     "",
     "## Current Snapshot",
@@ -218,12 +217,23 @@ function buildContinueContent({
     "",
     ...nextTaskLines,
     "",
+    "<!-- continuity:generated:end -->",
+    "",
   ].join("\n");
 }
 
 function extractPreviousFingerprint(content) {
   const match = content.match(/<!-- continuity:fingerprint=([a-f0-9]+) -->/);
   return match?.[1] ?? "";
+}
+
+const generatedSection =
+  /<!-- continuity:generated:start -->[\s\S]*?<!-- continuity:generated:end -->\n?/;
+
+function updateGeneratedSection(content, snapshot) {
+  if (generatedSection.test(content))
+    return content.replace(generatedSection, () => snapshot);
+  return `${(content || "# Continue").trimEnd()}\n\n${snapshot}`;
 }
 
 function buildNextLogContent({
@@ -281,13 +291,14 @@ const previousContent = existsSync(continuePath)
 const previousLogContent = existsSync(continueLogPath)
   ? readFileSync(continueLogPath, "utf8")
   : "";
-const previousFingerprint = extractPreviousFingerprint(previousContent);
+const previousSnapshot = previousContent.match(generatedSection)?.[0];
+const previousFingerprint = extractPreviousFingerprint(previousSnapshot ?? "");
 const timestamp =
-  previousFingerprint === fingerprint && previousContent
-    ? (previousContent.match(/^- Updated: (.+)$/m)?.[1] ?? formatNow())
+  previousFingerprint === fingerprint && previousSnapshot
+    ? (previousSnapshot.match(/^- Updated: (.+)$/m)?.[1] ?? formatNow())
     : formatNow();
 
-const nextContent = buildContinueContent({
+const snapshot = buildContinueContent({
   branch,
   timestamp,
   recentCommits,
@@ -296,6 +307,7 @@ const nextContent = buildContinueContent({
   nextTasks,
   fingerprint,
 });
+const nextContent = updateGeneratedSection(previousContent, snapshot);
 
 const nextLogContent = buildNextLogContent({
   existingLogContent: previousLogContent || "# Continue Log\n",

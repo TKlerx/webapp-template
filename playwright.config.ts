@@ -4,14 +4,16 @@ import { randomBytes } from "node:crypto";
 const port = Number(process.env.E2E_PORT ?? "3280");
 const normalizedBasePath = process.env.E2E_BASE_PATH ?? "/app-starter";
 const authBaseUrl = `http://localhost:${port}${normalizedBasePath}`;
+const ownsDatabase = process.env.TEST_DATABASE_URL === undefined;
 const databaseUrl =
   process.env.TEST_DATABASE_URL ??
-  `postgresql://starter:starter_e2e_password@127.0.0.1:55432/business_app_starter_e2e_${Date.now()}_test`;
+  `postgresql://starter:starter_e2e_password@127.0.0.1:55432/business_app_starter_e2e_${randomBytes(8).toString("hex")}_test`;
 const reuseExistingServer = process.env.E2E_REUSE_SERVER === "1";
 if (reuseExistingServer && !process.env.TEST_DATABASE_URL) {
   throw new Error("E2E_REUSE_SERVER requires an explicit TEST_DATABASE_URL.");
 }
 
+if (ownsDatabase) process.env.E2E_OWNED_DATABASE_URL = databaseUrl;
 process.env.E2E_PORT = String(port);
 process.env.E2E_BASE_PATH = normalizedBasePath;
 process.env.DATABASE_URL = databaseUrl;

@@ -8,6 +8,8 @@ export type AppVersionInfo = {
   buildId: string;
   builtAt: string;
   label: string;
+  deployedEnvironment?: string;
+  deployedVersion?: string;
 };
 
 const UNKNOWN = "unknown";
@@ -20,8 +22,10 @@ export function getAppVersionInfo() {
     return cachedVersionInfo;
   }
 
-  const environment = readMetadata("APP_ENVIRONMENT") || LOCAL_ENVIRONMENT;
-  const version = readMetadata("APP_VERSION") || `v${packageInfo.version}`;
+  const deployedEnvironment = readMetadata("APP_ENVIRONMENT");
+  const deployedVersion = readMetadata("APP_VERSION");
+  const environment = deployedEnvironment || LOCAL_ENVIRONMENT;
+  const version = deployedVersion || `v${packageInfo.version}`;
   const revision =
     readMetadata("APP_REVISION") || readMetadata("APP_GIT_SHA") || UNKNOWN;
   const shortRevision = revision === UNKNOWN ? UNKNOWN : revision.slice(0, 12);
@@ -29,6 +33,8 @@ export function getAppVersionInfo() {
   const builtAt = readMetadata("APP_BUILT_AT") || UNKNOWN;
 
   cachedVersionInfo = {
+    deployedEnvironment,
+    deployedVersion,
     environment,
     version,
     revision,

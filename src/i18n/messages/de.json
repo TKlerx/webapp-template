@@ -134,6 +134,10 @@
     "switchedTo": "Design auf {theme}-Modus umgeschaltet"
   },
   "audit": {
+    "paginationLabel": "Seiten des Audit-Protokolls",
+    "previousPage": "Zurück",
+    "nextPage": "Weiter",
+    "pageIndicator": "Seite {page} von {total}",
     "anonymous": "Anonym",
     "title": "Prufprotokoll",
     "action": "Aktion",
@@ -250,6 +254,7 @@
     "loadFailed": "Could not load tokens",
     "updateFailed": "Could not update token",
     "copied": "Token copied to clipboard",
+    "copyFailed": "Das Token konnte nicht kopiert werden. Wählen und kopieren Sie es manuell.",
     "copy": "Copy token",
     "done": "Done",
     "tokenValueTitle": "Save {name}",
@@ -304,6 +309,7 @@
     "disabledSaved": "Benachrichtigungstyp deaktiviert",
     "saveFailed": "Benachrichtigungseinstellung konnte nicht gespeichert werden",
     "loadFailed": "Benachrichtigungen konnten nicht geladen werden",
+    "retry": "Erneut versuchen",
     "updatedAt": "Aktualisiert {value}",
     "allEvents": "Alle Ereignisse",
     "eventFilter": "Nach Ereignis filtern",
@@ -340,6 +346,8 @@
     "loading": "Benachrichtigungen werden aktualisiert..."
   },
   "apiDocs": {
+    "loadError": "Die API-Referenz konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
     "title": "API reference",
     "description": "Browse the current OpenAPI specification with interactive Swagger UI."
   },
@@ -382,7 +390,7 @@
     "health": {
       "title": "Integration health",
       "sendFailures": "Send failures (24h)",
-      "intakeFailures": "Intake failures (24h)",
+      "intakeFailures": "Offene Abruffehler (24 Std.)",
       "lastSend": "Last successful send",
       "lastIntake": "Last successful intake"
     },

@@ -29,7 +29,6 @@ function formatDate(date) {
 }
 
 const repoUrl = runGit(["remote", "get-url", "starter"]);
-const currentBranch = runGit(["branch", "--show-current"]) || "main";
 const remoteHeadRef =
   safeRunGit(["ls-remote", "--symref", "starter", "HEAD"])
     .split(/\r?\n/)
@@ -40,13 +39,21 @@ const remoteDefaultBranch =
 const existingOrigin = JSON.parse(readFileSync(originFilePath, "utf8"));
 const defaultBranch =
   remoteDefaultBranch || existingOrigin.templateDefaultBranch || "main";
-const commit = runGit(["rev-parse", "HEAD"]);
-const shortCommit = runGit(["rev-parse", "--short", "HEAD"]);
+const mergedUpstream = safeRunGit([
+  "merge-base",
+  "HEAD",
+  `refs/remotes/starter/${defaultBranch}`,
+]);
+const commit = mergedUpstream || existingOrigin.recordedUpstreamTemplateCommit;
+if (!/^[a-f0-9]{40}$/.test(commit ?? "")) {
+  throw new Error(
+    "Fetch the starter remote before stamping the upstream baseline.",
+  );
+}
+const shortCommit =
+  safeRunGit(["rev-parse", "--short", commit]) || commit.slice(0, 7);
 const recordedAt = formatDate(new Date());
-const versionLabel =
-  currentBranch === defaultBranch
-    ? `${defaultBranch}@${shortCommit}`
-    : `${defaultBranch}+${currentBranch}@${shortCommit}`;
+const versionLabel = `${defaultBranch}@${shortCommit}`;
 
 const origin = existingOrigin;
 origin.templateRepoUrl = repoUrl;

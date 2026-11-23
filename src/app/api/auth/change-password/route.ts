@@ -13,7 +13,9 @@ const changePasswordBodySchema = z
   .strict();
 
 export async function POST(request: Request) {
-  const authResult = await requireApiUser();
+  const authResult = await requireApiUser(undefined, {
+    allowRequiredPasswordChange: true,
+  });
   if ("error" in authResult) return authResult.error;
   const user = authResult.user;
 

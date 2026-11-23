@@ -5,6 +5,7 @@ import { Client } from "pg";
 function validatePasswordComplexity(password) {
   return (
     password.length >= 8 &&
+    !bcrypt.truncates(password) &&
     /[a-z]/.test(password) &&
     /[A-Z]/.test(password) &&
     /[0-9]/.test(password)
@@ -16,7 +17,7 @@ function createId() {
 }
 
 async function main() {
-  const email = process.env.INITIAL_ADMIN_EMAIL?.toLowerCase();
+  const email = process.env.INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.INITIAL_ADMIN_PASSWORD;
   const databaseUrl =
     process.env.MIGRATION_DATABASE_URL?.trim() || process.env.DATABASE_URL;
@@ -52,12 +53,12 @@ async function main() {
     const existingUsers = await client.query('select count(*) from "User"');
     if (Number(existingUsers.rows[0].count) > 0) {
       const existingAdmins = await client.query(
-        'select count(*) from "User" where "role" = $1',
-        ["PLATFORM_ADMIN"],
+        'select count(*) from "User" where "role" = $1 and "status" = $2',
+        ["PLATFORM_ADMIN", "ACTIVE"],
       );
       if (Number(existingAdmins.rows[0].count) === 0) {
         throw new Error(
-          "Expected at least one admin user in the starter database.",
+          "Expected at least one active platform admin in the starter database.",
         );
       }
 

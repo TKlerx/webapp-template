@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -85,6 +85,8 @@ export function TokenList({
     null,
   );
   const [userIdFilter, setUserIdFilter] = useState<string>("all");
+  const selection = useRef({ showAll: false, userId: "all" });
+  const latestRequest = useRef(0);
 
   useEffect(() => {
     if (adminMode) {
@@ -112,9 +114,15 @@ export function TokenList({
   }, [adminMode]);
 
   async function refreshTokens(
-    nextShowAll = showAll,
-    nextUserId = userIdFilter,
+    nextShowAll = selection.current.showAll,
+    nextUserId = selection.current.userId,
   ) {
+    const requestId = ++latestRequest.current;
+    const changed =
+      nextShowAll !== selection.current.showAll ||
+      nextUserId !== selection.current.userId;
+    selection.current = { showAll: nextShowAll, userId: nextUserId };
+    if (changed) setTokens([]);
     setLoading(true);
 
     try {
@@ -133,6 +141,7 @@ export function TokenList({
         tokens?: TokenItem[];
       } | null;
 
+      if (requestId !== latestRequest.current) return;
       if (!response.ok || !payload?.tokens) {
         pushToast(payload?.error ?? sharedT("loadFailed"));
         return;
@@ -140,8 +149,10 @@ export function TokenList({
 
       setTokens(payload.tokens);
       router.refresh();
+    } catch {
+      if (requestId === latestRequest.current) pushToast(sharedT("loadFailed"));
     } finally {
-      setLoading(false);
+      if (requestId === latestRequest.current) setLoading(false);
     }
   }
 
@@ -175,10 +186,7 @@ export function TokenList({
                 "Content-Type": "application/json",
               }
             : undefined,
-        body:
-          action === "renew"
-            ? JSON.stringify({ expiresInDays: 90 })
-            : undefined,
+        body: action === "renew" ? JSON.stringify({}) : undefined,
       });
 
       const parsed = tokenActionResponseSchema.safeParse(

@@ -47,9 +47,12 @@ export async function POST(request: Request) {
   if ("error" in parsed) {
     return parsed.error;
   }
-  const { name, expiresInDays = 90 } = parsed.data;
+  const { name, expiresInDays } = parsed.data;
 
-  if (!ALLOWED_EXPIRY_DAYS.includes(expiresInDays)) {
+  if (
+    expiresInDays !== undefined &&
+    !ALLOWED_EXPIRY_DAYS.includes(expiresInDays)
+  ) {
     return jsonError(
       "Invalid expiration. Supported values: 7, 30, 60, 90, 180, 365",
       400,

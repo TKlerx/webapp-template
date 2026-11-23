@@ -43,8 +43,12 @@ export async function updateTeamsConfig(input: {
   return prisma.teamsIntegrationConfig.update({
     where: { id: config.id },
     data: {
-      sendEnabled: input.sendEnabled ?? config.sendEnabled,
-      intakeEnabled: input.intakeEnabled ?? config.intakeEnabled,
+      ...(input.sendEnabled === undefined
+        ? {}
+        : { sendEnabled: input.sendEnabled }),
+      ...(input.intakeEnabled === undefined
+        ? {}
+        : { intakeEnabled: input.intakeEnabled }),
       updatedByUserId: input.actorId,
     },
   });

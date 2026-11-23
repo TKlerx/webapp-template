@@ -4,14 +4,10 @@ import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Role } from "../../../../generated/prisma/enums";
 
-const SENSITIVE_JOB_KEYS = new Set([
-  "delegatedAccessToken",
-  "accessToken",
-  "refreshToken",
-  "authorization",
-  "token",
-  "apiKey",
-]);
+import {
+  sanitizeJobField,
+  sanitizeJobValue,
+} from "@/services/api/background-jobs";
 
 export default async function BackgroundJobsPage() {
   const user = await requireSession();
@@ -156,7 +152,7 @@ export default async function BackgroundJobsPage() {
                 />
                 <CodeBlock
                   label={t("fields.error")}
-                  value={job.error ?? t("none")}
+                  value={String(sanitizeJobValue(job.error) ?? t("none"))}
                 />
               </div>
             </article>
@@ -274,28 +270,8 @@ function formatJson(value: string | null) {
     return "-";
   }
 
-  try {
-    return JSON.stringify(sanitizeJobValue(JSON.parse(value)), null, 2);
-  } catch {
-    return value;
-  }
-}
-
-function sanitizeJobValue(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map((entry) => sanitizeJobValue(entry));
-  }
-
-  if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(
-        ([key, entryValue]) =>
-          SENSITIVE_JOB_KEYS.has(key)
-            ? [key, "[REDACTED]"]
-            : [key, sanitizeJobValue(entryValue)],
-      ),
-    );
-  }
-
-  return value;
+  const sanitized = sanitizeJobField(value);
+  return typeof sanitized === "string"
+    ? sanitized
+    : JSON.stringify(sanitized, null, 2);
 }

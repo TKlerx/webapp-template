@@ -17,6 +17,7 @@ rm -rf "$TMP_DIR"
 mkdir -p "$TMP_DIR"
 
 found=0
+archives=0
 for pattern in \
   "starterctl_*_windows_amd64.zip" \
   "starterctl_*_windows_arm64.zip" \
@@ -30,10 +31,14 @@ do
     [ -f "$file" ] || continue
     cp "$file" "$TMP_DIR"/
     found=$((found + 1))
+    if [ "$pattern" != "checksums.txt" ]; then archives=$((archives + 1)); fi
   done
 done
 
-[ "$found" -gt 0 ] || fail "No CLI release artifacts found in $SOURCE_DIR"
+if [ "$archives" -eq 0 ]; then
+  rm -rf "$TMP_DIR"
+  fail "No CLI release archives found in $SOURCE_DIR"
+fi
 
 rm -rf "$TARGET_DIR"
 mkdir -p "$(dirname "$TARGET_DIR")"

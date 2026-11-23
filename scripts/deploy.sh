@@ -25,16 +25,16 @@ printf 'APP_VERSION=%s\n' "$APP_VERSION"
 printf 'COMPOSE_PROJECT_NAME=%s\n' "$COMPOSE_PROJECT_NAME"
 
 step "Compose data volumes"
-docker compose -f "$COMPOSE_FILE" config --volumes
+node ./scripts/docker-compose.mjs --allow-missing-env -f "$COMPOSE_FILE" config --volumes
 
-step "Build shared app image"
-docker compose -f "$COMPOSE_FILE" build app
+step "Build app and migration images"
+node ./scripts/docker-compose.mjs --allow-missing-env -f "$COMPOSE_FILE" build app migrate
 
 step "Start PostgreSQL"
-docker compose -f "$COMPOSE_FILE" up -d postgres
+node ./scripts/docker-compose.mjs --allow-missing-env -f "$COMPOSE_FILE" up -d postgres
 
 step "Prisma pre-deploy verification"
-docker compose -f "$COMPOSE_FILE" run --rm --entrypoint sh migrate -lc "node scripts/prisma-predeploy-check.js"
+node ./scripts/docker-compose.mjs --allow-missing-env -f "$COMPOSE_FILE" run --rm --entrypoint sh migrate -lc "node scripts/prisma-predeploy-check.js"
 
 step "Pre-deploy PostgreSQL backup"
 BACKUP_KEEP_COUNT="${BACKUP_KEEP_COUNT:-5}" sh ./scripts/backup-postgres.sh
@@ -78,9 +78,9 @@ else
 fi
 
 step "Prisma migrate deploy"
-docker compose -f "$COMPOSE_FILE" run --rm --entrypoint sh migrate -lc "pnpm exec prisma migrate deploy --config prisma.config.ts"
+node ./scripts/docker-compose.mjs --allow-missing-env -f "$COMPOSE_FILE" run --rm --entrypoint ./node_modules/.bin/prisma migrate migrate deploy --config prisma.config.ts
 
 step "Rebuild and restart app + worker"
-docker compose -f "$COMPOSE_FILE" up -d --build app worker
+node ./scripts/docker-compose.mjs --allow-missing-env -f "$COMPOSE_FILE" up -d --build app worker
 
 printf '\nDeploy completed successfully.\n'

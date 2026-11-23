@@ -121,13 +121,17 @@ resource "azurerm_container_app" "app" {
       }
 
       dynamic "env" {
-        for_each = var.enable_teams ? {
-          TEAMS_DELIVERY_SHARED_SECRET         = "teams-delivery-shared-secret"
-          AZURE_AD_CLIENT_ID                   = "azure-ad-client-id"
-          AZURE_AD_CLIENT_SECRET               = "azure-ad-client-secret"
-          AZURE_AD_TENANT_ID                   = "azure-ad-tenant-id"
-          TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY = "teams-delegated-grant-encryption-key"
-        } : {}
+        for_each = merge(
+          (var.enable_microsoft_sso || var.enable_teams) ? {
+            AZURE_AD_CLIENT_ID     = "azure-ad-client-id"
+            AZURE_AD_CLIENT_SECRET = "azure-ad-client-secret"
+            AZURE_AD_TENANT_ID     = "azure-ad-tenant-id"
+          } : {},
+          var.enable_teams ? {
+            TEAMS_DELIVERY_SHARED_SECRET         = "teams-delivery-shared-secret"
+            TEAMS_DELEGATED_GRANT_ENCRYPTION_KEY = "teams-delegated-grant-encryption-key"
+          } : {},
+        )
 
         content {
           name        = env.key

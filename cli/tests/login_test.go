@@ -48,10 +48,13 @@ func TestBrowserLoginExchangesCode(t *testing.T) {
 	auth.BrowserLoginTimeout = 2 * time.Second
 	defer func() { auth.BrowserLoginTimeout = timeout }()
 
-	result, err := auth.LoginWithBrowser(auth.Options{ServerURL: server.URL, Stderr: io.Discard})
+	stderr := &bytes.Buffer{}
+	result, err := auth.LoginWithBrowser(auth.Options{ServerURL: server.URL, Stderr: stderr, Verbose: true})
 	require.NoError(t, err)
 	require.Equal(t, "token-123", result.Token)
 	require.Equal(t, "Ada", result.User.Name)
+	require.Contains(t, stderr.String(), "POST /api/cli-auth/token -> 200")
+	require.NotContains(t, stderr.String(), result.Token)
 }
 
 func TestBrowserLoginTimeout(t *testing.T) {

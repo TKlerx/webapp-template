@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { jsonError } from "@/lib/http";
 import { Role } from "../../../generated/prisma/enums";
@@ -15,6 +16,35 @@ const ALLOWED_BACKGROUND_JOB_TYPES = new Set([
   "inbound_mail_poll",
   "teams_message_delivery",
   "teams_intake_poll",
+]);
+const nonEmptyString = z.string().min(1);
+const deliveryPayloads = new Map<string, z.ZodType>([
+  [
+    "notification_delivery",
+    z
+      .strictObject({
+        notificationId: nonEmptyString,
+        recipientEmail: z.string().trim().min(1),
+        recipientName: nonEmptyString,
+        subject: z.string().trim().min(1),
+        bodyText: z.string(),
+        bodyHtml: z.string().nullish(),
+      })
+      .refine((input) =>
+        Boolean(input.bodyText.trim() || input.bodyHtml?.trim()),
+      ),
+  ],
+  [
+    "teams_message_delivery",
+    z.strictObject({
+      teamsOutboundMessageId: nonEmptyString,
+      targetId: nonEmptyString.nullish(),
+      teamId: nonEmptyString,
+      channelId: nonEmptyString,
+      content: z.string(),
+      contentType: z.enum(["html", "text"]).optional(),
+    }),
+  ],
 ]);
 const MAX_BACKGROUND_JOB_PAYLOAD_LENGTH = 10 * 1024;
 const SENSITIVE_JOB_KEYS = new Set([
@@ -46,7 +76,7 @@ export function safeParseJobJson(value: string | null): unknown {
   }
 }
 
-function sanitizeJobValue(value: unknown): unknown {
+export function sanitizeJobValue(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map((entry) => sanitizeJobValue(entry));
   }
@@ -71,7 +101,7 @@ function sanitizeJobValue(value: unknown): unknown {
     : value;
 }
 
-function sanitizeJobField(value: string | null) {
+export function sanitizeJobField(value: string | null) {
   return sanitizeJobValue(safeParseJobJson(value));
 }
 
@@ -136,6 +166,11 @@ export async function createBackgroundJobForUser(
     };
   }
 
+  const contract = deliveryPayloads.get(jobType);
+  if (contract && !contract.safeParse(body.payload).success) {
+    return { error: jsonError("Invalid delivery job payload", 400) };
+  }
+
   const job = await prisma.backgroundJob.create({
     data: {
       jobType,
@@ -164,6 +199,7 @@ export async function cleanupHistoricalBackgroundJobPayloads(limit = 200) {
   // small-team history grows enough to make full maintenance scans expensive.
   while (true) {
     const jobs = await prisma.backgroundJob.findMany({
+      where: { status: { in: ["COMPLETED", "FAILED"] } },
       select: { id: true, payload: true, result: true, error: true },
       take: pageSize,
       orderBy: { id: "asc" },
@@ -185,8 +221,17 @@ export async function cleanupHistoricalBackgroundJobPayloads(limit = 200) {
         data.error === job.error
       )
         continue;
-      await prisma.backgroundJob.update({ where: { id: job.id }, data });
-      updated += 1;
+      const result = await prisma.backgroundJob.updateMany({
+        where: {
+          id: job.id,
+          status: { in: ["COMPLETED", "FAILED"] },
+          payload: job.payload,
+          result: job.result,
+          error: job.error,
+        },
+        data,
+      });
+      updated += result.count;
     }
     if (jobs.length < pageSize) break;
     cursor = jobs.at(-1)!.id;

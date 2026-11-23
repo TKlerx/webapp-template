@@ -35,6 +35,7 @@ describe("teams integration API", () => {
   beforeEach(() => {
     prismaMock.backgroundJob.findMany.mockResolvedValue([] as never);
     prismaMock.backgroundJob.count.mockResolvedValue(0 as never);
+    prismaMock.backgroundJob.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.teamsIntakeSubscription.findFirst.mockResolvedValue(
       null as never,
     );
@@ -76,9 +77,9 @@ describe("teams integration API", () => {
       scanned: 2,
       updated: 1,
     });
-    expect(prismaMock.backgroundJob.update).toHaveBeenCalledTimes(1);
-    expect(prismaMock.backgroundJob.update).toHaveBeenCalledWith({
-      where: { id: "dirty" },
+    expect(prismaMock.backgroundJob.updateMany).toHaveBeenCalledTimes(1);
+    expect(prismaMock.backgroundJob.updateMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({ id: "dirty" }),
       data: {
         payload: '{"safe":true}',
         result: '{"nested":[{"REFRESH_TOKEN":"[REDACTED]"}]}',
@@ -288,14 +289,12 @@ describe("teams integration API", () => {
         error: "failed",
       },
     ] as never);
-    prismaMock.backgroundJob.update.mockResolvedValue({
-      id: "job-legacy-1",
-    } as never);
+    prismaMock.backgroundJob.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await cleanupHistoricalBackgroundJobPayloads();
 
     expect(result).toMatchObject({ scanned: 1, updated: 1 });
-    expect(prismaMock.backgroundJob.update).toHaveBeenCalledWith(
+    expect(prismaMock.backgroundJob.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           payload: expect.stringContaining(

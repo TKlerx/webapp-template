@@ -64,6 +64,25 @@ describe("route context service", () => {
     }
   });
 
+  it("requires a first password change before authorizing even a platform admin", async () => {
+    const user = {
+      id: "user-1",
+      role: Role.PLATFORM_ADMIN,
+      status: UserStatus.ACTIVE,
+      mustChangePassword: true,
+    };
+    getSessionUser.mockResolvedValue(user);
+
+    expect(
+      await requireRouteUserWithRoles([Role.PLATFORM_ADMIN]),
+    ).toMatchObject({
+      error: { status: 403 },
+    });
+    expect(
+      await requireRouteUser(undefined, { allowRequiredPasswordChange: true }),
+    ).toMatchObject({ user });
+  });
+
   it("falls back to token authentication when no session is present", async () => {
     getSessionUser.mockResolvedValue(null);
     resolveTokenUser.mockResolvedValue({

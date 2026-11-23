@@ -13,7 +13,6 @@ func RenderTable(headers []string, rows [][]string) error {
 
 func RenderTableTo(writer io.Writer, headers []string, rows [][]string, interactive bool) error {
 	renderer := table.NewWriter()
-	renderer.SetOutputMirror(writer)
 
 	headerRow := make(table.Row, 0, len(headers))
 	for _, header := range headers {
@@ -34,6 +33,6 @@ func RenderTableTo(writer io.Writer, headers []string, rows [][]string, interact
 		style.Color = table.ColorOptions{}
 	}
 	renderer.SetStyle(style)
-	renderer.Render()
-	return nil
+	_, err := io.WriteString(writer, renderer.Render()+"\n")
+	return err
 }

@@ -63,7 +63,19 @@ const failures = [];
 for (const path of getStagedFiles()) {
   const buffer = getStagedBlob(path);
 
+  const hasUtf16Bom =
+    buffer.subarray(0, 2).equals(Buffer.from([0xff, 0xfe])) ||
+    buffer.subarray(0, 2).equals(Buffer.from([0xfe, 0xff]));
+  if (hasUtf16Bom) {
+    failures.push(`${path}: UTF-16 BOM`);
+    continue;
+  }
+  const textFile =
+    /(?:^|\/)(?:\.env[^/]*|Dockerfile[^/]*)$|\.(?:[cm]?[jt]sx?|mdx?|py|go|jsonc?|ya?ml|toml|tf|sql|sh|ps1|css|html|svg|txt|prisma)$/i.test(
+      path,
+    );
   if (isBinary(buffer)) {
+    if (textFile) failures.push(`${path}: unexpected NUL in text file`);
     continue;
   }
 

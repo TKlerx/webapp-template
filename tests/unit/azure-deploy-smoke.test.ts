@@ -153,9 +153,11 @@ describe("azure deploy smoke", () => {
     expect(report.status).toBe("pass");
     expect(command).toHaveBeenCalledWith(
       expect.arrayContaining(["execution", "list"]),
+      expect.any(Number),
     );
     expect(command).toHaveBeenCalledWith(
       expect.arrayContaining(["latest-execution"]),
+      expect.any(Number),
     );
   });
 
@@ -200,6 +202,58 @@ describe("azure deploy smoke", () => {
     ).toMatchObject({
       status: "fail",
       message: "One or more active revisions are unhealthy",
+    });
+  });
+
+  it("requires the named worker revision even when an older one is healthy", async () => {
+    const report = await runSmoke(target({ workerRevision: "revision-b" }), {
+      http: async () => ({ status: 200, body: { status: "ok" } }),
+      command: commandRunner(),
+    });
+
+    expect(report.status).toBe("fail");
+    expect(
+      report.checks.find((check) => check.name === "worker-revision"),
+    ).toMatchObject({
+      target: "worker-dev/revision-b",
+      message: "Expected revision is not active",
+    });
+  });
+
+  it("matches revision build metadata to the requested deployment", async () => {
+    const revision = JSON.stringify([
+      {
+        name: "revision-a",
+        properties: {
+          active: true,
+          healthState: "Healthy",
+          runningState: "Running",
+          template: {
+            containers: [
+              { env: [{ name: "APP_BUILD_ID", value: "release.current" }] },
+            ],
+          },
+        },
+      },
+    ]);
+    const runners = {
+      http: async () => ({ status: 200, body: { status: "ok" } }),
+      command: commandRunner({ "revision list": { stdout: revision } }),
+    };
+    const current = await runSmoke(
+      target({ workerRevision: "revision-a", buildId: "release.current" }),
+      runners,
+    );
+    expect(current.status).toBe("pass");
+    const stale = await runSmoke(
+      target({ workerRevision: "revision-a", buildId: "release.new" }),
+      runners,
+    );
+    expect(
+      stale.checks.find((check) => check.name === "worker-revision"),
+    ).toMatchObject({
+      status: "fail",
+      message: "Expected revision is not active",
     });
   });
 

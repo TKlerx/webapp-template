@@ -38,6 +38,14 @@ func ConfigPath() string {
 }
 
 func Load() (*Config, error) {
+	cfg, err := LoadPersisted()
+	if err == nil {
+		applyEnvOverrides(cfg)
+	}
+	return cfg, err
+}
+
+func LoadPersisted() (*Config, error) {
 	cfg := &Config{}
 	data, err := os.ReadFile(ConfigPath())
 	if err == nil {
@@ -48,7 +56,6 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	applyEnvOverrides(cfg)
 	return cfg, nil
 }
 
@@ -63,18 +70,41 @@ func Save(cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	file, err := openPrivateConfig(ConfigPath())
+	path := ConfigPath()
+	if _, err := os.Stat(path); err == nil {
+		existing, err := openPrivateConfig(path)
+		if err != nil {
+			return err
+		}
+		if err := existing.Close(); err != nil {
+			return err
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	temp, err := os.CreateTemp(ConfigDir(), ".config-*")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(temp.Name())
+	if err := temp.Close(); err != nil {
+		return err
+	}
+	file, err := openPrivateConfig(temp.Name())
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	if err := file.Truncate(0); err != nil {
-		return err
-	}
 	if _, err := file.Write(append(data, '\n')); err != nil {
 		return err
 	}
-	return file.Close()
+	if err := file.Sync(); err != nil {
+		return err
+	}
+	if err := file.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temp.Name(), path)
 }
 
 func Clear() error {

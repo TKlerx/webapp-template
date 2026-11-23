@@ -134,6 +134,10 @@
     "switchedTo": "Theme change en mode {theme}"
   },
   "audit": {
+    "paginationLabel": "Pages du journal d’audit",
+    "previousPage": "Précédent",
+    "nextPage": "Suivant",
+    "pageIndicator": "Page {page} sur {total}",
     "anonymous": "Anonyme",
     "title": "Journal d'audit",
     "action": "Action",
@@ -250,6 +254,7 @@
     "loadFailed": "Could not load tokens",
     "updateFailed": "Could not update token",
     "copied": "Token copied to clipboard",
+    "copyFailed": "Impossible de copier le jeton. Sélectionnez-le et copiez-le manuellement.",
     "copy": "Copy token",
     "done": "Done",
     "tokenValueTitle": "Save {name}",
@@ -304,6 +309,7 @@
     "disabledSaved": "Type de notification desactive",
     "saveFailed": "Impossible d'enregistrer le parametre de notification",
     "loadFailed": "Impossible de charger les notifications",
+    "retry": "Réessayer",
     "updatedAt": "Mis a jour {value}",
     "allEvents": "Tous les evenements",
     "eventFilter": "Filtrer par evenement",
@@ -340,6 +346,8 @@
     "loading": "Actualisation des notifications..."
   },
   "apiDocs": {
+    "loadError": "Impossible de charger la référence de l’API.",
+    "retry": "Réessayer",
     "title": "API reference",
     "description": "Browse the current OpenAPI specification with interactive Swagger UI."
   },
@@ -382,7 +390,7 @@
     "health": {
       "title": "Integration health",
       "sendFailures": "Send failures (24h)",
-      "intakeFailures": "Intake failures (24h)",
+      "intakeFailures": "Erreurs de collecte non résolues (24 h)",
       "lastSend": "Last successful send",
       "lastIntake": "Last successful intake"
     },

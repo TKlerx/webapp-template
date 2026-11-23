@@ -122,6 +122,8 @@ jobs:
         run: pnpm run prisma:generate
 
       - name: Provision isolated PostgreSQL test database
+        env:
+          E2E_PROVISION_DOCKER: "1"
         run: node scripts/ensure-e2e-db.mjs
 
       - name: Install Semgrep
@@ -136,3 +138,13 @@ jobs:
 
       - name: Run full validation
         run: pnpm run validate:full
+
+      - name: Verify production file tracing
+        run: |
+          test -f .next/standalone/server.js
+          for path in cli docs infra specs tests worker; do
+            test ! -e ".next/standalone/$path" || {
+              echo "Unexpected checkout directory in the Next.js runtime: $path"
+              exit 1
+            }
+          done

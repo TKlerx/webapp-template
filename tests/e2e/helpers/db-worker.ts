@@ -36,6 +36,25 @@ async function readJson<T>() {
   return (input ? JSON.parse(input) : {}) as T;
 }
 
+async function updateUserStatus() {
+  const input = await readJson<
+    | { email: string; status: UserStatus }
+    | { emails: string[]; status: UserStatus }
+  >();
+  const data = { status: input.status };
+  if ("emails" in input) {
+    await prisma.user.updateMany({
+      where: { email: { in: input.emails.map(normalizeEmail) } },
+      data,
+    });
+  } else {
+    await prisma.user.update({
+      where: { email: normalizeEmail(input.email) },
+      data,
+    });
+  }
+}
+
 async function main() {
   const operation = process.argv[2] as Operation | undefined;
   if (!operation) {
@@ -166,15 +185,7 @@ async function main() {
     }
 
     case "updateUserStatus": {
-      const { email, status } = await readJson<{
-        email: string;
-        status: UserStatus;
-      }>();
-      await prisma.user.update({
-        where: { email: normalizeEmail(email) },
-        data: { status },
-      });
-
+      await updateUserStatus();
       process.stdout.write("null");
       break;
     }

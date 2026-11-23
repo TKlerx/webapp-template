@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { spawn } from "node:child_process";
+import { constants } from "node:os";
 
 const command = process.argv[2];
 
@@ -25,8 +26,8 @@ const child = spawn(
   },
 );
 
-child.on("exit", (code) => {
-  process.exit(code ?? 0);
+child.on("exit", (code, signal) => {
+  process.exitCode = code ?? (signal ? 128 + constants.signals[signal] : 1);
 });
 
 function normalizeBasePath(value) {

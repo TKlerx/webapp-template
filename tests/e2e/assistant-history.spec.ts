@@ -198,3 +198,53 @@ test("reports a stale tab and reloads the saved version only after confirmation"
       .getByText("Stale local turn", { exact: true }),
   ).not.toBeVisible();
 });
+
+test("recovers a committed save whose response was lost before the next turn", async ({
+  page,
+}) => {
+  let loseResponse = true;
+  await page.route("**/api/assistant/conversations", async (route) => {
+    if (route.request().method() !== "PATCH" || !loseResponse) {
+      await route.continue();
+      return;
+    }
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    loseResponse = false;
+    await route.abort("failed");
+  });
+
+  await send(page, "Committed with a lost response");
+  await expect(
+    page.getByRole("button", { name: "Retry history" }),
+  ).toBeVisible();
+  await send(page, "Follow-up after the lost response");
+  const id = await selector(page).inputValue();
+  await expect
+    .poll(async () => {
+      const response = await page.request.get(`${endpoint}?id=${id}`);
+      const row = await response.json();
+      return row.messages.map((message: { text: string }) => message.text);
+    })
+    .toContain("Follow-up after the lost response");
+  await expect(
+    page.getByRole("button", { name: "Reload saved history" }),
+  ).not.toBeVisible();
+});
+
+test("recovers a submitted turn after reloading before the server saves it", async ({
+  page,
+}) => {
+  await page.route("**/api/assistant/conversations", async (route) => {
+    if (route.request().method() === "PATCH") await route.abort("failed");
+    else await route.continue();
+  });
+  await send(page, "Recover this turn after reload");
+  await page.reload();
+  await open(page);
+  await expect(
+    page
+      .getByRole("log", { name: "Assistant conversation" })
+      .getByText("Recover this turn after reload", { exact: true }),
+  ).toBeVisible();
+});

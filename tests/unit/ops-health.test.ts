@@ -148,7 +148,7 @@ describe("ops health snapshot helpers", () => {
     });
     prismaMock.backgroundJob.findFirst.mockResolvedValue({
       status: "COMPLETED",
-      updatedAt: new Date("2026-06-11T09:30:00Z"),
+      finishedAt: new Date("2026-06-11T09:30:00Z"),
       workerId: "worker-1",
       error: null,
     });
@@ -178,13 +178,13 @@ describe("ops health snapshot helpers", () => {
     });
     prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
       status: "COMPLETED",
-      updatedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+      finishedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
       workerId: "worker-old",
       error: null,
     });
     prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
       status: "PENDING",
-      updatedAt: new Date(),
+      finishedAt: new Date(),
       workerId: null,
       error: null,
     });
@@ -207,7 +207,7 @@ describe("ops health snapshot helpers", () => {
     });
     prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
       status: "FAILED",
-      updatedAt: new Date(),
+      finishedAt: new Date(),
       workerId: "worker-1",
       error: "API_KEY=topsecret",
     });
@@ -272,13 +272,13 @@ describe("ops health snapshot helpers", () => {
     });
     prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
       status: "COMPLETED",
-      updatedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+      finishedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
       workerId: "worker-old",
       error: null,
     });
     prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
       status: "PENDING",
-      updatedAt: new Date(),
+      finishedAt: new Date(),
       workerId: null,
       error: null,
     });
@@ -301,7 +301,7 @@ describe("ops health snapshot helpers", () => {
     });
     prismaMock.backgroundJob.findFirst.mockResolvedValueOnce({
       status: "FAILED",
-      updatedAt: new Date(),
+      finishedAt: new Date(),
       workerId: "worker-1",
       error: "API_KEY=topsecret",
     });

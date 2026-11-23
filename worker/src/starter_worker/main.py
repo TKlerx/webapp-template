@@ -5,19 +5,17 @@ import os
 import re
 import time
 from datetime import datetime, timezone
+from threading import Event, Thread
+from typing import Any
+from uuid import uuid4
 
 from .config import load_config
 from .contracts import NotificationDeliveryPayload, TeamsMessageDeliveryPayload
 from .db import BackgroundJob, JobStore
 from .graph_mail import get_graph_mail_message, list_graph_mail_messages, send_graph_mail
-from .graph_teams import list_teams_channel_messages, send_teams_channel_message
+from .graph_teams import iter_teams_channel_pages, send_teams_channel_message
 from .logging import create_worker_logger, sanitize_log_meta
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s",
-)
 
 worker_logger = create_worker_logger()
 
@@ -46,9 +44,11 @@ def process_job(job: BackgroundJob) -> dict[str, object]:
     if job.job_type == "notification_delivery":
         notification_payload = NotificationDeliveryPayload.model_validate(job.payload)
 
-        send_graph_mail(notification_payload.model_dump())
+        reference = send_graph_mail(notification_payload.model_dump())
         return {
             "notificationId": notification_payload.notificationId,
+            "providerMessageId": reference,
+            "providerStatus": "accepted",
             "status": "sent",
             "processedAt": datetime.now(timezone.utc).isoformat(),
         }
@@ -74,55 +74,55 @@ def process_teams_intake_poll(store: JobStore) -> dict[str, object]:
     created = 0
     duplicates = 0
 
+    failures: list[Exception] = []
     for subscription in subscriptions:
-        payload = {
-            "teamId": subscription["teamId"],
-            "channelId": subscription["channelId"],
-            "top": 50,
-        }
-        response = list_teams_channel_messages(payload)
-        value = response.get("value")
-        messages = value if isinstance(value, list) else []
+        payload = {"teamId": subscription["teamId"], "channelId": subscription["channelId"], "top": 50}
+        try:
+            for messages in iter_teams_channel_pages(payload):
+                for message in messages:
+                    provider_message_id = str(message.get("id") or "").strip()
+                    if not provider_message_id:
+                        continue
 
-        for message in messages:
-            provider_message_id = str(message.get("id") or "").strip()
-            if not provider_message_id:
-                continue
+                    if store.has_teams_inbound_message(subscription["teamId"], subscription["channelId"], provider_message_id):
+                        duplicates += 1
+                        continue
 
-            if store.has_teams_inbound_message(provider_message_id):
-                duplicates += 1
-                continue
+                    body = message.get("body") or {}
+                    from_info = (
+                        (message.get("from") or {}).get("user")
+                        or (message.get("from") or {}).get("application")
+                        or {}
+                    )
+                    content = str(body.get("content") or "")
+                    content_type = str(body.get("contentType") or "html").lower()
+                    truncated_content, truncated = _truncate_text(content, 64 * 1024)
 
-            body = message.get("body") or {}
-            from_info = (
-                (message.get("from") or {}).get("user")
-                or (message.get("from") or {}).get("application")
-                or {}
-            )
-            content = str(body.get("content") or "")
-            content_type = str(body.get("contentType") or "html").lower()
-            truncated_content, truncated = _truncate_text(content, 64 * 1024)
+                    store.create_teams_inbound_message(
+                        {
+                            "id": uuid4().hex,
+                            "subscriptionId": subscription["id"],
+                            "providerMessageId": provider_message_id,
+                            "teamId": subscription["teamId"],
+                            "channelId": subscription["channelId"],
+                            "senderDisplayName": str(from_info.get("displayName") or "").strip() or None,
+                            "senderUserId": str(from_info.get("id") or "").strip() or None,
+                            "content": truncated_content,
+                            "contentType": "text" if content_type == "text" else "html",
+                            "truncated": truncated,
+                            "messageCreatedAt": str(
+                                message.get("createdDateTime") or datetime.now(timezone.utc).isoformat()
+                            ),
+                        }
+                    )
+                    created += 1
 
-            store.create_teams_inbound_message(
-                {
-                    "id": provider_message_id,
-                    "subscriptionId": subscription["id"],
-                    "providerMessageId": provider_message_id,
-                    "teamId": subscription["teamId"],
-                    "channelId": subscription["channelId"],
-                    "senderDisplayName": str(from_info.get("displayName") or "").strip() or None,
-                    "senderUserId": str(from_info.get("id") or "").strip() or None,
-                    "content": truncated_content,
-                    "contentType": "text" if content_type == "text" else "html",
-                    "truncated": truncated,
-                    "messageCreatedAt": str(
-                        message.get("createdDateTime") or datetime.now(timezone.utc).isoformat()
-                    ),
-                }
-            )
-            created += 1
+            store.update_teams_subscription_poll_state(subscription["id"], None)
+        except Exception as error:  # noqa: BLE001 - Other subscriptions still need to be polled.
+            failures.append(error)
 
-        store.update_teams_subscription_poll_state(subscription["id"], None)
+    if failures:
+        raise RuntimeError(f"Teams intake failed for {len(failures)} subscription(s): {failures[0]}") from failures[0]
 
     return {
         "subscriptions": len(subscriptions),
@@ -152,65 +152,32 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
         if not provider_message_id:
             continue
 
-        if store.has_inbound_email(provider_message_id):
+        existing = store.find_inbound_email(
+            provider_message_id, mailbox, summary.get("internetMessageId"),
+        )
+        if existing and existing["processingStatus"] != "RECEIVED":
             duplicates += 1
             continue
 
         message = get_graph_mail_message(mailbox, provider_message_id)
-        created += 1
-        inbound_email_id = provider_message_id
-        sender = (
-            ((message.get("from") or {}).get("emailAddress") or {})
-            if isinstance(message, dict)
-            else {}
-        )
-        body = message.get("body") if isinstance(message, dict) else {}
-        body_content = str((body or {}).get("content") or "")
-        body_type = str((body or {}).get("contentType") or "").lower()
-        headers = message.get("internetMessageHeaders") if isinstance(message, dict) else None
-        in_reply_to = _find_header(headers, "In-Reply-To")
-        reference_header = _find_header(headers, "References")
-        reference_ids = [
-            value for value in (reference_header.split() if reference_header else []) if value
-        ]
+        if not existing and message.get("internetMessageId") and not summary.get("internetMessageId"):
+            existing = store.find_inbound_email(provider_message_id, mailbox, message["internetMessageId"])
+            if existing and existing["processingStatus"] != "RECEIVED":
+                duplicates += 1
+                continue
+        inbound_email_id = existing["id"] if existing else provider_message_id
+        mail = _parse_inbound_message(mailbox, inbound_email_id, provider_message_id, message)
+        if not existing:
+            store.create_inbound_email(mail)
+            created += 1
 
-        store.create_inbound_email(
-            {
-                "id": inbound_email_id,
-                "providerMessageId": provider_message_id,
-                "mailbox": mailbox,
-                "internetMessageId": message.get("internetMessageId"),
-                "conversationId": message.get("conversationId"),
-                "senderEmail": str(sender.get("address") or "").strip().lower() or None,
-                "senderName": str(sender.get("name") or "").strip() or None,
-                "subject": str(message.get("subject") or ""),
-                "bodyPreview": str(message.get("bodyPreview") or "") or None,
-                "bodyText": body_content if body_type != "html" else None,
-                "bodyHtml": body_content if body_type == "html" else None,
-                "inReplyTo": in_reply_to or None,
-                "referenceIds": reference_ids,
-                "receivedAt": str(
-                    message.get("receivedDateTime") or datetime.now(timezone.utc).isoformat()
-                ),
-            }
+        references = (
+            mail["subject"], mail["bodyPreview"] or "", mail["bodyHtml"] or mail["bodyText"] or "",
+            mail["inReplyTo"] or "", mail["referenceIds"],
         )
-
-        notification_id = _extract_notification_reference(
-            str(message.get("subject") or ""),
-            str(message.get("bodyPreview") or ""),
-            body_content,
-            in_reply_to or "",
-            reference_ids,
-        )
-        entity_reference = _extract_entity_reference(
-            str(message.get("subject") or ""),
-            str(message.get("bodyPreview") or ""),
-            body_content,
-            in_reply_to or "",
-            reference_ids,
-        )
-        sender_email = str(sender.get("address") or "")
-        is_bounce = _is_bounce_like(sender_email, str(message.get("subject") or ""))
+        notification_id = _extract_notification_reference(*references)
+        entity_reference = _extract_entity_reference(*references)
+        is_bounce = _is_bounce_like(mail["senderEmail"] or "", mail["subject"])
 
         bounce_status = _try_process_bounce_notification(
             store,
@@ -218,8 +185,8 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
             inbound_email_id=inbound_email_id,
             provider_message_id=provider_message_id,
             notification_id=notification_id,
-            in_reply_to=in_reply_to,
-            reference_ids=reference_ids,
+            in_reply_to=mail["inReplyTo"],
+            reference_ids=mail["referenceIds"],
         )
         if bounce_status is not None:
             if bounce_status == "bounced":
@@ -242,11 +209,7 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
         store.update_inbound_email(
             inbound_email_id,
             processing_status="IGNORED",
-            processing_notes=(
-                "Bounce-like message received without a notification reference."
-                if is_bounce
-                else "No notification or entity reference markers detected."
-            ),
+            processing_notes="No notification or entity reference markers detected.",
         )
         ignored += 1
 
@@ -261,6 +224,32 @@ def process_inbound_mail_poll(store: JobStore, payload: dict[str, object]) -> di
     }
 
 
+def _parse_inbound_message(
+    mailbox: str, inbound_id: str, provider_id: str, message: dict[str, Any],
+) -> dict[str, Any]:
+    sender = (message.get("from") or {}).get("emailAddress") or {}
+    body = message.get("body") or {}
+    body_content = str(body.get("content") or "")
+    is_html = str(body.get("contentType") or "").lower() == "html"
+    headers = message.get("internetMessageHeaders")
+    return {
+        "id": inbound_id,
+        "providerMessageId": provider_id,
+        "mailbox": mailbox,
+        "internetMessageId": message.get("internetMessageId"),
+        "conversationId": message.get("conversationId"),
+        "senderEmail": str(sender.get("address") or "").strip().lower() or None,
+        "senderName": str(sender.get("name") or "").strip() or None,
+        "subject": str(message.get("subject") or ""),
+        "bodyPreview": str(message.get("bodyPreview") or "") or None,
+        "bodyText": None if is_html else body_content,
+        "bodyHtml": body_content if is_html else None,
+        "inReplyTo": _find_header(headers, "In-Reply-To") or None,
+        "referenceIds": (_find_header(headers, "References") or "").split(),
+        "receivedAt": str(message.get("receivedDateTime") or datetime.now(timezone.utc).isoformat()),
+    }
+
+
 def _try_process_bounce_notification(
     store: JobStore,
     *,
@@ -271,7 +260,7 @@ def _try_process_bounce_notification(
     in_reply_to: str | None,
     reference_ids: list[str],
 ) -> str | None:
-    if not is_bounce or not notification_id:
+    if not is_bounce:
         return None
 
     return _process_bounce_notification(
@@ -289,7 +278,7 @@ def _process_bounce_notification(
     *,
     inbound_email_id: str,
     provider_message_id: str,
-    notification_id: str,
+    notification_id: str | None,
     in_reply_to: str | None,
     reference_ids: list[str],
 ) -> str:
@@ -307,7 +296,7 @@ def _process_bounce_notification(
         return "ignored"
 
     correlated_notification_id = str(notification.get("id") or "")
-    if correlated_notification_id != notification_id:
+    if notification_id and correlated_notification_id != notification_id:
         store.update_inbound_email(
             inbound_email_id,
             processing_status="IGNORED",
@@ -402,14 +391,9 @@ def _truncate_text(content: str, limit_bytes: int) -> tuple[str, bool]:
     if len(encoded) <= limit_bytes:
         return content, False
 
-    marker = "..."
-    candidate = content
-    while candidate:
-        candidate = candidate[:-1]
-        if len((candidate + marker).encode("utf-8")) <= limit_bytes:
-            return candidate + marker, True
-
-    return marker, True
+    marker = b"..."[:limit_bytes]
+    preview = encoded[: limit_bytes - len(marker)].decode("utf-8", errors="ignore")
+    return preview + marker.decode("ascii"), True
 
 
 def _log_worker_started(config: object) -> None:
@@ -460,8 +444,41 @@ def _log_job_failed(job: BackgroundJob, error: BaseException) -> None:
     )
 
 
+def _maintain_claim(store: JobStore, job: BackgroundJob, stopped: Event, interval: float) -> None:
+    while not stopped.wait(interval):
+        try:
+            if not store.renew_claim(job):
+                return
+        except Exception as error:  # noqa: BLE001
+            worker_logger.exception("job.heartbeat_failed", error, jobId=job.id)
+
+
+def _execute_claimed_job(store: JobStore, job: BackgroundJob) -> dict[str, object]:
+    notification_id = str(job.payload.get("notificationId") or "").strip()
+    if job.job_type == "notification_delivery" and notification_id:
+        store.mark_notification_processing(notification_id, job.attempt_count)
+    teams_outbound_id = str(job.payload.get("teamsOutboundMessageId") or "").strip()
+    if job.job_type == "teams_message_delivery" and teams_outbound_id:
+        store.mark_teams_outbound_processing(teams_outbound_id, job.attempt_count)
+
+    if job.job_type == "inbound_mail_poll":
+        return process_inbound_mail_poll(store, job.payload)
+    if job.job_type == "teams_intake_poll":
+        return process_teams_intake_poll(store)
+    return process_job(job)
+
+
 def main() -> None:
     config = load_config()
+    logging.basicConfig(
+        level={
+            "debug": logging.DEBUG,
+            "info": logging.INFO,
+            "warn": logging.WARNING,
+            "error": logging.ERROR,
+        }.get(os.environ.get("LOG_LEVEL", "").strip().lower(), logging.INFO),
+        format="%(message)s",
+    )
     store = JobStore(config)
     _log_worker_started(config)
 
@@ -485,43 +502,23 @@ def main() -> None:
             continue
 
         _log_job_claimed(job)
+        stopped = Event()
+        heartbeat = Thread(
+            target=_maintain_claim,
+            args=(store, job, stopped, min(config.stale_lock_seconds / 3, 30)),
+            daemon=True,
+        )
+        heartbeat.start()
         try:
-            notification_id = str(job.payload.get("notificationId") or "").strip()
-            if job.job_type == "notification_delivery" and notification_id:
-                store.mark_notification_processing(notification_id, job.attempt_count)
-            teams_outbound_id = str(job.payload.get("teamsOutboundMessageId") or "").strip()
-            if job.job_type == "teams_message_delivery" and teams_outbound_id:
-                store.mark_teams_outbound_processing(teams_outbound_id, job.attempt_count)
-
-            if job.job_type == "inbound_mail_poll":
-                result = process_inbound_mail_poll(store, job.payload)
-            elif job.job_type == "teams_intake_poll":
-                result = process_teams_intake_poll(store)
-            else:
-                result = process_job(job)
-            store.complete_job(job.id, result)
-            if job.job_type == "notification_delivery" and notification_id:
-                store.mark_notification_sent(notification_id, job.attempt_count)
-            _log_job_completed(job, result)
+            result = _execute_claimed_job(store, job)
+            if store.complete_job(job, result):
+                _log_job_completed(job, result)
         except Exception as error:  # noqa: BLE001
-            notification_id = str(job.payload.get("notificationId") or "").strip()
-            if job.job_type == "notification_delivery" and notification_id:
-                store.mark_notification_failed(
-                    notification_id,
-                    str(error),
-                    job.attempt_count,
-                    will_retry=job.attempt_count < config.max_attempts,
-                )
-            teams_outbound_id = str(job.payload.get("teamsOutboundMessageId") or "").strip()
-            if job.job_type == "teams_message_delivery" and teams_outbound_id:
-                store.mark_teams_outbound_failed(
-                    teams_outbound_id,
-                    str(error),
-                    job.attempt_count,
-                    will_retry=job.attempt_count < config.max_attempts_for(job.job_type),
-                )
-            store.fail_job(job.id, str(error))
+            store.fail_job(job, str(error))
             _log_job_failed(job, error)
+        finally:
+            stopped.set()
+            heartbeat.join(timeout=5)
 
 
 def _is_teams_enabled() -> bool:

@@ -37,9 +37,9 @@ foreach ($pattern in $patterns) {
   }
 }
 
-if ($copied -eq 0) {
+if (-not (Get-ChildItem -LiteralPath $tmpDir -File | Where-Object { $_.Name -ne "checksums.txt" })) {
   Remove-Item -LiteralPath $tmpDir -Recurse -Force
-  throw "No CLI release artifacts found in $SourceDir"
+  throw "No CLI release archives found in $SourceDir"
 }
 
 if (Test-Path -LiteralPath $targetFullPath) {

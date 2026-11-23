@@ -38,6 +38,7 @@ async function main() {
     );
   }
   const email = normalizeInitialAdminEmail(rawEmail);
+  if (!email) throw new Error("INITIAL_ADMIN_EMAIL must be set");
 
   if (!validatePasswordComplexity(password)) {
     throw new Error(
@@ -55,12 +56,12 @@ async function main() {
 
   if (existingCount > 0) {
     const admin = await prisma.user.findFirst({
-      where: { role: Role.PLATFORM_ADMIN },
+      where: { role: Role.PLATFORM_ADMIN, status: UserStatus.ACTIVE },
     });
 
     if (!admin) {
       throw new Error(
-        "Expected at least one admin user in the starter database.",
+        "Expected at least one active platform admin in the starter database.",
       );
     }
 

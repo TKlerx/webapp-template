@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/mod/semver"
 	"golang.org/x/term"
 )
 
@@ -117,10 +118,16 @@ func checkForUpdate(currentVersion string) (string, error) {
 }
 
 func renderMessage(currentVersion string, latestVersion string) string {
-	if latestVersion == "" || latestVersion == currentVersion {
+	current, latest := canonicalVersion(currentVersion), canonicalVersion(latestVersion)
+	if !semver.IsValid(current) || !semver.IsValid(latest) || semver.Compare(latest, current) <= 0 {
 		return ""
 	}
 	return fmt.Sprintf("A newer starterctl version is available: %s (current %s)", latestVersion, currentVersion)
+}
+
+func canonicalVersion(value string) string {
+	value = strings.TrimPrefix(strings.TrimPrefix(value, "starterctl-"), "cli-")
+	return "v" + strings.TrimPrefix(value, "v")
 }
 
 func cachePath() string {

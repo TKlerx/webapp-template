@@ -59,6 +59,12 @@ export async function changePasswordForUser(
   }
 
   const nextPasswordHash = await hashPassword(body.newPassword);
+  const authSession = await auth.api.getSession({
+    headers: new Headers(request.headers),
+  });
+  if (!authSession || authSession.user.id !== user.id) {
+    return jsonError("Not authenticated", 401);
+  }
 
   await prisma.$transaction([
     prisma.user.update({
@@ -78,11 +84,10 @@ export async function changePasswordForUser(
         password: nextPasswordHash,
       },
     }),
+    prisma.session.deleteMany({
+      where: { userId: user.id, id: { not: authSession.session.id } },
+    }),
   ]);
-
-  await auth.api.revokeOtherSessions({
-    headers: new Headers(request.headers),
-  });
 
   await safeLogAudit({
     action: AuditAction.AUTH_PASSWORD_CHANGED,

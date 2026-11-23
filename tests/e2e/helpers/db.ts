@@ -122,6 +122,13 @@ export function updateUserStatus(email: string, status: UserStatus) {
   );
 }
 
+export function updateUserStatuses(emails: string[], status: UserStatus) {
+  return runDbWorker<{ emails: string[]; status: UserStatus }, null>(
+    "updateUserStatus",
+    { emails, status },
+  );
+}
+
 export function assignUserToScope(
   email: string,
   scope: { code: string; name: string },

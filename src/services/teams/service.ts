@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { NotificationEventType } from "../../../generated/prisma/enums";
-import { createGraphTeamsClient } from "@/lib/teams/client";
+import {
+  createGraphTeamsClient,
+  GraphTeamsHttpError,
+} from "@/lib/teams/client";
 import { getOrCreateTeamsConfig } from "@/services/teams/admin";
 import { getFreshTeamsDelegatedAccessToken } from "@/services/teams/consent";
 
@@ -92,17 +95,20 @@ export async function deliverTeamsMessage(jobId: string) {
   if (typeof id !== "string" || !id)
     throw new Error("Invalid Teams delivery job.");
 
-  // ponytail: hold one row lock during this small-team send; use provider idempotency
-  // if throughput requires releasing it sooner.
-  return prisma.$transaction(
+  const send = await prisma.$transaction(
     async (tx) => {
-      await tx.$queryRaw`SELECT id FROM "TeamsOutboundMessage" WHERE id = ${id} FOR UPDATE`;
       const outbound = await tx.teamsOutboundMessage.findUnique({
         where: { id },
         include: { target: { include: { createdBy: true } } },
       });
       if (!outbound) throw new Error("Teams outbound message is missing.");
-      if (outbound.status === "SENT") return { id: outbound.graphMessageId };
+      if (outbound.status === "SENT")
+        return { receipt: outbound.graphMessageId };
+      if (outbound.sendReservedAt) {
+        throw new Error(
+          "Teams send outcome is unknown. Check the channel before resending.",
+        );
+      }
       const config = await tx.teamsIntegrationConfig.findFirst({
         orderBy: { createdAt: "asc" },
       });
@@ -124,27 +130,63 @@ export async function deliverTeamsMessage(jobId: string) {
       );
       if (!delegatedAccessToken)
         throw new Error("Teams target owner must reconnect delegated consent.");
-      const response = await createGraphTeamsClient({
-        delegatedAccessToken,
-      }).sendChannelMessage({
-        teamId: target.teamId,
-        channelId: target.channelId,
-        content: outbound.content,
-        contentType: outbound.contentType === "text" ? "text" : "html",
+      const client = createGraphTeamsClient({ delegatedAccessToken });
+      const reservedAt = new Date();
+      const reservation = await tx.teamsOutboundMessage.updateMany({
+        where: { id, sendReservedAt: null, status: { not: "SENT" } },
+        data: { sendReservedAt: reservedAt },
       });
-      await tx.teamsOutboundMessage.update({
-        where: { id },
-        data: {
-          status: "SENT",
-          sentAt: new Date(),
-          graphMessageId: response.messageId,
-          lastError: null,
+      if (reservation.count !== 1)
+        throw new Error("Teams message is already being delivered.");
+
+      return {
+        client,
+        reservedAt,
+        request: {
+          teamId: target.teamId,
+          channelId: target.channelId,
+          content: outbound.content,
+          contentType:
+            outbound.contentType === "text"
+              ? ("text" as const)
+              : ("html" as const),
         },
-      });
-      return { id: response.messageId };
+      };
     },
     { timeout: 35_000 },
   );
+
+  if ("receipt" in send) return { id: send.receipt };
+
+  let response;
+  try {
+    response = await send.client.sendChannelMessage(send.request);
+  } catch (error) {
+    if (
+      error instanceof GraphTeamsHttpError &&
+      error.status >= 400 &&
+      error.status < 500 &&
+      error.status !== 408
+    ) {
+      await prisma.teamsOutboundMessage.updateMany({
+        where: { id, sendReservedAt: send.reservedAt },
+        data: { sendReservedAt: null },
+      });
+    }
+    throw error;
+  }
+
+  await prisma.teamsOutboundMessage.update({
+    where: { id },
+    data: {
+      status: "SENT",
+      sentAt: new Date(),
+      graphMessageId: response.messageId,
+      sendReservedAt: null,
+      lastError: null,
+    },
+  });
+  return { id: response.messageId };
 }
 
 function buildTeamsContent(
@@ -173,21 +215,17 @@ function escapeHtml(value: string) {
 }
 
 function truncateUtf8(value: string, maxBytes: number) {
-  const encoded = new TextEncoder().encode(value);
-  if (encoded.byteLength <= maxBytes) {
-    return { content: value, truncated: false };
-  }
-
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(value);
+  if (bytes.length <= maxBytes) return { content: value, truncated: false };
   const marker = "...";
-  let candidate = value;
-  while (candidate.length > 0) {
-    candidate = candidate.slice(0, -1);
-    if (new TextEncoder().encode(candidate + marker).byteLength <= maxBytes) {
-      return { content: `${candidate}${marker}`, truncated: true };
-    }
-  }
-
-  return { content: marker, truncated: true };
+  const end = maxBytes - marker.length;
+  let boundary = end;
+  while (boundary > 0 && (bytes[boundary] & 0xc0) === 0x80) boundary--;
+  return {
+    content: new TextDecoder().decode(bytes.subarray(0, boundary)) + marker,
+    truncated: true,
+  };
 }
 
 function isTeamsFeatureEnabled() {

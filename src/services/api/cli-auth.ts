@@ -12,14 +12,13 @@ import {
 import { AuditAction, TokenType } from "../../../generated/prisma/enums";
 
 const AUTH_CODE_TTL_SECONDS = 60;
+const APPROVAL_TTL_SECONDS = 150;
 export const CLI_AUTH_CSRF_COOKIE = "starter_app_cli_auth_csrf";
 export const CLI_AUTH_CSRF_QUERY_PARAM = "approval";
 const CLI_TOKEN_NAME_PREFIX = "CLI Login";
 
-function getAuthCodeExpiryDate() {
-  const expiresAt = new Date();
-  expiresAt.setSeconds(expiresAt.getSeconds() + AUTH_CODE_TTL_SECONDS);
-  return expiresAt;
+function getAuthCodeExpiryDate(seconds: number) {
+  return new Date(Date.now() + seconds * 1000);
 }
 
 export function isValidCliCallbackUrl(callbackUrl: string) {
@@ -64,7 +63,7 @@ export async function createAuthCode(callbackUrl: string, state: string) {
       code: crypto.randomBytes(24).toString("base64url"),
       callbackUrl,
       state,
-      expiresAt: getAuthCodeExpiryDate(),
+      expiresAt: getAuthCodeExpiryDate(APPROVAL_TTL_SECONDS),
     },
   });
 
@@ -89,6 +88,7 @@ export async function bindAuthCodeToUser(codeId: string, userId: string) {
     where: { id: codeId },
     data: {
       userId,
+      expiresAt: getAuthCodeExpiryDate(AUTH_CODE_TTL_SECONDS),
     },
   });
 

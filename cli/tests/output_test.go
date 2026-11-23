@@ -26,11 +26,11 @@ func TestRenderersProduceExpectedFormats(t *testing.T) {
 
 func TestNonInteractiveDefaultsToJSON(t *testing.T) {
 	renderer := output.NewRenderer(output.Options{
-		Format:      "table",
 		Stdout:      &bytes.Buffer{},
 		Stderr:      &bytes.Buffer{},
 		Interactive: false,
 	})
 
 	require.Equal(t, output.FormatJSON, renderer.Format())
+	require.Equal(t, output.FormatTable, output.ResolveFormat("table", false))
 }

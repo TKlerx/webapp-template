@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/spf13/cobra"
 
@@ -16,6 +17,9 @@ type healthPayload struct {
 		Database struct {
 			Status string `json:"status"`
 		} `json:"database"`
+		Process struct {
+			Status string `json:"status"`
+		} `json:"process"`
 	} `json:"checks"`
 }
 
@@ -33,7 +37,7 @@ func newHealthCommand() *cobra.Command {
 			httpClient := client.NewClient(cfg)
 			httpClient.SetVerbose(verboseFlag)
 			httpClient.SetStderr(stderr)
-			resp, err := httpClient.Get("/api/health")
+			resp, err := httpClient.GetAcceptingStatus("/api/health", http.StatusServiceUnavailable)
 			if err != nil {
 				return err
 			}
@@ -42,6 +46,10 @@ func newHealthCommand() *cobra.Command {
 			if err := resp.DecodeJSON(&payload); err != nil {
 				return err
 			}
+			payload.Version = "unknown"
+			if resp.StatusCode == http.StatusOK {
+				payload.Version = serverVersion(httpClient)
+			}
 
 			renderer := output.NewRenderer(output.Options{
 				Format:      formatFlag,
@@ -49,15 +57,20 @@ func newHealthCommand() *cobra.Command {
 				Stderr:      stderr,
 				Interactive: output.IsInteractiveWriter(stdout),
 			})
-			if renderer.Format() == output.FormatJSON {
-				return renderer.RenderData(payload)
+			switch renderer.Format() {
+			case output.FormatJSON:
+				err = renderer.RenderData(payload)
+			case output.FormatCSV:
+				err = renderer.RenderTable([]string{"Status", "Database", "Process", "Version"}, [][]string{{payload.Status, payload.Checks.Database.Status, payload.Checks.Process.Status, payload.Version}})
+			default:
+				_, err = fmt.Fprintf(stdout, "status=%s database=%s process=%s version=%s\n", payload.Status, payload.Checks.Database.Status, payload.Checks.Process.Status, payload.Version)
 			}
-
-			if payload.Version != "" {
-				fmt.Fprintf(stdout, "status=%s database=%s version=%s\n", payload.Status, payload.Checks.Database.Status, payload.Version)
-				return nil
+			if err != nil {
+				return err
 			}
-			fmt.Fprintf(stdout, "status=%s database=%s\n", payload.Status, payload.Checks.Database.Status)
+			if resp.StatusCode == http.StatusServiceUnavailable {
+				return &client.AppError{Message: "server health check is degraded", Code: 1}
+			}
 			return nil
 		},
 	}
