@@ -2062,3 +2062,7 @@ Patched only the dependencies named in current GitHub alerts; existing quality a
 ## 2026-11-23 — Restore assistant PR mergeability
 
 Ruff/Bandit commit `6056ccc` was pushed to PR #56. GitHub could not start its PR workflow because main's security follow-up #57 conflicted in the continuity log and pnpm lockfile. Merged current main `9664e31` normally, retaining both histories, assistant-specific dependencies and main's patched Effect 3.22.1 override. Frozen installation, clean all-dependency pnpm audit, TypeScript, 366 application tests/75 files and staged text/diff checks pass. Evidence `.artifacts/bandit-merge-*.log`. Push this merge to the existing assistant PR and verify mergeability/new CI startup; no changes to main, PR #58, EDEKA or other worktrees/stashes.
+
+## 2026-11-23 — Consolidate Bandit in PR #56
+
+PR #58 merged first. Updated #56 from main and removed the duplicate report-only workflow step so the existing Python quality gate runs locked Bandit once. Both required checks passed on the previous head; fresh PR CI covers the consolidated workflow.

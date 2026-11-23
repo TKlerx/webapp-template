@@ -1,5 +1,9 @@
 # Continue
 
+## Assistant PR and Bandit consolidation (2026-11-23)
+
+- Both required checks passed on assistant PR #56 at `de7a220`. PR #58 merged separately as `f916802` and added a report-only Bandit scan. Brought that main into #56 and removed the duplicate workflow step. The existing Python quality gate runs locked Bandit once and fails validation on findings. Verify fresh CI on #56 before merging.
+
 ## Standalone Bandit (2026-11-23)
 
 - Added Bandit 1.9.4 as a worker development dependency, locked with its new Stevedore dependency; the existing one-week dependency cooldown remains in force. `quality:python` now runs `uv run --locked bandit -r src` alongside Ruff. Existing validation/CI entry points invoke it automatically, with no severity/confidence filters, global rule skips or baseline. Ruff continues scanning source and tests; Bandit scans production source.
