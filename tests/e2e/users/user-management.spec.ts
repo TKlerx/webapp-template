@@ -355,3 +355,51 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
     await adminContext.close();
   }
 });
+
+test("Users row actions fit in the desktop table without horizontal scrolling", async ({
+  page,
+}) => {
+  const email = "e2e-users-desktop@example.com";
+  const password = "DesktopTest123";
+  seedLocalUser({
+    email,
+    name: "Desktop Admin",
+    role: Role.PLATFORM_ADMIN,
+    password,
+    mustChangePassword: false,
+  });
+  try {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await loginWithPassword(page, email, password);
+    await expectOnDashboard(page);
+    await page.goto(`${appBasePath}/users`);
+    const action = page
+      .getByRole("row")
+      .filter({ hasText: email })
+      .getByRole("button", { name: "Deactivate" });
+    await expect(action).toBeVisible();
+    await expect
+      .poll(() =>
+        action.evaluate((button) => {
+          let viewport = button.parentElement;
+          while (
+            viewport &&
+            !["auto", "scroll"].includes(getComputedStyle(viewport).overflowX)
+          ) {
+            viewport = viewport.parentElement;
+          }
+          if (!viewport) return false;
+          const visible = viewport.getBoundingClientRect();
+          const bounds = button.getBoundingClientRect();
+          return (
+            viewport.scrollLeft === 0 &&
+            bounds.left >= visible.left &&
+            bounds.right <= visible.right
+          );
+        }),
+      )
+      .toBe(true);
+  } finally {
+    updateUserStatuses([email], UserStatus.INACTIVE);
+  }
+});
