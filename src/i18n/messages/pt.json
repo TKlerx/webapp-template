@@ -138,6 +138,7 @@
     "previousPage": "Anterior",
     "nextPage": "Seguinte",
     "pageIndicator": "Página {page} de {total}",
+    "retry": "Tentar novamente",
     "anonymous": "Anónimo",
     "title": "Auditoria",
     "action": "Acao",

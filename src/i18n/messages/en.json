@@ -138,6 +138,7 @@
     "previousPage": "Previous",
     "nextPage": "Next",
     "pageIndicator": "Page {page} of {total}",
+    "retry": "Retry",
     "anonymous": "Anonymous",
     "title": "Audit Trail",
     "action": "Action",
