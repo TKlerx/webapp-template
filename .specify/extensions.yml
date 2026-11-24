@@ -79,6 +79,14 @@ hooks:
       prompt: Commit implementation changes?
       description: Auto-commit after implementation
       condition: null
+    - extension: spectest
+      command: speckit.spectest.gaps
+      enabled: true
+      optional: true
+      priority: 10
+      prompt: Check for untested spec requirements?
+      description: Scan for spec requirements with no matching tests after implementation
+      condition: null
   before_constitution:
     - extension: git
       command: speckit.git.initialize
@@ -177,5 +185,6 @@ hooks:
       condition: null
 installed:
   - archive
+  - spectest
 settings:
   auto_execute_hooks: true

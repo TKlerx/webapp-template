@@ -1,5 +1,19 @@
 # Continue
 
+## SpecTest and test design pilot (2026-11-24)
+
+- Applied the workflow to Ops Health FR-017. The existing browser flow covered copy success feedback. It now also denies the Clipboard API and makes the fallback fail, then asserts the operator sees the failure message. The browser test exercises both outcomes without changing production code. `AI_TESTING.md` connects the local test design skill to future regression reviews.
+- Passed 18 focused unit/API tests, both production-mode Ops Health browser tests, and targeted ESLint. The disposable PostgreSQL container was removed. Publishing `codex/spectest` for review.
+
+## Project skill inventory (2026-11-24)
+
+- Added a local copy of `prepare-work-item` for issue triage before Spec Kit planning. `vercel-react-best-practices`, `web-design-guidelines`, and `test-design-review` are already present locally. The mobile skills and the Bicep-specific Azure preflight skill are outside this web template’s stack. Azure infrastructure uses the existing OpenTofu validation and plan workflow.
+
+## SpecTest extension (2026-11-24)
+
+- Installed the vendored SpecTest v1.0.0 extension on `codex/spectest`. The original release uses command names rejected by Spec Kit 1.1. This copy uses the `speckit.spectest` namespace and resolves specs in feature directories. Codex registers four skills, with an optional read-only gap check after implementation. See `AI_TESTING.md` for usage with the repo-local `test-design-review` skill.
+- Verified CLI registration, manifest integrity, generated command content, feature-path resolution, and the optional hook. A read-only trial on Ops Health identified partial coverage for FR-017. The existing browser test checks copy success feedback, but there is no assertion for the failure message when both clipboard paths fail. Changes remain local.
+
 ## HeroUI integration (2026-11-24)
 
 - Added HeroUI v3 on `codex/heroui-integration` from current `origin/main`. The account menu’s theme switch demonstrates the library with the existing theme provider and persistence API. Shared CSS tokens cover light and dark mode, including separate muted text and table background colors. Existing shadcn/Radix components remain available alongside HeroUI.

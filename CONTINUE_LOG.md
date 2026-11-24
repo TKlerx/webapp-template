@@ -2090,3 +2090,15 @@ Production build and all three focused Playwright tests passed using a disposabl
 ## 2026-11-24 — Review HeroUI radius isolation
 
 PR #61 review found that HeroUI’s shared theme overrides the standard Tailwind radii. Restored the template scale and kept HeroUI Button rounding in the component layer. Verified the production CSS and passed three focused browser tests, including a regression check for both the sign-out and theme toggle radii. No further actionable issues found in the full rereview.
+
+## 2026-11-24 — Add SpecTest to the template
+
+Vendored SpecTest v1.0.0 and registered its four Codex skills using Spec Kit 1.1. Adapted the command namespace and feature spec lookup. Gap and coverage prompts verify matches against actual assertions using the repo-local test-design-review skill. The after-implementation gap review is optional. Verified registration and manifest integrity and tried the read-only gap review on Ops Health. FR-017 has success feedback coverage and a gap for failed clipboard feedback. Changes remain local.
+
+## 2026-11-24 — Keep relevant skills local
+
+Added prepare-work-item for drafting or triaging issues before Spec Kit planning. React performance, web design and test design guidance already exist in the project. Native mobile and Bicep deployment skills do not match the template stack. Existing OpenTofu checks and deployment planning cover Azure preflight.
+
+## 2026-11-24 — Apply SpecTest and test design review
+
+Reviewed Ops Health FR-017 against existing assertions and closed the clipboard failure feedback gap. The browser test denies clipboard writes and fails the fallback, then checks the visible error. SpecTest remains advisory and the test design skill guides assertion review. Passed 18 focused unit and API tests, two production-mode browser tests, and targeted ESLint. Changes remain local.

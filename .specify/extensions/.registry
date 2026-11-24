@@ -45,6 +45,23 @@
       },
       "registered_skills": [],
       "installed_at": "2026-10-14T22:28:51.531485+00:00"
+    },
+    "spectest": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:316a0349d05ae4728fcdd951e434eab96691b4e8f1e6e6fbe5e69f73207bb950",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "codex": [
+          "speckit.spectest.generate",
+          "speckit.spectest.coverage",
+          "speckit.spectest.gaps",
+          "speckit.spectest.plan"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-11-24T12:55:05.840679+00:00"
     }
   }
 }
