@@ -4,6 +4,7 @@
 
 - Moved the Audit Trail page controls outside Mantine DataTable so keyboard focus survives a page load. Kept the row count, filters, exports, and Previous after a failed load.
 - The production build, 15 audit unit tests, and four focused Playwright tests passed against disposable PostgreSQL.
+- Addressed the three PR #65 review findings. The pager now sits above the rows, focus moves to the current page or the table when a focused page control disappears, and a failed page can be retried with its active filters.
 
 ## Mantine DataTable for the Audit Trail (2026-11-24)
 

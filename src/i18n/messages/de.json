@@ -138,6 +138,7 @@
     "previousPage": "Zurück",
     "nextPage": "Weiter",
     "pageIndicator": "Seite {page} von {total}",
+    "retry": "Erneut versuchen",
     "anonymous": "Anonym",
     "title": "Prufprotokoll",
     "action": "Aktion",

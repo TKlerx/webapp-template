@@ -2118,3 +2118,11 @@ The Audit Trail tests deactivate their administrator fixture after each case so 
 ## 2026-11-24 — Preserve Audit Trail pagination focus
 
 Ported the pagination fix from Personal Assistant. Page controls stay mounted during loading, and the regression verifies focus after page selection and after using Previous to reach page one. The audit and theme browser tests passed against disposable PostgreSQL.
+
+## 2026-11-24 — Address PR #65 review findings
+
+Moved the Audit Trail pager above the rows. If a response removes the focused page control, the current page button receives focus, or the table receives focus when the pager disappears. Added a localized Retry action and same-page reactivation after a failed request. Both use the current filters.
+
+Added Chromium regressions for the focus viewport, both cases of a shrinking page count, and both retry actions. Each test signs in with its own administrator fixture and deactivates it afterward.
+
+The production build, seven audit browser tests, 15 audit unit tests, TypeScript, focused lint and formatting, architecture, and duplication checks passed locally.

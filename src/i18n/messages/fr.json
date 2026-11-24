@@ -138,6 +138,7 @@
     "previousPage": "Précédent",
     "nextPage": "Suivant",
     "pageIndicator": "Page {page} sur {total}",
+    "retry": "Réessayer",
     "anonymous": "Anonyme",
     "title": "Journal d'audit",
     "action": "Action",

@@ -3,7 +3,7 @@
 import { Pagination } from "@mantine/core";
 import { usePagination } from "@mantine/hooks";
 import { DataTable } from "mantine-datatable";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { AuditExportButton } from "@/components/audit/AuditExportButton";
@@ -36,6 +36,10 @@ export function AuditTrailViewer() {
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const pagerRef = useRef<HTMLElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const focusedPageControl = useRef<Element | null>(null);
 
   const totalPages = pagination
     ? Math.max(1, Math.ceil(pagination.total / pagination.limit))
@@ -49,6 +53,26 @@ export function AuditTrailViewer() {
     if (filters.entityType) params.set("entityType", filters.entityType);
     return params.toString();
   }, [filters]);
+
+  function focusAuditResults() {
+    const target =
+      pagerRef.current?.querySelector<HTMLButtonElement>(
+        '[aria-current="page"]',
+      ) ?? tableRef.current;
+    target?.focus();
+  }
+
+  useLayoutEffect(() => {
+    const control = focusedPageControl.current;
+    focusedPageControl.current = null;
+    if (
+      control &&
+      !control.isConnected &&
+      document.activeElement === document.body
+    ) {
+      focusAuditResults();
+    }
+  }, [pagination]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -82,10 +106,17 @@ export function AuditTrailViewer() {
         const total = payload?.total ?? 0;
         const limit = payload?.limit || 25;
         const lastPage = Math.max(1, Math.ceil(total / limit));
+        const activeElement = document.activeElement;
+        if (pagerRef.current?.contains(activeElement)) {
+          focusedPageControl.current = activeElement;
+        }
         setPagination({ total, limit });
         if (page > lastPage) setPage(lastPage);
       } catch (fetchError) {
-        if ((fetchError as Error).name !== "AbortError") {
+        if (
+          !controller.signal.aborted &&
+          (fetchError as Error).name !== "AbortError"
+        ) {
           setError(commonT("error"));
           setRows([]);
         }
@@ -99,7 +130,7 @@ export function AuditTrailViewer() {
     void loadAuditRows();
 
     return () => controller.abort();
-  }, [commonT, page, queryString]);
+  }, [commonT, page, queryString, retryCount]);
 
   return (
     <div className="space-y-6">
@@ -144,6 +175,79 @@ export function AuditTrailViewer() {
         </div>
         <AuditExportButton queryString={queryString} />
       </div>
+
+      {totalPages > 1 && (
+        <nav
+          ref={pagerRef}
+          aria-label={t("paginationLabel")}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <Button
+            type="button"
+            variant="secondary"
+            aria-disabled={page === 1}
+            className="aria-disabled:opacity-60"
+            onClick={pager.previous}
+          >
+            {t("previousPage")}
+          </Button>
+          <Pagination.Root
+            total={totalPages}
+            value={page}
+            size="sm"
+            className="flex flex-wrap gap-1"
+          >
+            {pager.range.map((target, index) =>
+              target === "dots" ? (
+                <Pagination.Dots key={`dots-${index}`} />
+              ) : (
+                <Pagination.Control
+                  key={target}
+                  active={target === page}
+                  aria-current={target === page ? "page" : undefined}
+                  aria-label={t("pageIndicator", {
+                    page: target,
+                    total: totalPages,
+                  })}
+                  onClick={() => {
+                    if (error && target === page) {
+                      setRetryCount((count) => count + 1);
+                    } else {
+                      pager.setPage(target);
+                    }
+                  }}
+                >
+                  {target}
+                </Pagination.Control>
+              ),
+            )}
+          </Pagination.Root>
+          <Button
+            type="button"
+            variant="secondary"
+            aria-disabled={page === totalPages}
+            className="aria-disabled:opacity-60"
+            onClick={pager.next}
+          >
+            {t("nextPage")}
+          </Button>
+          <span className="sr-only" aria-live="polite">
+            {t("pageIndicator", { page, total: totalPages })}
+          </span>
+        </nav>
+      )}
+      {error && (
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            focusAuditResults();
+            setRetryCount((count) => count + 1);
+          }}
+        >
+          {t("retry")}
+        </Button>
+      )}
 
       <DataTable
         aria-label={t("title")}
@@ -229,6 +333,10 @@ export function AuditTrailViewer() {
         horizontalSpacing="md"
         minHeight={160}
         records={rows}
+        tabIndex={-1}
+        tableRef={(table) => {
+          tableRef.current = table;
+        }}
         rowBorderColor="var(--border)"
         verticalAlign="top"
         verticalSpacing="md"
@@ -238,59 +346,6 @@ export function AuditTrailViewer() {
         <p className="text-sm text-[var(--muted-foreground)]">
           {firstRecord} - {firstRecord + rows.length - 1} / {pagination.total}
         </p>
-      )}
-      {totalPages > 1 && (
-        <nav
-          aria-label={t("paginationLabel")}
-          className="flex flex-wrap items-center gap-2"
-        >
-          <Button
-            type="button"
-            variant="secondary"
-            aria-disabled={page === 1}
-            className="aria-disabled:opacity-60"
-            onClick={pager.previous}
-          >
-            {t("previousPage")}
-          </Button>
-          <Pagination.Root
-            total={totalPages}
-            value={page}
-            size="sm"
-            className="flex flex-wrap gap-1"
-          >
-            {pager.range.map((target, index) =>
-              target === "dots" ? (
-                <Pagination.Dots key={`dots-${index}`} />
-              ) : (
-                <Pagination.Control
-                  key={target}
-                  active={target === page}
-                  aria-current={target === page ? "page" : undefined}
-                  aria-label={t("pageIndicator", {
-                    page: target,
-                    total: totalPages,
-                  })}
-                  onClick={() => pager.setPage(target)}
-                >
-                  {target}
-                </Pagination.Control>
-              ),
-            )}
-          </Pagination.Root>
-          <Button
-            type="button"
-            variant="secondary"
-            aria-disabled={page === totalPages}
-            className="aria-disabled:opacity-60"
-            onClick={pager.next}
-          >
-            {t("nextPage")}
-          </Button>
-          <span className="sr-only" aria-live="polite">
-            {t("pageIndicator", { page, total: totalPages })}
-          </span>
-        </nav>
       )}
     </div>
   );
