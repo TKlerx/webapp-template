@@ -23,43 +23,34 @@ Important tokens:
 - `--accent-soft`: subtle selected/active backgrounds
 - `--border`, `--input`, `--ring`: form and focus infrastructure
 
-The palette intentionally uses a muted green accent instead of a blue/purple SaaS palette:
+The current palette uses a muted blue accent.
 
 ```css
 :root {
-  --background: #f7f8f5;
-  --foreground: #17201b;
+  --background: #f5f7fa;
+  --foreground: #15233b;
   --panel: #ffffff;
-  --accent: #2f6f4e;
+  --accent: #2f6fae;
 }
 
 [data-theme="dark"] {
-  --background: #101411;
-  --foreground: #eef2eb;
-  --panel: #171d19;
-  --accent: #7ab18d;
+  --background: #0c1320;
+  --foreground: #e7eef7;
+  --panel: #161f2e;
+  --accent: #5b9bd5;
 }
 ```
 
 ## Theme Activation
 
-Dark mode is selected by setting `data-theme="dark"` on the document element.
+The root layout sets both `data-theme` and `data-mantine-color-scheme` on the
+document element using the saved preference. On the client, `ThemeProvider`
+updates `data-theme` and sets the same scheme on `MantineProvider`.
 
-`src/components/providers/ThemeProvider.tsx` owns this:
-
-```ts
-useEffect(() => {
-  document.documentElement.dataset.theme = theme.toLowerCase();
-}, [theme]);
-```
-
-Tailwind is configured in `tailwind.config.ts` to use that selector:
-
-```ts
-darkMode: ["selector", "[data-theme='dark']"];
-```
-
-This keeps CSS variable styling and Tailwind `dark:` variants aligned.
+Token-based styles follow the saved theme. The production Tailwind build
+currently applies `dark:` utilities according to the OS preference. The
+[migration plan](mantine-migration-plan.md) tracks aligning those utilities
+with the saved theme and adding a regression test.
 
 ## User Preference
 
@@ -74,7 +65,11 @@ The stored enum is `LIGHT | DARK`.
 
 ## Component Guidelines
 
-When building new UI, prefer these patterns:
+Use Mantine for standard interactive components and Tailwind for layout.
+Import layered Mantine styles at the feature boundary for route-specific
+components, and keep shared styles in `src/app/globals.css`.
+
+Use these token patterns:
 
 - page background: `bg-[var(--background)]`
 - panel/card background: `bg-[var(--panel)]`
@@ -95,10 +90,10 @@ Avoid:
 
 The dark mode should feel calm rather than flashy:
 
-- near-black green-gray page background
+- near-black blue-gray page background
 - slightly lifted panel surfaces
 - muted secondary text
-- green accent used sparingly for action and focus
+- blue accent used sparingly for action and focus
 - clear contrast without neon colors
 
 This makes dashboards and admin tools comfortable for long sessions while staying visually minimal.

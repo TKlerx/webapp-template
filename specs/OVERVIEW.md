@@ -1,6 +1,6 @@
 # Business App Starter Specs Overview
 
-Last Updated: 2026-10-28
+Last Updated: 2026-11-25
 
 Purpose: Track the status of all planned features, their implementation progress, and next steps.
 
@@ -33,6 +33,7 @@ Purpose: Track the status of all planned features, their implementation progress
 | 020 | Deploy Smoke Verification                      | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
 | 021 | Ops Health Dashboard                           | Fully Implemented     | -                                                                                            | Large       | Review, commit, and propagate the finished feature       |
 | 022 | PostgreSQL-only database support               | Fully Implemented     | -                                                                                            | Small       | Review, commit, and propagate the finished feature       |
+| 023 | Mantine UI Migration                           | Tasked                | -                                                                                            | Large       | Start implementation with `/speckit.implement`           |
 
 ## Implementation Roadmap
 
@@ -54,6 +55,7 @@ Purpose: Track the status of all planned features, their implementation progress
 ### Begin Immediately
 
 - 014 Shared Mailbox Notifications: Continue implementation and complete the remaining tasks
+- 023 Mantine UI Migration: Start implementation with `/speckit.implement`
 
 ### Blocked / Prep Needed
 
