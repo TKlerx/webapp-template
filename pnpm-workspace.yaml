@@ -3,7 +3,6 @@ minimumReleaseAge: 4320 # nosemgrep: package_managers.pnpm.pnpm-missing-minimum-
 allowBuilds:
   "@parcel/watcher": true
   "@prisma/engines": true
-  "@scarf/scarf": set this to true or false
   "@swc/core": true
   better-sqlite3: false
   esbuild: true
