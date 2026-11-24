@@ -2144,3 +2144,7 @@ Passed the production build, all 375 Vitest tests, 12 focused Chromium tests, Ty
 ## 2026-11-24 — Use Mantine inputs for Audit Trail filters
 
 Ported the two filter fields from Personal Assistant. All eight audit browser tests passed, including keyboard focus on both fields and the existing pagination recovery checks.
+
+## 2026-11-24 — Convert Audit Trail export buttons to Mantine
+
+On `codex/mantine-audit-export`, converted the CSV and PDF buttons and kept both keyboard-focusable while an export is pending. The browser regression verifies that a second export is blocked during a held CSV request, both downloads use the active filters, and page two remains selected. The production build and nine audit browser tests passed. A separate Chromium check verified real CSV and PDF downloads at 320 px.

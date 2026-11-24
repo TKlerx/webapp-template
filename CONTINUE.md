@@ -1,5 +1,11 @@
 # Continue
 
+## Mantine Audit Trail exports (2026-11-24)
+
+- Converted the CSV and PDF export controls to Mantine buttons after PR #67. The buttons keep keyboard focus during a download and block a second export until the first finishes.
+- The production build, 15 audit unit tests, and nine audit Playwright tests passed. At 320 px, Chromium also verified the filters and both real downloads from page two against disposable PostgreSQL.
+- All 375 Vitest tests passed on the export follow-up. PR #67 passed both Validate and Joern at `eae26a5`.
+
 ## Mantine Audit Trail filters (2026-11-24)
 
 - Converted the Action and Entity filters to Mantine TextInput using the template's theme tokens. The production build, targeted ESLint, and all eight audit Playwright tests passed against disposable PostgreSQL.
