@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { AuditExportButton } from "@/components/audit/AuditExportButton";
+import { Button } from "@/components/ui/Button";
 import "./audit-table.css";
 
 type AuditRow = {
@@ -232,6 +233,17 @@ export function AuditTrailViewer() {
         verticalSpacing="md"
         withTableBorder
       />
+      {!loading && page > 1 && rows.length === 0 && (
+        <nav aria-label={t("paginationLabel")} className="flex justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setPage(page - 1)}
+          >
+            {t("previousPage")}
+          </Button>
+        </nav>
+      )}
     </div>
   );
 }

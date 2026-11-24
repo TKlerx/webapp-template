@@ -7,9 +7,7 @@ import {
 } from "./helpers/auth";
 import { seedLocalUser } from "./helpers/db";
 
-test("audit filters and page changes request records from the server", async ({
-  page,
-}) => {
+test.beforeEach(async ({ page }) => {
   const email = "e2e-audit-admin@example.com";
   const password = "AuditTest123!";
   await seedLocalUser({
@@ -51,11 +49,16 @@ test("audit filters and page changes request records from the server", async ({
   });
 
   await page.goto(`${appBasePath}/audit-trail`);
-  const entityFilter = page.getByRole("textbox", { name: "Entity" });
-  await entityFilter.fill("User");
+  await page.getByRole("textbox", { name: "Entity" }).fill("User");
   await page.getByRole("textbox", { name: "Action" }).fill("USER_CREATED");
+  await expect(page.getByRole("table").getByText("page-1-user")).toBeVisible();
+});
+
+test("audit filters and page changes request records from the server", async ({
+  page,
+}) => {
+  const entityFilter = page.getByRole("textbox", { name: "Entity" });
   const table = page.getByRole("table");
-  await expect(table.getByText("page-1-user", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Page 2 of 2" }).click();
   await expect(table.getByText("page-2-user", { exact: true })).toBeVisible();
@@ -75,4 +78,35 @@ test("audit filters and page changes request records from the server", async ({
   await expect(
     page.getByText("No audit entries match your filters."),
   ).toBeVisible();
+});
+
+test("can return to the previous audit page after a load error", async ({
+  page,
+}) => {
+  await page.route(
+    (url) =>
+      url.pathname === `${appBasePath}/api/audit` &&
+      url.searchParams.get("page") === "2",
+    (route) =>
+      route.fulfill({
+        status: 503,
+        json: { error: "Audit service unavailable" },
+      }),
+  );
+
+  await page.getByRole("button", { name: "Page 2 of 2" }).click();
+  const error = page.getByRole("alert").filter({
+    hasText: "Audit service unavailable",
+  });
+  await expect(error).toBeVisible();
+
+  await page.getByRole("button", { name: "Previous", exact: true }).click();
+  await expect(page.getByRole("table").getByText("page-1-user")).toBeVisible();
+  await expect(error).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Action" })).toHaveValue(
+    "USER_CREATED",
+  );
+  await expect(page.getByRole("textbox", { name: "Entity" })).toHaveValue(
+    "User",
+  );
 });

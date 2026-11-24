@@ -4,6 +4,7 @@
 
 - Switched the Audit Trail to Mantine DataTable on `codex/audit-datatable`. Existing action and entity filters, CSV/PDF export, and server-side pagination still use the same audit API. Table styles load with the Audit Trail.
 - Verified the production build, 15 audit unit tests, four focused Playwright tests, TypeScript, targeted lint and formatting, and pnpm audit.
+- PR #64 review restored Previous when a later audit page has no rows. The browser regression simulates an API failure and checks that users can return with their filters intact.
 
 ## Mantine integration (2026-11-24)
 
