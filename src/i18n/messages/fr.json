@@ -103,6 +103,7 @@
     "createButton": "Creer l'utilisateur",
     "userCreated": "Utilisateur cree",
     "couldNotCreate": "Impossible de creer l'utilisateur",
+    "creationUnconfirmed": "La création du compte n’a pas pu être confirmée. Recherchez cette adresse dans la liste des utilisateurs avant de réessayer.",
     "notAuthorized": "Vous n'etes pas autorise a acceder a cette page.",
     "name": "Nom",
     "email": "E-mail",

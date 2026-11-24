@@ -103,6 +103,7 @@
     "createButton": "Crear usuario",
     "userCreated": "Usuario creado",
     "couldNotCreate": "No se pudo crear el usuario",
+    "creationUnconfirmed": "No se pudo confirmar la creación de la cuenta. Busca esta dirección en la lista de usuarios antes de volver a intentarlo.",
     "notAuthorized": "No esta autorizado para acceder a esta pagina.",
     "name": "Nombre",
     "email": "Correo electronico",

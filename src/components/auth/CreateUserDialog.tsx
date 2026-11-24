@@ -1,10 +1,11 @@
 "use client";
 
-import { Button, Card, Modal, Select, TextInput } from "@mantine/core";
+import { Button, Card, Modal, TextInput } from "@mantine/core";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Role } from "../../../generated/prisma/enums";
+import { UserRoleSelect } from "@/components/auth/UserRoleSelect";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
 import { apiErrorSchema } from "@/lib/api-response";
@@ -21,15 +22,14 @@ const initialForm: {
   temporaryPassword: "",
 };
 
-const inputClassNames = {
-  input: "border-border bg-panel text-foreground",
-};
+const CREATE_USER_TIMEOUT_MS = 15_000;
 
 export function CreateUserDialog() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
   const { pushToast } = useToast();
   const router = useRouter();
   const t = useTranslations("users");
@@ -44,12 +44,20 @@ export function CreateUserDialog() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
+    emailRef.current?.focus();
     setSubmitting(true);
     setError(null);
 
+    const controller = new AbortController();
+    const { signal } = controller;
+    const timeout = window.setTimeout(
+      () => controller.abort(),
+      CREATE_USER_TIMEOUT_MS,
+    );
     try {
       const response = await fetch(withBasePath("/api/users"), {
         method: "POST",
+        signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
@@ -57,6 +65,7 @@ export function CreateUserDialog() {
         const payload = apiErrorSchema.safeParse(
           await response.json().catch(() => null),
         );
+        signal.throwIfAborted();
         setError(
           (payload.success ? payload.data.error : undefined) ??
             t("couldNotCreate"),
@@ -68,8 +77,10 @@ export function CreateUserDialog() {
       closeForm();
       router.refresh();
     } catch {
-      setError(t("couldNotCreate"));
+      setError(t("creationUnconfirmed"));
+      router.refresh();
     } finally {
+      window.clearTimeout(timeout);
       setSubmitting(false);
     }
   }
@@ -113,8 +124,14 @@ export function CreateUserDialog() {
           title: "text-lg font-semibold tracking-tight",
         }}
       >
+        {submitting && (
+          <p className="sr-only" role="status">
+            {tCommon("loading")}
+          </p>
+        )}
         <form
           className="grid gap-4"
+          aria-busy={submitting}
           onSubmit={(event) => void handleSubmit(event)}
         >
           <TextInput
@@ -122,7 +139,9 @@ export function CreateUserDialog() {
             type="email"
             autoComplete="off"
             data-autofocus
-            classNames={inputClassNames}
+            ref={emailRef}
+            classNames={{ input: "user-management-input" }}
+            readOnly={submitting}
             value={form.email}
             onChange={(event) => {
               const email = event.currentTarget.value;
@@ -132,7 +151,8 @@ export function CreateUserDialog() {
           />
           <TextInput
             label={t("name")}
-            classNames={inputClassNames}
+            classNames={{ input: "user-management-input" }}
+            readOnly={submitting}
             value={form.name}
             onChange={(event) => {
               const name = event.currentTarget.value;
@@ -140,28 +160,18 @@ export function CreateUserDialog() {
             }}
             required
           />
-          <Select<Role>
-            label={t("role")}
-            allowDeselect={false}
-            withScrollArea={false}
-            classNames={{
-              ...inputClassNames,
-              dropdown: "border-border bg-popover text-popover-foreground",
-            }}
-            data={Object.values(Role).map((role) => ({
-              value: role,
-              label: t(`roles.${role}`),
-            }))}
+          <UserRoleSelect
             value={form.role}
-            onChange={(role) => {
-              if (role) setForm((current) => ({ ...current, role }));
-            }}
+            withLabel
+            readOnly={submitting}
+            onChange={(role) => setForm((current) => ({ ...current, role }))}
           />
           <TextInput
             label={t("temporaryPassword")}
             type="password"
             autoComplete="new-password"
-            classNames={inputClassNames}
+            classNames={{ input: "user-management-input" }}
+            readOnly={submitting}
             value={form.temporaryPassword}
             onChange={(event) => {
               const temporaryPassword = event.currentTarget.value;

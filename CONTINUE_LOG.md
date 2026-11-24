@@ -2132,3 +2132,11 @@ The production build, seven audit browser tests, 15 audit unit tests, TypeScript
 Switched the Users table and create-user dialog to Mantine using the existing theme and localized role options. The table scrolls horizontally within the panel, and the modal shows API errors inline while keeping the entered values. Browser coverage exercises mobile layout, keyboard dismissal and focus return, duplicate-email recovery, role changes, forced password changes, and administrative permissions.
 
 Passed all 375 Vitest tests and 11 Chromium tests covering user management, account-creation notifications, and Audit Trail pagination. The production build, TypeScript, focused ESLint and Prettier, and the architecture check passed.
+
+## 2026-11-24 — Address PR #66 review findings
+
+Create local user now bounds requests at 15 seconds. During submission, the fields are read-only and focus stays inside the dialog. If the response is lost, the form keeps its values, shows an inline message, and refreshes the Users table so the administrator can check whether the account was created.
+
+Both Role selectors share a Mantine combobox with visible keyboard focus, typeahead, and Home and End navigation. The table dropdown closes when its trigger is fully clipped and blocks selection while clipped. The review file records the fixes.
+
+Passed the production build, all 375 Vitest tests, 12 focused Chromium tests, TypeScript, targeted ESLint and Prettier, architecture, and duplication checks.

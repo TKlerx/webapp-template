@@ -9,3 +9,16 @@
 @import "@mantine/core/styles/Paper.layer.css";
 @import "@mantine/core/styles/Popover.layer.css";
 @import "@mantine/core/styles/Table.layer.css";
+
+@layer components {
+  .user-management-input {
+    border-color: var(--border);
+    background: var(--panel);
+    color: var(--foreground);
+  }
+
+  .user-management-input:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}

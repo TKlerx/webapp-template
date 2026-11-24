@@ -1,20 +1,18 @@
 "use client";
 
-import { Button, Select, Table } from "@mantine/core";
+import { Button, Table } from "@mantine/core";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
   AuthMethod,
   Role,
   UserStatus,
 } from "../../../generated/prisma/enums";
-import {
-  Role as RoleEnum,
-  UserStatus as UserStatusEnum,
-} from "../../../generated/prisma/enums";
+import { UserStatus as UserStatusEnum } from "../../../generated/prisma/enums";
 import { withBasePath } from "@/lib/base-path";
 import { apiErrorSchema } from "@/lib/api-response";
+import { UserRoleSelect } from "@/components/auth/UserRoleSelect";
 import { useToast } from "@/components/ui/Toast";
 
 type UserRow = {
@@ -36,12 +34,8 @@ export function UserManagementTable({
   const router = useRouter();
   const { pushToast } = useToast();
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("users");
-  const roleOptions = Object.values(RoleEnum).map((role) => ({
-    value: role,
-    label: t(`roles.${role}`),
-  }));
-
   async function runAction(
     key: string,
     url: string,
@@ -75,7 +69,11 @@ export function UserManagementTable({
   }
 
   return (
-    <Table.ScrollContainer minWidth="52rem" type="native">
+    <Table.ScrollContainer
+      ref={scrollContainerRef}
+      minWidth="52rem"
+      type="native"
+    >
       <Table
         aria-label={t("title")}
         className="text-left text-sm"
@@ -108,21 +106,13 @@ export function UserManagementTable({
                   {entry.email}
                 </Table.Td>
                 <Table.Td className="px-4 py-4">
-                  <Select<Role>
-                    aria-label={t("role")}
-                    allowDeselect={false}
-                    withScrollArea={false}
+                  <UserRoleSelect
                     className="w-52"
-                    classNames={{
-                      input: "border-border bg-panel text-foreground",
-                      dropdown:
-                        "border-border bg-popover text-popover-foreground",
-                    }}
-                    data={roleOptions}
-                    disabled={!canEditRole || Boolean(isBusy)}
+                    disabled={!canEditRole}
+                    readOnly={Boolean(isBusy)}
+                    scrollContainerRef={scrollContainerRef}
                     value={entry.role}
-                    onChange={(value) => {
-                      if (!value) return;
+                    onChange={(value) =>
                       void runAction(
                         `${entry.id}-role`,
                         `/api/users/${entry.id}/role`,
@@ -132,8 +122,8 @@ export function UserManagementTable({
                           body: JSON.stringify({ role: value }),
                         },
                         t("roleUpdated", { role: t(`roles.${value}`) }),
-                      );
-                    }}
+                      )
+                    }
                   />
                 </Table.Td>
                 <Table.Td className="px-4 py-4">
