@@ -67,6 +67,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.27.0",
+    "mantine-datatable": "^9.8.3",
     "next": "^16.4.5",
     "next-intl": "^4.13.4",
     "pdfkit": "0.21.0",

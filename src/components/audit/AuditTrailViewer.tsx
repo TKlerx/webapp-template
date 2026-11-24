@@ -1,9 +1,12 @@
 "use client";
 
+import { DataTable } from "mantine-datatable";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { AuditExportButton } from "@/components/audit/AuditExportButton";
+import { Button } from "@/components/ui/Button";
+import "./audit-table.css";
 
 type AuditRow = {
   id: string;
@@ -24,7 +27,7 @@ export function AuditTrailViewer() {
     entityType: "",
   });
   const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
+  const [pagination, setPagination] = useState({ total: 0, limit: 25 });
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,12 +68,10 @@ export function AuditTrailViewer() {
         }
 
         setRows(payload?.data ?? []);
-        setPageCount(
-          Math.max(
-            1,
-            Math.ceil((payload?.total ?? 0) / (payload?.limit || 25)),
-          ),
-        );
+        setPagination({
+          total: payload?.total ?? 0,
+          limit: payload?.limit || 25,
+        });
       } catch (fetchError) {
         if ((fetchError as Error).name !== "AbortError") {
           setError(commonT("error"));
@@ -130,124 +131,119 @@ export function AuditTrailViewer() {
         <AuditExportButton queryString={queryString} />
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--panel)]">
-        <table className="min-w-full bg-[var(--panel)] text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] text-left text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
-              <th className="px-4 py-3 sm:px-6">{t("date")}</th>
-              <th className="px-4 py-3">{t("actor")}</th>
-              <th className="px-4 py-3">{t("action")}</th>
-              <th className="px-4 py-3">{t("entity")}</th>
-              <th className="px-4 py-3">{t("scope")}</th>
-              <th className="px-4 py-3 sm:px-6">{t("details")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading
-              ? Array.from({ length: 5 }, (_, index) => (
-                  <tr
-                    className="border-b border-[var(--border)] last:border-b-0"
-                    key={index}
-                  >
-                    {Array.from({ length: 6 }, (_cell, cellIndex) => (
-                      <td
-                        className={[
-                          "px-4 py-4",
-                          cellIndex === 0 ? "sm:px-6" : "",
-                          cellIndex === 5 ? "sm:px-6" : "",
-                        ].join(" ")}
-                        key={cellIndex}
-                      >
-                        <div className="h-3 w-full max-w-32 animate-pulse rounded bg-[var(--secondary)]" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              : null}
-            {!loading && error ? (
-              <tr>
-                <td
-                  className="px-4 py-8 text-sm text-[var(--destructive)] sm:px-6"
-                  colSpan={6}
-                >
-                  {error}
-                </td>
-              </tr>
-            ) : null}
-            {!loading && !error && rows.length === 0 ? (
-              <tr>
-                <td
-                  className="px-4 py-8 text-sm text-[var(--muted-foreground)] sm:px-6"
-                  colSpan={6}
-                >
-                  {t("empty")}
-                </td>
-              </tr>
-            ) : null}
-            {!loading && !error
-              ? rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-[var(--border)] align-top transition-colors last:border-b-0 hover:bg-[color:color-mix(in_srgb,var(--panel)_86%,var(--background)_14%)]"
-                  >
-                    <td className="px-4 py-4 font-mono text-xs text-[var(--muted-foreground)] sm:px-6">
-                      {new Date(row.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-medium">
-                        {row.actor?.name ?? t("anonymous")}
-                      </div>
-                      <div className="text-xs text-[var(--muted-foreground)]">
-                        {row.actor?.email ?? ""}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-3 py-1 text-xs font-semibold text-[var(--secondary-foreground)]">
-                        {row.action}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-medium">{row.entityType}</div>
-                      <div className="font-mono text-xs text-[var(--muted-foreground)]">
-                        {row.entityId}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">{row.scope?.name ?? "-"}</td>
-                    <td className="max-w-[24rem] px-4 py-4 text-[var(--muted-foreground)] sm:px-6">
-                      {row.details}
-                    </td>
-                  </tr>
-                ))
-              : null}
-          </tbody>
-        </table>
-        {(page > 1 || pageCount > 1) && (
-          <nav
-            className="flex flex-wrap items-center justify-end gap-4 border-t p-4"
-            aria-label={t("paginationLabel")}
+      <DataTable
+        aria-label={t("title")}
+        backgroundColor="var(--panel)"
+        borderColor="var(--border)"
+        borderRadius="md"
+        classNames={{ table: "min-w-[52rem]" }}
+        columns={[
+          {
+            accessor: "createdAt",
+            title: t("date"),
+            render: ({ createdAt }) => (
+              <span className="font-mono text-xs text-[var(--muted-foreground)]">
+                {new Date(createdAt).toLocaleString()}
+              </span>
+            ),
+          },
+          {
+            accessor: "actor",
+            title: t("actor"),
+            render: ({ actor }) => (
+              <>
+                <div className="font-medium">
+                  {actor?.name ?? t("anonymous")}
+                </div>
+                <div className="text-xs text-[var(--muted-foreground)]">
+                  {actor?.email}
+                </div>
+              </>
+            ),
+          },
+          {
+            accessor: "action",
+            title: t("action"),
+            render: ({ action }) => (
+              <span className="inline-block rounded-full border border-[var(--border)] bg-[var(--secondary)] px-3 py-1 text-xs font-semibold text-[var(--secondary-foreground)]">
+                {action}
+              </span>
+            ),
+          },
+          {
+            accessor: "entityType",
+            title: t("entity"),
+            render: ({ entityType, entityId }) => (
+              <>
+                <div className="font-medium">{entityType}</div>
+                <div className="font-mono text-xs text-[var(--muted-foreground)]">
+                  {entityId}
+                </div>
+              </>
+            ),
+          },
+          {
+            accessor: "scope",
+            title: t("scope"),
+            render: ({ scope }) => scope?.name ?? "-",
+          },
+          {
+            accessor: "details",
+            title: t("details"),
+            render: ({ details }) => (
+              <p className="max-w-96 [overflow-wrap:anywhere] text-[var(--muted-foreground)]">
+                {details}
+              </p>
+            ),
+          },
+        ]}
+        emptyState={
+          <p
+            role={error ? "alert" : undefined}
+            className={
+              error
+                ? "text-sm text-[var(--destructive)]"
+                : "text-sm text-[var(--muted-foreground)]"
+            }
           >
-            <button
-              type="button"
-              className="underline disabled:opacity-50"
-              disabled={loading || page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              {t("previousPage")}
-            </button>
-            <span aria-live="polite">
-              {t("pageIndicator", { page, total: pageCount })}
-            </span>
-            <button
-              type="button"
-              className="underline disabled:opacity-50"
-              disabled={loading || Boolean(error) || page >= pageCount}
-              onClick={() => setPage(page + 1)}
-            >
-              {t("nextPage")}
-            </button>
-          </nav>
-        )}
-      </div>
+            {error ?? t("empty")}
+          </p>
+        }
+        fetching={loading}
+        getPaginationControlProps={(control) => ({
+          "aria-label": t(control === "previous" ? "previousPage" : "nextPage"),
+        })}
+        getPaginationItemProps={(targetPage) => ({
+          "aria-label": t("pageIndicator", {
+            page: targetPage,
+            total: Math.ceil(pagination.total / pagination.limit),
+          }),
+        })}
+        highlightOnHover
+        horizontalSpacing="md"
+        loadingText={commonT("loading")}
+        minHeight={160}
+        onPageChange={setPage}
+        page={page}
+        records={rows}
+        recordsPerPage={pagination.limit}
+        rowBorderColor="var(--border)"
+        totalRecords={error ? 0 : pagination.total}
+        verticalAlign="top"
+        verticalSpacing="md"
+        withTableBorder
+      />
+      {!loading && page > 1 && rows.length === 0 && (
+        <nav aria-label={t("paginationLabel")} className="flex justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setPage(page - 1)}
+          >
+            {t("previousPage")}
+          </Button>
+        </nav>
+      )}
     </div>
   );
 }
