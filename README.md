@@ -32,6 +32,16 @@ These files are intentionally committed into the template so copied repos still 
 - repo-local pnpm and uv dependency cooldown policy
 - continuity workflow with `CONTINUE.md` and `CONTINUE_LOG.md`
 
+## UI components
+
+The template includes HeroUI v3 alongside its local shadcn/Radix components. Use
+`@heroui/react` for new HeroUI controls. The account menu’s theme toggle is a
+working example, with keyboard activation and theme persistence. HeroUI shares
+the existing light/dark tokens. When adding a HeroUI component, import its CSS
+in `src/app/globals.css` alongside the button stylesheet.
+Use `bg-muted-background` for muted surfaces and `text-muted-foreground` for
+subdued text in template components.
+
 ## Chat and voice assistant
 
 The Assistant button is available throughout the signed-in app. Chat and voice
