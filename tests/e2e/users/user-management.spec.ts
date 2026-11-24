@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+import { expect, test, type Locator } from "@playwright/test";
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 import {
   appBasePath,
@@ -9,6 +10,13 @@ import {
 import { seedLocalUser, updateUserStatuses } from "../helpers/db";
 
 test.setTimeout(60000);
+
+function activeRoleOption(role: Locator) {
+  return role.evaluate((element) => {
+    const id = element.getAttribute("aria-activedescendant");
+    return id ? document.getElementById(id)?.textContent : null;
+  });
+}
 
 test("admin creates a local user, user logs in and changes password", async ({
   browser,
@@ -28,7 +36,10 @@ test("admin creates a local user, user logs in and changes password", async ({
     mustChangePassword: false,
   });
 
-  const adminContext = await browser.newContext({ baseURL: appOrigin });
+  const adminContext = await browser.newContext({
+    baseURL: appOrigin,
+    viewport: { width: 390, height: 844 },
+  });
   const adminPage = await adminContext.newPage();
 
   try {
@@ -40,20 +51,56 @@ test("admin creates a local user, user logs in and changes password", async ({
     await expectOnDashboard(adminPage);
     await adminPage.goto(`${appBasePath}/users`);
 
-    await adminPage
-      .getByRole("button", { name: "Create user" })
-      .first()
-      .click();
-    const createUserDialog = adminPage.getByRole("dialog");
+    await expect
+      .poll(() =>
+        adminPage.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      )
+      .toBe(true);
+    const createButton = adminPage.getByRole("button", { name: "Create user" });
+    await createButton.press("Enter");
+    const createUserDialog = adminPage.getByRole("dialog", {
+      name: "Create local user",
+    });
     await expect(createUserDialog).toBeVisible();
+    const emailInput = createUserDialog.getByRole("textbox", { name: "Email" });
+    await expect(emailInput).toBeFocused();
+    await emailInput.fill(createdUser.email);
+    await adminPage.keyboard.press("Escape");
+    await expect(createUserDialog).toBeHidden();
+    await expect(createButton).toBeFocused();
 
-    await createUserDialog.getByPlaceholder("Email").fill(createdUser.email);
-    await createUserDialog.getByPlaceholder("Name").fill(createdUser.name);
-    await createUserDialog.getByRole("combobox", { name: "Role" }).click();
-    await adminPage.getByRole("option", { name: "Scoped User" }).click();
+    await createButton.press("Enter");
+    await expect(emailInput).toHaveValue("");
+    await emailInput.fill("e2e-admin-manage@example.com");
     await createUserDialog
-      .getByPlaceholder("Temporary password")
+      .getByRole("textbox", { name: "Name" })
+      .fill(createdUser.name);
+    const formRole = createUserDialog.getByRole("combobox", { name: "Role" });
+    await expect(formRole).toHaveText("Scoped User");
+    await formRole.press("ArrowDown");
+    await expect(
+      adminPage.getByRole("option", { name: "Scoped User" }),
+    ).toBeVisible();
+    await formRole.press("p");
+    await expect.poll(() => activeRoleOption(formRole)).toBe("Platform Admin");
+    await formRole.press("End");
+    await expect.poll(() => activeRoleOption(formRole)).toBe("Scoped User");
+    await formRole.press("Home");
+    await expect.poll(() => activeRoleOption(formRole)).toBe("Platform Admin");
+    await formRole.press("Escape");
+    await createUserDialog
+      .getByLabel("Temporary password")
       .fill(createdUser.temporaryPassword);
+    const submitButton = createUserDialog.getByRole("button", {
+      name: "Create user",
+    });
+    await submitButton.click();
+    await expect(createUserDialog.getByRole("alert")).toHaveText(
+      "A user with this email already exists",
+    );
+    await emailInput.fill(createdUser.email);
     await Promise.all([
       adminPage.waitForResponse(
         (response) =>
@@ -61,13 +108,24 @@ test("admin creates a local user, user logs in and changes password", async ({
           response.request().method() === "POST" &&
           response.status() === 201,
       ),
-      createUserDialog.getByRole("button", { name: "Create user" }).click(),
+      submitButton.click(),
     ]);
-    await adminPage.reload();
+    await expect(createUserDialog).toBeHidden();
+    await expect(createButton).toBeFocused();
 
-    const userRow = adminPage.locator("tr", { hasText: createdUser.email });
+    const userTable = adminPage.getByRole("table", { name: "Users" });
+    const userRow = userTable
+      .getByRole("row")
+      .filter({ hasText: createdUser.email });
+    const rowRole = userRow.getByRole("combobox", { name: "Role" });
     await expect(userRow).toBeVisible();
-    await expect(userRow).toContainText("Scoped User");
+    await expect(rowRole).toHaveText("Scoped User");
+    await expect(
+      userTable
+        .getByRole("row")
+        .filter({ hasText: "e2e-admin-manage@example.com" })
+        .getByRole("combobox", { name: "Role" }),
+    ).toBeDisabled();
 
     const userContext = await browser.newContext({ baseURL: appOrigin });
     const userPage = await userContext.newPage();
@@ -101,8 +159,142 @@ test("admin creates a local user, user logs in and changes password", async ({
     } finally {
       await userContext.close();
     }
+
+    await adminPage.setViewportSize({ width: 320, height: 844 });
+    await rowRole.click();
+    const roleList = adminPage.getByRole("listbox", { name: "Role" });
+    await expect(roleList).toBeVisible();
+    let roleRequests = 0;
+    adminPage.on("request", (request) => {
+      if (
+        request.method() === "PATCH" &&
+        new URL(request.url()).pathname.endsWith("/role")
+      ) {
+        roleRequests++;
+      }
+    });
+    const scrollContainer = adminPage.locator(
+      ".mantine-TableScrollContainer-scrollContainer",
+    );
+    await scrollContainer.evaluate((element) => {
+      element.scrollLeft = 0;
+    });
+    await expect(roleList).toBeHidden();
+    await expect(rowRole).toHaveAttribute("aria-expanded", "false");
+    await adminPage.keyboard.press("ArrowDown");
+    await adminPage.keyboard.press("Enter");
+    await expect(rowRole).toHaveAttribute("aria-expanded", "false");
+    await expect(rowRole).toHaveText("Scoped User");
+    expect(roleRequests).toBe(0);
+
+    await rowRole.click();
+    await adminPage.keyboard.press("Shift+Tab");
+    await adminPage.keyboard.press("Tab");
+    await expect(rowRole).toBeFocused();
+    await expect(rowRole).toHaveCSS("outline-style", "solid");
+    await rowRole.press("ArrowDown");
+    await rowRole.press("s");
+    await expect.poll(() => activeRoleOption(rowRole)).toBe("Scoped Admin");
+    await rowRole.press("Enter");
+    await expect(rowRole).toHaveText("Scoped Admin");
+    expect(roleRequests).toBe(1);
+    await expect(
+      adminPage.getByText("Role updated to Scoped Admin"),
+    ).toBeVisible();
   } finally {
     await adminContext.close();
+    updateUserStatuses(["e2e-admin-manage@example.com"], UserStatus.INACTIVE);
+  }
+});
+
+test("a stalled create request preserves modal focus and recovers the form", async ({
+  page,
+}) => {
+  const email = "e2e-create-timeout-admin@example.com";
+  const password = "AdminPass123";
+  const submittedEmail = `e2e-unconfirmed-${randomUUID()}@example.com`;
+  seedLocalUser({
+    email,
+    name: "Create Timeout Admin",
+    role: Role.PLATFORM_ADMIN,
+    password,
+    mustChangePassword: false,
+  });
+
+  try {
+    await loginWithPassword(page, email, password);
+    await expectOnDashboard(page);
+    await page.goto(`${appBasePath}/users`);
+    const launcher = page
+      .getByRole("main")
+      .getByRole("button", { name: "Create user" });
+    await launcher.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "Create local user" });
+    const emailInput = dialog.getByRole("textbox", { name: "Email" });
+    const nameInput = dialog.getByRole("textbox", { name: "Name" });
+    const role = dialog.getByRole("combobox", { name: "Role" });
+    const passwordInput = dialog.getByLabel("Temporary password");
+    const submit = dialog.getByRole("button", { name: "Create user" });
+    await expect(emailInput).toBeFocused();
+    await expect(emailInput).toHaveCSS("outline-style", "solid");
+    await emailInput.fill(submittedEmail);
+    await nameInput.fill("Unconfirmed User");
+    await passwordInput.fill("TempPass123");
+
+    const path = `${appBasePath}/api/users`;
+    const upstreamStatuses: number[] = [];
+    // Let the server create the account, but withhold the response from the browser.
+    await page.route(
+      (url) => url.pathname === path,
+      async (route) => {
+        const upstream = await route.fetch();
+        upstreamStatuses.push(upstream.status());
+        await upstream.dispose();
+      },
+    );
+    const requestPromise = page.waitForRequest(
+      (request) =>
+        new URL(request.url()).pathname === path && request.method() === "POST",
+    );
+    await submit.press("Enter");
+    const request = await requestPromise;
+    expect(request.postDataJSON().email).toBe(submittedEmail);
+
+    await expect(emailInput).toBeFocused();
+    await expect(emailInput).toHaveJSProperty("readOnly", true);
+    await expect(nameInput).toHaveJSProperty("readOnly", true);
+    await expect(passwordInput).toHaveJSProperty("readOnly", true);
+    await expect(role).toHaveAttribute("aria-readonly", "true");
+    await role.press("ArrowDown");
+    await expect(role).toHaveAttribute("aria-expanded", "false");
+    await emailInput.focus();
+    await page.keyboard.type("ignored");
+    await expect(emailInput).toHaveValue(submittedEmail);
+    for (const key of ["Shift+Tab", "Tab", "Tab", "Tab", "Tab", "Tab"]) {
+      await page.keyboard.press(key);
+      await expect(dialog.locator(":focus")).toHaveCount(1);
+    }
+
+    await expect(dialog.getByRole("alert")).toHaveText(
+      /Account creation could not be confirmed/,
+      { timeout: 20_000 },
+    );
+    expect(upstreamStatuses).toEqual([201]);
+    await expect(submit).toBeEnabled();
+    await expect(role).not.toHaveAttribute("aria-readonly", "true");
+    await emailInput.fill("e2e-corrected@example.com");
+    await expect(nameInput).toHaveValue("Unconfirmed User");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(launcher).toBeFocused();
+    await expect(
+      page
+        .getByRole("table", { name: "Users" })
+        .getByRole("row")
+        .filter({ hasText: submittedEmail }),
+    ).toBeVisible();
+  } finally {
+    updateUserStatuses([email, submittedEmail], UserStatus.INACTIVE);
   }
 });
 
