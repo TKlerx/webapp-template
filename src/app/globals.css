@@ -1,6 +1,9 @@
 @layer theme, base, mantine, components, utilities;
 @import "tailwindcss";
-@import "@mantine/core/styles.layer.css";
+@import "@mantine/core/styles/default-css-variables.layer.css";
+@import "@mantine/core/styles/global.layer.css";
+@import "@mantine/core/styles/UnstyledButton.layer.css";
+@import "@mantine/core/styles/Button.layer.css";
 
 @theme inline {
   --color-background: var(--background);

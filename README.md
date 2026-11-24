@@ -36,8 +36,9 @@ These files are intentionally committed into the template so copied repos still 
 
 The template includes Mantine alongside its local shadcn/Radix components.
 The account menu’s theme toggle uses `@mantine/core`. Mantine follows the
-same saved light/dark preference as the rest of the app. Core styles are
-loaded in `src/app/globals.css`, with Tailwind utilities taking precedence.
+same saved light/dark preference as the rest of the app.
+Add styles for any new Mantine components and their dependencies to
+`src/app/globals.css` using the layered stylesheets.
 
 ## Chat and voice assistant
 

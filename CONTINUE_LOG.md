@@ -2098,3 +2098,7 @@ Replaced HeroUI with Mantine Core and Hooks 9.8.2. The account menu uses a Manti
 Passed the production build and three focused Playwright tests using disposable PostgreSQL. The theme regression checks keyboard activation, light/dark synchronization, persistence after sign-in, and the sign-out button’s radius. TypeScript, targeted ESLint and Prettier, and pnpm audit also passed.
 
 All 375 Vitest tests passed using disposable PostgreSQL and Python 3.12. The first run hit the Windows Store `python3` alias, so the rerun excluded it from the test process’s PATH.
+
+## 2026-11-24 — Address PR #63 review
+
+Replaced the full Mantine stylesheet with the layered variables, shared interaction styles, and Button styles. Playwright checks the authenticated response’s root HTML attributes before hydration and guards the template’s default line height.

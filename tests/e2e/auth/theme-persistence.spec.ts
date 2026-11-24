@@ -19,8 +19,17 @@ test("theme toggle persists across sessions", async ({ page }) => {
   await loginWithPassword(page, "e2e-theme-user@example.com", "ThemePass123");
   await expectOnDashboard(page);
 
+  const dashboardResponse = await page.request.get(page.url());
+  await expect(dashboardResponse).toBeOK();
+  const openingHtml = (await dashboardResponse.text()).match(
+    /<html\b[^>]*>/,
+  )?.[0];
+  expect(openingHtml).toContain('data-theme="light"');
+  expect(openingHtml).toContain('data-mantine-color-scheme="light"');
+
   const html = page.locator("html");
   await expect(html).toHaveAttribute("data-mantine-color-scheme", "light");
+  await expect(page.locator("body")).toHaveCSS("line-height", "24px");
   await openUserMenu(page);
   const darkMode = page.getByRole("button", { name: "Dark mode" });
   await expect(darkMode).toHaveCSS("border-top-width", "1px");
