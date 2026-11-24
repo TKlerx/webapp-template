@@ -263,3 +263,84 @@ test("shows visible keyboard focus on both audit filters", async ({ page }) => {
   await expect(action).toBeFocused();
   await expect(action).not.toHaveCSS("box-shadow", "none");
 });
+
+test("exports filtered results and keeps keyboard focus during downloads", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Page 2 of 2" }).click();
+  await expect(page.getByRole("table").getByText("page-2-user")).toBeVisible();
+
+  const csv = page.getByRole("button", { name: "Export CSV" });
+  const pdf = page.getByRole("button", { name: "Export PDF" });
+  const exportPath = `${appBasePath}/api/audit/export`;
+  let releaseCsv: () => void;
+  const holdCsv = new Promise<void>((resolve) => {
+    releaseCsv = resolve;
+  });
+  const formats: (string | null)[] = [];
+  await page.route(
+    (url) => url.pathname === exportPath,
+    async (route) => {
+      const { searchParams } = new URL(route.request().url());
+      const format = searchParams.get("format");
+      formats.push(format);
+
+      if (format === "csv") {
+        await holdCsv;
+        await route.fulfill({
+          contentType: "text/csv",
+          body: "Action\nUSER_CREATED",
+        });
+      } else {
+        await route.fulfill({
+          contentType: "application/pdf",
+          body: "%PDF-1.7",
+        });
+      }
+    },
+  );
+
+  const csvRequest = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === exportPath,
+  );
+  const csvDownload = page.waitForEvent("download");
+  try {
+    await csv.press("Enter");
+    const params = new URL((await csvRequest).url()).searchParams;
+    expect(Object.fromEntries(params)).toEqual({
+      format: "csv",
+      action: "USER_CREATED",
+      entityType: "User",
+    });
+    await expect(csv).toHaveAttribute("aria-busy", "true");
+    await expect(csv).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(pdf).toBeFocused();
+    await expect(pdf).toHaveAttribute("aria-disabled", "true");
+    await page.keyboard.press("Enter");
+  } finally {
+    releaseCsv!();
+  }
+  expect((await csvDownload).suggestedFilename()).toBe("audit-trail.csv");
+  await expect(pdf).toBeEnabled();
+  expect(formats).toEqual(["csv"]);
+
+  const pdfRequest = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === exportPath,
+  );
+  const pdfDownload = page.waitForEvent("download");
+  await page.keyboard.press("Enter");
+  expect(
+    Object.fromEntries(new URL((await pdfRequest).url()).searchParams),
+  ).toEqual({
+    format: "pdf",
+    action: "USER_CREATED",
+    entityType: "User",
+  });
+  expect((await pdfDownload).suggestedFilename()).toBe("audit-trail.pdf");
+  await expect(pdf).toBeFocused();
+  expect(formats).toEqual(["csv", "pdf"]);
+  await expect(
+    page.getByRole("button", { name: "Page 2 of 2" }),
+  ).toHaveAttribute("aria-current", "page");
+});
