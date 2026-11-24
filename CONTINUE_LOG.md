@@ -2126,3 +2126,9 @@ Moved the Audit Trail pager above the rows. If a response removes the focused pa
 Added Chromium regressions for the focus viewport, both cases of a shrinking page count, and both retry actions. Each test signs in with its own administrator fixture and deactivates it afterward.
 
 The production build, seven audit browser tests, 15 audit unit tests, TypeScript, focused lint and formatting, architecture, and duplication checks passed locally.
+
+## 2026-11-24 — Convert user management to Mantine
+
+Switched the Users table and create-user dialog to Mantine using the existing theme and localized role options. The table scrolls horizontally within the panel, and the modal shows API errors inline while keeping the entered values. Browser coverage exercises mobile layout, keyboard dismissal and focus return, duplicate-email recovery, role changes, forced password changes, and administrative permissions.
+
+Passed all 375 Vitest tests and 11 Chromium tests covering user management, account-creation notifications, and Audit Trail pagination. The production build, TypeScript, focused ESLint and Prettier, and the architecture check passed.

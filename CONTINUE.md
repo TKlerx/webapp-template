@@ -1,5 +1,10 @@
 # Continue
 
+## Mantine user management (2026-11-24)
+
+- Converted the Users table, role and status controls, and Create local user dialog to Mantine. The table scrolls within its panel on small screens. The form shows submission errors next to its fields so an admin can correct them and retry.
+- The production build, all 375 Vitest tests, 11 focused Playwright tests, TypeScript, targeted lint and formatting, and architecture checks passed.
+
 ## Audit pagination keyboard focus (2026-11-24)
 
 - Moved the Audit Trail page controls outside Mantine DataTable so keyboard focus survives a page load. Kept the row count, filters, exports, and Previous after a failed load.

@@ -28,7 +28,10 @@ test("admin creates a local user, user logs in and changes password", async ({
     mustChangePassword: false,
   });
 
-  const adminContext = await browser.newContext({ baseURL: appOrigin });
+  const adminContext = await browser.newContext({
+    baseURL: appOrigin,
+    viewport: { width: 390, height: 844 },
+  });
   const adminPage = await adminContext.newPage();
 
   try {
@@ -40,20 +43,50 @@ test("admin creates a local user, user logs in and changes password", async ({
     await expectOnDashboard(adminPage);
     await adminPage.goto(`${appBasePath}/users`);
 
-    await adminPage
-      .getByRole("button", { name: "Create user" })
-      .first()
-      .click();
-    const createUserDialog = adminPage.getByRole("dialog");
+    await expect
+      .poll(() =>
+        adminPage.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      )
+      .toBe(true);
+    const createButton = adminPage.getByRole("button", { name: "Create user" });
+    await createButton.press("Enter");
+    const createUserDialog = adminPage.getByRole("dialog", {
+      name: "Create local user",
+    });
     await expect(createUserDialog).toBeVisible();
+    const emailInput = createUserDialog.getByRole("textbox", { name: "Email" });
+    await expect(emailInput).toBeFocused();
+    await emailInput.fill(createdUser.email);
+    await adminPage.keyboard.press("Escape");
+    await expect(createUserDialog).toBeHidden();
+    await expect(createButton).toBeFocused();
 
-    await createUserDialog.getByPlaceholder("Email").fill(createdUser.email);
-    await createUserDialog.getByPlaceholder("Name").fill(createdUser.name);
-    await createUserDialog.getByRole("combobox", { name: "Role" }).click();
-    await adminPage.getByRole("option", { name: "Scoped User" }).click();
+    await createButton.press("Enter");
+    await expect(emailInput).toHaveValue("");
+    await emailInput.fill("e2e-admin-manage@example.com");
     await createUserDialog
-      .getByPlaceholder("Temporary password")
+      .getByRole("textbox", { name: "Name" })
+      .fill(createdUser.name);
+    const formRole = createUserDialog.getByRole("combobox", { name: "Role" });
+    await expect(formRole).toHaveValue("Scoped User");
+    await formRole.press("ArrowDown");
+    await expect(
+      adminPage.getByRole("option", { name: "Scoped User" }),
+    ).toBeVisible();
+    await formRole.press("Escape");
+    await createUserDialog
+      .getByLabel("Temporary password")
       .fill(createdUser.temporaryPassword);
+    const submitButton = createUserDialog.getByRole("button", {
+      name: "Create user",
+    });
+    await submitButton.click();
+    await expect(createUserDialog.getByRole("alert")).toHaveText(
+      "A user with this email already exists",
+    );
+    await emailInput.fill(createdUser.email);
     await Promise.all([
       adminPage.waitForResponse(
         (response) =>
@@ -61,13 +94,24 @@ test("admin creates a local user, user logs in and changes password", async ({
           response.request().method() === "POST" &&
           response.status() === 201,
       ),
-      createUserDialog.getByRole("button", { name: "Create user" }).click(),
+      submitButton.click(),
     ]);
-    await adminPage.reload();
+    await expect(createUserDialog).toBeHidden();
+    await expect(createButton).toBeFocused();
 
-    const userRow = adminPage.locator("tr", { hasText: createdUser.email });
+    const userTable = adminPage.getByRole("table", { name: "Users" });
+    const userRow = userTable
+      .getByRole("row")
+      .filter({ hasText: createdUser.email });
+    const rowRole = userRow.getByRole("combobox", { name: "Role" });
     await expect(userRow).toBeVisible();
-    await expect(userRow).toContainText("Scoped User");
+    await expect(rowRole).toHaveValue("Scoped User");
+    await expect(
+      userTable
+        .getByRole("row")
+        .filter({ hasText: "e2e-admin-manage@example.com" })
+        .getByRole("combobox", { name: "Role" }),
+    ).toBeDisabled();
 
     const userContext = await browser.newContext({ baseURL: appOrigin });
     const userPage = await userContext.newPage();
@@ -101,8 +145,16 @@ test("admin creates a local user, user logs in and changes password", async ({
     } finally {
       await userContext.close();
     }
+
+    await rowRole.click();
+    await adminPage.getByRole("option", { name: "Scoped Admin" }).click();
+    await expect(rowRole).toHaveValue("Scoped Admin");
+    await expect(
+      adminPage.getByText("Role updated to Scoped Admin"),
+    ).toBeVisible();
   } finally {
     await adminContext.close();
+    updateUserStatuses(["e2e-admin-manage@example.com"], UserStatus.INACTIVE);
   }
 });
 

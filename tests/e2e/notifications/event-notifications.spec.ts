@@ -29,16 +29,22 @@ test("creating a user produces queued notification records in the admin log", as
   await expectOnDashboard(page);
 
   await page.goto(`${appBasePath}/users`);
-  await page.getByRole("button", { name: "Create user" }).first().click();
+  await page.getByRole("button", { name: "Create user" }).click();
 
-  const createUserDialog = page.getByRole("dialog");
+  const createUserDialog = page.getByRole("dialog", {
+    name: "Create local user",
+  });
   await expect(createUserDialog).toBeVisible();
-  await createUserDialog.getByPlaceholder("Email").fill(createdUser.email);
-  await createUserDialog.getByPlaceholder("Name").fill(createdUser.name);
+  await createUserDialog
+    .getByRole("textbox", { name: "Email" })
+    .fill(createdUser.email);
+  await createUserDialog
+    .getByRole("textbox", { name: "Name" })
+    .fill(createdUser.name);
   await createUserDialog.getByRole("combobox", { name: "Role" }).click();
   await page.getByRole("option", { name: "Scoped User" }).click();
   await createUserDialog
-    .getByPlaceholder("Temporary password")
+    .getByLabel("Temporary password")
     .fill(createdUser.temporaryPassword);
 
   await Promise.all([
