@@ -1,5 +1,12 @@
 # Continue
 
+## Users desktop layout review fixes (2026-11-25)
+
+- The create-user launcher sits above the full-width Users table. Long email addresses wrap to keep row actions in view at 1280 px.
+- The 1280 px browser regression checks that the action for a long-email account is fully in view before any horizontal scrolling. The fixture is cleaned up even when setup fails, and the last-admin test clears stale desktop fixtures when it reuses a database.
+- In a production Chromium probe at 1280 px, turning off email wrapping fully clipped the row action. With wrapping enabled, the entire action was visible.
+- The production build, all 13 Users and Audit Trail Playwright tests on disposable PostgreSQL, and targeted lint and formatting passed.
+
 ## Mantine Audit Trail exports (2026-11-24)
 
 - Converted the CSV and PDF export controls to Mantine buttons after PR #67. The buttons keep keyboard focus during a download and block a second export until the first finishes.

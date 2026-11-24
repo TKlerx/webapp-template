@@ -102,7 +102,7 @@ export function UserManagementTable({
                 <Table.Td className="px-4 py-4 sm:px-6">
                   <div className="font-medium">{entry.name}</div>
                 </Table.Td>
-                <Table.Td className="px-4 py-4 text-[var(--muted-foreground)]">
+                <Table.Td className="wrap-anywhere px-4 py-4 text-[var(--muted-foreground)]">
                   {entry.email}
                 </Table.Td>
                 <Table.Td className="px-4 py-4">

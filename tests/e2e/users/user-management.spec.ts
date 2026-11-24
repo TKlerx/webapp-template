@@ -11,6 +11,8 @@ import { seedLocalUser, updateUserStatuses } from "../helpers/db";
 
 test.setTimeout(60000);
 
+const desktopAdminEmail = `desktop${"w".repeat(57)}@example.com`;
+
 function activeRoleOption(role: Locator) {
   return role.evaluate((element) => {
     const id = element.getAttribute("aria-activedescendant");
@@ -177,7 +179,7 @@ test("admin creates a local user, user logs in and changes password", async ({
       ".mantine-TableScrollContainer-scrollContainer",
     );
     await scrollContainer.evaluate((element) => {
-      element.scrollLeft = 0;
+      element.scrollLeft = element.scrollWidth;
     });
     await expect(roleList).toBeHidden();
     await expect(rowRole).toHaveAttribute("aria-expanded", "false");
@@ -337,6 +339,8 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
         "e2e-event-admin@example.com",
         "e2e-notifications-admin@example.com",
         "e2e-tokens-mobile@example.com",
+        "e2e-users-desktop@example.com",
+        desktopAdminEmail,
       ],
       UserStatus.INACTIVE,
     );
@@ -356,50 +360,32 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
   }
 });
 
-test("Users row actions fit in the desktop table without horizontal scrolling", async ({
-  page,
-}) => {
-  const email = "e2e-users-desktop@example.com";
+test("Users row actions fit at 1280px with a long email", async ({ page }) => {
   const password = "DesktopTest123";
-  seedLocalUser({
-    email,
-    name: "Desktop Admin",
-    role: Role.PLATFORM_ADMIN,
-    password,
-    mustChangePassword: false,
-  });
   try {
+    seedLocalUser({
+      email: desktopAdminEmail,
+      name: "Desktop Admin",
+      role: Role.PLATFORM_ADMIN,
+      password,
+      mustChangePassword: false,
+    });
     await page.setViewportSize({ width: 1280, height: 900 });
-    await loginWithPassword(page, email, password);
+    await loginWithPassword(page, desktopAdminEmail, password);
     await expectOnDashboard(page);
     await page.goto(`${appBasePath}/users`);
-    const action = page
-      .getByRole("row")
-      .filter({ hasText: email })
-      .getByRole("button", { name: "Deactivate" });
+
+    const row = page.getByRole("row").filter({ hasText: desktopAdminEmail });
+    // A reused database can place this fixture farther down the page.
+    // Scroll only the document vertically so the table stays at its initial position.
+    await row.evaluate((element) => {
+      const top = element.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, top - window.innerHeight / 2);
+    });
+    const action = row.getByRole("button", { name: "Deactivate" });
     await expect(action).toBeVisible();
-    await expect
-      .poll(() =>
-        action.evaluate((button) => {
-          let viewport = button.parentElement;
-          while (
-            viewport &&
-            !["auto", "scroll"].includes(getComputedStyle(viewport).overflowX)
-          ) {
-            viewport = viewport.parentElement;
-          }
-          if (!viewport) return false;
-          const visible = viewport.getBoundingClientRect();
-          const bounds = button.getBoundingClientRect();
-          return (
-            viewport.scrollLeft === 0 &&
-            bounds.left >= visible.left &&
-            bounds.right <= visible.right
-          );
-        }),
-      )
-      .toBe(true);
+    await expect(action).toBeInViewport({ ratio: 1 });
   } finally {
-    updateUserStatuses([email], UserStatus.INACTIVE);
+    updateUserStatuses([desktopAdminEmail], UserStatus.INACTIVE);
   }
 });
