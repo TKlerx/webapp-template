@@ -2090,3 +2090,15 @@ Production build and all three focused Playwright tests passed using a disposabl
 ## 2026-11-24 — Review HeroUI radius isolation
 
 PR #61 review found that HeroUI’s shared theme overrides the standard Tailwind radii. Restored the template scale and kept HeroUI Button rounding in the component layer. Verified the production CSS and passed three focused browser tests, including a regression check for both the sign-out and theme toggle radii. No further actionable issues found in the full rereview.
+
+## 2026-11-24 — Switch the template to Mantine
+
+Replaced HeroUI with Mantine Core and Hooks 9.8.2. The account menu uses a Mantine Button, and the shared theme provider drives Mantine and the existing template from the same saved preference. Removed the HeroUI-specific CSS and restored the original muted table styles.
+
+Passed the production build and three focused Playwright tests using disposable PostgreSQL. The theme regression checks keyboard activation, light/dark synchronization, persistence after sign-in, and the sign-out button’s radius. TypeScript, targeted ESLint and Prettier, and pnpm audit also passed.
+
+All 375 Vitest tests passed using disposable PostgreSQL and Python 3.12. The first run hit the Windows Store `python3` alias, so the rerun excluded it from the test process’s PATH.
+
+## 2026-11-24 — Address PR #63 review
+
+Replaced the full Mantine stylesheet with the layered variables, shared interaction styles, and Button styles. Playwright checks the authenticated response’s root HTML attributes before hydration and guards the template’s default line height.

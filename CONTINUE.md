@@ -1,5 +1,12 @@
 # Continue
 
+## Mantine integration (2026-11-24)
+
+- Replaced HeroUI with Mantine Core and Hooks on `codex/mantine`. The account menu’s theme toggle uses Mantine and still saves the user’s preference. The root layout applies the saved theme on the server, and the shared provider updates both theme attributes when it changes.
+- Restored the template’s muted table tokens and removed the HeroUI-specific radius and CSS overrides. Tailwind utilities take precedence over Mantine styles.
+- The production build, three focused Playwright tests, all 375 Vitest tests, TypeScript, targeted lint and formatting, and pnpm audit passed.
+- PR #63 review narrowed the Mantine styles to shared variables, focus styles, and Button styles. The Playwright regression now checks the saved theme in the authenticated HTML response and preserves the existing body line height.
+
 ## HeroUI integration (2026-11-24)
 
 - Added HeroUI v3 on `codex/heroui-integration` from current `origin/main`. The account menu’s theme switch demonstrates the library with the existing theme provider and persistence API. Shared CSS tokens cover light and dark mode, including separate muted text and table background colors. Existing shadcn/Radix components remain available alongside HeroUI.
