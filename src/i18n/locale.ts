@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { getSessionUser } from "@/lib/auth";
 import { defaultLocale, locales, type Locale } from "./config";
 
 export const LOCALE_COOKIE = "starter_app_locale";
@@ -13,7 +14,8 @@ export async function getUserLocale(): Promise<Locale> {
     return value as Locale;
   }
 
-  return defaultLocale;
+  const savedLocale = (await getSessionUser())?.locale;
+  return locales.find((locale) => locale === savedLocale) ?? defaultLocale;
 }
 
 export function getUserLocaleCookieHeaders(locale: Locale) {

@@ -39,16 +39,15 @@ Request-scoped service logs should include `requestId` when the caller has one a
 
 ## Request Logging
 
-Structured request-completion logging is enabled by default, including when `ENABLE_REQUEST_LOGGING` is unset. Set `ENABLE_REQUEST_LOGGING=false` to opt out; `true`, `1`, or `yes` explicitly enable it. Middleware emits `http.request.completed` with proxy-visible status and proxy handling duration:
+Structured proxy logging is enabled by default. Set `ENABLE_REQUEST_LOGGING=false` to opt out. When the proxy hands off to a downstream handler, it emits `http.request.forwarded` with the proxy's duration. When the proxy returns a redirect directly, it emits `http.request.completed` with the redirect status.
 
 ```ts
-proxyLogger.info("http.request.completed", {
+proxyLogger.info("http.request.forwarded", {
   requestId,
   method: request.method,
   path: "/login",
   query: { page: "1" },
-  status: 200,
-  durationMs: 4,
+  proxyDurationMs: 4,
 });
 ```
 

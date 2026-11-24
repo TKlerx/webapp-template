@@ -1,4 +1,5 @@
 import { jsonError } from "@/lib/http";
+import { createRequestId, logger } from "@/lib/logger";
 import { z } from "zod";
 import {
   assistantInstructions,
@@ -7,6 +8,8 @@ import {
   createAssistantTools,
   readAssistantRequest,
 } from "@/services/assistant";
+
+const voiceLogger = logger.child({ component: "assistant_voice" });
 
 export async function POST(request: Request) {
   const input = await readAssistantRequest(request);
@@ -29,8 +32,25 @@ export async function POST(request: Request) {
   }
   const endpoint = `https://${resource}.openai.azure.com/openai/v1/realtime`;
   const signal = AbortSignal.any([request.signal, AbortSignal.timeout(30_000)]);
+  const requestId = request.headers.get("x-request-id") ?? createRequestId();
+  let stage: "authorization" | "mint" | "negotiate" = "authorization";
+  const unavailable = (reason: string, upstreamStatus?: number) => {
+    voiceLogger.warn("assistant.voice_session_failed", {
+      requestId,
+      stage,
+      reason,
+      upstreamStatus,
+    });
+    return jsonError(
+      stage === "negotiate" && reason === "upstream_http_error"
+        ? "Voice session could not be started"
+        : "Voice service is unavailable",
+      502,
+    );
+  };
   try {
     const authorization = await assistantAzureHeaders();
+    stage = "mint";
     const secretResponse = await fetch(`${endpoint}/client_secrets`, {
       method: "POST",
       signal,
@@ -68,7 +88,7 @@ export async function POST(request: Request) {
       }),
     });
     if (!secretResponse.ok)
-      return jsonError("Voice service is unavailable", 502);
+      return unavailable("upstream_http_error", secretResponse.status);
     // Upstream response, not an incoming request body.
     // eslint-disable-next-line no-restricted-syntax
     const secret: unknown = await secretResponse.json();
@@ -76,10 +96,12 @@ export async function POST(request: Request) {
       !secret ||
       typeof secret !== "object" ||
       !("value" in secret) ||
-      typeof secret.value !== "string"
+      typeof secret.value !== "string" ||
+      !secret.value.trim()
     ) {
-      return jsonError("Voice service is unavailable", 502);
+      return unavailable("invalid_client_secret");
     }
+    stage = "negotiate";
     const response = await fetch(`${endpoint}/calls`, {
       method: "POST",
       signal,
@@ -90,7 +112,7 @@ export async function POST(request: Request) {
       },
     });
     if (!response.ok)
-      return jsonError("Voice session could not be started", 502);
+      return unavailable("upstream_http_error", response.status);
     // Upstream SDP response; request SDP was bounded and checked above.
     // eslint-disable-next-line no-restricted-syntax
     return new Response(await response.text(), {
@@ -101,6 +123,12 @@ export async function POST(request: Request) {
       },
     });
   } catch {
-    return jsonError("Voice service is unavailable", 502);
+    return unavailable(
+      request.signal.aborted
+        ? "client_aborted"
+        : signal.aborted
+          ? "timeout"
+          : "request_failed",
+    );
   }
 }

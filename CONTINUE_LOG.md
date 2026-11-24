@@ -2148,3 +2148,9 @@ Ported the two filter fields from Personal Assistant. All eight audit browser te
 ## 2026-11-24 — Convert Audit Trail export buttons to Mantine
 
 On `codex/mantine-audit-export`, converted the CSV and PDF buttons and kept both keyboard-focusable while an export is pending. The browser regression verifies that a second export is blocked during a held CSV request, both downloads use the active filters, and page two remains selected. The production build and nine audit browser tests passed. A separate Chromium check verified real CSV and PDF downloads at 320 px.
+
+## 2026-11-25 — Address template findings from the Personal Assistant review
+
+Bound voice tools and saved replies to the completed provider response, preserved conversation item order for late transcripts, and added redacted request-correlated setup logs. Guarded password changes against concurrent writes, restored saved locale preferences without a locale cookie, corrected the proxy forwarding event, and kept the local Trivy `.env` exclusion out of CI.
+
+The production build, all 381 Vitest tests and six focused Chromium tests passed against disposable PostgreSQL. Voice coverage used simulated provider events. The Trivy secret scan passed in CI mode, and an argument check verified the local and CI exclusion behavior.
