@@ -1,5 +1,9 @@
 # Continue
 
+## Mantine Audit Trail filters (2026-11-24)
+
+- Converted the Action and Entity filters to Mantine TextInput using the template's theme tokens. The production build, targeted ESLint, and all eight audit Playwright tests passed against disposable PostgreSQL.
+
 ## Mantine user management (2026-11-24)
 
 - Converted the Users table, role and status controls, and Create local user dialog to Mantine. The table scrolls within its panel on small screens. The form shows submission errors next to its fields so an admin can correct them and retry.

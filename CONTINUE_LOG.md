@@ -2140,3 +2140,7 @@ Create local user now bounds requests at 15 seconds. During submission, the fiel
 Both Role selectors share a Mantine combobox with visible keyboard focus, typeahead, and Home and End navigation. The table dropdown closes when its trigger is fully clipped and blocks selection while clipped. The review file records the fixes.
 
 Passed the production build, all 375 Vitest tests, 12 focused Chromium tests, TypeScript, targeted ESLint and Prettier, architecture, and duplication checks.
+
+## 2026-11-24 — Use Mantine inputs for Audit Trail filters
+
+Ported the two filter fields from Personal Assistant. All eight audit browser tests passed, including keyboard focus on both fields and the existing pagination recovery checks.

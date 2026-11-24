@@ -249,3 +249,17 @@ test("can return to the previous audit page after a load error", async ({
     "User",
   );
 });
+
+test("shows visible keyboard focus on both audit filters", async ({ page }) => {
+  const action = page.getByRole("textbox", { name: "Action" });
+  const entity = page.getByRole("textbox", { name: "Entity" });
+
+  await action.focus();
+  await page.keyboard.press("Tab");
+  await expect(entity).toBeFocused();
+  await expect(entity).not.toHaveCSS("box-shadow", "none");
+
+  await page.keyboard.press("Shift+Tab");
+  await expect(action).toBeFocused();
+  await expect(action).not.toHaveCSS("box-shadow", "none");
+});
