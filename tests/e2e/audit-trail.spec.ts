@@ -1,23 +1,24 @@
 import { expect, test } from "@playwright/test";
-import { Role } from "../../generated/prisma/enums";
+import { Role, UserStatus } from "../../generated/prisma/enums";
 import {
   appBasePath,
   expectOnDashboard,
   loginWithPassword,
 } from "./helpers/auth";
-import { seedLocalUser } from "./helpers/db";
+import { seedLocalUser, updateUserStatus } from "./helpers/db";
+
+const auditAdminEmail = "e2e-audit-admin@example.com";
 
 test.beforeEach(async ({ page }) => {
-  const email = "e2e-audit-admin@example.com";
   const password = "AuditTest123!";
   await seedLocalUser({
-    email,
+    email: auditAdminEmail,
     name: "Audit Test Admin",
     role: Role.PLATFORM_ADMIN,
     password,
     mustChangePassword: false,
   });
-  await loginWithPassword(page, email, password);
+  await loginWithPassword(page, auditAdminEmail, password);
   await expectOnDashboard(page);
 
   await page.route(/\/api\/audit\?/, async (route) => {
@@ -52,6 +53,10 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole("textbox", { name: "Entity" }).fill("User");
   await page.getByRole("textbox", { name: "Action" }).fill("USER_CREATED");
   await expect(page.getByRole("table").getByText("page-1-user")).toBeVisible();
+});
+
+test.afterEach(() => {
+  updateUserStatus(auditAdminEmail, UserStatus.INACTIVE);
 });
 
 test("audit filters and page changes request records from the server", async ({

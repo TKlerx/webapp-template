@@ -2112,3 +2112,5 @@ Passed the production build, 15 audit unit tests, four focused Playwright tests,
 ## 2026-11-24 — Restore pagination recovery in PR #64
 
 Kept the Previous action available when a later audit page returns an error or has no records. The browser regression simulates a failed second-page request, returns to the first page, and verifies the action and entity filters.
+
+The Audit Trail tests deactivate their administrator fixture after each case so the last-active-admin test can verify its own setup.
