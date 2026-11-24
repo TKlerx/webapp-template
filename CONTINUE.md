@@ -4,6 +4,7 @@
 
 - Added HeroUI v3 on `codex/heroui-integration` from current `origin/main`. The account menu’s theme switch demonstrates the library with the existing theme provider and persistence API. Shared CSS tokens cover light and dark mode, including separate muted text and table background colors. Existing shadcn/Radix components remain available alongside HeroUI.
 - Uses selective CSS imports for the shared tokens and Button. Production build and three focused Playwright tests passed with a disposable PostgreSQL instance, covering keyboard theme switching, persistence, and the mobile token page. TypeScript, targeted ESLint/Prettier, and pnpm audit passed. Publishing this branch for review.
+- PR #61 review found a global radius override in HeroUI’s shared theme. The fix restores Tailwind’s original radius scale and keeps HeroUI Button rounding in the component layer. Verified the generated production CSS and reran the three focused browser tests with a regression check for both button radii. No further actionable issues found in the second review.
 
 ## Project review remediation (2026-11-23)
 

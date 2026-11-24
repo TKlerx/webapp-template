@@ -22,6 +22,11 @@ test("theme toggle persists across sessions", async ({ page }) => {
   await openUserMenu(page);
   const darkMode = page.getByRole("button", { name: "Dark mode" });
   await expect(darkMode).toHaveCSS("border-top-width", "1px");
+  await expect(darkMode).toHaveCSS("border-top-left-radius", "36px");
+  await expect(page.getByRole("button", { name: "Sign out" })).toHaveCSS(
+    "border-top-left-radius",
+    "6px",
+  );
   await darkMode.press("Enter");
   await expect(page.getByRole("button", { name: "Light mode" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
