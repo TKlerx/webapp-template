@@ -1,5 +1,7 @@
 "use client";
 
+import { Pagination } from "@mantine/core";
+import { usePagination } from "@mantine/hooks";
 import { DataTable } from "mantine-datatable";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -27,10 +29,19 @@ export function AuditTrailViewer() {
     entityType: "",
   });
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({ total: 0, limit: 25 });
+  const [pagination, setPagination] = useState<{
+    total: number;
+    limit: number;
+  } | null>(null);
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const totalPages = pagination
+    ? Math.max(1, Math.ceil(pagination.total / pagination.limit))
+    : 1;
+  const pager = usePagination({ page, total: totalPages, onChange: setPage });
+  const firstRecord = pagination ? (page - 1) * pagination.limit + 1 : 0;
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -68,10 +79,11 @@ export function AuditTrailViewer() {
         }
 
         setRows(payload?.data ?? []);
-        setPagination({
-          total: payload?.total ?? 0,
-          limit: payload?.limit || 25,
-        });
+        const total = payload?.total ?? 0;
+        const limit = payload?.limit || 25;
+        const lastPage = Math.max(1, Math.ceil(total / limit));
+        setPagination({ total, limit });
+        if (page > lastPage) setPage(lastPage);
       } catch (fetchError) {
         if ((fetchError as Error).name !== "AbortError") {
           setError(commonT("error"));
@@ -101,6 +113,7 @@ export function AuditTrailViewer() {
               className="min-h-11 rounded-lg border border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
               onChange={(event) => {
                 setPage(1);
+                setPagination(null);
                 setFilters((current) => ({
                   ...current,
                   action: event.target.value,
@@ -118,6 +131,7 @@ export function AuditTrailViewer() {
               className="min-h-11 rounded-lg border border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
               onChange={(event) => {
                 setPage(1);
+                setPagination(null);
                 setFilters((current) => ({
                   ...current,
                   entityType: event.target.value,
@@ -133,6 +147,7 @@ export function AuditTrailViewer() {
 
       <DataTable
         aria-label={t("title")}
+        aria-busy={loading}
         backgroundColor="var(--panel)"
         borderColor="var(--border)"
         borderRadius="md"
@@ -210,38 +225,71 @@ export function AuditTrailViewer() {
           </p>
         }
         fetching={loading}
-        getPaginationControlProps={(control) => ({
-          "aria-label": t(control === "previous" ? "previousPage" : "nextPage"),
-        })}
-        getPaginationItemProps={(targetPage) => ({
-          "aria-label": t("pageIndicator", {
-            page: targetPage,
-            total: Math.ceil(pagination.total / pagination.limit),
-          }),
-        })}
         highlightOnHover
         horizontalSpacing="md"
-        loadingText={commonT("loading")}
         minHeight={160}
-        onPageChange={setPage}
-        page={page}
         records={rows}
-        recordsPerPage={pagination.limit}
         rowBorderColor="var(--border)"
-        totalRecords={error ? 0 : pagination.total}
         verticalAlign="top"
         verticalSpacing="md"
         withTableBorder
       />
-      {!loading && page > 1 && rows.length === 0 && (
-        <nav aria-label={t("paginationLabel")} className="flex justify-end">
+      {!loading && pagination && rows.length > 0 && (
+        <p className="text-sm text-[var(--muted-foreground)]">
+          {firstRecord} - {firstRecord + rows.length - 1} / {pagination.total}
+        </p>
+      )}
+      {totalPages > 1 && (
+        <nav
+          aria-label={t("paginationLabel")}
+          className="flex flex-wrap items-center gap-2"
+        >
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setPage(page - 1)}
+            aria-disabled={page === 1}
+            className="aria-disabled:opacity-60"
+            onClick={pager.previous}
           >
             {t("previousPage")}
           </Button>
+          <Pagination.Root
+            total={totalPages}
+            value={page}
+            size="sm"
+            className="flex flex-wrap gap-1"
+          >
+            {pager.range.map((target, index) =>
+              target === "dots" ? (
+                <Pagination.Dots key={`dots-${index}`} />
+              ) : (
+                <Pagination.Control
+                  key={target}
+                  active={target === page}
+                  aria-current={target === page ? "page" : undefined}
+                  aria-label={t("pageIndicator", {
+                    page: target,
+                    total: totalPages,
+                  })}
+                  onClick={() => pager.setPage(target)}
+                >
+                  {target}
+                </Pagination.Control>
+              ),
+            )}
+          </Pagination.Root>
+          <Button
+            type="button"
+            variant="secondary"
+            aria-disabled={page === totalPages}
+            className="aria-disabled:opacity-60"
+            onClick={pager.next}
+          >
+            {t("nextPage")}
+          </Button>
+          <span className="sr-only" aria-live="polite">
+            {t("pageIndicator", { page, total: totalPages })}
+          </span>
         </nav>
       )}
     </div>

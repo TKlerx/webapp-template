@@ -2114,3 +2114,7 @@ Passed the production build, 15 audit unit tests, four focused Playwright tests,
 Kept the Previous action available when a later audit page returns an error or has no records. The browser regression simulates a failed second-page request, returns to the first page, and verifies the action and entity filters.
 
 The Audit Trail tests deactivate their administrator fixture after each case so the last-active-admin test can verify its own setup.
+
+## 2026-11-24 — Preserve Audit Trail pagination focus
+
+Ported the pagination fix from Personal Assistant. Page controls stay mounted during loading, and the regression verifies focus after page selection and after using Previous to reach page one. The audit and theme browser tests passed against disposable PostgreSQL.

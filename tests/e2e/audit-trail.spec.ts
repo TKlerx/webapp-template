@@ -85,6 +85,25 @@ test("audit filters and page changes request records from the server", async ({
   ).toBeVisible();
 });
 
+test("keeps keyboard focus on audit pagination after rows load", async ({
+  page,
+}) => {
+  const table = page.getByRole("table");
+  const pageTwo = page.getByRole("button", { name: "Page 2 of 2" });
+  await pageTwo.focus();
+  await page.keyboard.press("Enter");
+  await expect(table.getByText("page-2-user")).toBeVisible();
+  await expect(pageTwo).toBeFocused();
+  await expect(pageTwo).toHaveAttribute("aria-current", "page");
+
+  const previous = page.getByRole("button", { name: "Previous", exact: true });
+  await previous.focus();
+  await page.keyboard.press("Enter");
+  await expect(table.getByText("page-1-user")).toBeVisible();
+  await expect(previous).toBeFocused();
+  await expect(previous).toHaveAttribute("aria-disabled", "true");
+});
+
 test("can return to the previous audit page after a load error", async ({
   page,
 }) => {
