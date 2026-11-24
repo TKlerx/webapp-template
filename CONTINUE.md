@@ -1,5 +1,10 @@
 # Continue
 
+## HeroUI integration (2026-11-24)
+
+- Added HeroUI v3 on `codex/heroui-integration` from current `origin/main`. The account menu’s theme switch demonstrates the library with the existing theme provider and persistence API. Shared CSS tokens cover light and dark mode, including separate muted text and table background colors. Existing shadcn/Radix components remain available alongside HeroUI.
+- Uses selective CSS imports for the shared tokens and Button. Production build and three focused Playwright tests passed with a disposable PostgreSQL instance, covering keyboard theme switching, persistence, and the mobile token page. TypeScript, targeted ESLint/Prettier, and pnpm audit passed. Publishing this branch for review.
+
 ## Project review remediation (2026-11-23)
 
 - Implemented fixes for R01–R118. The remediation matrix and verification notes are in [docs/project-review.md](docs/project-review.md#remediation-pass).

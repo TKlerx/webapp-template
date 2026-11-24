@@ -2080,3 +2080,9 @@ Added six PostgreSQL integration cases for all orderings of two saves and a dele
 ## 2026-11-23 Mutation report portability
 
 - PR #59 exposed a change in assertion stack formatting on the CI Node 24 runtime. The critical mutation runner now uses structured Vitest error types. The three release mutants were killed on Node 24, and a fixture with a broken import was reported as a collection failure.
+
+## 2026-11-24 — Integrate HeroUI in the template
+
+Installed HeroUI React and styles 3.2.7 under the existing pnpm dependency cooldown. The account-menu theme switch is the first HeroUI component and continues to use the current theme provider and persistence API. Shared CSS variables match the template palette. HeroUI muted text and shadcn table backgrounds use separate tokens. G+D adoption is handled independently.
+
+Production build and all three focused Playwright tests passed using a disposable PostgreSQL instance after the usual loopback port refused connections. Verified keyboard activation, theme persistence and mobile token-page behavior. TypeScript, targeted lint and formatting, and pnpm audit passed. Publishing codex/heroui-integration for review.

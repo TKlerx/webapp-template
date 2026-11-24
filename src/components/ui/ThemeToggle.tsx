@@ -1,12 +1,12 @@
 "use client";
 
+import { Button } from "@heroui/react";
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { SessionUser } from "@/lib/auth";
 import { withBasePath } from "@/lib/base-path";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { useToast } from "@/components/ui/Toast";
-import { Button } from "@/components/ui/Button";
 
 type Theme = "LIGHT" | "DARK";
 
@@ -46,8 +46,8 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
   return (
     <Button
       className="shadow-sm"
-      disabled={isPending}
-      onClick={() => {
+      isDisabled={isPending}
+      onPress={() => {
         const previousTheme = theme;
         setTheme(nextTheme);
         startTransition(async () => {
@@ -62,7 +62,7 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
         });
       }}
       type="button"
-      variant="secondary"
+      variant="outline"
     >
       {isPending
         ? t("saving")
