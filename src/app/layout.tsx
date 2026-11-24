@@ -29,47 +29,36 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const sessionPromise = getSessionUser();
   const configuredBasePath = process.env.BASE_PATH ?? "";
-  const locale = await getLocale();
+  const [user, locale, messages] = await Promise.all([
+    getSessionUser(),
+    getLocale(),
+    getMessages(),
+  ]);
+  const initialTheme = user?.themePreference ?? "DARK";
+  const colorScheme = initialTheme === "DARK" ? "dark" : "light";
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html
+      lang={locale}
+      data-theme={colorScheme}
+      data-mantine-color-scheme={colorScheme}
+    >
       <body
         className={`${geistSans.variable} ${geistMono.variable}`}
         data-base-path={configuredBasePath}
       >
-        <SessionLayout locale={locale} sessionPromise={sessionPromise}>
-          {children}
-        </SessionLayout>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <SessionProvider user={user}>
+            <ThemeProvider initialTheme={initialTheme}>
+              <ToastProvider>
+                {children}
+                <AppVersionBadge />
+              </ToastProvider>
+            </ThemeProvider>
+          </SessionProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
-  );
-}
-
-async function SessionLayout({
-  locale,
-  sessionPromise,
-  children,
-}: {
-  locale: Awaited<ReturnType<typeof getLocale>>;
-  sessionPromise: ReturnType<typeof getSessionUser>;
-  children: React.ReactNode;
-}) {
-  const user = await sessionPromise;
-  const initialTheme = user?.themePreference ?? "DARK";
-  const messages = await getMessages();
-
-  return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <SessionProvider user={user}>
-        <ThemeProvider initialTheme={initialTheme}>
-          <ToastProvider>
-            {children}
-            <AppVersionBadge />
-          </ToastProvider>
-        </ThemeProvider>
-      </SessionProvider>
-    </NextIntlClientProvider>
   );
 }

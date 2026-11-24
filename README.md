@@ -34,13 +34,10 @@ These files are intentionally committed into the template so copied repos still 
 
 ## UI components
 
-The template includes HeroUI v3 alongside its local shadcn/Radix components. Use
-`@heroui/react` for new HeroUI controls. The account menu’s theme toggle is a
-working example, with keyboard activation and theme persistence. HeroUI shares
-the existing light/dark tokens. When adding a HeroUI component, import its CSS
-in `src/app/globals.css` alongside the button stylesheet.
-Use `bg-muted-background` for muted surfaces and `text-muted-foreground` for
-subdued text in template components.
+The template includes Mantine alongside its local shadcn/Radix components.
+The account menu’s theme toggle uses `@mantine/core`. Mantine follows the
+same saved light/dark preference as the rest of the app. Core styles are
+loaded in `src/app/globals.css`, with Tailwind utilities taking precedence.
 
 ## Chat and voice assistant
 

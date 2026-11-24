@@ -19,27 +19,29 @@ test("theme toggle persists across sessions", async ({ page }) => {
   await loginWithPassword(page, "e2e-theme-user@example.com", "ThemePass123");
   await expectOnDashboard(page);
 
+  const html = page.locator("html");
+  await expect(html).toHaveAttribute("data-mantine-color-scheme", "light");
   await openUserMenu(page);
   const darkMode = page.getByRole("button", { name: "Dark mode" });
   await expect(darkMode).toHaveCSS("border-top-width", "1px");
-  await expect(darkMode).toHaveCSS("border-top-left-radius", "36px");
   await expect(page.getByRole("button", { name: "Sign out" })).toHaveCSS(
     "border-top-left-radius",
     "6px",
   );
   await darkMode.press("Enter");
   await expect(page.getByRole("button", { name: "Light mode" })).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  await expect(html).toHaveAttribute("data-mantine-color-scheme", "dark");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Open user menu" }).click();
   await expect(page.getByRole("button", { name: "Light mode" })).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await loginWithPassword(page, "e2e-theme-user@example.com", "ThemePass123");
   await expectOnDashboard(page);
 
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  await expect(html).toHaveAttribute("data-mantine-color-scheme", "dark");
   await openUserMenu(page);
   await expect(page.getByRole("button", { name: "Light mode" })).toBeVisible();
   await expect(page.getByText("DARK", { exact: true })).toBeVisible();

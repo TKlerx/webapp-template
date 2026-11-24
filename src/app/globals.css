@@ -1,26 +1,6 @@
+@layer theme, base, mantine, components, utilities;
 @import "tailwindcss";
-@import "@heroui/styles/themes/shared/theme.css" layer(theme);
-@import "@heroui/styles/themes/default/variables.css" layer(theme);
-@import "@heroui/styles/utilities";
-@import "@heroui/styles/components/button.css" layer(components);
-
-/* Keep the original Tailwind radii for existing template components. */
-@theme {
-  --radius-xs: 0.125rem;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
-  --radius-3xl: 1.5rem;
-  --radius-4xl: 2rem;
-}
-
-@layer components {
-  .button {
-    border-radius: calc(var(--radius) * 3);
-  }
-}
+@import "@mantine/core/styles.layer.css";
 
 @theme inline {
   --color-background: var(--background);
@@ -35,7 +15,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted-background: var(--muted-background);
+  --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
@@ -56,7 +36,7 @@
   --panel-foreground: #15233b;
   --accent: #2f6fae;
   --accent-foreground: #ffffff;
-  --muted-background: #d8e0ea;
+  --muted: #d8e0ea;
   --sidebar-width: 16rem;
   --card: var(--panel);
   --card-foreground: var(--panel-foreground);
@@ -75,16 +55,6 @@
   --input: #d8e0ea;
   --ring: #2f6fae;
   --radius: 0.75rem;
-
-  /* HeroUI uses muted for text. Keep the template's muted surfaces separate. */
-  --muted: var(--muted-foreground);
-  --surface: var(--panel);
-  --surface-foreground: var(--panel-foreground);
-  --default: var(--secondary);
-  --default-foreground: var(--foreground);
-  --focus: var(--ring);
-  --danger: var(--destructive);
-  --danger-foreground: var(--destructive-foreground);
 }
 
 [data-theme="dark"] {
@@ -94,7 +64,7 @@
   --panel-foreground: #e7eef7;
   --accent: #5b9bd5;
   --accent-foreground: #0c1626;
-  --muted-background: #243245;
+  --muted: #243245;
   --card: var(--panel);
   --card-foreground: var(--panel-foreground);
   --popover: #121a26;
