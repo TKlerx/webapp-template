@@ -2102,3 +2102,9 @@ All 375 Vitest tests passed using disposable PostgreSQL and Python 3.12. The fir
 ## 2026-11-24 — Address PR #63 review
 
 Replaced the full Mantine stylesheet with the layered variables, shared interaction styles, and Button styles. Playwright checks the authenticated response’s root HTML attributes before hydration and guards the template’s default line height.
+
+## 2026-11-24 — Use Mantine DataTable for the Audit Trail
+
+Replaced the audit rows and pagination controls with Mantine DataTable 9.8.3. The viewer supplies the current page, filtered record count, and page size from the existing API. The browser regression checks that paging requests new records and that changing a filter resets to page one.
+
+Passed the production build, 15 audit unit tests, four focused Playwright tests, TypeScript, targeted lint and formatting, and pnpm audit. The production build references the DataTable stylesheet only from the Audit Trail route.

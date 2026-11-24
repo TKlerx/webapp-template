@@ -1,5 +1,10 @@
 # Continue
 
+## Mantine DataTable for the Audit Trail (2026-11-24)
+
+- Switched the Audit Trail to Mantine DataTable on `codex/audit-datatable`. Existing action and entity filters, CSV/PDF export, and server-side pagination still use the same audit API. Table styles load with the Audit Trail.
+- Verified the production build, 15 audit unit tests, four focused Playwright tests, TypeScript, targeted lint and formatting, and pnpm audit.
+
 ## Mantine integration (2026-11-24)
 
 - Replaced HeroUI with Mantine Core and Hooks on `codex/mantine`. The account menu’s theme toggle uses Mantine and still saves the user’s preference. The root layout applies the saved theme on the server, and the shared provider updates both theme attributes when it changes.
