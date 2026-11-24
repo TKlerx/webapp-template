@@ -1,6 +1,6 @@
 "use client";
 
-import { Pagination } from "@mantine/core";
+import { Pagination, TextInput } from "@mantine/core";
 import { usePagination } from "@mantine/hooks";
 import { DataTable } from "mantine-datatable";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -19,6 +19,12 @@ type AuditRow = {
   createdAt: string;
   actor: { name: string; email: string } | null;
   scope?: { name: string } | null;
+};
+
+const filterClassNames = {
+  label: "mb-2 text-sm font-medium text-[var(--muted-foreground)]",
+  input:
+    "min-h-11 rounded-lg border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]",
 };
 
 export function AuditTrailViewer() {
@@ -136,42 +142,30 @@ export function AuditTrailViewer() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-2 text-sm font-medium">
-            <span className="text-[var(--muted-foreground)]">
-              {t("action")}
-            </span>
-            <input
-              className="min-h-11 rounded-lg border border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-              onChange={(event) => {
-                setPage(1);
-                setPagination(null);
-                setFilters((current) => ({
-                  ...current,
-                  action: event.target.value,
-                }));
-              }}
-              placeholder={t("action")}
-              value={filters.action}
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium">
-            <span className="text-[var(--muted-foreground)]">
-              {t("entity")}
-            </span>
-            <input
-              className="min-h-11 rounded-lg border border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-              onChange={(event) => {
-                setPage(1);
-                setPagination(null);
-                setFilters((current) => ({
-                  ...current,
-                  entityType: event.target.value,
-                }));
-              }}
-              placeholder={t("entity")}
-              value={filters.entityType}
-            />
-          </label>
+          <TextInput
+            classNames={filterClassNames}
+            label={t("action")}
+            onChange={(event) => {
+              const action = event.currentTarget.value;
+              setPage(1);
+              setPagination(null);
+              setFilters((current) => ({ ...current, action }));
+            }}
+            placeholder={t("action")}
+            value={filters.action}
+          />
+          <TextInput
+            classNames={filterClassNames}
+            label={t("entity")}
+            onChange={(event) => {
+              const entityType = event.currentTarget.value;
+              setPage(1);
+              setPagination(null);
+              setFilters((current) => ({ ...current, entityType }));
+            }}
+            placeholder={t("entity")}
+            value={filters.entityType}
+          />
         </div>
         <AuditExportButton queryString={queryString} />
       </div>
