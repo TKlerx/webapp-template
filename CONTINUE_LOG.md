@@ -2170,3 +2170,7 @@ Implemented Spec 023 on PR #71. Verified the saved-theme regression against old 
 ## 2026-11-25 — Verify the completed Mantine migration
 
 GitHub Validate and Joern passed at implementation commit f8e7f45. The production Chromium run passed 45 cases and skipped the optional live Azure audio test. All 375 Vitest cases passed locally. Spec 023 is complete and Spec 014 remains open.
+
+## 2026-11-26 — Review production-only CI dependency audits
+
+Prepared the audit-scope change on a separate branch from main. Recorded the package coverage lost under each scanner and the existing final-image checks in the pull request.

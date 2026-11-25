@@ -1,5 +1,9 @@
 # Continue
 
+## Production dependency audits in CI (2026-11-26)
+
+- Prepared a separate PR to align the GitHub pnpm, uv, and Go audits with local production validation. The PR documents the lost coverage for development tools, optional pnpm packages, and Go modules outside the Linux CLI import graph.
+
 ## Mantine migration implementation (2026-11-25)
 
 - Implemented the saved-theme fix and migrated the remaining controls in Spec 023 on PR #71. The changes cover Notifications, Audit Trail, Users, Jobs, Ops Health, personal and admin tokens, local auth, and Teams. Spec 014 remains open.

@@ -107,16 +107,16 @@ jobs:
             }
           '
 
-      - name: Audit all application dependencies
-        run: pnpm audit --audit-level low
+      - name: Audit application production dependencies
+        run: pnpm audit --prod --no-optional --audit-level low
 
-      - name: Audit all worker dependencies
+      - name: Audit worker production dependencies
         working-directory: worker
-        run: uv audit --frozen
+        run: uv audit --frozen --no-dev
 
-      - name: Audit all CLI module dependencies
+      - name: Audit CLI production dependencies
         working-directory: cli
-        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -scan=module
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -scan=package -test=false .
 
       - name: Generate Prisma client
         run: pnpm run prisma:generate
