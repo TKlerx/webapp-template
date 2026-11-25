@@ -3,7 +3,7 @@
 import { Clipboard } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@mantine/core";
 
 type ToastState = "success" | "error" | null;
 
@@ -34,7 +34,7 @@ export function DiagnosticSummaryCopy({ text }: { text: string }) {
       <Button
         className="inline-flex items-center gap-2"
         type="button"
-        variant="secondary"
+        variant="default"
         onClick={() => {
           void copySummary();
         }}

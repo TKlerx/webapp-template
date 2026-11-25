@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Button, TextInput } from "@mantine/core";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/Button";
 import { Form } from "@/components/ui/Form";
-import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
 
@@ -12,12 +11,18 @@ export function ChangePasswordForm({ destination = "/dashboard" } = {}) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
   const { pushToast } = useToast();
   const t = useTranslations("auth");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
+    setError(null);
 
     const response = await fetch(withBasePath("/api/auth/change-password"), {
       method: "POST",
@@ -29,7 +34,7 @@ export function ChangePasswordForm({ destination = "/dashboard" } = {}) {
     setSubmitting(false);
 
     if (!response.ok) {
-      pushToast(payload.error ?? t("couldNotUpdatePassword"));
+      setError(payload.error ?? t("couldNotUpdatePassword"));
       return;
     }
 
@@ -43,33 +48,43 @@ export function ChangePasswordForm({ destination = "/dashboard" } = {}) {
       onSubmit={(event) => {
         void handleSubmit(event).catch(() => {
           setSubmitting(false);
-          pushToast(t("couldNotUpdatePassword"));
+          setError(t("couldNotUpdatePassword"));
         });
       }}
     >
-      <label className="block text-sm font-medium">
-        {t("currentPassword")}
-        <Input
-          className="mt-2"
-          type="password"
-          autoComplete="current-password"
-          value={currentPassword}
-          onChange={(event) => setCurrentPassword(event.target.value)}
-          required
-        />
-      </label>
-      <label className="block text-sm font-medium">
-        {t("newPassword")}
-        <Input
-          className="mt-2"
-          type="password"
-          autoComplete="new-password"
-          value={newPassword}
-          onChange={(event) => setNewPassword(event.target.value)}
-          required
-        />
-      </label>
-      <Button className="w-full" disabled={submitting} type="submit">
+      {error && (
+        <div
+          className="rounded-lg border border-[var(--destructive)] p-3 text-sm text-[var(--destructive)]"
+          ref={errorRef}
+          role="alert"
+          tabIndex={-1}
+        >
+          {error}
+        </div>
+      )}
+      <TextInput
+        label={t("currentPassword")}
+        name="currentPassword"
+        size="md"
+        withAsterisk={false}
+        type="password"
+        autoComplete="current-password"
+        value={currentPassword}
+        onChange={(event) => setCurrentPassword(event.target.value)}
+        required
+      />
+      <TextInput
+        label={t("newPassword")}
+        name="newPassword"
+        size="md"
+        withAsterisk={false}
+        type="password"
+        autoComplete="new-password"
+        value={newPassword}
+        onChange={(event) => setNewPassword(event.target.value)}
+        required
+      />
+      <Button disabled={submitting} fullWidth size="md" type="submit">
         {submitting ? t("saving") : t("saveNewPassword")}
       </Button>
     </Form>

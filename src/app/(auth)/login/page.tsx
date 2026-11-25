@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { AuthPageShell } from "@/components/auth/AuthPageShell";
 import { LoginForm } from "@/components/auth/LoginForm";
+import "@mantine/core/styles/Input.layer.css";
 
 export default function LoginPage() {
   const t = useTranslations("auth");

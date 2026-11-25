@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isValidElement, type ReactElement, type ReactNode } from "react";
+import { MantineProvider } from "@mantine/core";
+import { renderToStaticMarkup } from "react-dom/server";
 import { Role } from "../../generated/prisma/enums";
 
 const { redirect } = vi.hoisted(() => ({
@@ -114,7 +115,9 @@ describe("background jobs dashboard page", () => {
     ]);
 
     const page = await BackgroundJobsPage();
-    const text = collectText(page).join(" ");
+    const text = renderToStaticMarkup(
+      <MantineProvider>{page}</MantineProvider>,
+    );
 
     expect(prisma.backgroundJob.findMany).toHaveBeenCalledWith({
       include: {
@@ -140,30 +143,3 @@ describe("background jobs dashboard page", () => {
     expect(text).not.toContain("secret-token");
   });
 });
-
-function collectText(node: ReactNode): string[] {
-  if (node === null || node === undefined || typeof node === "boolean") {
-    return [];
-  }
-
-  if (typeof node === "string" || typeof node === "number") {
-    return [String(node)];
-  }
-
-  if (Array.isArray(node)) {
-    return node.flatMap((child) => collectText(child));
-  }
-
-  if (isValidElement(node)) {
-    const element = node as ReactElement<{ children?: ReactNode }>;
-
-    if (typeof element.type === "function") {
-      const render = element.type as (props: typeof element.props) => ReactNode;
-      return collectText(render(element.props));
-    }
-
-    return collectText(element.props.children);
-  }
-
-  return [];
-}
