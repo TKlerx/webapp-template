@@ -233,6 +233,15 @@
     }
   },
   "tokens": {
+    "downloads": {
+      "title": "CLI-Downloads",
+      "description": "Laden Sie starterctl herunter, erstellen Sie ein Token und konfigurieren Sie es für diese Anwendung.",
+      "failed": "CLI-Downloads konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "loading": "CLI-Downloads werden geladen …",
+      "unavailable": "Für diese Bereitstellung sind noch keine CLI-Dateien verfügbar.",
+      "checksums": "Prüfsummen"
+    },
     "eyebrow": "API Access",
     "title": "Personal access tokens",
     "description": "Create, review, and manage API tokens for scripts, integrations, and CLI use.",
@@ -364,6 +373,8 @@
     "approve": "Approve login"
   },
   "teams": {
+    "emptyTargets": "Keine ausgehenden Ziele konfiguriert.",
+    "emptySubscriptions": "Keine eingehenden Abonnements konfiguriert.",
     "eyebrow": "Teams Ops",
     "title": "Teams Integration",
     "description": "Configure Microsoft Teams delivery targets, intake subscriptions, and health controls.",

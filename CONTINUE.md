@@ -1,5 +1,10 @@
 # Continue
 
+## Mantine migration implementation (2026-11-25)
+
+- Implemented the saved-theme fix and migrated the remaining controls in Spec 023 on PR #71. The changes cover Notifications, Audit Trail, Users, Jobs, Ops Health, personal and admin tokens, local auth, and Teams. Spec 014 remains open.
+- The opposing-theme test reproduced the baseline bug and passed with the fix. All 375 Vitest tests passed against disposable PostgreSQL. Final production browser and PR validation are in progress.
+
 ## Mantine migration draft handoff (2026-11-25)
 
 - The user requested one draft pull request after the open Spec 014 work was raised. [Spec 023](specs/023-mantine-migration/spec.md), its [24 tasks](specs/023-mantine-migration/tasks.md), and the [pickup guide](specs/023-mantine-migration/quickstart.md) are on `codex/mantine-migration-plan`.

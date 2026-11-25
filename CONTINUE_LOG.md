@@ -2162,3 +2162,7 @@ Expanded the Mantine roadmap into 23 dependency-ordered tasks. The first three P
 ## 2026-11-25 — Package the Mantine plan for pickup
 
 Prepared one draft pull request with numbered Spec Kit feature 023, 24 unchecked tasks, and a pickup guide. The branch selects the feature for the implementation command. Spec 014 stays open for its remaining requirements.
+
+## 2026-11-25 — Implement Mantine migration checkpoints
+
+Implemented Spec 023 on PR #71. Verified the saved-theme regression against old and fixed builds and passed all 375 Vitest tests. Added browser coverage for held row actions, token dialog focus, auth keyboard behavior, and provider-free Teams administration. Full browser and GitHub verification are in progress.
