@@ -3,7 +3,7 @@
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@mantine/core";
 import { DiagnosticSummaryCopy } from "@/components/ops/DiagnosticSummaryCopy";
 import { HealthStatusBadge } from "@/components/ops/HealthStatusBadge";
 import type { HealthCheckKey, HealthSnapshot } from "@/lib/ops-health";
@@ -30,15 +30,18 @@ export function OpsHealthDashboard({
   function refreshSnapshot() {
     startTransition(async () => {
       setError(null);
-      const response = await fetch(withBasePath("/api/admin/ops-health"), {
-        cache: "no-store",
-      });
-      if (!response.ok) {
+      try {
+        const response = await fetch(withBasePath("/api/admin/ops-health"), {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          setError(t("refreshFailed"));
+          return;
+        }
+        setSnapshot((await response.json()) as HealthSnapshot);
+      } catch {
         setError(t("refreshFailed"));
-        return;
       }
-
-      setSnapshot((await response.json()) as HealthSnapshot);
     });
   }
 
@@ -86,7 +89,7 @@ export function OpsHealthDashboard({
               className="inline-flex items-center gap-2"
               disabled={isPending}
               type="button"
-              variant="secondary"
+              variant="default"
               onClick={refreshSnapshot}
             >
               <RefreshCw
@@ -97,7 +100,10 @@ export function OpsHealthDashboard({
             </Button>
           </div>
           {error ? (
-            <p className="mt-3 rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">
+            <p
+              className="mt-3 rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300"
+              role="alert"
+            >
               {error}
             </p>
           ) : null}

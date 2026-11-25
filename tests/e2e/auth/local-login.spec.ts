@@ -24,7 +24,15 @@ test("local user is forced to change password on first login", async ({
   await expect(page).toHaveURL(new RegExp(`${appBasePath}/change-password$`));
   await page.getByLabel("Current password").fill("TempPass123");
   await page.getByLabel("New password").fill("FreshPass123");
-  await page.getByRole("button", { name: "Save new password" }).click();
+  await expect(page.getByLabel("Current password")).toHaveAttribute(
+    "autocomplete",
+    "current-password",
+  );
+  await expect(page.getByLabel("New password")).toHaveAttribute(
+    "autocomplete",
+    "new-password",
+  );
+  await page.getByLabel("New password").press("Enter");
 
   await expectOnDashboard(page);
 });
@@ -50,11 +58,28 @@ test("a local user can change their password from the account menu", async ({
   await page.getByLabel("Current password").fill("IncorrectPass123");
   await page.getByLabel("New password").fill("ChangedPass123");
   await page.getByRole("button", { name: "Save new password" }).click();
-  await expect(page.getByText("Current password is incorrect")).toBeVisible();
+  const error = page
+    .getByRole("alert")
+    .filter({ hasText: "Current password is incorrect" });
+  await expect(error).toBeFocused();
   await page.getByLabel("Current password").fill("CurrentPass123");
   await page.getByRole("button", { name: "Save new password" }).click();
   await expectOnDashboard(page);
   await page.context().clearCookies();
   await loginWithPassword(page, email, "ChangedPass123");
   await expectOnDashboard(page);
+});
+
+test("local sign-in keeps keyboard submission and focuses failed-login feedback", async ({
+  page,
+}) => {
+  await page.goto(`${appBasePath}/login`);
+  const password = page.getByLabel("Password", { exact: true });
+  await expect(password).toHaveAttribute("autocomplete", "current-password");
+  await page.getByLabel("Email").fill("missing-account@example.com");
+  await password.fill("IncorrectPass123");
+  await password.press("Enter");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Invalid email or password" }),
+  ).toBeFocused();
 });

@@ -1,24 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Badge, Button, Checkbox, NativeSelect, Table } from "@mantine/core";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { useToast } from "@/components/ui/Toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/shadcn/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/shadcn/table";
 
 type NotificationConfig = {
   eventType: string;
@@ -45,6 +31,14 @@ type NotificationLogRow = {
 };
 
 const ALL_FILTER = "all";
+const LOG_STATUSES = [
+  "QUEUED",
+  "SENDING",
+  "RETRYING",
+  "SENT",
+  "FAILED",
+  "BOUNCED",
+];
 
 export function NotificationAdminPanel({
   initialConfigs,
@@ -61,7 +55,8 @@ export function NotificationAdminPanel({
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const [busyEventType, setBusyEventType] = useState<string | null>(null);
+  const pendingSaves = useRef(new Set<string>());
+  const [busyEventTypes, setBusyEventTypes] = useState(new Set<string>());
   const latestLogRequest = useRef(0);
 
   async function refreshNotifications(
@@ -92,7 +87,7 @@ export function NotificationAdminPanel({
 
       if (requestId !== latestLogRequest.current) return;
 
-      if (!response.ok || !payload?.notifications) {
+      if (!response.ok || !Array.isArray(payload?.notifications)) {
         setLoadError(true);
         return;
       }
@@ -106,7 +101,10 @@ export function NotificationAdminPanel({
   }
 
   async function toggleConfig(config: NotificationConfig, enabled: boolean) {
-    setBusyEventType(config.eventType);
+    const { eventType } = config;
+    if (pendingSaves.current.has(eventType)) return;
+    pendingSaves.current.add(eventType);
+    setBusyEventTypes(new Set(pendingSaves.current));
     try {
       const response = await fetch(
         withBasePath(
@@ -121,24 +119,31 @@ export function NotificationAdminPanel({
         },
       );
 
-      const payload = (await response.json().catch(() => null)) as {
-        error?: string;
+      const payload = (await response.json()) as {
         config?: NotificationConfig;
       } | null;
+      const saved = payload?.config;
 
-      if (!response.ok || !payload?.config) {
-        pushToast(payload?.error ?? t("saveFailed"));
+      if (
+        !response.ok ||
+        saved?.eventType !== eventType ||
+        typeof saved.enabled !== "boolean" ||
+        typeof saved.updatedAt !== "string" ||
+        Number.isNaN(Date.parse(saved.updatedAt))
+      ) {
+        pushToast(t("saveFailed"));
         return;
       }
 
       setConfigs((current) =>
-        current.map((item) =>
-          item.eventType === payload.config!.eventType ? payload.config! : item,
-        ),
+        current.map((item) => (item.eventType === eventType ? saved : item)),
       );
-      pushToast(enabled ? t("enabledSaved") : t("disabledSaved"));
+      pushToast(saved.enabled ? t("enabledSaved") : t("disabledSaved"));
+    } catch {
+      pushToast(t("saveFailed"));
     } finally {
-      setBusyEventType(null);
+      pendingSaves.current.delete(eventType);
+      setBusyEventTypes(new Set(pendingSaves.current));
     }
   }
 
@@ -168,29 +173,26 @@ export function NotificationAdminPanel({
           {configs.map((config) => (
             <article
               key={config.eventType}
-              className="rounded-lg border border-[var(--border)] p-4"
+              className="min-w-0 rounded-lg border border-[var(--border)] p-4"
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className="font-semibold">
                     {t(`eventTypes.${config.eventType}`)}
                   </h3>
-                  <p className="mt-1 font-mono text-xs text-[var(--muted-foreground)]">
+                  <p className="mt-1 font-mono text-xs break-all text-[var(--muted-foreground)]">
                     {config.eventType}
                   </p>
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    checked={config.enabled}
-                    className="size-4 rounded"
-                    disabled={busyEventType === config.eventType}
-                    onChange={(event) =>
-                      void toggleConfig(config, event.target.checked)
-                    }
-                    type="checkbox"
-                  />
-                  {config.enabled ? t("enabled") : t("disabled")}
-                </label>
+                <Checkbox
+                  aria-label={t(`eventTypes.${config.eventType}`)}
+                  checked={config.enabled}
+                  disabled={busyEventTypes.has(config.eventType)}
+                  label={config.enabled ? t("enabled") : t("disabled")}
+                  onChange={(event) =>
+                    void toggleConfig(config, event.currentTarget.checked)
+                  }
+                />
               </div>
               <p className="mt-3 text-xs text-[var(--muted-foreground)]">
                 {t("updatedAt", { value: formatDate(config.updatedAt) })}
@@ -209,52 +211,39 @@ export function NotificationAdminPanel({
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Select
-              onValueChange={(value) => {
+            <NativeSelect
+              label={t("eventFilter")}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
                 setEventTypeFilter(value);
                 void refreshNotifications(value, statusFilter);
               }}
               value={eventTypeFilter}
-            >
-              <SelectTrigger className="w-[18rem] rounded-lg border-[var(--border)] bg-white px-3 py-2 shadow-none dark:bg-[var(--panel)]">
-                <SelectValue placeholder={t("eventFilter")} />
-              </SelectTrigger>
-              <SelectContent className="rounded-lg border-[var(--border)]">
-                <SelectItem value={ALL_FILTER}>{t("allEvents")}</SelectItem>
-                {configs.map((config) => (
-                  <SelectItem key={config.eventType} value={config.eventType}>
-                    {t(`eventTypes.${config.eventType}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              data={[
+                { value: ALL_FILTER, label: t("allEvents") },
+                ...configs.map(({ eventType }) => ({
+                  value: eventType,
+                  label: t(`eventTypes.${eventType}`),
+                })),
+              ]}
+            />
 
-            <Select
-              onValueChange={(value) => {
+            <NativeSelect
+              label={t("statusFilter")}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
                 setStatusFilter(value);
                 void refreshNotifications(eventTypeFilter, value);
               }}
               value={statusFilter}
-            >
-              <SelectTrigger className="w-[18rem] rounded-lg border-[var(--border)] bg-white px-3 py-2 shadow-none dark:bg-[var(--panel)]">
-                <SelectValue placeholder={t("statusFilter")} />
-              </SelectTrigger>
-              <SelectContent className="rounded-lg border-[var(--border)]">
-                <SelectItem value={ALL_FILTER}>{t("allStatuses")}</SelectItem>
-                {[
-                  "QUEUED",
-                  "SENDING",
-                  "RETRYING",
-                  "SENT",
-                  "FAILED",
-                  "BOUNCED",
-                ].map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {t(`statuses.${status}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              data={[
+                { value: ALL_FILTER, label: t("allStatuses") },
+                ...LOG_STATUSES.map((status) => ({
+                  value: status,
+                  label: t(`statuses.${status}`),
+                })),
+              ]}
+            />
           </div>
         </div>
 
@@ -267,58 +256,65 @@ export function NotificationAdminPanel({
         {loadError ? (
           <div className="space-y-2">
             <p role="alert">{t("loadFailed")}</p>
-            <button
+            <Button
               type="button"
               onClick={() => void refreshNotifications()}
-              className="underline"
+              variant="default"
             >
               {t("retry")}
-            </button>
+            </Button>
           </div>
         ) : loading ? null : notifications.length === 0 ? (
           <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--panel)] p-6 text-sm text-[var(--muted-foreground)]">
             {t("empty")}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-[var(--border)]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("createdAtLabel")}</TableHead>
-                  <TableHead>{t("eventLabel")}</TableHead>
-                  <TableHead>{t("recipientLabel")}</TableHead>
-                  <TableHead>{t("statusLabel")}</TableHead>
-                  <TableHead>{t("subjectLabel")}</TableHead>
-                  <TableHead>{t("detailsLabel")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <Table.ScrollContainer
+            aria-label={t("logTitle")}
+            className="rounded-lg border border-[var(--border)]"
+            minWidth={760}
+            role="region"
+            tabIndex={0}
+            type="native"
+          >
+            <Table aria-label={t("logTitle")}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t("createdAtLabel")}</Table.Th>
+                  <Table.Th>{t("eventLabel")}</Table.Th>
+                  <Table.Th>{t("recipientLabel")}</Table.Th>
+                  <Table.Th>{t("statusLabel")}</Table.Th>
+                  <Table.Th>{t("subjectLabel")}</Table.Th>
+                  <Table.Th>{t("detailsLabel")}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
                 {notifications.map((notification) => (
-                  <TableRow key={notification.id}>
-                    <TableCell>{formatDate(notification.createdAt)}</TableCell>
-                    <TableCell>
+                  <Table.Tr key={notification.id}>
+                    <Table.Td>{formatDate(notification.createdAt)}</Table.Td>
+                    <Table.Td>
                       <div className="font-medium">
                         {t(`eventTypes.${notification.eventType}`)}
                       </div>
                       <div className="font-mono text-xs text-[var(--muted-foreground)]">
                         {notification.eventType}
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </Table.Td>
+                    <Table.Td>
                       <div>{notification.recipientEmail}</div>
                       <div className="text-xs text-[var(--muted-foreground)]">
                         {t("localeValue", { locale: notification.locale })}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold dark:bg-white/10">
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge variant="light">
                         {t(`statuses.${notification.status}`)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="max-w-[20rem] truncate">
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td className="max-w-[20rem] truncate">
                       {notification.subject}
-                    </TableCell>
-                    <TableCell>
+                    </Table.Td>
+                    <Table.Td>
                       <div className="text-xs text-[var(--muted-foreground)]">
                         {notification.sentAt
                           ? t("sentAtValue", {
@@ -336,16 +332,16 @@ export function NotificationAdminPanel({
                           {notification.lastError}
                         </div>
                       ) : null}
-                    </TableCell>
-                  </TableRow>
+                    </Table.Td>
+                  </Table.Tr>
                 ))}
-              </TableBody>
+              </Table.Tbody>
             </Table>
-          </div>
+          </Table.ScrollContainer>
         )}
 
         {loading ? (
-          <p className="text-sm text-[var(--muted-foreground)]">
+          <p className="text-sm text-[var(--muted-foreground)]" role="status">
             {t("loading")}
           </p>
         ) : null}

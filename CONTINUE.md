@@ -1,5 +1,20 @@
 # Continue
 
+## Mantine migration implementation (2026-11-25)
+
+- Implemented the saved-theme fix and migrated the remaining controls in Spec 023 on PR #71. The changes cover Notifications, Audit Trail, Users, Jobs, Ops Health, personal and admin tokens, local auth, and Teams. Spec 014 remains open.
+- The opposing-theme test reproduced the baseline bug and passed with the fix. All 375 Vitest tests passed against disposable PostgreSQL. GitHub Validate and Joern passed at implementation commit `f8e7f45`, with 45 Chromium cases passing. The optional live Azure audio test remains opt-in. Teams browser tests use the local app and disposable PostgreSQL.
+
+## Mantine migration draft handoff (2026-11-25)
+
+- The user requested one draft pull request after the open Spec 014 work was raised. [Spec 023](specs/023-mantine-migration/spec.md), its [24 tasks](specs/023-mantine-migration/tasks.md), and the [pickup guide](specs/023-mantine-migration/quickstart.md) are on `codex/mantine-migration-plan`.
+- Start at T001 with the saved-theme fix. Continue with notification save reliability, the Mantine Notifications port, and the remaining workflow checkpoints on the same branch. Spec 014 remains open. Add 023 to `ACTIVE_SPECS.md` when implementation starts.
+
+## Template review and Mantine migration plan (2026-11-24)
+
+- Reviewed `main` at `28de90e`. Start with the saved-theme and OS-theme mismatch, then port Notifications. The findings, migration order, and acceptance checks are in [docs/mantine-migration-plan.md](docs/mantine-migration-plan.md).
+- Constitution 3.1.0 makes Mantine the default for new and migrated interactive UI. Existing components can stay where they preserve behavior. Spec 014 remains open, and no new tracked spec was started.
+
 ## Mantine Audit Trail exports (2026-11-24)
 
 - Converted the CSV and PDF export controls to Mantine buttons after PR #67. The buttons keep keyboard focus during a download and block a second export until the first finishes.

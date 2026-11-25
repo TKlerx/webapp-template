@@ -2148,3 +2148,25 @@ Ported the two filter fields from Personal Assistant. All eight audit browser te
 ## 2026-11-24 — Convert Audit Trail export buttons to Mantine
 
 On `codex/mantine-audit-export`, converted the CSV and PDF buttons and kept both keyboard-focusable while an export is pending. The browser regression verifies that a second export is blocked during a held CSV request, both downloads use the active filters, and page two remains selected. The production build and nine audit browser tests passed. A separate Chromium check verified real CSV and PDF downloads at 320 px.
+
+## 2026-11-24 — Set the Mantine migration direction
+
+Reviewed current main and wrote the ordered migration plan in `docs/mantine-migration-plan.md`. Confirmed the saved-theme mismatch, overlapping admin actions, notification transport error, nested sign-in control, and untranslated CLI web panel. Constitution 3.1.0 sets Mantine as the default for new and migrated interactive UI. Updated the README, theme guide, and architecture baseline. This pass changed documentation only.
+
+The production build, all 375 Vitest tests, all 37 worker tests, and 37 Chromium cases passed. The existing Teams placeholder and optional live Azure audio test were skipped.
+
+## 2026-11-25 — Plan and task the Mantine migration
+
+Expanded the Mantine roadmap into 23 dependency-ordered tasks. The first three PRs cover saved theme behavior, notification save reliability, and the Mantine Notifications port. The remaining tasks cover Audit Trail, Users, Jobs, Ops Health, tokens, auth, and Teams. Spec 014 remains open for its outstanding notification requirements.
+
+## 2026-11-25 — Package the Mantine plan for pickup
+
+Prepared one draft pull request with numbered Spec Kit feature 023, 24 unchecked tasks, and a pickup guide. The branch selects the feature for the implementation command. Spec 014 stays open for its remaining requirements.
+
+## 2026-11-25 — Implement Mantine migration checkpoints
+
+Implemented Spec 023 on PR #71. Verified the saved-theme regression against old and fixed builds and passed all 375 Vitest tests. Added browser coverage for held row actions, token dialog focus, auth keyboard behavior, and provider-free Teams administration. Full browser and GitHub verification are in progress.
+
+## 2026-11-25 — Verify the completed Mantine migration
+
+GitHub Validate and Joern passed at implementation commit f8e7f45. The production Chromium run passed 45 cases and skipped the optional live Azure audio test. All 375 Vitest cases passed locally. Spec 023 is complete and Spec 014 remains open.

@@ -33,16 +33,19 @@ export function UserManagementTable({
 }) {
   const router = useRouter();
   const { pushToast } = useToast();
-  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const pendingRows = useRef(new Set<string>());
+  const [busyRows, setBusyRows] = useState(new Set<string>());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("users");
   async function runAction(
-    key: string,
+    userId: string,
     url: string,
     options: RequestInit,
     successMessage: string,
   ) {
-    setBusyKey(key);
+    if (pendingRows.current.has(userId)) return;
+    pendingRows.current.add(userId);
+    setBusyRows(new Set(pendingRows.current));
 
     try {
       const response = await fetch(withBasePath(url), options);
@@ -64,7 +67,8 @@ export function UserManagementTable({
     } catch {
       pushToast(t("couldNotUpdate"));
     } finally {
-      setBusyKey(null);
+      pendingRows.current.delete(userId);
+      setBusyRows(new Set(pendingRows.current));
     }
   }
 
@@ -95,7 +99,7 @@ export function UserManagementTable({
         <Table.Tbody>
           {users.map((entry) => {
             const canEditRole = entry.id !== currentUserId;
-            const isBusy = busyKey?.startsWith(entry.id);
+            const isBusy = busyRows.has(entry.id);
 
             return (
               <Table.Tr className="align-top transition-colors" key={entry.id}>
@@ -109,12 +113,12 @@ export function UserManagementTable({
                   <UserRoleSelect
                     className="w-52"
                     disabled={!canEditRole}
-                    readOnly={Boolean(isBusy)}
+                    readOnly={isBusy}
                     scrollContainerRef={scrollContainerRef}
                     value={entry.role}
                     onChange={(value) =>
                       void runAction(
-                        `${entry.id}-role`,
+                        entry.id,
                         `/api/users/${entry.id}/role`,
                         {
                           method: "PATCH",
@@ -138,10 +142,10 @@ export function UserManagementTable({
                   <div className="flex flex-wrap gap-2">
                     {entry.status === UserStatusEnum.PENDING_APPROVAL ? (
                       <Button
-                        disabled={Boolean(isBusy)}
+                        disabled={isBusy}
                         onClick={() =>
                           void runAction(
-                            `${entry.id}-approve`,
+                            entry.id,
                             `/api/users/${entry.id}/approve`,
                             { method: "PATCH" },
                             t("userApproved"),
@@ -156,10 +160,10 @@ export function UserManagementTable({
 
                     {entry.status === UserStatusEnum.ACTIVE ? (
                       <Button
-                        disabled={Boolean(isBusy)}
+                        disabled={isBusy}
                         onClick={() =>
                           void runAction(
-                            `${entry.id}-deactivate`,
+                            entry.id,
                             `/api/users/${entry.id}/deactivate`,
                             { method: "PATCH" },
                             t("userDeactivated"),
@@ -174,10 +178,10 @@ export function UserManagementTable({
 
                     {entry.status === UserStatusEnum.INACTIVE ? (
                       <Button
-                        disabled={Boolean(isBusy)}
+                        disabled={isBusy}
                         onClick={() =>
                           void runAction(
-                            `${entry.id}-reactivate`,
+                            entry.id,
                             `/api/users/${entry.id}/reactivate`,
                             { method: "PATCH" },
                             t("userReactivated"),
