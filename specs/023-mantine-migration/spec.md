@@ -2,7 +2,7 @@
 
 - **Branch** `codex/mantine-migration-plan`
 - **Created** 2026-11-25
-- **Status** Tasked
+- **Status** Implemented
 - **Source** [Template review and migration roadmap](../../docs/mantine-migration-plan.md)
 
 ## User scenarios and acceptance

@@ -3,7 +3,7 @@
 ## Mantine migration implementation (2026-11-25)
 
 - Implemented the saved-theme fix and migrated the remaining controls in Spec 023 on PR #71. The changes cover Notifications, Audit Trail, Users, Jobs, Ops Health, personal and admin tokens, local auth, and Teams. Spec 014 remains open.
-- The opposing-theme test reproduced the baseline bug and passed with the fix. All 375 Vitest tests passed against disposable PostgreSQL. Final production browser and PR validation are in progress.
+- The opposing-theme test reproduced the baseline bug and passed with the fix. All 375 Vitest tests passed against disposable PostgreSQL. GitHub Validate and Joern passed at implementation commit `f8e7f45`, with 45 Chromium cases passing. The optional live Azure audio test remains opt-in. Teams browser tests use the local app and disposable PostgreSQL.
 
 ## Mantine migration draft handoff (2026-11-25)
 
