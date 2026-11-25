@@ -1,5 +1,9 @@
 # Continue
 
+## Test design and review skill (2026-11-25)
+
+- Added the project-local test-design-review skill for choosing behavior-focused regression tests and checking whether their assertions catch likely failures.
+
 ## Mantine Audit Trail exports (2026-11-24)
 
 - Converted the CSV and PDF export controls to Mantine buttons after PR #67. The buttons keep keyboard focus during a download and block a second export until the first finishes.
