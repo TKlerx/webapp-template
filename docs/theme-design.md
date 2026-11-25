@@ -47,10 +47,8 @@ The root layout sets both `data-theme` and `data-mantine-color-scheme` on the
 document element using the saved preference. On the client, `ThemeProvider`
 updates `data-theme` and sets the same scheme on `MantineProvider`.
 
-Token-based styles follow the saved theme. The production Tailwind build
-currently applies `dark:` utilities according to the OS preference. The
-[migration plan](mantine-migration-plan.md) tracks aligning those utilities
-with the saved theme and adding a regression test.
+The Tailwind `dark:` variant and native CSS `color-scheme` follow the same
+`data-theme` attribute as the application tokens.
 
 ## User Preference
 
