@@ -1,5 +1,9 @@
 # Continue
 
+## Production dependency audits in CI (2026-11-26)
+
+- PR #73 keeps the broad pnpm, uv, and Go audits as advisory steps before the blocking production checks. The blocking pnpm audit includes optional production packages because the app build installs them.
+
 ## Mantine migration implementation (2026-11-25)
 
 - Implemented the saved-theme fix and migrated the remaining controls in Spec 023 on PR #71. The changes cover Notifications, Audit Trail, Users, Jobs, Ops Health, personal and admin tokens, local auth, and Teams. Spec 014 remains open.

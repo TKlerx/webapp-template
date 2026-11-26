@@ -32,6 +32,37 @@ describe("validate workflow fixtures", () => {
     expect(workflow).not.toContain("curl -LsSf");
   });
 
+  it("reports broad dependency audits before gating on production audits", () => {
+    const workflow = fs.readFileSync(WORKFLOW_PATH, "utf8");
+    const steps = workflow.split(/^ {6}- name: /m);
+    const blocking = [
+      "pnpm audit --prod --audit-level low",
+      "uv audit --frozen --no-dev",
+      "go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -scan=package -test=false .",
+    ];
+    const advisory = [
+      "pnpm audit --audit-level low",
+      "uv audit --frozen",
+      "go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -scan=module",
+    ];
+    const stepIndex = (command: string) =>
+      steps.findIndex((step) =>
+        step.split(/\r?\n/).includes(`        run: ${command}`),
+      );
+
+    for (const command of advisory) {
+      const index = stepIndex(command);
+      expect(index).toBeGreaterThan(0);
+      expect(steps[index]).toContain("continue-on-error: true");
+      for (const productionCommand of blocking) {
+        expect(index).toBeLessThan(stepIndex(productionCommand));
+      }
+    }
+    for (const command of blocking) {
+      expect(steps[stepIndex(command)]).not.toMatch(/continue-on-error:/);
+    }
+  });
+
   it("uses the same mandatory validation entry points locally and in CI", () => {
     const workflow = fs.readFileSync(WORKFLOW_PATH, "utf8");
     const pkg = JSON.parse(fs.readFileSync("package.json", "utf8")) as {
