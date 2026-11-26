@@ -1,10 +1,5 @@
 # Continue
 
-## SpecTest extension and Ops Health pilot (2026-11-26)
-
-- PR #62 adds the vendored SpecTest 1.0.0 extension, four Codex skills, and an optional gap-review hook. The workflow uses the existing test-design-review skill from PR #72 and documents usage in AI_TESTING.md.
-- Retained the prepare-work-item skill and the Ops Health FR-017 clipboard failure assertion alongside the Mantine migration's refresh and status coverage.
-
 ## Template fixes from the Personal Assistant review (2026-11-25)
 
 - Voice dispatches tools from completed responses that match the current turn. Interrupted previews stay out of saved history, and late transcripts follow the provider’s item order. Voice setup logs the failed stage with the request ID and omits provider payloads.
@@ -23,6 +18,11 @@
 ## Project-local Impeccable skill (2026-11-26)
 
 - Added Impeccable 4.10.0 for on-demand UI reviews. The skill package is pinned to upstream commit b49177d32788f2dc585c42831d845dacf1ebed2c and includes the engine 0.1.27 checksum manifest, license, and notices. The Windows launcher resolved the current Mantine Notifications route, and the source detector ran on Notifications, Audit Trail, and the token dialog.
+
+## SpecTest extension and Ops Health pilot (2026-11-26)
+
+- PR #62 adds the vendored SpecTest 1.0.0 extension, four Codex skills, and an optional gap-review hook. The workflow uses the existing test-design-review skill from PR #72 and documents usage in AI_TESTING.md.
+- Retained the prepare-work-item skill and the Ops Health FR-017 clipboard failure assertion alongside the Mantine migration's refresh and status coverage.
 
 ## Production dependency audits in CI (2026-11-26)
 
