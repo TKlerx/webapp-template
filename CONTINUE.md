@@ -2,7 +2,7 @@
 
 ## Production dependency audits in CI (2026-11-26)
 
-- Prepared a separate PR to align the GitHub pnpm, uv, and Go audits with local production validation. The PR documents the lost coverage for development tools, optional pnpm packages, and Go modules outside the Linux CLI import graph.
+- PR #73 keeps the broad pnpm, uv, and Go audits as advisory steps before the blocking production checks. The blocking pnpm audit includes optional production packages because the app build installs them.
 
 ## Mantine migration implementation (2026-11-25)
 

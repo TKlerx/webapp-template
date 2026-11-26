@@ -2174,3 +2174,7 @@ GitHub Validate and Joern passed at implementation commit f8e7f45. The productio
 ## 2026-11-26 — Review production-only CI dependency audits
 
 Prepared the audit-scope change on a separate branch from main. Recorded the package coverage lost under each scanner and the existing final-image checks in the pull request.
+
+## 2026-11-26 — Preserve broad dependency audit reporting
+
+Updated PR #73 so broad audits log findings without failing Validate. Production findings still block, including optional production packages in the application audit.
