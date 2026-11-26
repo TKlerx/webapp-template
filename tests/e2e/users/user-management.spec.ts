@@ -11,12 +11,75 @@ import { seedLocalUser, updateUserStatuses } from "../helpers/db";
 
 test.setTimeout(60000);
 
+const desktopAdminEmail = `desktop${"w".repeat(57)}@example.com`;
+
 function activeRoleOption(role: Locator) {
   return role.evaluate((element) => {
     const id = element.getAttribute("aria-activedescendant");
     return id ? document.getElementById(id)?.textContent : null;
   });
 }
+
+test("user rows remain locked until their own updates complete", async ({
+  page,
+}) => {
+  // Run with a dedicated admin and restore its status so the last-admin case
+  // still exercises the seeded administrator in isolation.
+  const admin = "e2e-user-row-admin@example.com";
+  const password = "UserRowPass123";
+  await seedLocalUser({
+    email: admin,
+    name: "Row Admin",
+    role: Role.PLATFORM_ADMIN,
+    password,
+    mustChangePassword: false,
+  });
+  const names = ["First Held Row", "Second Held Row"];
+  for (const [index, name] of names.entries()) {
+    await seedLocalUser({
+      email: `e2e-held-row-${index}@example.com`,
+      name,
+      role: Role.SCOPE_USER,
+      password,
+      mustChangePassword: false,
+    });
+  }
+  await loginWithPassword(page, admin, password);
+  await expectOnDashboard(page);
+  await page.goto(`${appBasePath}/users`);
+  const [first, second] = names.map((name) =>
+    page.getByRole("row").filter({ hasText: name }),
+  );
+  const release: Array<() => void> = [];
+  const pattern = "**/api/users/*/deactivate";
+  await page.route(pattern, async (route) => {
+    const index = release.length;
+    await new Promise<void>((resolve) => release.push(resolve));
+    if (index === 0) await route.abort();
+    else await route.continue();
+  });
+  try {
+    const firstAction = first.getByRole("button", { name: "Deactivate" });
+    const secondAction = second.getByRole("button", { name: "Deactivate" });
+    await firstAction.click();
+    await expect(firstAction).toBeDisabled();
+    await secondAction.click();
+    await expect(secondAction).toBeDisabled();
+    await expect.poll(() => release.length).toBe(2);
+    release[1]();
+    await expect(
+      second.getByRole("button", { name: "Reactivate" }),
+    ).toBeEnabled();
+    await expect(firstAction).toBeDisabled();
+    release[0]();
+    await expect(page.getByText("Could not update user")).toBeVisible();
+    await expect(firstAction).toBeEnabled();
+  } finally {
+    release.forEach((resolve) => resolve());
+    await page.unroute(pattern);
+    updateUserStatuses([admin], UserStatus.INACTIVE);
+  }
+});
 
 test("admin creates a local user, user logs in and changes password", async ({
   browser,
@@ -177,7 +240,7 @@ test("admin creates a local user, user logs in and changes password", async ({
       ".mantine-TableScrollContainer-scrollContainer",
     );
     await scrollContainer.evaluate((element) => {
-      element.scrollLeft = 0;
+      element.scrollLeft = element.scrollWidth;
     });
     await expect(roleList).toBeHidden();
     await expect(rowRole).toHaveAttribute("aria-expanded", "false");
@@ -337,6 +400,8 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
         "e2e-event-admin@example.com",
         "e2e-notifications-admin@example.com",
         "e2e-tokens-mobile@example.com",
+        "e2e-users-desktop@example.com",
+        desktopAdminEmail,
       ],
       UserStatus.INACTIVE,
     );
@@ -353,5 +418,35 @@ test("last active admin cannot be deactivated", async ({ browser }) => {
     ).toBeVisible();
   } finally {
     await adminContext.close();
+  }
+});
+
+test("Users row actions fit at 1280px with a long email", async ({ page }) => {
+  const password = "DesktopTest123";
+  try {
+    seedLocalUser({
+      email: desktopAdminEmail,
+      name: "Desktop Admin",
+      role: Role.PLATFORM_ADMIN,
+      password,
+      mustChangePassword: false,
+    });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await loginWithPassword(page, desktopAdminEmail, password);
+    await expectOnDashboard(page);
+    await page.goto(`${appBasePath}/users`);
+
+    const row = page.getByRole("row").filter({ hasText: desktopAdminEmail });
+    // A reused database can place this fixture farther down the page.
+    // Scroll only the document vertically so the table stays at its initial position.
+    await row.evaluate((element) => {
+      const top = element.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, top - window.innerHeight / 2);
+    });
+    const action = row.getByRole("button", { name: "Deactivate" });
+    await expect(action).toBeVisible();
+    await expect(action).toBeInViewport({ ratio: 1 });
+  } finally {
+    updateUserStatuses([desktopAdminEmail], UserStatus.INACTIVE);
   }
 });

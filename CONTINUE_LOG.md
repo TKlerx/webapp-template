@@ -2149,6 +2149,50 @@ Ported the two filter fields from Personal Assistant. All eight audit browser te
 
 On `codex/mantine-audit-export`, converted the CSV and PDF buttons and kept both keyboard-focusable while an export is pending. The browser regression verifies that a second export is blocked during a held CSV request, both downloads use the active filters, and page two remains selected. The production build and nine audit browser tests passed. A separate Chromium check verified real CSV and PDF downloads at 320 px.
 
+## 2026-11-24 — Set the Mantine migration direction
+
+Reviewed current main and wrote the ordered migration plan in `docs/mantine-migration-plan.md`. Confirmed the saved-theme mismatch, overlapping admin actions, notification transport error, nested sign-in control, and untranslated CLI web panel. Constitution 3.1.0 sets Mantine as the default for new and migrated interactive UI. Updated the README, theme guide, and architecture baseline. This pass changed documentation only.
+
+The production build, all 375 Vitest tests, all 37 worker tests, and 37 Chromium cases passed. The existing Teams placeholder and optional live Azure audio test were skipped.
+
+## 2026-11-25 — Plan and task the Mantine migration
+
+Expanded the Mantine roadmap into 23 dependency-ordered tasks. The first three PRs cover saved theme behavior, notification save reliability, and the Mantine Notifications port. The remaining tasks cover Audit Trail, Users, Jobs, Ops Health, tokens, auth, and Teams. Spec 014 remains open for its outstanding notification requirements.
+
+## 2026-11-25 — Package the Mantine plan for pickup
+
+Prepared one draft pull request with numbered Spec Kit feature 023, 24 unchecked tasks, and a pickup guide. The branch selects the feature for the implementation command. Spec 014 stays open for its remaining requirements.
+
+## 2026-11-25 — Implement Mantine migration checkpoints
+
+Implemented Spec 023 on PR #71. Verified the saved-theme regression against old and fixed builds and passed all 375 Vitest tests. Added browser coverage for held row actions, token dialog focus, auth keyboard behavior, and provider-free Teams administration. Full browser and GitHub verification are in progress.
+
+## 2026-11-25 — Verify the completed Mantine migration
+
+GitHub Validate and Joern passed at implementation commit f8e7f45. The production Chromium run passed 45 cases and skipped the optional live Azure audio test. All 375 Vitest cases passed locally. Spec 023 is complete and Spec 014 remains open.
+
+## 2026-11-25 — Add test design and review skill
+
+Copied the user-level test-design-review skill into .agents/skills for project-local use in Codex.
+
+## 2026-11-26 — Review production-only CI dependency audits
+
+Prepared the audit-scope change on a separate branch from main. Recorded the package coverage lost under each scanner and the existing final-image checks in the pull request.
+
+## 2026-11-26 — Preserve broad dependency audit reporting
+
+Updated PR #73 so broad audits log findings without failing Validate. Production findings still block, including optional production packages in the application audit.
+
+## 2026-11-26 — Add Impeccable for UI review
+
+Vendored the project-local Impeccable skill and verified all 71 files against the pinned upstream Git tree before removing trailing whitespace from three reference files. Verified context loading and the source detector on the Mantine implementation. The pull request records the production-browser verification.
+
+## 2026-11-25 — Address PR #69 desktop Users review
+
+Kept the create-user launcher above the full-width table and allowed long email values to wrap. The 1280 px browser test checks full action visibility before horizontal scrolling. Moved test fixture setup inside cleanup protection and accounted for leftover desktop-admin fixtures in later test runs.
+
+The production build and all 13 Users and Audit Trail Chromium tests passed on disposable PostgreSQL. At 1280 px, the long-email row action was fully visible with wrapping and fully clipped when wrapping was disabled.
+
 ## 2026-11-25 — Address template findings from the Personal Assistant review
 
 Bound voice tools and saved replies to the completed provider response, preserved conversation item order for late transcripts, and added redacted request-correlated setup logs. Guarded password changes against concurrent writes, restored saved locale preferences without a locale cookie, corrected the proxy forwarding event, and kept the local Trivy `.env` exclusion out of CI.

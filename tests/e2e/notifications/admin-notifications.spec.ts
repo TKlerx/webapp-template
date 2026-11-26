@@ -96,11 +96,9 @@ test("platform admin can manage notification settings and filter the notificatio
     page.locator("article").filter({ hasText: "Failed" }).first(),
   ).toContainText("0");
 
-  const roleChangedCard = page
-    .locator("article")
-    .filter({ hasText: "Role changed" })
-    .first();
-  const roleChangedToggle = roleChangedCard.getByRole("checkbox");
+  const roleChangedToggle = page.getByRole("checkbox", {
+    name: "Role changed",
+  });
   await expect(roleChangedToggle).toBeChecked();
 
   await Promise.all([
@@ -116,21 +114,35 @@ test("platform admin can manage notification settings and filter the notificatio
   await expect(roleChangedToggle).not.toBeChecked();
   await expect(page.getByText("Notification type disabled")).toBeVisible();
 
-  const notificationLogSection = page.locator("section").filter({
-    has: page.getByRole("heading", { name: "Notification log" }),
-  });
+  const eventFilter = page.getByRole("combobox", { name: "Filter by event" });
+  const statusFilter = page.getByRole("combobox", { name: "Filter by status" });
+  await page.setViewportSize({ width: 320, height: 720 });
+  const logRegion = page.getByRole("region", { name: "Notification log" });
+  const hasInternalScroll = await logRegion.evaluate(
+    (region) =>
+      region.scrollWidth > region.clientWidth &&
+      document.documentElement.scrollWidth === window.innerWidth,
+  );
+  expect(hasInternalScroll).toBe(true);
+  await page.setViewportSize({ width: 1024, height: 768 });
 
-  await notificationLogSection.getByRole("combobox").nth(0).click();
-  await page.getByRole("option", { name: "Role changed" }).click();
+  await eventFilter.selectOption("ROLE_CHANGED");
   await expect(page.getByText("Role changed for your account")).toBeVisible();
   await expect(page.getByText("User status update pending retry")).toHaveCount(
     0,
   );
 
-  await notificationLogSection.getByRole("combobox").nth(1).click();
-  await page.getByRole("option", { name: "Sent" }).click();
+  const combined = "**/api/notifications?eventType=ROLE_CHANGED&status=SENT";
+  await page.route(combined, (route) => route.abort(), { times: 1 });
+  await statusFilter.selectOption("SENT");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Could not load notifications" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Retry", exact: true }).press("Enter");
   await expect(page.getByText("Role changed for your account")).toBeVisible();
   await expect(page.getByText("Mailbox busy")).toHaveCount(0);
+  await expect(eventFilter).toHaveValue("ROLE_CHANGED");
+  await expect(statusFilter).toHaveValue("SENT");
 
   // Deliver the older filter response last to protect against stale fetch results.
   let releaseStaleResponse!: () => void;
@@ -145,10 +157,8 @@ test("platform admin can manage notification settings and filter the notificatio
   const staleResponse = page.waitForResponse((response) =>
     response.url().endsWith("/api/notifications?status=SENT"),
   );
-  await notificationLogSection.getByRole("combobox").nth(0).click();
-  await page.getByRole("option", { name: "All events" }).click();
-  await notificationLogSection.getByRole("combobox").nth(1).click();
-  await page.getByRole("option", { name: "Retrying" }).click();
+  await eventFilter.selectOption("all");
+  await statusFilter.selectOption("RETRYING");
   try {
     await expect(
       page.getByText("User status update pending retry"),
@@ -162,4 +172,118 @@ test("platform admin can manage notification settings and filter the notificatio
     page.getByText("User status update pending retry"),
   ).toBeVisible();
   await expect(page.getByText("Role changed for your account")).toHaveCount(0);
+  await eventFilter.selectOption("ROLE_CHANGED");
+  await expect(
+    page.getByText("No notifications match the selected filters."),
+  ).toBeVisible();
+  await page.context().addCookies([
+    {
+      name: "starter_app_locale",
+      value: "de",
+      domain: "localhost",
+      path: "/",
+    },
+  ]);
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("lang", "de");
+  await expect(page.getByRole("combobox")).toHaveCount(2);
+  await expect(page.getByRole("combobox").first()).toHaveAccessibleName(/.+/);
+});
+
+test("notification settings save independently and recover from a rejected request", async ({
+  page,
+}) => {
+  const email = "e2e-notifications-admin@example.com";
+  const password = "AdminPass123";
+  await seedLocalUser({
+    email,
+    name: "E2E Notification Settings",
+    role: Role.PLATFORM_ADMIN,
+    password,
+    mustChangePassword: false,
+  });
+  const eventTypes = [
+    NotificationEventType.ROLE_CHANGED,
+    NotificationEventType.USER_STATUS_CHANGED,
+  ];
+  for (const eventType of eventTypes) {
+    await seedNotificationTypeConfiguration({
+      eventType,
+      enabled: true,
+      updatedByEmail: email,
+    });
+  }
+  await loginWithPassword(page, email, password);
+  await expectOnDashboard(page);
+  await page.goto(`${appBasePath}/admin/notifications`);
+
+  const [first, second] = eventTypes.map((eventType) =>
+    page
+      .locator("article")
+      .filter({ has: page.getByText(eventType, { exact: true }) })
+      .getByRole("checkbox"),
+  );
+  const pending = new Map<string, () => void>();
+  const patchPattern = "**/api/notifications/settings/*";
+  const requests: string[] = [];
+  await page.route(patchPattern, async (route) => {
+    const eventType = new URL(route.request().url()).pathname.split("/").pop()!;
+    requests.push(eventType);
+    await new Promise<void>((release) => pending.set(eventType, release));
+    await route.continue();
+  });
+  try {
+    await first.press("Space");
+    await expect(first).toBeDisabled();
+    await first.press("Space");
+    await expect(second).toBeEnabled();
+    await second.click();
+    await expect(second).toBeDisabled();
+    await expect.poll(() => [...pending.keys()]).toEqual(eventTypes);
+    pending.get(eventTypes[1])?.();
+    await expect(second).toBeEnabled();
+    await expect(second).not.toBeChecked();
+    await expect(first).toBeDisabled();
+    pending.get(eventTypes[0])?.();
+    await expect(first).toBeEnabled();
+    await expect(first).not.toBeChecked();
+    expect(requests).toEqual(eventTypes);
+  } finally {
+    for (const release of pending.values()) release();
+    await page.unroute(patchPattern);
+  }
+
+  await page.route(patchPattern, (route) => route.abort("failed"), {
+    times: 1,
+  });
+  await first.click();
+  await expect(
+    page.getByText("Could not save notification setting"),
+  ).toBeVisible();
+  await expect(first).toBeEnabled();
+  await expect(first).not.toBeChecked();
+  await first.click();
+  await expect(first).toBeChecked();
+});
+
+test("scoped users cannot open notification administration", async ({
+  page,
+}) => {
+  const email = "e2e-notifications-scope@example.com";
+  await seedLocalUser({
+    email,
+    name: "E2E Notification Scope",
+    role: Role.SCOPE_USER,
+    password: "UserPass123",
+    mustChangePassword: false,
+  });
+  await loginWithPassword(page, email, "UserPass123");
+  await expectOnDashboard(page);
+  await page.goto(`${appBasePath}/admin/notifications`);
+  await expectOnDashboard(page);
+  const response = await page.request.patch(
+    `${appBasePath}/api/notifications/settings/ROLE_CHANGED`,
+    { data: { enabled: false } },
+  );
+  expect(response.status()).toBe(403);
 });

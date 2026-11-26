@@ -7,6 +7,7 @@ import {
   listNotificationTypeConfigurations,
 } from "@/services/notifications/admin";
 import { Role } from "../../../../../generated/prisma/enums";
+import "./notifications.css";
 
 export default async function AdminNotificationsPage() {
   const user = await requireSession();

@@ -9,6 +9,9 @@ import {
 } from "@/services/teams/admin";
 import { getTeamsDelegatedGrantStatus } from "@/services/teams/consent";
 import { Role } from "../../../../../../generated/prisma/enums";
+import "@mantine/core/styles/Checkbox.layer.css";
+import "@mantine/core/styles/InlineInput.layer.css";
+import "@mantine/core/styles/Input.layer.css";
 
 export default async function AdminTeamsIntegrationsPage() {
   const user = await requireSession();

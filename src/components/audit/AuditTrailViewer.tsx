@@ -1,13 +1,12 @@
 "use client";
 
-import { Pagination, TextInput } from "@mantine/core";
+import { Button, Pagination, TextInput } from "@mantine/core";
 import { usePagination } from "@mantine/hooks";
 import { DataTable } from "mantine-datatable";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { AuditExportButton } from "@/components/audit/AuditExportButton";
-import { Button } from "@/components/ui/Button";
 import "./audit-table.css";
 
 type AuditRow = {
@@ -178,7 +177,7 @@ export function AuditTrailViewer() {
         >
           <Button
             type="button"
-            variant="secondary"
+            variant="default"
             aria-disabled={page === 1}
             className="aria-disabled:opacity-60"
             onClick={pager.previous}
@@ -218,7 +217,7 @@ export function AuditTrailViewer() {
           </Pagination.Root>
           <Button
             type="button"
-            variant="secondary"
+            variant="default"
             aria-disabled={page === totalPages}
             className="aria-disabled:opacity-60"
             onClick={pager.next}
@@ -233,7 +232,7 @@ export function AuditTrailViewer() {
       {error && (
         <Button
           type="button"
-          variant="secondary"
+          variant="default"
           onClick={() => {
             focusAuditResults();
             setRetryCount((count) => count + 1);
