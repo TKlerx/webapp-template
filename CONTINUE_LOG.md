@@ -2186,3 +2186,9 @@ Updated PR #73 so broad audits log findings without failing Validate. Production
 ## 2026-11-26 — Add Impeccable for UI review
 
 Vendored the project-local Impeccable skill and verified all 71 files against the pinned upstream Git tree before removing trailing whitespace from three reference files. Verified context loading and the source detector on the Mantine implementation. The pull request records the production-browser verification.
+
+## 2026-11-25 — Address PR #69 desktop Users review
+
+Kept the create-user launcher above the full-width table and allowed long email values to wrap. The 1280 px browser test checks full action visibility before horizontal scrolling. Moved test fixture setup inside cleanup protection and accounted for leftover desktop-admin fixtures in later test runs.
+
+The production build and all 13 Users and Audit Trail Chromium tests passed on disposable PostgreSQL. At 1280 px, the long-email row action was fully visible with wrapping and fully clipped when wrapping was disabled.

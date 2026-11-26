@@ -1,5 +1,12 @@
 # Continue
 
+## Users desktop layout review fixes (2026-11-25)
+
+- The create-user launcher sits above the full-width Users table. Long email addresses wrap to keep row actions in view at 1280 px.
+- The 1280 px browser regression checks that the action for a long-email account is fully in view before any horizontal scrolling. The fixture is cleaned up even when setup fails, and the last-admin test clears stale desktop fixtures when it reuses a database.
+- In a production Chromium probe at 1280 px, turning off email wrapping fully clipped the row action. With wrapping enabled, the entire action was visible.
+- The production build, all 13 Users and Audit Trail Playwright tests on disposable PostgreSQL, and targeted lint and formatting passed.
+
 ## Project-local Impeccable skill (2026-11-26)
 
 - Added Impeccable 4.10.0 for on-demand UI reviews. The skill package is pinned to upstream commit b49177d32788f2dc585c42831d845dacf1ebed2c and includes the engine 0.1.27 checksum manifest, license, and notices. The Windows launcher resolved the current Mantine Notifications route, and the source detector ran on Notifications, Audit Trail, and the token dialog.
