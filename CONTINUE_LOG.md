@@ -2182,3 +2182,7 @@ Prepared the audit-scope change on a separate branch from main. Recorded the pac
 ## 2026-11-26 — Preserve broad dependency audit reporting
 
 Updated PR #73 so broad audits log findings without failing Validate. Production findings still block, including optional production packages in the application audit.
+
+## 2026-11-26 — Add Impeccable for UI review
+
+Vendored the project-local Impeccable skill and verified all 71 files against the pinned upstream Git tree before removing trailing whitespace from three reference files. Verified context loading and the source detector on the Mantine implementation. The pull request records the production-browser verification.

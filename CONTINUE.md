@@ -1,5 +1,9 @@
 # Continue
 
+## Project-local Impeccable skill (2026-11-26)
+
+- Added Impeccable 4.10.0 for on-demand UI reviews. The skill package is pinned to upstream commit b49177d32788f2dc585c42831d845dacf1ebed2c and includes the engine 0.1.27 checksum manifest, license, and notices. The Windows launcher resolved the current Mantine Notifications route, and the source detector ran on Notifications, Audit Trail, and the token dialog.
+
 ## Production dependency audits in CI (2026-11-26)
 
 - PR #73 keeps the broad pnpm, uv, and Go audits as advisory steps before the blocking production checks. The blocking pnpm audit includes optional production packages because the app build installs them.
