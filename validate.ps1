@@ -642,7 +642,11 @@ function Test-SupplyChainAudit {
 function Test-SecretScan {
     Write-Step "Secret scan (Trivy)"
     try {
-        $result = Invoke-NativeCommandCaptured "trivy fs --scanners secret --exit-code 1 --no-progress --skip-dirs .git --skip-dirs node_modules --skip-dirs .next --skip-dirs .artifacts --skip-dirs .worktrees --skip-dirs workspace --skip-dirs security-analysis/codeql/databases --skip-files .env ."
+        $localExclusion = ""
+        if (-not $env:CI -and -not $env:GITHUB_ACTIONS) {
+            $localExclusion = " --skip-files .env"
+        }
+        $result = Invoke-NativeCommandCaptured "trivy fs --scanners secret --exit-code 1 --no-progress --skip-dirs .git --skip-dirs node_modules --skip-dirs .next --skip-dirs .artifacts --skip-dirs .worktrees --skip-dirs workspace --skip-dirs security-analysis/codeql/databases$localExclusion ."
         if ($result.ExitCode -ne 0) {
             $result.Output | Out-Host
             throw "secret scan failed"

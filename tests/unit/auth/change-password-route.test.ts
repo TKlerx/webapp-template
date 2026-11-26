@@ -64,10 +64,8 @@ describe("change password route", () => {
     verifyPassword.mockResolvedValue(true);
     hashPassword.mockResolvedValue("new-hash");
     prismaMock.user.update.mockResolvedValue({} as never);
-    prismaMock.account.update.mockResolvedValue({} as never);
-    prismaMock.$transaction.mockImplementation(async (operations) =>
-      Promise.all(operations as unknown as Promise<unknown>[]),
-    );
+    prismaMock.account.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.$transaction.mockImplementation(async (run) => run(prismaMock));
     getSession.mockResolvedValue({
       user: { id: "user-1" },
       session: { id: "current-session" },
@@ -95,12 +93,11 @@ describe("change password route", () => {
         password: true,
       },
     });
-    expect(prismaMock.account.update).toHaveBeenCalledWith({
+    expect(prismaMock.account.updateMany).toHaveBeenCalledWith({
       where: {
-        providerId_accountId: {
-          providerId: "credential",
-          accountId: "user-1",
-        },
+        accountId: "user-1",
+        providerId: "credential",
+        password: "stored-hash",
       },
       data: {
         password: "new-hash",
@@ -113,6 +110,74 @@ describe("change password route", () => {
       throw new Error("Expected response");
     }
     expect(response.status).toBe(200);
+  });
+
+  it("lets only one request verified against the same password revoke sessions", async () => {
+    requireApiUser.mockResolvedValue({
+      user: { id: "user-1", email: "member@example.com" },
+    });
+    validatePasswordComplexity.mockReturnValue(true);
+    let storedHash = "old-hash";
+    prismaMock.account.findUnique.mockResolvedValue({
+      password: storedHash,
+    } as never);
+
+    // Hold both requests until they have read and verified the old hash.
+    let release!: () => void;
+    const verified = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let verifications = 0;
+    verifyPassword.mockImplementation(async () => {
+      if (++verifications === 2) release();
+      await verified;
+      return true;
+    });
+    hashPassword.mockImplementation(async (value: string) => value + "-hash");
+    getSession.mockImplementation(
+      async ({ headers }: { headers: Headers }) => ({
+        user: { id: "user-1" },
+        session: { id: headers.get("x-test-session") },
+      }),
+    );
+    prismaMock.$transaction.mockImplementation(async (run) => run(prismaMock));
+    prismaMock.account.updateMany.mockImplementation(({ where, data }) => {
+      const matches = where?.password === storedHash;
+      if (matches) storedHash = String(data.password);
+      return Promise.resolve({ count: Number(matches) }) as ReturnType<
+        typeof prismaMock.account.updateMany
+      >;
+    });
+
+    const attempts = ["FirstPass123", "SecondPass123"];
+    const responses = await Promise.all(
+      attempts.map((newPassword, index) =>
+        POST(
+          new Request("http://localhost/api/auth/change-password", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-test-session": "session-" + index,
+            },
+            body: JSON.stringify({
+              currentPassword: "OldPass123",
+              newPassword,
+            }),
+          }),
+        ),
+      ),
+    );
+
+    expect(responses.map((response) => response.status).sort()).toEqual([
+      200, 401,
+    ]);
+    const winner = responses.findIndex((response) => response.status === 200);
+    expect(storedHash).toBe(attempts[winner] + "-hash");
+    expect(prismaMock.user.update).toHaveBeenCalledOnce();
+    expect(prismaMock.session.deleteMany).toHaveBeenCalledExactlyOnceWith({
+      where: { userId: "user-1", id: { not: "session-" + winner } },
+    });
+    expect(prismaMock.auditEntry.create).toHaveBeenCalledOnce();
   });
 
   it("rejects users without a local credential account", async () => {

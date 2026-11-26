@@ -1,5 +1,6 @@
 "use client";
 
+import { MantineProvider } from "@mantine/core";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type Theme = "LIGHT" | "DARK";
@@ -24,14 +25,22 @@ export function ThemeProvider({
     setTheme(initialTheme);
   }
 
+  const colorScheme = theme === "DARK" ? "dark" : "light";
   useEffect(() => {
-    document.documentElement.dataset.theme = theme.toLowerCase();
-  }, [theme]);
+    document.documentElement.dataset.theme = colorScheme;
+  }, [colorScheme]);
 
   const value = useMemo(() => ({ theme, setTheme }), [theme]);
 
   return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>
+      <MantineProvider
+        defaultColorScheme={initialTheme === "DARK" ? "dark" : "light"}
+        forceColorScheme={colorScheme}
+      >
+        {children}
+      </MantineProvider>
+    </ThemeContext.Provider>
   );
 }
 

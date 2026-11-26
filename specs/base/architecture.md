@@ -37,7 +37,9 @@ flowchart LR
 ### Web Application
 
 - Framework: Next.js 16 with App Router
-- UI: React-based dashboard, auth pages, admin pages, localized messages
+- UI: React-based dashboard, auth pages, admin pages, and localized messages.
+  Mantine is the default for new and migrated interactive components. Tailwind
+  handles layout, and existing shadcn/Radix components remain supported.
 - API: route handlers under `src/app/api`
 - Responsibilities:
   - authentication entry points
@@ -49,7 +51,8 @@ flowchart LR
 ### Dashboard Shell And Theme
 
 - The authenticated application shell defaults to dark mode when a user has no saved theme preference.
-- The baseline visual system uses blue accent tokens and CSS variables shared by app pages, shadcn primitives, dropdowns, and popovers.
+- The baseline visual system uses blue accent tokens and CSS variables shared
+  by application pages, Mantine, and existing shadcn/Radix components.
 - The dashboard shell keeps a sparse left navigation rail for the primary Dashboard destination.
 - Secondary user-facing destinations, administrator destinations, theme switching, language switching, and sign-out live in the user avatar menu.
 - Dropdown and submenu surfaces must render with an opaque panel background in both light and dark themes.
@@ -135,7 +138,8 @@ flowchart TD
 
 ## Important Constraints
 
-- local development should work without PostgreSQL
+- Local development and database-backed tests require PostgreSQL. Use a
+  dedicated test database for automated tests.
 - production-style deployment should fail loudly if PostgreSQL is unavailable
 - continuity files should reflect the current repo state
 - dependency install policy should reject unsupported pnpm/uv environments

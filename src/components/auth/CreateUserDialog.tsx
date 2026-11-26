@@ -1,35 +1,11 @@
 "use client";
 
+import { Button, Card, Modal, TextInput } from "@mantine/core";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Role } from "../../../generated/prisma/enums";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/shadcn/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/shadcn/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/shadcn/select";
-import { Button } from "@/components/ui/Button";
-import { Form } from "@/components/ui/Form";
-import { Input } from "@/components/ui/Input";
+import { UserRoleSelect } from "@/components/auth/UserRoleSelect";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
 import { apiErrorSchema } from "@/lib/api-response";
@@ -46,138 +22,187 @@ const initialForm: {
   temporaryPassword: "",
 };
 
+const CREATE_USER_TIMEOUT_MS = 15_000;
+
 export function CreateUserDialog() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
   const { pushToast } = useToast();
   const router = useRouter();
   const t = useTranslations("users");
   const tCommon = useTranslations("common");
 
-  function resetForm() {
+  function closeForm() {
+    setOpen(false);
     setForm(initialForm);
+    setError(null);
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const response = await fetch(withBasePath("/api/users"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const payload = apiErrorSchema.safeParse(await response.json());
-    if (!response.ok) {
-      pushToast(
-        (payload.success ? payload.data.error : undefined) ??
-          t("couldNotCreate"),
-      );
-      return;
+    if (submitting) return;
+    emailRef.current?.focus();
+    setSubmitting(true);
+    setError(null);
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    const timeout = window.setTimeout(
+      () => controller.abort(),
+      CREATE_USER_TIMEOUT_MS,
+    );
+    try {
+      const response = await fetch(withBasePath("/api/users"), {
+        method: "POST",
+        signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!response.ok) {
+        const payload = apiErrorSchema.safeParse(
+          await response.json().catch(() => null),
+        );
+        signal.throwIfAborted();
+        setError(
+          (payload.success ? payload.data.error : undefined) ??
+            t("couldNotCreate"),
+        );
+        return;
+      }
+
+      pushToast(t("userCreated"));
+      closeForm();
+      router.refresh();
+    } catch {
+      setError(t("creationUnconfirmed"));
+      router.refresh();
+    } finally {
+      window.clearTimeout(timeout);
+      setSubmitting(false);
     }
-    pushToast(t("userCreated"));
-    resetForm();
-    setOpen(false);
-    router.refresh();
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        setOpen(nextOpen);
-        if (!nextOpen) {
-          resetForm();
-        }
-      }}
-    >
-      <Card className="gap-4 rounded-lg border-[var(--border)] bg-[var(--panel)] py-0 shadow-none">
-        <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
-          <CardTitle className="text-lg tracking-tight">
-            {t("createUser")}
-          </CardTitle>
-          <CardDescription>{t("createButton")}</CardDescription>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
-          <DialogTrigger asChild>
-            <Button type="button">{t("createButton")}</Button>
-          </DialogTrigger>
-        </CardContent>
+    <>
+      <Card
+        withBorder
+        className="gap-4 rounded-lg border-border bg-panel p-4 text-panel-foreground sm:p-6"
+      >
+        <h2 className="text-lg font-semibold tracking-tight">
+          {t("createUser")}
+        </h2>
+        <div>
+          <Button
+            type="button"
+            aria-haspopup="dialog"
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={() => setOpen(true)}
+          >
+            {t("createButton")}
+          </Button>
+        </div>
       </Card>
 
-      <DialogContent className="max-w-xl rounded-lg border-[var(--border)] bg-[var(--panel)] dark:bg-[var(--panel)]">
-        <DialogHeader>
-          <DialogTitle>{t("createUser")}</DialogTitle>
-          <DialogDescription>{t("createButton")}</DialogDescription>
-        </DialogHeader>
-
-        <Form
-          className="mt-2"
-          onSubmit={(event) => {
-            void handleSubmit(event).catch(() =>
-              pushToast(t("couldNotCreate")),
-            );
-          }}
+      <Modal
+        opened={open}
+        onClose={closeForm}
+        title={t("createUser")}
+        centered
+        size="lg"
+        closeButtonProps={{
+          "aria-label": tCommon("close"),
+          disabled: submitting,
+        }}
+        closeOnClickOutside={!submitting}
+        closeOnEscape={!submitting}
+        classNames={{
+          content: "rounded-lg bg-panel text-panel-foreground",
+          header: "bg-panel",
+          title: "text-lg font-semibold tracking-tight",
+        }}
+      >
+        {submitting && (
+          <p className="sr-only" role="status">
+            {tCommon("loading")}
+          </p>
+        )}
+        <form
+          className="grid gap-4"
+          aria-busy={submitting}
+          onSubmit={(event) => void handleSubmit(event)}
         >
-          <Input
-            placeholder={t("emailPlaceholder")}
+          <TextInput
+            label={t("email")}
             type="email"
+            autoComplete="off"
+            data-autofocus
+            ref={emailRef}
+            classNames={{ input: "user-management-input" }}
+            readOnly={submitting}
             value={form.email}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, email: event.target.value }))
-            }
+            onChange={(event) => {
+              const email = event.currentTarget.value;
+              setForm((current) => ({ ...current, email }));
+            }}
             required
           />
-          <Input
-            placeholder={t("namePlaceholder")}
+          <TextInput
+            label={t("name")}
+            classNames={{ input: "user-management-input" }}
+            readOnly={submitting}
             value={form.name}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, name: event.target.value }))
-            }
+            onChange={(event) => {
+              const name = event.currentTarget.value;
+              setForm((current) => ({ ...current, name }));
+            }}
             required
           />
-          <Select
+          <UserRoleSelect
             value={form.role}
-            onValueChange={(value) =>
-              setForm((current) => ({ ...current, role: value as Role }))
-            }
-          >
-            <SelectTrigger
-              aria-label={t("role")}
-              className="w-full rounded-lg border-[var(--border)] bg-white px-4 py-3 shadow-none dark:bg-[var(--panel)]"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-black/10 dark:border-white/10">
-              {Object.values(Role).map((role) => (
-                <SelectItem key={role} value={role}>
-                  {t(`roles.${role}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder={t("temporaryPassword")}
+            withLabel
+            readOnly={submitting}
+            onChange={(role) => setForm((current) => ({ ...current, role }))}
+          />
+          <TextInput
+            label={t("temporaryPassword")}
             type="password"
+            autoComplete="new-password"
+            classNames={{ input: "user-management-input" }}
+            readOnly={submitting}
             value={form.temporaryPassword}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                temporaryPassword: event.target.value,
-              }))
-            }
+            onChange={(event) => {
+              const temporaryPassword = event.currentTarget.value;
+              setForm((current) => ({ ...current, temporaryPassword }));
+            }}
             required
           />
-          <DialogFooter className="mt-2">
+          {error && (
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
-              onClick={() => setOpen(false)}
               type="button"
-              variant="secondary"
+              variant="default"
+              disabled={submitting}
+              onClick={closeForm}
             >
               {tCommon("cancel")}
             </Button>
-            <Button type="submit">{t("createButton")}</Button>
-          </DialogFooter>
-        </Form>
-      </DialogContent>
-    </Dialog>
+            <Button
+              type="submit"
+              loading={submitting}
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {t("createButton")}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </>
   );
 }

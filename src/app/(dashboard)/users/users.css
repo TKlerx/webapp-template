@@ -1,0 +1,24 @@
+@import "@mantine/core/styles/Card.layer.css";
+@import "@mantine/core/styles/CloseButton.layer.css";
+@import "@mantine/core/styles/Combobox.layer.css";
+@import "@mantine/core/styles/Input.layer.css";
+@import "@mantine/core/styles/Loader.layer.css";
+@import "@mantine/core/styles/Modal.layer.css";
+@import "@mantine/core/styles/ModalBase.layer.css";
+@import "@mantine/core/styles/Overlay.layer.css";
+@import "@mantine/core/styles/Paper.layer.css";
+@import "@mantine/core/styles/Popover.layer.css";
+@import "@mantine/core/styles/Table.layer.css";
+
+@layer components {
+  .user-management-input {
+    border-color: var(--border);
+    background: var(--panel);
+    color: var(--foreground);
+  }
+
+  .user-management-input:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}

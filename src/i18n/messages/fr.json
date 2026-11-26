@@ -39,6 +39,7 @@
     "signOut": "Se deconnecter",
     "save": "Enregistrer",
     "cancel": "Annuler",
+    "close": "Fermer",
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
     "darkMode": "Mode sombre",
@@ -102,6 +103,7 @@
     "createButton": "Creer l'utilisateur",
     "userCreated": "Utilisateur cree",
     "couldNotCreate": "Impossible de creer l'utilisateur",
+    "creationUnconfirmed": "La création du compte n’a pas pu être confirmée. Recherchez cette adresse dans la liste des utilisateurs avant de réessayer.",
     "notAuthorized": "Vous n'etes pas autorise a acceder a cette page.",
     "name": "Nom",
     "email": "E-mail",
@@ -138,6 +140,7 @@
     "previousPage": "Précédent",
     "nextPage": "Suivant",
     "pageIndicator": "Page {page} sur {total}",
+    "retry": "Réessayer",
     "anonymous": "Anonyme",
     "title": "Journal d'audit",
     "action": "Action",
@@ -230,6 +233,15 @@
     }
   },
   "tokens": {
+    "downloads": {
+      "title": "Téléchargements de la CLI",
+      "description": "Téléchargez starterctl, créez un jeton, puis configurez-le pour cette application.",
+      "failed": "Impossible de charger les téléchargements de la CLI.",
+      "retry": "Réessayer",
+      "loading": "Chargement des téléchargements de la CLI…",
+      "unavailable": "Aucun fichier de la CLI n’est encore disponible sur ce déploiement.",
+      "checksums": "Sommes de contrôle"
+    },
     "eyebrow": "API Access",
     "title": "Personal access tokens",
     "description": "Create, review, and manage API tokens for scripts, integrations, and CLI use.",
@@ -361,6 +373,8 @@
     "approve": "Approve login"
   },
   "teams": {
+    "emptyTargets": "Aucune destination sortante configurée.",
+    "emptySubscriptions": "Aucun abonnement entrant configuré.",
     "eyebrow": "Teams Ops",
     "title": "Teams Integration",
     "description": "Configure Microsoft Teams delivery targets, intake subscriptions, and health controls.",

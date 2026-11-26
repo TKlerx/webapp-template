@@ -34,13 +34,14 @@ These files are intentionally committed into the template so copied repos still 
 
 ## UI components
 
-The template includes HeroUI v3 alongside its local shadcn/Radix components. Use
-`@heroui/react` for new HeroUI controls. The account menu’s theme toggle is a
-working example, with keyboard activation and theme persistence. HeroUI shares
-the existing light/dark tokens. When adding a HeroUI component, import its CSS
-in `src/app/globals.css` alongside the button stylesheet.
-Use `bg-muted-background` for muted surfaces and `text-muted-foreground` for
-subdued text in template components.
+Mantine is the default for new and migrated interactive UI. The Users page,
+Audit Trail, and account menu's theme toggle already use Mantine. Existing
+shadcn/Radix components remain available.
+
+Use the shared theme provider and CSS tokens. Import the layered styles and
+their dependencies where the feature uses them. Keep shared styles in
+`src/app/globals.css`. See the [theme guide](docs/theme-design.md) and
+[migration plan](docs/mantine-migration-plan.md).
 
 ## Chat and voice assistant
 

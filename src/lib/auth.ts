@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { headers as nextHeaders } from "next/headers";
 import type { User } from "../../generated/prisma/client";
@@ -13,6 +14,7 @@ export type SessionUser = Pick<
   | "role"
   | "status"
   | "themePreference"
+  | "locale"
   | "mustChangePassword"
   | "authMethod"
 >;
@@ -36,7 +38,7 @@ export function getPasswordComplexityErrorMessage() {
   return `Password must contain ${PASSWORD_COMPLEXITY_REQUIREMENTS}.`;
 }
 
-export async function getSessionUser(): Promise<SessionUser | null> {
+export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const headerStore = await nextHeaders();
   const authSession = await auth.api.getSession({
     headers: new Headers(headerStore),
@@ -55,7 +57,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   }
 
   return null;
-}
+});
 
 export async function requireSession({
   allowRequiredPasswordChange = false,

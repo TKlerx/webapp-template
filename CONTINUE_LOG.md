@@ -2091,14 +2091,114 @@ Production build and all three focused Playwright tests passed using a disposabl
 
 PR #61 review found that HeroUI’s shared theme overrides the standard Tailwind radii. Restored the template scale and kept HeroUI Button rounding in the component layer. Verified the production CSS and passed three focused browser tests, including a regression check for both the sign-out and theme toggle radii. No further actionable issues found in the full rereview.
 
-## 2026-11-24 — Add SpecTest to the template
+## 2026-11-24 — Switch the template to Mantine
 
-Vendored SpecTest v1.0.0 and registered its four Codex skills using Spec Kit 1.1. Adapted the command namespace and feature spec lookup. Gap and coverage prompts verify matches against actual assertions using the repo-local test-design-review skill. The after-implementation gap review is optional. Verified registration and manifest integrity and tried the read-only gap review on Ops Health. FR-017 has success feedback coverage and a gap for failed clipboard feedback. Changes remain local.
+Replaced HeroUI with Mantine Core and Hooks 9.8.2. The account menu uses a Mantine Button, and the shared theme provider drives Mantine and the existing template from the same saved preference. Removed the HeroUI-specific CSS and restored the original muted table styles.
 
-## 2026-11-24 — Keep relevant skills local
+Passed the production build and three focused Playwright tests using disposable PostgreSQL. The theme regression checks keyboard activation, light/dark synchronization, persistence after sign-in, and the sign-out button’s radius. TypeScript, targeted ESLint and Prettier, and pnpm audit also passed.
 
-Added prepare-work-item for drafting or triaging issues before Spec Kit planning. React performance, web design and test design guidance already exist in the project. Native mobile and Bicep deployment skills do not match the template stack. Existing OpenTofu checks and deployment planning cover Azure preflight.
+All 375 Vitest tests passed using disposable PostgreSQL and Python 3.12. The first run hit the Windows Store `python3` alias, so the rerun excluded it from the test process’s PATH.
 
-## 2026-11-24 — Apply SpecTest and test design review
+## 2026-11-24 — Address PR #63 review
 
-Reviewed Ops Health FR-017 against existing assertions and closed the clipboard failure feedback gap. The browser test denies clipboard writes and fails the fallback, then checks the visible error. SpecTest remains advisory and the test design skill guides assertion review. Passed 18 focused unit and API tests, two production-mode browser tests, and targeted ESLint. Changes remain local.
+Replaced the full Mantine stylesheet with the layered variables, shared interaction styles, and Button styles. Playwright checks the authenticated response’s root HTML attributes before hydration and guards the template’s default line height.
+
+## 2026-11-24 — Use Mantine DataTable for the Audit Trail
+
+Replaced the audit rows and pagination controls with Mantine DataTable 9.8.3. The viewer supplies the current page, filtered record count, and page size from the existing API. The browser regression checks that paging requests new records and that changing a filter resets to page one.
+
+Passed the production build, 15 audit unit tests, four focused Playwright tests, TypeScript, targeted lint and formatting, and pnpm audit. The production build references the DataTable stylesheet only from the Audit Trail route.
+
+## 2026-11-24 — Restore pagination recovery in PR #64
+
+Kept the Previous action available when a later audit page returns an error or has no records. The browser regression simulates a failed second-page request, returns to the first page, and verifies the action and entity filters.
+
+The Audit Trail tests deactivate their administrator fixture after each case so the last-active-admin test can verify its own setup.
+
+## 2026-11-24 — Preserve Audit Trail pagination focus
+
+Ported the pagination fix from Personal Assistant. Page controls stay mounted during loading, and the regression verifies focus after page selection and after using Previous to reach page one. The audit and theme browser tests passed against disposable PostgreSQL.
+
+## 2026-11-24 — Address PR #65 review findings
+
+Moved the Audit Trail pager above the rows. If a response removes the focused page control, the current page button receives focus, or the table receives focus when the pager disappears. Added a localized Retry action and same-page reactivation after a failed request. Both use the current filters.
+
+Added Chromium regressions for the focus viewport, both cases of a shrinking page count, and both retry actions. Each test signs in with its own administrator fixture and deactivates it afterward.
+
+The production build, seven audit browser tests, 15 audit unit tests, TypeScript, focused lint and formatting, architecture, and duplication checks passed locally.
+
+## 2026-11-24 — Convert user management to Mantine
+
+Switched the Users table and create-user dialog to Mantine using the existing theme and localized role options. The table scrolls horizontally within the panel, and the modal shows API errors inline while keeping the entered values. Browser coverage exercises mobile layout, keyboard dismissal and focus return, duplicate-email recovery, role changes, forced password changes, and administrative permissions.
+
+Passed all 375 Vitest tests and 11 Chromium tests covering user management, account-creation notifications, and Audit Trail pagination. The production build, TypeScript, focused ESLint and Prettier, and the architecture check passed.
+
+## 2026-11-24 — Address PR #66 review findings
+
+Create local user now bounds requests at 15 seconds. During submission, the fields are read-only and focus stays inside the dialog. If the response is lost, the form keeps its values, shows an inline message, and refreshes the Users table so the administrator can check whether the account was created.
+
+Both Role selectors share a Mantine combobox with visible keyboard focus, typeahead, and Home and End navigation. The table dropdown closes when its trigger is fully clipped and blocks selection while clipped. The review file records the fixes.
+
+Passed the production build, all 375 Vitest tests, 12 focused Chromium tests, TypeScript, targeted ESLint and Prettier, architecture, and duplication checks.
+
+## 2026-11-24 — Use Mantine inputs for Audit Trail filters
+
+Ported the two filter fields from Personal Assistant. All eight audit browser tests passed, including keyboard focus on both fields and the existing pagination recovery checks.
+
+## 2026-11-24 — Convert Audit Trail export buttons to Mantine
+
+On `codex/mantine-audit-export`, converted the CSV and PDF buttons and kept both keyboard-focusable while an export is pending. The browser regression verifies that a second export is blocked during a held CSV request, both downloads use the active filters, and page two remains selected. The production build and nine audit browser tests passed. A separate Chromium check verified real CSV and PDF downloads at 320 px.
+
+## 2026-11-24 — Set the Mantine migration direction
+
+Reviewed current main and wrote the ordered migration plan in `docs/mantine-migration-plan.md`. Confirmed the saved-theme mismatch, overlapping admin actions, notification transport error, nested sign-in control, and untranslated CLI web panel. Constitution 3.1.0 sets Mantine as the default for new and migrated interactive UI. Updated the README, theme guide, and architecture baseline. This pass changed documentation only.
+
+The production build, all 375 Vitest tests, all 37 worker tests, and 37 Chromium cases passed. The existing Teams placeholder and optional live Azure audio test were skipped.
+
+## 2026-11-25 — Plan and task the Mantine migration
+
+Expanded the Mantine roadmap into 23 dependency-ordered tasks. The first three PRs cover saved theme behavior, notification save reliability, and the Mantine Notifications port. The remaining tasks cover Audit Trail, Users, Jobs, Ops Health, tokens, auth, and Teams. Spec 014 remains open for its outstanding notification requirements.
+
+## 2026-11-25 — Package the Mantine plan for pickup
+
+Prepared one draft pull request with numbered Spec Kit feature 023, 24 unchecked tasks, and a pickup guide. The branch selects the feature for the implementation command. Spec 014 stays open for its remaining requirements.
+
+## 2026-11-25 — Implement Mantine migration checkpoints
+
+Implemented Spec 023 on PR #71. Verified the saved-theme regression against old and fixed builds and passed all 375 Vitest tests. Added browser coverage for held row actions, token dialog focus, auth keyboard behavior, and provider-free Teams administration. Full browser and GitHub verification are in progress.
+
+## 2026-11-25 — Verify the completed Mantine migration
+
+GitHub Validate and Joern passed at implementation commit f8e7f45. The production Chromium run passed 45 cases and skipped the optional live Azure audio test. All 375 Vitest cases passed locally. Spec 023 is complete and Spec 014 remains open.
+
+## 2026-11-25 — Add test design and review skill
+
+Copied the user-level test-design-review skill into .agents/skills for project-local use in Codex.
+
+## 2026-11-26 — Review production-only CI dependency audits
+
+Prepared the audit-scope change on a separate branch from main. Recorded the package coverage lost under each scanner and the existing final-image checks in the pull request.
+
+## 2026-11-26 — Preserve broad dependency audit reporting
+
+Updated PR #73 so broad audits log findings without failing Validate. Production findings still block, including optional production packages in the application audit.
+
+## 2026-11-26 — Add Impeccable for UI review
+
+Vendored the project-local Impeccable skill and verified all 71 files against the pinned upstream Git tree before removing trailing whitespace from three reference files. Verified context loading and the source detector on the Mantine implementation. The pull request records the production-browser verification.
+
+## 2026-11-25 — Address PR #69 desktop Users review
+
+Kept the create-user launcher above the full-width table and allowed long email values to wrap. The 1280 px browser test checks full action visibility before horizontal scrolling. Moved test fixture setup inside cleanup protection and accounted for leftover desktop-admin fixtures in later test runs.
+
+The production build and all 13 Users and Audit Trail Chromium tests passed on disposable PostgreSQL. At 1280 px, the long-email row action was fully visible with wrapping and fully clipped when wrapping was disabled.
+
+## 2026-11-25 — Address template findings from the Personal Assistant review
+
+Bound voice tools and saved replies to the completed provider response, preserved conversation item order for late transcripts, and added redacted request-correlated setup logs. Guarded password changes against concurrent writes, restored saved locale preferences without a locale cookie, corrected the proxy forwarding event, and kept the local Trivy `.env` exclusion out of CI.
+
+The production build, all 381 Vitest tests and six focused Chromium tests passed against disposable PostgreSQL. Voice coverage used simulated provider events. The Trivy secret scan passed in CI mode, and an argument check verified the local and CI exclusion behavior.
+
+## 2026-11-26 — Reconcile SpecTest with the test-design-review skill
+
+Preserved the optional SpecTest integration, prepare-work-item skill, and Ops Health clipboard failure regression in PR #62. Reused the project-local test-design-review skill from PR #72 and retained the newer Ops Health refresh assertions.

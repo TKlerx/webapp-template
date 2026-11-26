@@ -39,6 +39,7 @@
     "signOut": "Cerrar sesion",
     "save": "Guardar",
     "cancel": "Cancelar",
+    "close": "Cerrar",
     "loading": "Cargando...",
     "error": "Se produjo un error",
     "darkMode": "Modo oscuro",
@@ -102,6 +103,7 @@
     "createButton": "Crear usuario",
     "userCreated": "Usuario creado",
     "couldNotCreate": "No se pudo crear el usuario",
+    "creationUnconfirmed": "No se pudo confirmar la creación de la cuenta. Busca esta dirección en la lista de usuarios antes de volver a intentarlo.",
     "notAuthorized": "No esta autorizado para acceder a esta pagina.",
     "name": "Nombre",
     "email": "Correo electronico",
@@ -138,6 +140,7 @@
     "previousPage": "Anterior",
     "nextPage": "Siguiente",
     "pageIndicator": "Página {page} de {total}",
+    "retry": "Reintentar",
     "anonymous": "Anónimo",
     "title": "Auditoria",
     "action": "Accion",
@@ -230,6 +233,15 @@
     }
   },
   "tokens": {
+    "downloads": {
+      "title": "Descargas de la CLI",
+      "description": "Descarga starterctl, crea un token y configúralo para esta aplicación.",
+      "failed": "No se pudieron cargar las descargas de la CLI.",
+      "retry": "Reintentar",
+      "loading": "Cargando descargas de la CLI…",
+      "unavailable": "Todavía no hay archivos de la CLI disponibles en este despliegue.",
+      "checksums": "Sumas de comprobación"
+    },
     "eyebrow": "API Access",
     "title": "Personal access tokens",
     "description": "Create, review, and manage API tokens for scripts, integrations, and CLI use.",
@@ -361,6 +373,8 @@
     "approve": "Approve login"
   },
   "teams": {
+    "emptyTargets": "No hay destinos salientes configurados.",
+    "emptySubscriptions": "No hay suscripciones entrantes configuradas.",
     "eyebrow": "Teams Ops",
     "title": "Teams Integration",
     "description": "Configure Microsoft Teams delivery targets, intake subscriptions, and health controls.",

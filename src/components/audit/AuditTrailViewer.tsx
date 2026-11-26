@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Button, Pagination, TextInput } from "@mantine/core";
+import { usePagination } from "@mantine/hooks";
+import { DataTable } from "mantine-datatable";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 import { AuditExportButton } from "@/components/audit/AuditExportButton";
+import "./audit-table.css";
 
 type AuditRow = {
   id: string;
@@ -16,6 +20,12 @@ type AuditRow = {
   scope?: { name: string } | null;
 };
 
+const filterClassNames = {
+  label: "mb-2 text-sm font-medium text-[var(--muted-foreground)]",
+  input:
+    "min-h-11 rounded-lg border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]",
+};
+
 export function AuditTrailViewer() {
   const t = useTranslations("audit");
   const commonT = useTranslations("common");
@@ -24,10 +34,23 @@ export function AuditTrailViewer() {
     entityType: "",
   });
   const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
+  const [pagination, setPagination] = useState<{
+    total: number;
+    limit: number;
+  } | null>(null);
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const pagerRef = useRef<HTMLElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const focusedPageControl = useRef<Element | null>(null);
+
+  const totalPages = pagination
+    ? Math.max(1, Math.ceil(pagination.total / pagination.limit))
+    : 1;
+  const pager = usePagination({ page, total: totalPages, onChange: setPage });
+  const firstRecord = pagination ? (page - 1) * pagination.limit + 1 : 0;
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -35,6 +58,26 @@ export function AuditTrailViewer() {
     if (filters.entityType) params.set("entityType", filters.entityType);
     return params.toString();
   }, [filters]);
+
+  function focusAuditResults() {
+    const target =
+      pagerRef.current?.querySelector<HTMLButtonElement>(
+        '[aria-current="page"]',
+      ) ?? tableRef.current;
+    target?.focus();
+  }
+
+  useLayoutEffect(() => {
+    const control = focusedPageControl.current;
+    focusedPageControl.current = null;
+    if (
+      control &&
+      !control.isConnected &&
+      document.activeElement === document.body
+    ) {
+      focusAuditResults();
+    }
+  }, [pagination]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -65,14 +108,20 @@ export function AuditTrailViewer() {
         }
 
         setRows(payload?.data ?? []);
-        setPageCount(
-          Math.max(
-            1,
-            Math.ceil((payload?.total ?? 0) / (payload?.limit || 25)),
-          ),
-        );
+        const total = payload?.total ?? 0;
+        const limit = payload?.limit || 25;
+        const lastPage = Math.max(1, Math.ceil(total / limit));
+        const activeElement = document.activeElement;
+        if (pagerRef.current?.contains(activeElement)) {
+          focusedPageControl.current = activeElement;
+        }
+        setPagination({ total, limit });
+        if (page > lastPage) setPage(lastPage);
       } catch (fetchError) {
-        if ((fetchError as Error).name !== "AbortError") {
+        if (
+          !controller.signal.aborted &&
+          (fetchError as Error).name !== "AbortError"
+        ) {
           setError(commonT("error"));
           setRows([]);
         }
@@ -86,168 +135,211 @@ export function AuditTrailViewer() {
     void loadAuditRows();
 
     return () => controller.abort();
-  }, [commonT, page, queryString]);
+  }, [commonT, page, queryString, retryCount]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-2 text-sm font-medium">
-            <span className="text-[var(--muted-foreground)]">
-              {t("action")}
-            </span>
-            <input
-              className="min-h-11 rounded-lg border border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-              onChange={(event) => {
-                setPage(1);
-                setFilters((current) => ({
-                  ...current,
-                  action: event.target.value,
-                }));
-              }}
-              placeholder={t("action")}
-              value={filters.action}
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium">
-            <span className="text-[var(--muted-foreground)]">
-              {t("entity")}
-            </span>
-            <input
-              className="min-h-11 rounded-lg border border-[var(--border)] bg-transparent px-4 py-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-              onChange={(event) => {
-                setPage(1);
-                setFilters((current) => ({
-                  ...current,
-                  entityType: event.target.value,
-                }));
-              }}
-              placeholder={t("entity")}
-              value={filters.entityType}
-            />
-          </label>
+          <TextInput
+            classNames={filterClassNames}
+            label={t("action")}
+            onChange={(event) => {
+              const action = event.currentTarget.value;
+              setPage(1);
+              setPagination(null);
+              setFilters((current) => ({ ...current, action }));
+            }}
+            placeholder={t("action")}
+            value={filters.action}
+          />
+          <TextInput
+            classNames={filterClassNames}
+            label={t("entity")}
+            onChange={(event) => {
+              const entityType = event.currentTarget.value;
+              setPage(1);
+              setPagination(null);
+              setFilters((current) => ({ ...current, entityType }));
+            }}
+            placeholder={t("entity")}
+            value={filters.entityType}
+          />
         </div>
         <AuditExportButton queryString={queryString} />
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--panel)]">
-        <table className="min-w-full bg-[var(--panel)] text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] text-left text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
-              <th className="px-4 py-3 sm:px-6">{t("date")}</th>
-              <th className="px-4 py-3">{t("actor")}</th>
-              <th className="px-4 py-3">{t("action")}</th>
-              <th className="px-4 py-3">{t("entity")}</th>
-              <th className="px-4 py-3">{t("scope")}</th>
-              <th className="px-4 py-3 sm:px-6">{t("details")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading
-              ? Array.from({ length: 5 }, (_, index) => (
-                  <tr
-                    className="border-b border-[var(--border)] last:border-b-0"
-                    key={index}
-                  >
-                    {Array.from({ length: 6 }, (_cell, cellIndex) => (
-                      <td
-                        className={[
-                          "px-4 py-4",
-                          cellIndex === 0 ? "sm:px-6" : "",
-                          cellIndex === 5 ? "sm:px-6" : "",
-                        ].join(" ")}
-                        key={cellIndex}
-                      >
-                        <div className="h-3 w-full max-w-32 animate-pulse rounded bg-[var(--secondary)]" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              : null}
-            {!loading && error ? (
-              <tr>
-                <td
-                  className="px-4 py-8 text-sm text-[var(--destructive)] sm:px-6"
-                  colSpan={6}
-                >
-                  {error}
-                </td>
-              </tr>
-            ) : null}
-            {!loading && !error && rows.length === 0 ? (
-              <tr>
-                <td
-                  className="px-4 py-8 text-sm text-[var(--muted-foreground)] sm:px-6"
-                  colSpan={6}
-                >
-                  {t("empty")}
-                </td>
-              </tr>
-            ) : null}
-            {!loading && !error
-              ? rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-[var(--border)] align-top transition-colors last:border-b-0 hover:bg-[color:color-mix(in_srgb,var(--panel)_86%,var(--background)_14%)]"
-                  >
-                    <td className="px-4 py-4 font-mono text-xs text-[var(--muted-foreground)] sm:px-6">
-                      {new Date(row.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-medium">
-                        {row.actor?.name ?? t("anonymous")}
-                      </div>
-                      <div className="text-xs text-[var(--muted-foreground)]">
-                        {row.actor?.email ?? ""}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-3 py-1 text-xs font-semibold text-[var(--secondary-foreground)]">
-                        {row.action}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-medium">{row.entityType}</div>
-                      <div className="font-mono text-xs text-[var(--muted-foreground)]">
-                        {row.entityId}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">{row.scope?.name ?? "-"}</td>
-                    <td className="max-w-[24rem] px-4 py-4 text-[var(--muted-foreground)] sm:px-6">
-                      {row.details}
-                    </td>
-                  </tr>
-                ))
-              : null}
-          </tbody>
-        </table>
-        {(page > 1 || pageCount > 1) && (
-          <nav
-            className="flex flex-wrap items-center justify-end gap-4 border-t p-4"
-            aria-label={t("paginationLabel")}
+      {totalPages > 1 && (
+        <nav
+          ref={pagerRef}
+          aria-label={t("paginationLabel")}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <Button
+            type="button"
+            variant="default"
+            aria-disabled={page === 1}
+            className="aria-disabled:opacity-60"
+            onClick={pager.previous}
           >
-            <button
-              type="button"
-              className="underline disabled:opacity-50"
-              disabled={loading || page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              {t("previousPage")}
-            </button>
-            <span aria-live="polite">
-              {t("pageIndicator", { page, total: pageCount })}
-            </span>
-            <button
-              type="button"
-              className="underline disabled:opacity-50"
-              disabled={loading || Boolean(error) || page >= pageCount}
-              onClick={() => setPage(page + 1)}
-            >
-              {t("nextPage")}
-            </button>
-          </nav>
-        )}
-      </div>
+            {t("previousPage")}
+          </Button>
+          <Pagination.Root
+            total={totalPages}
+            value={page}
+            size="sm"
+            className="flex flex-wrap gap-1"
+          >
+            {pager.range.map((target, index) =>
+              target === "dots" ? (
+                <Pagination.Dots key={`dots-${index}`} />
+              ) : (
+                <Pagination.Control
+                  key={target}
+                  active={target === page}
+                  aria-current={target === page ? "page" : undefined}
+                  aria-label={t("pageIndicator", {
+                    page: target,
+                    total: totalPages,
+                  })}
+                  onClick={() => {
+                    if (error && target === page) {
+                      setRetryCount((count) => count + 1);
+                    } else {
+                      pager.setPage(target);
+                    }
+                  }}
+                >
+                  {target}
+                </Pagination.Control>
+              ),
+            )}
+          </Pagination.Root>
+          <Button
+            type="button"
+            variant="default"
+            aria-disabled={page === totalPages}
+            className="aria-disabled:opacity-60"
+            onClick={pager.next}
+          >
+            {t("nextPage")}
+          </Button>
+          <span className="sr-only" aria-live="polite">
+            {t("pageIndicator", { page, total: totalPages })}
+          </span>
+        </nav>
+      )}
+      {error && (
+        <Button
+          type="button"
+          variant="default"
+          onClick={() => {
+            focusAuditResults();
+            setRetryCount((count) => count + 1);
+          }}
+        >
+          {t("retry")}
+        </Button>
+      )}
+
+      <DataTable
+        aria-label={t("title")}
+        aria-busy={loading}
+        backgroundColor="var(--panel)"
+        borderColor="var(--border)"
+        borderRadius="md"
+        classNames={{ table: "min-w-[52rem]" }}
+        columns={[
+          {
+            accessor: "createdAt",
+            title: t("date"),
+            render: ({ createdAt }) => (
+              <span className="font-mono text-xs text-[var(--muted-foreground)]">
+                {new Date(createdAt).toLocaleString()}
+              </span>
+            ),
+          },
+          {
+            accessor: "actor",
+            title: t("actor"),
+            render: ({ actor }) => (
+              <>
+                <div className="font-medium">
+                  {actor?.name ?? t("anonymous")}
+                </div>
+                <div className="text-xs text-[var(--muted-foreground)]">
+                  {actor?.email}
+                </div>
+              </>
+            ),
+          },
+          {
+            accessor: "action",
+            title: t("action"),
+            render: ({ action }) => (
+              <span className="inline-block rounded-full border border-[var(--border)] bg-[var(--secondary)] px-3 py-1 text-xs font-semibold text-[var(--secondary-foreground)]">
+                {action}
+              </span>
+            ),
+          },
+          {
+            accessor: "entityType",
+            title: t("entity"),
+            render: ({ entityType, entityId }) => (
+              <>
+                <div className="font-medium">{entityType}</div>
+                <div className="font-mono text-xs text-[var(--muted-foreground)]">
+                  {entityId}
+                </div>
+              </>
+            ),
+          },
+          {
+            accessor: "scope",
+            title: t("scope"),
+            render: ({ scope }) => scope?.name ?? "-",
+          },
+          {
+            accessor: "details",
+            title: t("details"),
+            render: ({ details }) => (
+              <p className="max-w-96 [overflow-wrap:anywhere] text-[var(--muted-foreground)]">
+                {details}
+              </p>
+            ),
+          },
+        ]}
+        emptyState={
+          <p
+            role={error ? "alert" : undefined}
+            className={
+              error
+                ? "text-sm text-[var(--destructive)]"
+                : "text-sm text-[var(--muted-foreground)]"
+            }
+          >
+            {error ?? t("empty")}
+          </p>
+        }
+        fetching={loading}
+        highlightOnHover
+        horizontalSpacing="md"
+        minHeight={160}
+        records={rows}
+        tabIndex={-1}
+        tableRef={(table) => {
+          tableRef.current = table;
+        }}
+        rowBorderColor="var(--border)"
+        verticalAlign="top"
+        verticalSpacing="md"
+        withTableBorder
+      />
+      {!loading && pagination && rows.length > 0 && (
+        <p className="text-sm text-[var(--muted-foreground)]">
+          {firstRecord} - {firstRecord + rows.length - 1} / {pagination.total}
+        </p>
+      )}
     </div>
   );
 }

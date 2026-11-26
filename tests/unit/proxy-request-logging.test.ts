@@ -39,7 +39,7 @@ describe("proxy request logging", () => {
     expect(infoSpy).not.toHaveBeenCalled();
   });
 
-  it("emits redacted request completion logs by default with proxy-visible status and duration", async () => {
+  it("logs forwarding without claiming a downstream status", async () => {
     vi.stubEnv("ENABLE_REQUEST_LOGGING", undefined);
     const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
     const { proxy } = await import("@/proxy");
@@ -55,16 +55,34 @@ describe("proxy request logging", () => {
 
     const payload = JSON.parse(String(infoSpy.mock.calls[0][0]));
     expect(payload).toMatchObject({
-      event: "http.request.completed",
+      event: "http.request.forwarded",
       component: "proxy",
       requestId: "req-456",
       method: "GET",
       path: "/login",
-      status: 200,
     });
-    expect(typeof payload.durationMs).toBe("number");
-    expect(payload.durationMs).toBeGreaterThanOrEqual(0);
+    expect(payload).not.toHaveProperty("status");
+    expect(payload.proxyDurationMs).toBeGreaterThanOrEqual(0);
+    expect(response.headers.get("x-middleware-request-x-request-id")).toBe(
+      "req-456",
+    );
     expect(String(infoSpy.mock.calls[0][0])).not.toContain("token=secret");
+  });
+
+  it("reports the final status when the proxy responds directly", async () => {
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+    const { proxy } = await import("@/proxy");
+
+    const response = await proxy(
+      createRequest("https://example.test/dashboard"),
+    );
+
+    expect(response.status).toBe(307);
+    expect(JSON.parse(String(infoSpy.mock.calls[0][0]))).toMatchObject({
+      event: "http.request.completed",
+      requestId: response.headers.get("x-request-id"),
+      status: 307,
+    });
   });
 
   it("logs only allowlisted request query fields", async () => {

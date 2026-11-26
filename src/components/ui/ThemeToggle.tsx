@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@heroui/react";
+import { Button } from "@mantine/core";
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { SessionUser } from "@/lib/auth";
@@ -46,8 +46,9 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
   return (
     <Button
       className="shadow-sm"
-      isDisabled={isPending}
-      onPress={() => {
+      color="var(--accent)"
+      disabled={isPending}
+      onClick={() => {
         const previousTheme = theme;
         setTheme(nextTheme);
         startTransition(async () => {
@@ -61,6 +62,7 @@ export function ThemeToggle({ user }: { user: SessionUser }) {
           }
         });
       }}
+      size="compact-sm"
       type="button"
       variant="outline"
     >

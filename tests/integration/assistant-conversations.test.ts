@@ -52,6 +52,7 @@ const user: SessionUser = {
   authMethod: AuthMethod.LOCAL,
   mustChangePassword: false,
   themePreference: ThemePreference.LIGHT,
+  locale: "en",
 };
 const turns = [
   { id: "message-1", role: "user", text: "A private conversation" },

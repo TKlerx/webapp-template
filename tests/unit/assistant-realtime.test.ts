@@ -43,6 +43,7 @@ function setup() {
   vi.stubGlobal("fetch", fetch);
   const callbacks = {
     onTurn: vi.fn(),
+    onPreview: vi.fn(),
     onNavigate: vi.fn(),
     onBusy: vi.fn(),
     onReady: vi.fn(),
@@ -84,32 +85,36 @@ it("streams partial replies, interrupts without dropping the microphone, and kee
       content: [{ type: "output_text", text: "Earlier answer" }],
     },
   });
-  s.event("response.created");
+  s.event("response.created", { response: { id: "response-1" } });
   s.event("response.output_audio_transcript.delta", {
     item_id: "reply",
+    response_id: "response-1",
     delta: "Your ",
   });
-  expect(s.callbacks.onTurn).toHaveBeenLastCalledWith({
+  expect(s.callbacks.onPreview).toHaveBeenLastCalledWith({
     id: "voice:reply",
     role: "assistant",
     text: "Your ",
   });
   s.event("response.output_audio_transcript.delta", {
     item_id: "reply",
+    response_id: "response-1",
     delta: "jobs.",
   });
-  expect(s.callbacks.onTurn).toHaveBeenLastCalledWith({
+  expect(s.callbacks.onPreview).toHaveBeenLastCalledWith({
     id: "voice:reply",
     role: "assistant",
     text: "Your jobs.",
   });
   live.interrupt();
   expect(s.sent().slice(-2)).toEqual([
-    { type: "response.cancel" },
+    { type: "response.cancel", response_id: "response-1" },
     { type: "output_audio_buffer.clear" },
   ]);
   expect(s.track.stop).not.toHaveBeenCalled();
-  s.event("response.done");
+  s.event("response.done", {
+    response: { id: "response-1", status: "completed" },
+  });
   s.event("input_audio_buffer.speech_started", { item_id: "question" });
   s.event("conversation.item.input_audio_transcription.completed", {
     item_id: "question",
@@ -143,7 +148,7 @@ it.each([false, true])(
       }),
     );
     const live = await startRealtimeVoice([], s.callbacks, s.controller.signal);
-    s.event("response.created");
+    s.event("response.created", { response: { id: "response-1" } });
     const call = {
       call_id: "call-1",
       name: "navigate",
@@ -151,9 +156,15 @@ it.each([false, true])(
     };
     s.event("response.function_call_arguments.done", call);
     s.event("response.function_call_arguments.done", call);
+    expect(s.fetch).toHaveBeenCalledTimes(1);
+    const item = { id: "function-item", type: "function_call", ...call };
+    const completed = {
+      response: { id: "response-1", status: "completed", output: [item, item] },
+    };
+    s.event("response.done", completed);
+    s.event("response.done", completed);
     await vi.waitFor(() => expect(s.fetch).toHaveBeenCalledTimes(2));
     if (interrupted) live.interrupt();
-    s.event("response.done");
     expect(
       s.sent().filter((item) => item.type === "response.create"),
     ).toHaveLength(0);
@@ -182,10 +193,21 @@ it("stops the live session when server tool authentication has been revoked", as
   const s = setup();
   s.fetch.mockResolvedValueOnce(new Response(null, { status: 401 }));
   await startRealtimeVoice([], s.callbacks, s.controller.signal);
-  s.event("response.function_call_arguments.done", {
-    call_id: "profile",
-    name: "getMyProfile",
-    arguments: "{}",
+  s.event("response.created", { response: { id: "response-1" } });
+  s.event("response.done", {
+    response: {
+      id: "response-1",
+      status: "completed",
+      output: [
+        {
+          id: "function-item",
+          type: "function_call",
+          call_id: "profile",
+          name: "getMyProfile",
+          arguments: "{}",
+        },
+      ],
+    },
   });
   await vi.waitFor(() => expect(s.callbacks.onError).toHaveBeenCalledOnce());
   expect(s.track.stop).toHaveBeenCalledOnce();
@@ -213,18 +235,82 @@ it("releases a microphone stream even when permission arrives after cancellation
 it("keeps the stop button active while buffered audio is still playing", async () => {
   const s = setup();
   await startRealtimeVoice([], s.callbacks, s.controller.signal);
-  s.event("response.created");
-  s.event("output_audio_buffer.started");
-  s.event("response.done");
+  s.event("response.created", { response: { id: "response-1" } });
+  s.event("output_audio_buffer.started", { response_id: "response-1" });
+  s.event("response.done", {
+    response: { id: "response-1", status: "completed" },
+  });
   expect(s.callbacks.onBusy).toHaveBeenLastCalledWith(true);
-  s.event("output_audio_buffer.stopped");
+  s.event("output_audio_buffer.stopped", { response_id: "response-1" });
   expect(s.callbacks.onBusy).toHaveBeenLastCalledWith(false);
 });
 
 it("reports a failed native response and releases its resources", async () => {
   const s = setup();
   await startRealtimeVoice([], s.callbacks, s.controller.signal);
-  s.event("response.done", { response: { status: "failed" } });
+  s.event("response.created", { response: { id: "response-1" } });
+  s.event("response.done", {
+    response: { id: "response-1", status: "failed" },
+  });
   expect(s.callbacks.onError).toHaveBeenCalledOnce();
   expect(s.track.stop).toHaveBeenCalledOnce();
 });
+
+it.each(["cancelled", "completed", "incomplete"])(
+  "ignores a late %s result from an interrupted response while the next answer is active",
+  async (status) => {
+    const s = setup();
+    await startRealtimeVoice([], s.callbacks, s.controller.signal);
+    s.event("response.created", { response: { id: "old" } });
+    s.event("input_audio_buffer.speech_started", { item_id: "question" });
+    s.event("input_audio_buffer.speech_stopped");
+    s.event("response.created", { response: { id: "new" } });
+    const call = {
+      id: "function-item",
+      type: "function_call",
+      call_id: "late-tool",
+      name: "navigate",
+      arguments: "{}",
+    };
+    s.event("response.function_call_arguments.done", {
+      response_id: "old",
+      ...call,
+    });
+    s.event("response.output_audio_transcript.done", {
+      response_id: "old",
+      item_id: "late-text",
+      transcript: "Discard this",
+    });
+    s.event("response.done", {
+      response: { id: "old", status, output: [call] },
+    });
+    expect(s.callbacks.onPreview).toHaveBeenLastCalledWith(null);
+    expect(s.callbacks.onBusy).toHaveBeenLastCalledWith(true);
+    s.event("response.done", {
+      response: {
+        id: "new",
+        status: "completed",
+        output: [
+          {
+            id: "answer",
+            type: "message",
+            content: [{ transcript: "Keep this" }],
+          },
+        ],
+      },
+    });
+    s.event("conversation.item.input_audio_transcription.completed", {
+      item_id: "question",
+      transcript: "New question",
+    });
+    expect(s.callbacks.onTurn.mock.calls).toEqual([
+      [{ id: "voice:answer", role: "assistant", text: "Keep this" }],
+      [
+        { id: "voice:question", role: "user", text: "New question" },
+        ["voice:answer"],
+      ],
+    ]);
+    await Promise.resolve(); // Let any incorrectly queued tool dispatch.
+    expect(s.fetch).toHaveBeenCalledTimes(1);
+  },
+);

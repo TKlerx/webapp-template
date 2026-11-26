@@ -4,6 +4,7 @@ import { UserManagementTable } from "@/components/auth/UserManagementTable";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getTranslations } from "next-intl/server";
+import "./users.css";
 
 export default async function UsersPage() {
   const user = await requireSession();
@@ -43,7 +44,7 @@ export default async function UsersPage() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+      <div className="grid gap-6">
         <CreateUserDialog />
         <section className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--panel)]">
           <div className="border-b border-[var(--border)] px-4 py-4 sm:px-6">

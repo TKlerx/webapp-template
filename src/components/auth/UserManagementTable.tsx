@@ -1,27 +1,18 @@
 "use client";
 
+import { Button, Table } from "@mantine/core";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
   AuthMethod,
   Role,
   UserStatus,
 } from "../../../generated/prisma/enums";
-import {
-  Role as RoleEnum,
-  UserStatus as UserStatusEnum,
-} from "../../../generated/prisma/enums";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/shadcn/select";
+import { UserStatus as UserStatusEnum } from "../../../generated/prisma/enums";
 import { withBasePath } from "@/lib/base-path";
 import { apiErrorSchema } from "@/lib/api-response";
-import { Button } from "@/components/ui/Button";
+import { UserRoleSelect } from "@/components/auth/UserRoleSelect";
 import { useToast } from "@/components/ui/Toast";
 
 type UserRow = {
@@ -42,16 +33,19 @@ export function UserManagementTable({
 }) {
   const router = useRouter();
   const { pushToast } = useToast();
-  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const pendingRows = useRef(new Set<string>());
+  const [busyRows, setBusyRows] = useState(new Set<string>());
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("users");
-
   async function runAction(
-    key: string,
+    userId: string,
     url: string,
     options: RequestInit,
     successMessage: string,
   ) {
-    setBusyKey(key);
+    if (pendingRows.current.has(userId)) return;
+    pendingRows.current.add(userId);
+    setBusyRows(new Set(pendingRows.current));
 
     try {
       const response = await fetch(withBasePath(url), options);
@@ -73,94 +67,92 @@ export function UserManagementTable({
     } catch {
       pushToast(t("couldNotUpdate"));
     } finally {
-      setBusyKey(null);
+      pendingRows.current.delete(userId);
+      setBusyRows(new Set(pendingRows.current));
     }
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
-            <th className="px-4 py-3 sm:px-6">{t("name")}</th>
-            <th className="px-4 py-3">{t("email")}</th>
-            <th className="px-4 py-3">{t("role")}</th>
-            <th className="px-4 py-3">{t("statusLabel")}</th>
-            <th className="px-4 py-3">{t("auth")}</th>
-            <th className="px-4 py-3 sm:px-6">{t("actions")}</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Table.ScrollContainer
+      ref={scrollContainerRef}
+      minWidth="52rem"
+      type="native"
+    >
+      <Table
+        aria-label={t("title")}
+        className="text-left text-sm"
+        borderColor="var(--border)"
+        verticalSpacing="md"
+        highlightOnHover
+        highlightOnHoverColor="color-mix(in srgb, var(--panel) 86%, var(--background))"
+      >
+        <Table.Thead>
+          <Table.Tr className="border-b border-[var(--border)] bg-[color:color-mix(in_srgb,var(--panel)_88%,var(--background)_12%)] text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+            <Table.Th className="px-4 py-3 sm:px-6">{t("name")}</Table.Th>
+            <Table.Th className="px-4 py-3">{t("email")}</Table.Th>
+            <Table.Th className="px-4 py-3">{t("role")}</Table.Th>
+            <Table.Th className="px-4 py-3">{t("statusLabel")}</Table.Th>
+            <Table.Th className="px-4 py-3">{t("auth")}</Table.Th>
+            <Table.Th className="px-4 py-3 sm:px-6">{t("actions")}</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
           {users.map((entry) => {
-            const canEditSelfRole = entry.id !== currentUserId;
-            const isBusy = busyKey?.startsWith(entry.id);
+            const canEditRole = entry.id !== currentUserId;
+            const isBusy = busyRows.has(entry.id);
 
             return (
-              <tr
-                className="border-b border-[var(--border)] align-top transition-colors last:border-b-0 hover:bg-[color:color-mix(in_srgb,var(--panel)_86%,var(--background)_14%)]"
-                key={entry.id}
-              >
-                <td className="px-4 py-4 sm:px-6">
+              <Table.Tr className="align-top transition-colors" key={entry.id}>
+                <Table.Td className="px-4 py-4 sm:px-6">
                   <div className="font-medium">{entry.name}</div>
-                </td>
-                <td className="px-4 py-4 text-[var(--muted-foreground)]">
+                </Table.Td>
+                <Table.Td className="wrap-anywhere px-4 py-4 text-[var(--muted-foreground)]">
                   {entry.email}
-                </td>
-                <td className="px-4 py-4">
-                  <Select
-                    disabled={!canEditSelfRole || Boolean(isBusy)}
+                </Table.Td>
+                <Table.Td className="px-4 py-4">
+                  <UserRoleSelect
+                    className="w-52"
+                    disabled={!canEditRole}
+                    readOnly={isBusy}
+                    scrollContainerRef={scrollContainerRef}
                     value={entry.role}
-                    onValueChange={(value) =>
+                    onChange={(value) =>
                       void runAction(
-                        `${entry.id}-role`,
+                        entry.id,
                         `/api/users/${entry.id}/role`,
                         {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ role: value }),
                         },
-                        t("roleUpdated", { role: t(`roles.${value as Role}`) }),
+                        t("roleUpdated", { role: t(`roles.${value}`) }),
                       )
                     }
-                  >
-                    <SelectTrigger
-                      aria-label={t("role")}
-                      className="w-[13rem] rounded-lg border-[var(--border)] bg-white px-3 py-2 shadow-none dark:bg-[var(--panel)]"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-lg border-[var(--border)]">
-                      {Object.values(RoleEnum).map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {t(`roles.${role}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </td>
-                <td className="px-4 py-4">
+                  />
+                </Table.Td>
+                <Table.Td className="px-4 py-4">
                   <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-3 py-1 text-xs font-semibold text-[var(--secondary-foreground)]">
                     {t(`statuses.${entry.status}`)}
                   </span>
-                </td>
-                <td className="px-4 py-4 font-mono text-xs text-[var(--muted-foreground)]">
+                </Table.Td>
+                <Table.Td className="px-4 py-4 font-mono text-xs text-[var(--muted-foreground)]">
                   {entry.authMethod}
-                </td>
-                <td className="px-4 py-4 sm:px-6">
+                </Table.Td>
+                <Table.Td className="px-4 py-4 sm:px-6">
                   <div className="flex flex-wrap gap-2">
                     {entry.status === UserStatusEnum.PENDING_APPROVAL ? (
                       <Button
-                        disabled={Boolean(isBusy)}
+                        disabled={isBusy}
                         onClick={() =>
                           void runAction(
-                            `${entry.id}-approve`,
+                            entry.id,
                             `/api/users/${entry.id}/approve`,
                             { method: "PATCH" },
                             t("userApproved"),
                           )
                         }
                         type="button"
-                        variant="secondary"
+                        variant="default"
                       >
                         {t("approve")}
                       </Button>
@@ -168,17 +160,17 @@ export function UserManagementTable({
 
                     {entry.status === UserStatusEnum.ACTIVE ? (
                       <Button
-                        disabled={Boolean(isBusy)}
+                        disabled={isBusy}
                         onClick={() =>
                           void runAction(
-                            `${entry.id}-deactivate`,
+                            entry.id,
                             `/api/users/${entry.id}/deactivate`,
                             { method: "PATCH" },
                             t("userDeactivated"),
                           )
                         }
                         type="button"
-                        variant="secondary"
+                        variant="default"
                       >
                         {t("deactivate")}
                       </Button>
@@ -186,29 +178,29 @@ export function UserManagementTable({
 
                     {entry.status === UserStatusEnum.INACTIVE ? (
                       <Button
-                        disabled={Boolean(isBusy)}
+                        disabled={isBusy}
                         onClick={() =>
                           void runAction(
-                            `${entry.id}-reactivate`,
+                            entry.id,
                             `/api/users/${entry.id}/reactivate`,
                             { method: "PATCH" },
                             t("userReactivated"),
                           )
                         }
                         type="button"
-                        variant="secondary"
+                        variant="default"
                       >
                         {t("reactivate")}
                       </Button>
                     ) : null}
                   </div>
-                </td>
-              </tr>
+                </Table.Td>
+              </Table.Tr>
             );
           })}
-        </tbody>
-      </table>
-    </div>
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   );
 }
 

@@ -1,18 +1,86 @@
 # Continue
 
-## SpecTest and test design pilot (2026-11-24)
+## SpecTest extension and Ops Health pilot (2026-11-26)
 
-- Applied the workflow to Ops Health FR-017. The existing browser flow covered copy success feedback. It now also denies the Clipboard API and makes the fallback fail, then asserts the operator sees the failure message. The browser test exercises both outcomes without changing production code. `AI_TESTING.md` connects the local test design skill to future regression reviews.
-- Passed 18 focused unit/API tests, both production-mode Ops Health browser tests, and targeted ESLint. The disposable PostgreSQL container was removed. Publishing `codex/spectest` for review.
+- PR #62 adds the vendored SpecTest 1.0.0 extension, four Codex skills, and an optional gap-review hook. The workflow uses the existing test-design-review skill from PR #72 and documents usage in AI_TESTING.md.
+- Retained the prepare-work-item skill and the Ops Health FR-017 clipboard failure assertion alongside the Mantine migration's refresh and status coverage.
 
-## Project skill inventory (2026-11-24)
+## Template fixes from the Personal Assistant review (2026-11-25)
 
-- Added a local copy of `prepare-work-item` for issue triage before Spec Kit planning. `vercel-react-best-practices`, `web-design-guidelines`, and `test-design-review` are already present locally. The mobile skills and the Bicep-specific Azure preflight skill are outside this web template’s stack. Azure infrastructure uses the existing OpenTofu validation and plan workflow.
+- Voice dispatches tools from completed responses that match the current turn. Interrupted previews stay out of saved history, and late transcripts follow the provider’s item order. Voice setup logs the failed stage with the request ID and omits provider payloads.
+- Password changes compare the verified credential hash before writing or revoking other sessions. A fresh authenticated browser restores the account’s saved language when it has no valid locale cookie.
+- Proxy forwarding has its own event and timing field. The shared Trivy secret phase includes `.env` in CI and keeps the local exclusion for developer runs.
+- The production build, 381 Vitest tests, six Chromium tests on disposable PostgreSQL, targeted ESLint and formatting, architecture, and the Trivy CI-mode secret scan passed. The browser voice test used simulated provider events.
+- The changes are on `codex/template-handoff-fixes` in the separate template worktree.
 
-## SpecTest extension (2026-11-24)
+## Users desktop layout review fixes (2026-11-25)
 
-- Installed the vendored SpecTest v1.0.0 extension on `codex/spectest`. The original release uses command names rejected by Spec Kit 1.1. This copy uses the `speckit.spectest` namespace and resolves specs in feature directories. Codex registers four skills, with an optional read-only gap check after implementation. See `AI_TESTING.md` for usage with the repo-local `test-design-review` skill.
-- Verified CLI registration, manifest integrity, generated command content, feature-path resolution, and the optional hook. A read-only trial on Ops Health identified partial coverage for FR-017. The existing browser test checks copy success feedback, but there is no assertion for the failure message when both clipboard paths fail. Changes remain local.
+- The create-user launcher sits above the full-width Users table. Long email addresses wrap to keep row actions in view at 1280 px.
+- The 1280 px browser regression checks that the action for a long-email account is fully in view before any horizontal scrolling. The fixture is cleaned up even when setup fails, and the last-admin test clears stale desktop fixtures when it reuses a database.
+- In a production Chromium probe at 1280 px, turning off email wrapping fully clipped the row action. With wrapping enabled, the entire action was visible.
+- The production build, all 13 Users and Audit Trail Playwright tests on disposable PostgreSQL, and targeted lint and formatting passed.
+
+## Project-local Impeccable skill (2026-11-26)
+
+- Added Impeccable 4.10.0 for on-demand UI reviews. The skill package is pinned to upstream commit b49177d32788f2dc585c42831d845dacf1ebed2c and includes the engine 0.1.27 checksum manifest, license, and notices. The Windows launcher resolved the current Mantine Notifications route, and the source detector ran on Notifications, Audit Trail, and the token dialog.
+
+## Production dependency audits in CI (2026-11-26)
+
+- PR #73 keeps the broad pnpm, uv, and Go audits as advisory steps before the blocking production checks. The blocking pnpm audit includes optional production packages because the app build installs them.
+
+## Test design and review skill (2026-11-25)
+
+- Added the project-local test-design-review skill for choosing behavior-focused regression tests and checking whether their assertions catch likely failures.
+
+## Mantine migration implementation (2026-11-25)
+
+- Implemented the saved-theme fix and migrated the remaining controls in Spec 023 on PR #71. The changes cover Notifications, Audit Trail, Users, Jobs, Ops Health, personal and admin tokens, local auth, and Teams. Spec 014 remains open.
+- The opposing-theme test reproduced the baseline bug and passed with the fix. All 375 Vitest tests passed against disposable PostgreSQL. GitHub Validate and Joern passed at implementation commit `f8e7f45`, with 45 Chromium cases passing. The optional live Azure audio test remains opt-in. Teams browser tests use the local app and disposable PostgreSQL.
+
+## Mantine migration draft handoff (2026-11-25)
+
+- The user requested one draft pull request after the open Spec 014 work was raised. [Spec 023](specs/023-mantine-migration/spec.md), its [24 tasks](specs/023-mantine-migration/tasks.md), and the [pickup guide](specs/023-mantine-migration/quickstart.md) are on `codex/mantine-migration-plan`.
+- Start at T001 with the saved-theme fix. Continue with notification save reliability, the Mantine Notifications port, and the remaining workflow checkpoints on the same branch. Spec 014 remains open. Add 023 to `ACTIVE_SPECS.md` when implementation starts.
+
+## Template review and Mantine migration plan (2026-11-24)
+
+- Reviewed `main` at `28de90e`. Start with the saved-theme and OS-theme mismatch, then port Notifications. The findings, migration order, and acceptance checks are in [docs/mantine-migration-plan.md](docs/mantine-migration-plan.md).
+- Constitution 3.1.0 makes Mantine the default for new and migrated interactive UI. Existing components can stay where they preserve behavior. Spec 014 remains open, and no new tracked spec was started.
+
+## Mantine Audit Trail exports (2026-11-24)
+
+- Converted the CSV and PDF export controls to Mantine buttons after PR #67. The buttons keep keyboard focus during a download and block a second export until the first finishes.
+- The production build, 15 audit unit tests, and nine audit Playwright tests passed. At 320 px, Chromium also verified the filters and both real downloads from page two against disposable PostgreSQL.
+- All 375 Vitest tests passed on the export follow-up. PR #67 passed both Validate and Joern at `eae26a5`.
+
+## Mantine Audit Trail filters (2026-11-24)
+
+- Converted the Action and Entity filters to Mantine TextInput using the template's theme tokens. The production build, targeted ESLint, and all eight audit Playwright tests passed against disposable PostgreSQL.
+
+## Mantine user management (2026-11-24)
+
+- Converted the Users table, role and status controls, and Create local user dialog to Mantine. The table scrolls within its panel on small screens. The form shows submission errors next to its fields so an admin can correct them and retry.
+- The production build, all 375 Vitest tests, 11 focused Playwright tests, TypeScript, targeted lint and formatting, and architecture checks passed.
+- Addressed the six PR #66 findings. Create-user submission preserves keyboard focus and recovers after a 15-second timeout. Both Role selectors restore visible focus and keyboard shortcuts, and a clipped table dropdown can no longer submit a hidden selection.
+
+## Audit pagination keyboard focus (2026-11-24)
+
+- Moved the Audit Trail page controls outside Mantine DataTable so keyboard focus survives a page load. Kept the row count, filters, exports, and Previous after a failed load.
+- The production build, 15 audit unit tests, and four focused Playwright tests passed against disposable PostgreSQL.
+- Addressed the three PR #65 review findings. The pager now sits above the rows, focus moves to the current page or the table when a focused page control disappears, and a failed page can be retried with its active filters.
+
+## Mantine DataTable for the Audit Trail (2026-11-24)
+
+- Switched the Audit Trail to Mantine DataTable on `codex/audit-datatable`. Existing action and entity filters, CSV/PDF export, and server-side pagination still use the same audit API. Table styles load with the Audit Trail.
+- Verified the production build, 15 audit unit tests, four focused Playwright tests, TypeScript, targeted lint and formatting, and pnpm audit.
+- PR #64 review restored Previous when a later audit page has no rows. The browser regression simulates an API failure and checks that users can return with their filters intact.
+
+## Mantine integration (2026-11-24)
+
+- Replaced HeroUI with Mantine Core and Hooks on `codex/mantine`. The account menu’s theme toggle uses Mantine and still saves the user’s preference. The root layout applies the saved theme on the server, and the shared provider updates both theme attributes when it changes.
+- Restored the template’s muted table tokens and removed the HeroUI-specific radius and CSS overrides. Tailwind utilities take precedence over Mantine styles.
+- The production build, three focused Playwright tests, all 375 Vitest tests, TypeScript, targeted lint and formatting, and pnpm audit passed.
+- PR #63 review narrowed the Mantine styles to shared variables, focus styles, and Button styles. The Playwright regression now checks the saved theme in the authenticated HTML response and preserves the existing body line height.
 
 ## HeroUI integration (2026-11-24)
 
