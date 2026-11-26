@@ -2202,3 +2202,7 @@ The production build and all 13 Users and Audit Trail Chromium tests passed on d
 Bound voice tools and saved replies to the completed provider response, preserved conversation item order for late transcripts, and added redacted request-correlated setup logs. Guarded password changes against concurrent writes, restored saved locale preferences without a locale cookie, corrected the proxy forwarding event, and kept the local Trivy `.env` exclusion out of CI.
 
 The production build, all 381 Vitest tests and six focused Chromium tests passed against disposable PostgreSQL. Voice coverage used simulated provider events. The Trivy secret scan passed in CI mode, and an argument check verified the local and CI exclusion behavior.
+
+## 2026-11-27 — Fix the Assistant overlap on mobile
+
+Moved the Mantine launcher into the shared mobile dashboard header. The Notifications browser test covers pointer access to the event filter at 390 px and keyboard focus after closing the Assistant.

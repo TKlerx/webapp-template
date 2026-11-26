@@ -1,5 +1,10 @@
 # Continue
 
+## Mobile Assistant launcher (2026-11-27)
+
+- The Mantine Assistant button sits beside the account menu on mobile. The shared dashboard header gives both actions their own space above page controls, and the desktop launcher stays floating.
+- The Notifications browser test checks that the event filter receives pointer input at 390 px and that Escape returns focus to the launcher after closing the Assistant.
+
 ## Template fixes from the Personal Assistant review (2026-11-25)
 
 - Voice dispatches tools from completed responses that match the current turn. Interrupted previews stay out of saved history, and late transcripts follow the provider’s item order. Voice setup logs the failed stage with the request ID and omits provider payloads.

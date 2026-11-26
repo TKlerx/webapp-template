@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { Button as MantineButton } from "@mantine/core";
 import { DefaultChatTransport } from "ai";
 import {
   ArrowUp,
@@ -173,14 +174,16 @@ export function Assistant({ userId }: { userId: string }) {
       }}
     >
       <Popover.Trigger asChild>
-        <Button
-          className="fixed bottom-12 right-5 z-50 rounded-full shadow-lg"
-          size="lg"
+        <MantineButton
           aria-label={t("open")}
+          className="min-h-11 bg-primary text-primary-foreground hover:bg-primary/90 md:fixed md:right-5 md:bottom-12 md:z-50 md:shadow-lg"
+          leftSection={<MessageSquare aria-hidden="true" className="size-4" />}
+          radius="xl"
+          size="md"
+          type="button"
         >
-          <MessageSquare aria-hidden="true" />
           {t("title")}
-        </Button>
+        </MantineButton>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
