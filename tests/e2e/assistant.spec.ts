@@ -212,25 +212,44 @@ test("native voice streams into chat, runs authenticated tools and interrupts wi
   await expect(
     page.getByRole("button", { name: "Voice on", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
+  await emit({ type: "response.created", response: { id: "interrupted" } });
+  await emit({
+    type: "response.output_audio_transcript.delta",
+    response_id: "interrupted",
+    item_id: "discarded",
+    delta: "Interrupted preview",
+  });
+  const discarded = page.getByText("Interrupted preview", { exact: true });
+  await expect(discarded).toBeVisible();
   await emit({
     type: "input_audio_buffer.speech_started",
     item_id: "question",
   });
   await emit({
-    type: "conversation.item.input_audio_transcription.completed",
-    item_id: "question",
-    transcript: "Show my tokens",
+    type: "response.output_audio_transcript.done",
+    response_id: "interrupted",
+    item_id: "discarded",
+    transcript: "Interrupted preview",
   });
+  await emit({
+    type: "response.done",
+    response: { id: "interrupted", status: "cancelled" },
+  });
+  await expect(discarded).toHaveCount(0);
   await emit({ type: "input_audio_buffer.speech_stopped" });
-  await emit({ type: "response.created" });
+  await emit({ type: "input_audio_buffer.committed", item_id: "question" });
+  await emit({ type: "response.created", response: { id: "accepted" } });
+  await emit({ type: "output_audio_buffer.started", response_id: "accepted" });
   await emit({
     type: "response.output_audio_transcript.delta",
+    response_id: "accepted",
     item_id: "reply",
     delta: "Opening your ",
   });
   await expect(page.getByText("Opening your ", { exact: true })).toBeVisible();
   await emit({
     type: "response.output_audio_transcript.delta",
+    response_id: "accepted",
     item_id: "reply",
     delta: "tokens.",
   });
@@ -238,12 +257,31 @@ test("native voice streams into chat, runs authenticated tools and interrupts wi
     page.getByText("Opening your tokens.", { exact: true }),
   ).toBeVisible();
   await emit({
-    type: "response.function_call_arguments.done",
-    call_id: "navigate-voice",
-    name: "navigate",
-    arguments: JSON.stringify({ page: "tokens" }),
+    type: "response.done",
+    response: {
+      id: "accepted",
+      status: "completed",
+      output: [
+        {
+          id: "reply",
+          type: "message",
+          content: [{ transcript: "Opening your tokens." }],
+        },
+        {
+          id: "tool-item",
+          type: "function_call",
+          call_id: "navigate-voice",
+          name: "navigate",
+          arguments: JSON.stringify({ page: "tokens" }),
+        },
+      ],
+    },
   });
-  await emit({ type: "response.done" });
+  await emit({
+    type: "conversation.item.input_audio_transcription.completed",
+    item_id: "question",
+    transcript: "Show my tokens",
+  });
   await expect(page).toHaveURL(new RegExp(`${appBasePath}/settings/tokens$`));
   await expect(
     page.getByRole("heading", {

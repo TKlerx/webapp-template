@@ -44,6 +44,7 @@ const user: SessionUser = {
   authMethod: AuthMethod.LOCAL,
   mustChangePassword: false,
   themePreference: ThemePreference.LIGHT,
+  locale: "en",
 };
 const conversation = {
   messages: [
@@ -117,6 +118,7 @@ it("does not expose credential errors or fall back from an invalid authenticatio
   expect(fetchMock).not.toHaveBeenCalled();
 });
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.clearAllMocks();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
@@ -266,24 +268,52 @@ describe("assistant access and input validation", () => {
   });
 });
 
-it("keeps provider secrets and provider error bodies off the voice response", async () => {
-  const fetchMock = vi
-    .fn()
-    .mockResolvedValue(
-      new Response("private-provider-diagnostic", { status: 401 }),
+it.each([
+  { stage: "mint", upstreamStatus: 401 },
+  { stage: "negotiate", upstreamStatus: 503 },
+])(
+  "logs redacted $stage failures with the request ID",
+  async ({ stage, upstreamStatus }) => {
+    const fetchMock = vi.fn();
+    if (stage === "negotiate")
+      fetchMock.mockResolvedValueOnce(
+        Response.json({ value: "ephemeral-secret" }),
+      );
+    fetchMock.mockResolvedValueOnce(
+      new Response("private-provider-diagnostic", { status: upstreamStatus }),
     );
-  vi.stubGlobal("fetch", fetchMock);
-  const response = await voice(
-    new Request("http://localhost/api/assistant/voice", {
-      method: "POST",
-      body: "v=0\r\n",
-      headers: { "Content-Type": "application/sdp" },
-    }),
-  );
-  expect(response.status).toBe(502);
-  expect(await response.text()).not.toContain("private-provider-diagnostic");
-  expect(fetchMock).toHaveBeenCalledTimes(1);
-});
+    vi.stubGlobal("fetch", fetchMock);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const response = await voice(
+      new Request("http://localhost/api/assistant/voice", {
+        method: "POST",
+        body: "v=0\r\nprivate-offer",
+        headers: {
+          "Content-Type": "application/sdp",
+          "x-request-id": "voice-test",
+        },
+      }),
+    );
+    expect(response.status).toBe(502);
+    expect(await response.text()).not.toContain("private-provider-diagnostic");
+    expect(warn).toHaveBeenCalledOnce();
+    const payload = String(warn.mock.calls[0][0]);
+    expect(JSON.parse(payload)).toMatchObject({
+      event: "assistant.voice_session_failed",
+      requestId: "voice-test",
+      stage,
+      reason: "upstream_http_error",
+      upstreamStatus,
+    });
+    for (const privateValue of [
+      "test-key",
+      "ephemeral-secret",
+      "private-offer",
+      "private-provider-diagnostic",
+    ])
+      expect(payload).not.toContain(privateValue);
+  },
+);
 
 it("exchanges SDP server-side without returning provider credentials", async () => {
   const fetchMock = vi

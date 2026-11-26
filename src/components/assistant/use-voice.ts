@@ -9,13 +9,14 @@ type VoiceSession = {
 };
 
 export function useVoice(callbacks: {
-  onTurn: (turn: VoiceTurn) => void;
+  onTurn: Parameters<typeof startRealtimeVoice>[1]["onTurn"];
   onNavigate: Parameters<typeof startRealtimeVoice>[1]["onNavigate"];
 }) {
   const [status, setStatus] = useState<"off" | "connecting" | "listening">(
     "off",
   );
   const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<VoiceTurn | null>(null);
   const [error, setError] = useState(false);
   const session = useRef<VoiceSession | null>(null);
   const handlers = useRef(callbacks);
@@ -29,6 +30,7 @@ export function useVoice(callbacks: {
     current?.live?.stop();
     setStatus("off");
     setBusy(false);
+    setPreview(null);
   }, []);
   useEffect(() => stop, [stop]);
   const start = useCallback(
@@ -46,8 +48,11 @@ export function useVoice(callbacks: {
         const live = await startRealtimeVoice(
           history,
           {
-            onTurn: (turn) => {
-              if (active()) handlers.current.onTurn(turn);
+            onTurn: (turn, beforeIds) => {
+              if (active()) handlers.current.onTurn(turn, beforeIds);
+            },
+            onPreview: (turn) => {
+              if (active()) setPreview(turn);
             },
             onNavigate: (page) => {
               if (active()) handlers.current.onNavigate(page);
@@ -81,6 +86,7 @@ export function useVoice(callbacks: {
   return {
     status,
     busy,
+    preview,
     error,
     start,
     stop,

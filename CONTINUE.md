@@ -1,5 +1,13 @@
 # Continue
 
+## Template fixes from the Personal Assistant review (2026-11-25)
+
+- Voice dispatches tools from completed responses that match the current turn. Interrupted previews stay out of saved history, and late transcripts follow the provider’s item order. Voice setup logs the failed stage with the request ID and omits provider payloads.
+- Password changes compare the verified credential hash before writing or revoking other sessions. A fresh authenticated browser restores the account’s saved language when it has no valid locale cookie.
+- Proxy forwarding has its own event and timing field. The shared Trivy secret phase includes `.env` in CI and keeps the local exclusion for developer runs.
+- The production build, 381 Vitest tests, six Chromium tests on disposable PostgreSQL, targeted ESLint and formatting, architecture, and the Trivy CI-mode secret scan passed. The browser voice test used simulated provider events.
+- The changes are on `codex/template-handoff-fixes` in the separate template worktree.
+
 ## Users desktop layout review fixes (2026-11-25)
 
 - The create-user launcher sits above the full-width Users table. Long email addresses wrap to keep row actions in view at 1280 px.

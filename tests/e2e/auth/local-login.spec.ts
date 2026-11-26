@@ -83,3 +83,36 @@ test("local sign-in keeps keyboard submission and focuses failed-login feedback"
     page.getByRole("alert").filter({ hasText: "Invalid email or password" }),
   ).toBeFocused();
 });
+
+test("restores the saved account language in a fresh browser", async ({
+  page,
+  browser,
+}) => {
+  const email = "e2e-account-locale@example.com";
+  const password = "LocalePass123";
+  await seedLocalUser({
+    email,
+    name: "E2E Locale User",
+    role: Role.SCOPE_USER,
+    password,
+    mustChangePassword: false,
+  });
+  await loginWithPassword(page, email, password);
+  await expect(page).toHaveURL(new RegExp(`${appBasePath}/dashboard$`));
+  const saved = await page.request.post(`${appBasePath}/api/locale`, {
+    data: { locale: "de" },
+  });
+  expect(saved.ok()).toBe(true);
+
+  const fresh = await browser.newContext({ baseURL: page.url() });
+  try {
+    const newPage = await fresh.newPage();
+    await loginWithPassword(newPage, email, password);
+    expect(
+      (await fresh.cookies()).some(({ name }) => name === "starter_app_locale"),
+    ).toBe(false);
+    await expect(newPage.locator("html")).toHaveAttribute("lang", "de");
+  } finally {
+    await fresh.close();
+  }
+});

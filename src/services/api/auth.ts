@@ -66,28 +66,27 @@ export async function changePasswordForUser(
     return jsonError("Not authenticated", 401);
   }
 
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: user.id },
-      data: {
-        mustChangePassword: false,
-      },
-    }),
-    prisma.account.update({
+  const changed = await prisma.$transaction(async (tx) => {
+    const result = await tx.account.updateMany({
       where: {
-        providerId_accountId: {
-          providerId: "credential",
-          accountId: user.id,
-        },
+        accountId: user.id,
+        providerId: "credential",
+        password: credentialAccount.password,
       },
-      data: {
-        password: nextPasswordHash,
-      },
-    }),
-    prisma.session.deleteMany({
+      data: { password: nextPasswordHash },
+    });
+    if (result.count !== 1) return false;
+
+    await tx.user.update({
+      where: { id: user.id },
+      data: { mustChangePassword: false },
+    });
+    await tx.session.deleteMany({
       where: { userId: user.id, id: { not: authSession.session.id } },
-    }),
-  ]);
+    });
+    return true;
+  });
+  if (!changed) return jsonError("Current password is incorrect", 401);
 
   await safeLogAudit({
     action: AuditAction.AUTH_PASSWORD_CHANGED,

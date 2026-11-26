@@ -101,20 +101,35 @@ export function Assistant({ userId }: { userId: string }) {
   });
   const textBusy = status === "streaming" || status === "submitted";
   const voice = useVoice({
-    onTurn: ({ id, role, text }) =>
+    onTurn: ({ id, role, text }, beforeIds) =>
       setMessages((previous) => {
         const message: AssistantMessage = {
           id,
           role,
           parts: [{ type: "text", text }],
         };
-        return previous.some((entry) => entry.id === id)
-          ? previous.map((entry) => (entry.id === id ? message : entry))
-          : [...previous, message].slice(-100);
+        if (!beforeIds && previous.some((entry) => entry.id === id))
+          return previous.map((entry) => (entry.id === id ? message : entry));
+        const ordered = previous.filter((entry) => entry.id !== id);
+        const before = ordered.findIndex((entry) =>
+          beforeIds?.includes(entry.id),
+        );
+        ordered.splice(before === -1 ? ordered.length : before, 0, message);
+        return ordered.slice(-100);
       }),
     onNavigate: (page) => router.push(assistantPages[page]),
   });
   const busy = textBusy || voice.busy;
+  const displayedMessages: AssistantMessage[] = voice.preview
+    ? [
+        ...messages,
+        {
+          id: voice.preview.id + ":preview",
+          role: voice.preview.role,
+          parts: [{ type: "text", text: voice.preview.text }],
+        },
+      ]
+    : messages;
   const savedTurns = useMemo(
     () =>
       messages
@@ -273,12 +288,12 @@ export function Assistant({ userId }: { userId: string }) {
           </div>
           <Conversation aria-label={t("conversation")}>
             <ConversationContent>
-              {messages.length === 0 && (
+              {displayedMessages.length === 0 && (
                 <p className="py-6 text-sm text-muted-foreground">
                   {t("empty")}
                 </p>
               )}
-              {messages.map((message) => (
+              {displayedMessages.map((message) => (
                 <div
                   key={message.id}
                   className={cn(

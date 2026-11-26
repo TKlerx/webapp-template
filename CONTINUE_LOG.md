@@ -2192,3 +2192,9 @@ Vendored the project-local Impeccable skill and verified all 71 files against th
 Kept the create-user launcher above the full-width table and allowed long email values to wrap. The 1280 px browser test checks full action visibility before horizontal scrolling. Moved test fixture setup inside cleanup protection and accounted for leftover desktop-admin fixtures in later test runs.
 
 The production build and all 13 Users and Audit Trail Chromium tests passed on disposable PostgreSQL. At 1280 px, the long-email row action was fully visible with wrapping and fully clipped when wrapping was disabled.
+
+## 2026-11-25 — Address template findings from the Personal Assistant review
+
+Bound voice tools and saved replies to the completed provider response, preserved conversation item order for late transcripts, and added redacted request-correlated setup logs. Guarded password changes against concurrent writes, restored saved locale preferences without a locale cookie, corrected the proxy forwarding event, and kept the local Trivy `.env` exclusion out of CI.
+
+The production build, all 381 Vitest tests and six focused Chromium tests passed against disposable PostgreSQL. Voice coverage used simulated provider events. The Trivy secret scan passed in CI mode, and an argument check verified the local and CI exclusion behavior.

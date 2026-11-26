@@ -53,26 +53,30 @@ function buildNextResponse(request: NextRequest, requestId: string) {
   });
 }
 
-function completeProxyResponse(
+function logProxyResponse(
   request: NextRequest,
   response: NextResponse,
   requestId: string,
   startedAt: number,
+  forwarded: boolean,
 ) {
   response.headers.set("x-request-id", requestId);
 
   if (shouldEmitRequestLog(request.nextUrl.pathname)) {
-    proxyLogger.info("http.request.completed", {
-      requestId,
-      method: request.method,
-      path: sanitizeRequestPath(request.nextUrl.pathname),
-      query: sanitizeRequestQuery(
-        request.nextUrl.searchParams,
-        REQUEST_QUERY_ALLOWLIST,
-      ),
-      status: response.status,
-      durationMs: Math.round(performance.now() - startedAt),
-    });
+    proxyLogger.info(
+      forwarded ? "http.request.forwarded" : "http.request.completed",
+      {
+        requestId,
+        method: request.method,
+        path: sanitizeRequestPath(request.nextUrl.pathname),
+        query: sanitizeRequestQuery(
+          request.nextUrl.searchParams,
+          REQUEST_QUERY_ALLOWLIST,
+        ),
+        ...(forwarded ? {} : { status: response.status }),
+        proxyDurationMs: Math.round(performance.now() - startedAt),
+      },
+    );
   }
 
   return response;
@@ -117,7 +121,15 @@ export async function proxy(request: NextRequest) {
   const startedAt = performance.now();
   const requestId = request.headers.get("x-request-id") ?? createRequestId();
   const complete = (response: NextResponse) =>
-    completeProxyResponse(request, response, requestId, startedAt);
+    logProxyResponse(request, response, requestId, startedAt, false);
+  const forward = () =>
+    logProxyResponse(
+      request,
+      buildNextResponse(request, requestId),
+      requestId,
+      startedAt,
+      true,
+    );
   const pathname = stripBasePath(request.nextUrl.pathname);
   const betterAuthCookieNames = getBetterAuthCookieNames();
   const redirectTo = (target: string) => {
@@ -137,7 +149,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api/auth/") ||
     PUBLIC_PATHS.includes(pathname)
   ) {
-    return complete(buildNextResponse(request, requestId));
+    return forward();
   }
 
   const hasBetterAuthCookie = betterAuthCookieNames.some((name) =>
@@ -174,7 +186,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return complete(buildNextResponse(request, requestId));
+  return forward();
 }
 
 export const config = {

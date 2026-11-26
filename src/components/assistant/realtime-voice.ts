@@ -8,23 +8,41 @@ export type VoiceTurn = {
   text: string;
 };
 type Callbacks = {
-  onTurn: (turn: VoiceTurn) => void;
+  onTurn: (turn: VoiceTurn, beforeIds?: string[]) => void;
+  onPreview: (turn: VoiceTurn | null) => void;
   onNavigate: (page: z.infer<typeof assistantPageSchema>) => void;
   onBusy: (busy: boolean) => void;
   onReady: () => void;
   onClose: () => void;
   onError: () => void;
 };
+const outputItem = z.object({
+  id: z.string(),
+  type: z.string(),
+  call_id: z.string().optional(),
+  name: z.string().optional(),
+  arguments: z.string().optional(),
+  content: z.array(z.object({ transcript: z.string().nullish() })).optional(),
+});
+
+type ToolCall = { call_id: string; name: string; arguments?: string };
+
 const voiceEvent = z.object({
   type: z.string(),
   item_id: z.string().optional(),
   delta: z.string().optional(),
   transcript: z.string().optional(),
-  call_id: z.string().optional(),
-  name: z.string().optional(),
-  arguments: z.string().optional(),
+  response_id: z.string().optional(),
+  previous_item_id: z.string().nullish(),
+  item: z.object({ id: z.string() }).optional(),
   error: z.object({ code: z.string().optional() }).optional(),
-  response: z.object({ status: z.string().optional() }).optional(),
+  response: z
+    .object({
+      id: z.string(),
+      status: z.string().optional(),
+      output: z.array(outputItem).optional(),
+    })
+    .optional(),
 });
 
 export async function startRealtimeVoice(
@@ -40,7 +58,10 @@ export async function startRealtimeVoice(
   let closed = false;
   let ready = false;
   let activeResponse = false;
-  let playing = false;
+  let response: { id: string; turn: number } | undefined;
+  let requestedResponseTurn: number | undefined;
+  let playableResponseId: string | undefined;
+  let playingResponseId: string | undefined;
   let receivingSpeech = false;
   let pendingCalls = 0;
   let needsResponse = false;
@@ -49,6 +70,32 @@ export async function startRealtimeVoice(
   let queue = Promise.resolve();
   const seen = new Set<string>();
   const transcripts = new Map<string, string>();
+  const itemOrder: string[] = [];
+  const recordItem = (id: string, previousId?: string | null) => {
+    const current = itemOrder.indexOf(id);
+    if (current !== -1 && previousId === undefined) return;
+    if (current !== -1) itemOrder.splice(current, 1);
+    const previous = previousId ? itemOrder.indexOf(previousId) : -1;
+    const index =
+      previousId === null || previous !== -1 ? previous + 1 : itemOrder.length;
+    itemOrder.splice(index, 0, id);
+    if (itemOrder.length > 512) itemOrder.shift();
+  };
+  const publish = (id: string, role: VoiceTurn["role"], text: string) => {
+    recordItem(id);
+    const later = itemOrder.slice(itemOrder.indexOf(id) + 1);
+    const message = { id: "voice:" + id, role, text: text.slice(0, 6000) };
+    if (later.length)
+      callbacks.onTurn(
+        message,
+        later.map((item) => "voice:" + item),
+      );
+    else callbacks.onTurn(message);
+  };
+  const clearPreview = () => {
+    transcripts.clear();
+    callbacks.onPreview(null);
+  };
   const send = (event: object) => {
     if (!closed && channel.readyState === "open")
       channel.send(JSON.stringify(event));
@@ -75,23 +122,33 @@ export async function startRealtimeVoice(
   };
   const updateBusy = () =>
     callbacks.onBusy(
-      activeResponse || playing || receivingSpeech || pendingCalls > 0,
+      activeResponse ||
+        Boolean(playingResponseId) ||
+        receivingSpeech ||
+        pendingCalls > 0,
     );
+  const createResponse = () => {
+    activeResponse = true;
+    requestedResponseTurn = turn;
+    callbacks.onBusy(true);
+    send({ type: "response.create" });
+  };
   const resume = () => {
     if (!closed && needsResponse && !activeResponse && pendingCalls === 0) {
       needsResponse = false;
-      activeResponse = true;
-      callbacks.onBusy(true);
-      send({ type: "response.create" });
+      createResponse();
     }
   };
   const interrupt = () => {
     turn++;
     callsThisTurn = 0;
     needsResponse = false;
-    playing = false;
+    playingResponseId = undefined;
     receivingSpeech = false;
-    if (activeResponse) send({ type: "response.cancel" });
+    playableResponseId = undefined;
+    clearPreview();
+    if (activeResponse)
+      send({ type: "response.cancel", response_id: response?.id });
     send({ type: "output_audio_buffer.clear" });
     callbacks.onBusy(false);
   };
@@ -118,14 +175,12 @@ export async function startRealtimeVoice(
     }
     callbacks.onReady();
   };
-  const runTool = async (
-    data: z.infer<typeof voiceEvent>,
-    requestedTurn: number,
-  ) => {
+  const runTool = async (data: ToolCall, requestedTurn: number) => {
     if (closed) return;
-    let output: unknown = {
+    const interrupted = {
       error: "This request was interrupted. Ask again if still needed.",
     };
+    let output: unknown = interrupted;
     if (requestedTurn === turn) {
       if (++callsThisTurn > 4) {
         fail();
@@ -166,51 +221,139 @@ export async function startRealtimeVoice(
       item: {
         type: "function_call_output",
         call_id: data.call_id,
-        output: JSON.stringify(output),
+        output: JSON.stringify(requestedTurn === turn ? output : interrupted),
       },
     });
     if (requestedTurn === turn) needsResponse = true;
   };
-  const applyTranscript = (data: z.infer<typeof voiceEvent>) => {
+  const enqueueTool = (call: ToolCall, requestedTurn: number) => {
+    if (seen.has(call.call_id)) return;
+    if (seen.size >= 100) {
+      fail();
+      return;
+    }
+    seen.add(call.call_id);
+    pendingCalls++;
+    queue = queue
+      .then(() => runTool(call, requestedTurn))
+      .catch(fail)
+      .finally(() => {
+        pendingCalls--;
+        resume();
+        updateBusy();
+      })
+      .catch(fail);
+  };
+
+  const finishResponse = (
+    completed: NonNullable<z.infer<typeof voiceEvent>["response"]>,
+  ) => {
+    if (response?.id !== completed.id) return;
+    const requestedTurn = response.turn;
+    response = undefined;
+    activeResponse = false;
+    if (requestedTurn === turn && completed.status === "failed") {
+      fail();
+      return;
+    }
+    if (requestedTurn === turn && completed.status === "completed") {
+      for (const item of completed.output ?? []) {
+        if (item.type === "message") {
+          const text =
+            item.content?.map((part) => part.transcript ?? "").join("") ||
+            transcripts.get(item.id);
+          if (text?.trim()) publish(item.id, "assistant", text);
+        }
+        if (item.type === "function_call" && item.call_id && item.name)
+          enqueueTool(
+            {
+              call_id: item.call_id,
+              name: item.name,
+              arguments: item.arguments,
+            },
+            requestedTurn,
+          );
+      }
+    }
+    clearPreview();
+    updateBusy();
+    resume();
+  };
+  const applyConversationEvent = (data: z.infer<typeof voiceEvent>) => {
+    if (data.type === "input_audio_buffer.speech_started") {
+      interrupt();
+      receivingSpeech = true;
+      callbacks.onBusy(true);
+      if (data.item_id) recordItem(data.item_id);
+    }
+    if (data.type === "input_audio_buffer.speech_stopped") {
+      receivingSpeech = false;
+      updateBusy();
+    }
+    if (data.type === "input_audio_buffer.committed" && data.item_id)
+      recordItem(data.item_id, data.previous_item_id);
+    if (
+      data.type === "conversation.item.added" ||
+      data.type === "conversation.item.created"
+    ) {
+      if (data.item) recordItem(data.item.id, data.previous_item_id);
+    }
     if (
       data.type === "conversation.item.input_audio_transcription.completed" &&
       data.item_id &&
-      data.transcript
+      data.transcript?.trim()
+    )
+      publish(data.item_id, "user", data.transcript);
+  };
+  const applyResponseEvent = (data: z.infer<typeof voiceEvent>) => {
+    if (data.type === "response.created" && data.response) {
+      clearPreview();
+      response = { id: data.response.id, turn: requestedResponseTurn ?? turn };
+      requestedResponseTurn = undefined;
+      playableResponseId = response.turn === turn ? response.id : undefined;
+      activeResponse = true;
+      updateBusy();
+    }
+    if (data.type === "response.done" && data.response)
+      finishResponse(data.response);
+
+    if (
+      data.type === "output_audio_buffer.started" &&
+      data.response_id &&
+      data.response_id === playableResponseId
     ) {
-      callbacks.onTurn({
-        id: "voice:" + data.item_id,
-        role: "user",
-        text: data.transcript.slice(0, 6000),
-      });
+      playingResponseId = data.response_id;
+      updateBusy();
     }
     if (
-      data.type === "response.output_audio_transcript.delta" &&
-      data.item_id &&
-      data.delta
+      playingResponseId &&
+      data.response_id === playingResponseId &&
+      (data.type === "output_audio_buffer.stopped" ||
+        data.type === "output_audio_buffer.cleared")
     ) {
-      const text = ((transcripts.get(data.item_id) ?? "") + data.delta).slice(
-        0,
-        6000,
-      );
+      playingResponseId = undefined;
+      updateBusy();
+    }
+    if (
+      response &&
+      data.response_id === response.id &&
+      response.turn === turn &&
+      data.item_id &&
+      (data.type === "response.output_audio_transcript.delta" ||
+        data.type === "response.output_audio_transcript.done")
+    ) {
+      recordItem(data.item_id);
+      const text = (
+        data.transcript ??
+        (transcripts.get(data.item_id) ?? "") + (data.delta ?? "")
+      ).slice(0, 6000);
       transcripts.set(data.item_id, text);
       if (transcripts.size > 48)
         transcripts.delete(transcripts.keys().next().value!);
-      callbacks.onTurn({
+      callbacks.onPreview({
         id: "voice:" + data.item_id,
         role: "assistant",
         text,
-      });
-    }
-    if (
-      data.type === "response.output_audio_transcript.done" &&
-      data.item_id &&
-      data.transcript
-    ) {
-      transcripts.delete(data.item_id);
-      callbacks.onTurn({
-        id: "voice:" + data.item_id,
-        role: "assistant",
-        text: data.transcript.slice(0, 6000),
       });
     }
   };
@@ -230,70 +373,8 @@ export async function startRealtimeVoice(
     const parsed = voiceEvent.safeParse(raw);
     if (!parsed.success) return;
     const data = parsed.data;
-    if (data.type === "input_audio_buffer.speech_started") {
-      interrupt();
-      receivingSpeech = true;
-      callbacks.onBusy(true);
-      if (data.item_id)
-        callbacks.onTurn({
-          id: "voice:" + data.item_id,
-          role: "user",
-          text: "…",
-        });
-    }
-    if (data.type === "input_audio_buffer.speech_stopped") {
-      receivingSpeech = false;
-      updateBusy();
-    }
-    if (data.type === "response.created") {
-      activeResponse = true;
-      callbacks.onBusy(true);
-    }
-    if (data.type === "response.done") {
-      if (data.response?.status === "failed") {
-        fail();
-        return;
-      }
-      activeResponse = false;
-      updateBusy();
-      resume();
-    }
-    if (data.type === "output_audio_buffer.started") {
-      playing = true;
-      callbacks.onBusy(true);
-    }
-    if (
-      data.type === "output_audio_buffer.stopped" ||
-      data.type === "output_audio_buffer.cleared"
-    ) {
-      playing = false;
-      updateBusy();
-    }
-    applyTranscript(data);
-    if (
-      data.type === "response.function_call_arguments.done" &&
-      data.call_id &&
-      data.name &&
-      !seen.has(data.call_id)
-    ) {
-      if (seen.size >= 100) {
-        fail();
-        return;
-      }
-      seen.add(data.call_id);
-      pendingCalls++;
-      callbacks.onBusy(true);
-      const requestedTurn = turn;
-      queue = queue
-        .then(() => runTool(data, requestedTurn))
-        .catch(fail)
-        .finally(() => {
-          pendingCalls--;
-          resume();
-          updateBusy();
-        })
-        .catch(fail);
-    }
+    applyConversationEvent(data);
+    applyResponseEvent(data);
     if (
       data.type === "error" &&
       data.error?.code !== "response_cancel_not_active" &&
@@ -353,29 +434,25 @@ export async function startRealtimeVoice(
           closed ||
           !ready ||
           activeResponse ||
-          playing ||
+          playingResponseId ||
           receivingSpeech ||
           pendingCalls
         )
           return false;
         turn++;
         callsThisTurn = 0;
-        callbacks.onTurn({
-          id: "voice:" + crypto.randomUUID(),
-          role: "user",
-          text,
-        });
+        const id = "item_" + crypto.randomUUID().replaceAll("-", "");
+        publish(id, "user", text);
         send({
           type: "conversation.item.create",
           item: {
+            id,
             type: "message",
             role: "user",
             content: [{ type: "input_text", text }],
           },
         });
-        activeResponse = true;
-        callbacks.onBusy(true);
-        send({ type: "response.create" });
+        createResponse();
         return true;
       },
     };
