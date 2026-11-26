@@ -15,11 +15,13 @@ export default async function DashboardLayout({
   return (
     <div className="relative min-h-[100dvh] md:pl-64">
       <DashboardSidebar />
-      <div className="fixed right-4 top-3 z-50">
-        <UserMenu user={user} locale={locale} />
+      <div className="flex items-center justify-end gap-2 px-4 py-3 md:contents">
+        <Assistant key={user.id} userId={user.id} />
+        <div className="md:fixed md:top-3 md:right-4 md:z-50">
+          <UserMenu user={user} locale={locale} />
+        </div>
       </div>
       <main className="min-h-[100dvh]">{children}</main>
-      <Assistant key={user.id} userId={user.id} />
     </div>
   );
 }

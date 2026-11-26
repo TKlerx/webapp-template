@@ -116,6 +116,31 @@ test("platform admin can manage notification settings and filter the notificatio
 
   const eventFilter = page.getByRole("combobox", { name: "Filter by event" });
   const statusFilter = page.getByRole("combobox", { name: "Filter by status" });
+  await test.step("the Assistant leaves the event filter clickable at 390 px", async () => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const nearRightEdge = await eventFilter.evaluate((select) => {
+      const { top, height, width } = select.getBoundingClientRect();
+      // Put the filter at the height of the former floating launcher.
+      window.scrollBy({
+        top: top + height / 2 - (window.innerHeight - 68),
+        behavior: "instant",
+      });
+      return { x: width - 44, y: height / 2 };
+    });
+    await eventFilter.click({
+      position: nearRightEdge,
+      trial: true,
+      timeout: 5000,
+    });
+
+    const assistant = page.getByRole("button", { name: "Open assistant" });
+    await assistant.press("Enter");
+    await expect(
+      page.getByRole("dialog", { name: "Assistant" }),
+    ).toBeInViewport({ ratio: 1 });
+    await page.keyboard.press("Escape");
+    await expect(assistant).toBeFocused();
+  });
   await page.setViewportSize({ width: 320, height: 720 });
   const logRegion = page.getByRole("region", { name: "Notification log" });
   const hasInternalScroll = await logRegion.evaluate(
