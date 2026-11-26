@@ -1,6 +1,7 @@
 import { CreateTokenDialog } from "@/components/tokens/create-token-dialog";
 import { CliDownloads } from "@/components/tokens/cli-downloads";
 import { TokenList } from "@/components/tokens/token-list";
+import "@/components/tokens/tokens.css";
 import { requireSession } from "@/lib/auth";
 import { getDefaultTokenExpiryDays, listTokens } from "@/services/api/tokens";
 import { TokenType } from "../../../../../generated/prisma/enums";

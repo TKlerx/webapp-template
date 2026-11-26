@@ -34,11 +34,14 @@ These files are intentionally committed into the template so copied repos still 
 
 ## UI components
 
-The template includes Mantine alongside its local shadcn/Radix components.
-The account menu’s theme toggle uses `@mantine/core`. Mantine follows the
-same saved light/dark preference as the rest of the app.
-Add styles for any new Mantine components and their dependencies to
-`src/app/globals.css` using the layered stylesheets.
+Mantine is the default for new and migrated interactive UI. The Users page,
+Audit Trail, and account menu's theme toggle already use Mantine. Existing
+shadcn/Radix components remain available.
+
+Use the shared theme provider and CSS tokens. Import the layered styles and
+their dependencies where the feature uses them. Keep shared styles in
+`src/app/globals.css`. See the [theme guide](docs/theme-design.md) and
+[migration plan](docs/mantine-migration-plan.md).
 
 ## Chat and voice assistant
 

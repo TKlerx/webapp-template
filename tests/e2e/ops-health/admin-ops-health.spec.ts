@@ -81,6 +81,44 @@ test("platform admin can inspect and copy ops health diagnostics", async ({
       "Diagnostic summary copied",
     );
 
+    await page.route("**/api/admin/ops-health", (route) => route.abort(), {
+      times: 1,
+    });
+    await page.getByRole("button", { name: "Refresh" }).click();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Could not refresh the health snapshot." }),
+    ).toBeVisible();
+    await page.route(
+      "**/api/admin/ops-health",
+      async (route) => {
+        const response = await route.fetch();
+        const snapshot = await response.json();
+        await route.fulfill({
+          response,
+          json: {
+            ...snapshot,
+            overallStatus: "degraded",
+            checks: snapshot.checks.map(
+              (check: { key: string; status: string }) =>
+                check.key === "worker"
+                  ? { ...check, status: "unavailable" }
+                  : check,
+            ),
+          },
+        });
+      },
+      { times: 1 },
+    );
+    await page.getByRole("button", { name: "Refresh" }).click();
+    await expect(
+      page.getByText("Degraded", { exact: true }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Unavailable", { exact: true }).first(),
+    ).toBeVisible();
+
     await page.context().addCookies([
       {
         name: "starter_app_locale",

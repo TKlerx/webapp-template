@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { AuthMethod } from "../../../../generated/prisma/enums";
 import { AuthPageShell } from "@/components/auth/AuthPageShell";
 import { ChangePasswordForm } from "@/components/auth/ChangePasswordForm";
+import "@mantine/core/styles/Input.layer.css";
 import { requireSession } from "@/lib/auth";
 import { passwordChangeReturnPath } from "@/lib/local-redirect";
 

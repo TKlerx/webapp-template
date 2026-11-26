@@ -26,10 +26,12 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
   await expectOnDashboard(page);
 
   await page.goto(`${appBasePath}/settings/tokens`);
-  await page.getByRole("button", { name: "Create token" }).first().click();
+  const createButton = page
+    .getByRole("button", { name: "Create token", exact: true })
+    .first();
+  await createButton.click();
   await page.getByLabel("Token name").fill("Automation Token");
-  await page.getByRole("combobox", { name: "Expiration" }).click();
-  await page.getByRole("option", { name: "30 days" }).click();
+  await page.getByRole("combobox", { name: "Expiration" }).selectOption("30");
   await Promise.all([
     page.waitForResponse(
       (response) =>
@@ -40,7 +42,12 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
     page.getByRole("button", { name: "Create token" }).last().click(),
   ]);
 
-  const tokenDialog = page.getByRole("dialog");
+  const tokenDialog = page.getByRole("dialog", {
+    name: "Save Automation Token",
+  });
+  await expect(page.getByRole("dialog", { name: "Create token" })).toHaveCount(
+    0,
+  );
   await expect(tokenDialog).toContainText("This token will not be shown again");
   const tokenValue = await tokenDialog.locator("div.font-mono").innerText();
   await tokenDialog.getByRole("button", { name: "Copy token" }).click();
@@ -48,14 +55,23 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
     .poll(async () => page.evaluate(() => navigator.clipboard.readText()))
     .toBe(tokenValue);
   await tokenDialog.getByRole("button", { name: "Done" }).click();
+  await expect(createButton).toBeFocused();
 
   const tokenRow = page.locator("tr", { hasText: "Automation Token" });
   await expect(tokenRow).toBeVisible();
-  await expect(tokenRow)
-    .toContainText("abcdef", { timeout: 1000 })
-    .catch(() => {});
+  await expect(page.locator("body")).not.toContainText(tokenValue);
 
-  page.once("dialog", (dialog) => dialog.accept());
+  const revoke = tokenRow.getByRole("button", { name: "Revoke" });
+  await revoke.click();
+  const confirmation = page.getByRole("dialog", { name: "Revoke" });
+  await expect(
+    confirmation.getByRole("button", { name: "Cancel", exact: true }),
+  ).toBeFocused();
+  await confirmation
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
+  await expect(revoke).toBeFocused();
+  await revoke.click();
   await Promise.all([
     page.waitForResponse(
       (response) =>
@@ -64,7 +80,7 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
         response.request().method() === "POST" &&
         response.status() === 200,
     ),
-    tokenRow.getByRole("button", { name: "Revoke" }).click(),
+    confirmation.getByRole("button", { name: "Revoke", exact: true }).click(),
   ]);
   await expect(tokenRow).toContainText("Revoked");
 
@@ -82,7 +98,7 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
 
   const renewableRow = page.locator("tr", { hasText: "Renewable Token" });
-  page.once("dialog", (dialog) => dialog.accept());
+  await renewableRow.getByRole("button", { name: "Renew" }).click();
   await Promise.all([
     page.waitForResponse(
       (response) =>
@@ -91,14 +107,17 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
         response.request().method() === "POST" &&
         response.status() === 200,
     ),
-    renewableRow.getByRole("button", { name: "Renew" }).click(),
+    page
+      .getByRole("dialog", { name: "Renew" })
+      .getByRole("button", { name: "Renew", exact: true })
+      .click(),
   ]);
-  await expect(page.getByRole("dialog")).toContainText(
-    "This token will not be shown again",
-  );
+  await expect(
+    page.getByRole("dialog", { name: "Save Renewable Token" }),
+  ).toContainText("This token will not be shown again");
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
 
-  page.once("dialog", (dialog) => dialog.accept());
+  await renewableRow.getByRole("button", { name: "Delete" }).click();
   await Promise.all([
     page.waitForResponse(
       (response) =>
@@ -106,9 +125,14 @@ test("user can create, revoke, renew, and delete personal access tokens", async 
         response.request().method() === "DELETE" &&
         response.status() === 204,
     ),
-    renewableRow.getByRole("button", { name: "Delete" }).click(),
+    page
+      .getByRole("dialog", { name: "Delete" })
+      .getByRole("button", { name: "Delete", exact: true })
+      .click(),
   ]);
   await expect(renewableRow).toHaveCount(0);
+  await page.goto(`${appBasePath}/admin/tokens`);
+  await expectOnDashboard(page);
 });
 
 test("token pages stay usable on mobile and in dark mode", async ({ page }) => {
@@ -141,6 +165,32 @@ test("token pages stay usable on mobile and in dark mode", async ({ page }) => {
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("button", { name: "Cancel" }).click();
   await expect(page.locator("article")).toHaveCount(0);
+
+  await page.context().addCookies([
+    {
+      name: "starter_app_locale",
+      value: "de",
+      domain: "localhost",
+      path: "/",
+    },
+  ]);
+  await page.route("**/api/downloads/cli", (route) =>
+    route.fulfill({
+      json: { assets: [], checksumsAvailable: true },
+    }),
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "CLI-Downloads" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("starterctl health", { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Prüfsummen" })).toHaveAttribute(
+    "href",
+    `${appBasePath}/api/downloads/cli/checksums`,
+  );
+  await page.context().clearCookies({ name: "starter_app_locale" });
 
   await page.goto(`${appBasePath}/admin/tokens`);
   await expect(page).toHaveURL(new RegExp(`${appBasePath}/admin/tokens$`));

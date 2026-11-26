@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Role } from "../../../../../generated/prisma/enums";
 import { OpsHealthDashboard } from "@/components/ops";
+import "@mantine/core/styles/Badge.layer.css";
 import { requireSession } from "@/lib/auth";
 import { buildOpsHealthSnapshot } from "@/lib/ops-health";
 

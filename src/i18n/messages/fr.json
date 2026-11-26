@@ -233,6 +233,15 @@
     }
   },
   "tokens": {
+    "downloads": {
+      "title": "Téléchargements de la CLI",
+      "description": "Téléchargez starterctl, créez un jeton, puis configurez-le pour cette application.",
+      "failed": "Impossible de charger les téléchargements de la CLI.",
+      "retry": "Réessayer",
+      "loading": "Chargement des téléchargements de la CLI…",
+      "unavailable": "Aucun fichier de la CLI n’est encore disponible sur ce déploiement.",
+      "checksums": "Sommes de contrôle"
+    },
     "eyebrow": "API Access",
     "title": "Personal access tokens",
     "description": "Create, review, and manage API tokens for scripts, integrations, and CLI use.",
@@ -364,6 +373,8 @@
     "approve": "Approve login"
   },
   "teams": {
+    "emptyTargets": "Aucune destination sortante configurée.",
+    "emptySubscriptions": "Aucun abonnement entrant configuré.",
     "eyebrow": "Teams Ops",
     "title": "Teams Integration",
     "description": "Configure Microsoft Teams delivery targets, intake subscriptions, and health controls.",

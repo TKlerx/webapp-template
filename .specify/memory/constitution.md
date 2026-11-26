@@ -1,8 +1,20 @@
+<!--
+Sync Impact Report
+Version change: 3.0.0 → 3.1.0
+Modified: Technology Constraints, Styling
+Added: XI. Mantine UI and Incremental Migration
+Removed: None
+Follow-up TODOs: None. Ratification date follows the first recorded constitution.
+-->
+
 # Business App Starter Constitution
 
 > Project constitution for the Business App Starter web application.
-> Last updated: 2026-10-15
-> Policy version: 3.0.0 — user-approved English-only companion CLI exception to Principle IX (2026-10-15). This narrows the prior all-user-facing-text rule for the CLI only; web UI requirements remain unchanged. Version 2.0.0 introduced the PostgreSQL-only policy, superseding SQLite-local guidance in earlier plans; original feature folders remain as history.
+>
+> Version 3.1.0 establishes Mantine as the default for new and migrated template UI.
+> Version 3.0.0 introduced the English-only companion CLI exception to Principle IX.
+> Version 2.0.0 introduced the PostgreSQL-only policy. Earlier feature folders remain
+> as history.
 
 ## Core Principles
 
@@ -122,13 +134,33 @@ horizontal scrolling of primary content. Touch targets MUST be
 adequately sized on mobile. Responsive behaviour MUST be verified
 visually before merge.
 
+### XI. Mantine UI and Incremental Migration
+
+New and migrated template UI MUST use Mantine for standard interactive
+components where it meets the required behavior. Existing components MAY
+remain in place. Keep native HTML for semantic structure and use existing
+specialized components where Mantine would require reimplementing their
+behavior. Each migration MUST be small enough to validate independently.
+
+Mantine MUST use the existing application theme provider and saved light/dark
+preference, independently of the operating system's theme. Components MUST use
+the template's design tokens, with Tailwind retained for layout and responsive
+styling. Mantine component styles MUST use
+the existing CSS layer order. Import styles at the feature boundary for
+route-specific components and keep shared styles in the application stylesheet.
+
+Each port MUST preserve the existing user-facing contract, including accessible
+names, keyboard navigation, focus visibility and restoration, and behavior
+during loading and failure. Validate the affected behavior at narrow widths,
+in both themes, and with the applicable role and locale.
+
 ## Technology Constraints
 
 - **Runtime**: TypeScript with Next.js 16 (App Router) for frontend
   and API routes.
-- **Styling**: Tailwind CSS 4 with dark/light theme toggle
-  (user-selectable, persisted per user). Dark mode via
-  `[data-theme="dark"]` selector and Tailwind `dark:` variants.
+- **UI and styling**: Mantine for standard interactive components and
+  Tailwind CSS 4 for layout and responsive styling. The saved theme drives
+  both `data-theme` and `data-mantine-color-scheme`.
 - **ORM**: Prisma 7 for database access and schema management.
 - **Database**: PostgreSQL for local development, automated database tests,
   Docker and shared deployments. Maintain one Prisma schema and one
@@ -198,3 +230,5 @@ semantic versioning:
 **Compliance**: All PRs and code reviews MUST verify adherence to
 these principles. Deviations MUST be justified in writing and
 approved before merge.
+
+**Version**: 3.1.0 | **Ratified**: 2026-03-19 | **Last Amended**: 2026-11-24
