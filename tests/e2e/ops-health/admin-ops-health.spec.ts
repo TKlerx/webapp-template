@@ -81,6 +81,26 @@ test("platform admin can inspect and copy ops health diagnostics", async ({
       "Diagnostic summary copied",
     );
 
+    await test.step("FR-017: show an error when the browser cannot copy", async () => {
+      await page.evaluate(() => {
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: {
+            writeText: () =>
+              Promise.reject(
+                new DOMException("Copy denied", "NotAllowedError"),
+              ),
+          },
+        });
+        document.execCommand = () => false;
+      });
+
+      await page.getByRole("button", { name: "Copy summary" }).click();
+      await expect(page.getByRole("status")).toHaveText(
+        "Could not copy diagnostic summary",
+      );
+    });
+
     await page.route("**/api/admin/ops-health", (route) => route.abort(), {
       times: 1,
     });

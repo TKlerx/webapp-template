@@ -2179,6 +2179,10 @@ Copied the user-level test-design-review skill into .agents/skills for project-l
 
 Prepared the audit-scope change on a separate branch from main. Recorded the package coverage lost under each scanner and the existing final-image checks in the pull request.
 
+## 2026-11-26 — Reconcile SpecTest with the test-design-review skill
+
+Preserved the optional SpecTest integration, prepare-work-item skill, and Ops Health clipboard failure regression in PR #62. Reused the project-local test-design-review skill from PR #72 and retained the newer Ops Health refresh assertions.
+
 ## 2026-11-26 — Preserve broad dependency audit reporting
 
 Updated PR #73 so broad audits log findings without failing Validate. Production findings still block, including optional production packages in the application audit.

@@ -4,6 +4,10 @@ Source note: Adapted from Jovanovikj et al., "Context-specific Quality Evaluatio
 
 When writing or modifying tests, use a lightweight context-specific test quality process inspired by Goal-Question-Metric / Test Case Quality Plan thinking.
 
+Use `$test-design-review` when choosing or reviewing regression checks. For a
+feature with a Spec Kit spec, use SpecTest to identify candidate gaps, then
+assess the observable behavior and the assertions that protect it.
+
 Before writing tests:
 
 - Identify the test context: unit, integration, regression, UI, contract, migration, security, etc.
@@ -35,3 +39,9 @@ When using AI to generate tests:
 ## Mutation testing
 
 The Validate workflow runs the focused TypeScript and Python mutation suites on pull requests and pushes to main. Both require a 95% score. Validate also runs the existing CLI release checks with `pnpm run test:mutation:critical` and fails on any survivor. Run them locally with `pnpm run test:mutation:next` (request validation, HTTP errors and API response schemas) and `pnpm run test:mutation:python` (Teams Graph delivery).
+
+## SpecTest
+
+In Codex, use `$speckit-spectest-gaps specs/<feature>` to look for acceptance criteria that may lack tests. `$speckit-spectest-coverage` maps criteria to candidate tests. Both commands are read-only. Review their matches against actual assertions with `$test-design-review` before treating a criterion as covered. SpecTest reports are advisory. The existing mutation jobs continue to measure how well tests detect code changes.
+
+`$speckit-spectest-plan` writes a test plan, and `$speckit-spectest-generate` creates scaffolds. Use these only when their output is needed, and complete the assertions before adding generated tests to the suite.

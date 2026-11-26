@@ -19,6 +19,11 @@
 
 - Added Impeccable 4.10.0 for on-demand UI reviews. The skill package is pinned to upstream commit b49177d32788f2dc585c42831d845dacf1ebed2c and includes the engine 0.1.27 checksum manifest, license, and notices. The Windows launcher resolved the current Mantine Notifications route, and the source detector ran on Notifications, Audit Trail, and the token dialog.
 
+## SpecTest extension and Ops Health pilot (2026-11-26)
+
+- PR #62 adds the vendored SpecTest 1.0.0 extension, four Codex skills, and an optional gap-review hook. The workflow uses the existing test-design-review skill from PR #72 and documents usage in AI_TESTING.md.
+- Retained the prepare-work-item skill and the Ops Health FR-017 clipboard failure assertion alongside the Mantine migration's refresh and status coverage.
+
 ## Production dependency audits in CI (2026-11-26)
 
 - PR #73 keeps the broad pnpm, uv, and Go audits as advisory steps before the blocking production checks. The blocking pnpm audit includes optional production packages because the app build installs them.
