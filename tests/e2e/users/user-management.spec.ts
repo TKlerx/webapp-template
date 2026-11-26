@@ -20,6 +20,67 @@ function activeRoleOption(role: Locator) {
   });
 }
 
+test("user rows remain locked until their own updates complete", async ({
+  page,
+}) => {
+  // Run with a dedicated admin and restore its status so the last-admin case
+  // still exercises the seeded administrator in isolation.
+  const admin = "e2e-user-row-admin@example.com";
+  const password = "UserRowPass123";
+  await seedLocalUser({
+    email: admin,
+    name: "Row Admin",
+    role: Role.PLATFORM_ADMIN,
+    password,
+    mustChangePassword: false,
+  });
+  const names = ["First Held Row", "Second Held Row"];
+  for (const [index, name] of names.entries()) {
+    await seedLocalUser({
+      email: `e2e-held-row-${index}@example.com`,
+      name,
+      role: Role.SCOPE_USER,
+      password,
+      mustChangePassword: false,
+    });
+  }
+  await loginWithPassword(page, admin, password);
+  await expectOnDashboard(page);
+  await page.goto(`${appBasePath}/users`);
+  const [first, second] = names.map((name) =>
+    page.getByRole("row").filter({ hasText: name }),
+  );
+  const release: Array<() => void> = [];
+  const pattern = "**/api/users/*/deactivate";
+  await page.route(pattern, async (route) => {
+    const index = release.length;
+    await new Promise<void>((resolve) => release.push(resolve));
+    if (index === 0) await route.abort();
+    else await route.continue();
+  });
+  try {
+    const firstAction = first.getByRole("button", { name: "Deactivate" });
+    const secondAction = second.getByRole("button", { name: "Deactivate" });
+    await firstAction.click();
+    await expect(firstAction).toBeDisabled();
+    await secondAction.click();
+    await expect(secondAction).toBeDisabled();
+    await expect.poll(() => release.length).toBe(2);
+    release[1]();
+    await expect(
+      second.getByRole("button", { name: "Reactivate" }),
+    ).toBeEnabled();
+    await expect(firstAction).toBeDisabled();
+    release[0]();
+    await expect(page.getByText("Could not update user")).toBeVisible();
+    await expect(firstAction).toBeEnabled();
+  } finally {
+    release.forEach((resolve) => resolve());
+    await page.unroute(pattern);
+    updateUserStatuses([admin], UserStatus.INACTIVE);
+  }
+});
+
 test("admin creates a local user, user logs in and changes password", async ({
   browser,
 }) => {

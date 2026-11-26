@@ -1,8 +1,10 @@
+import { Badge } from "@mantine/core";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Role } from "../../../../generated/prisma/enums";
+import "@mantine/core/styles/Badge.layer.css";
 
 import {
   sanitizeJobField,
@@ -192,28 +194,26 @@ function SummaryCard({
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const tone =
+  const color =
     {
-      PENDING: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-      IN_PROGRESS: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
-      COMPLETED: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-      FAILED: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
-    }[status] ?? "bg-slate-500/15 text-slate-700 dark:text-slate-300";
+      PENDING: "yellow",
+      IN_PROGRESS: "blue",
+      COMPLETED: "teal",
+      FAILED: "red",
+    }[status] ?? "gray";
 
   return (
-    <span
-      className={`rounded-full border border-current/15 px-2.5 py-1 text-xs font-semibold ${tone}`}
-    >
+    <Badge color={color} variant="light">
       {status}
-    </span>
+    </Badge>
   );
 }
 
 function RetryBadge({ label }: { label: string }) {
   return (
-    <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+    <Badge className="normal-case" color="yellow" variant="light">
       {label}
-    </span>
+    </Badge>
   );
 }
 

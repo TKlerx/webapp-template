@@ -1,11 +1,10 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { Button, TextInput } from "@mantine/core";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/Button";
 import { Form } from "@/components/ui/Form";
-import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
 
@@ -18,6 +17,10 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (loginError) errorRef.current?.focus();
+  }, [loginError]);
   const formReady = useSyncExternalStore(
     emptySubscribe,
     clientSnapshot,
@@ -65,7 +68,10 @@ export function LoginForm() {
   return (
     <>
       {searchParams.get("error") ? (
-        <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--destructive)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--destructive)_10%,var(--panel))] px-4 py-3 text-sm text-[var(--destructive)]">
+        <div
+          className="rounded-xl border border-[color:color-mix(in_srgb,var(--destructive)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--destructive)_10%,var(--panel))] px-4 py-3 text-sm text-[var(--destructive)]"
+          role="alert"
+        >
           {searchParams.get("error") === "revoked"
             ? t("ssoRevoked")
             : searchParams.get("error") === "sso-config"
@@ -75,23 +81,29 @@ export function LoginForm() {
       ) : null}
 
       {loginError ? (
-        <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--destructive)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--destructive)_10%,var(--panel))] px-4 py-3 text-sm text-[var(--destructive)]">
+        <div
+          className="rounded-xl border border-[color:color-mix(in_srgb,var(--destructive)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--destructive)_10%,var(--panel))] px-4 py-3 text-sm text-[var(--destructive)]"
+          ref={errorRef}
+          role="alert"
+          tabIndex={-1}
+        >
           {loginError}
         </div>
       ) : null}
 
       <div className="mt-1">
-        <a
+        <Button
+          component="a"
+          fullWidth
+          size="md"
           href={withBasePath(
             redirectTo
               ? `/api/auth/sso/azure?redirectTo=${encodeURIComponent(redirectTo)}`
               : "/api/auth/sso/azure",
           )}
         >
-          <Button className="w-full" type="button">
-            {t("signInAzure")}
-          </Button>
-        </a>
+          {t("signInAzure")}
+        </Button>
       </div>
 
       <div className="my-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
@@ -106,56 +118,47 @@ export function LoginForm() {
             void handleSubmit(event);
           }}
         >
-          <div>
-            <label className="block text-sm font-medium" htmlFor="login-email">
-              {t("email")}
-            </label>
-            <Input
-              id="login-email"
-              className="mt-2"
-              type="email"
-              name="email"
-              autoComplete="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              suppressHydrationWarning
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                if (loginError) {
-                  setLoginError(null);
-                }
-              }}
-              placeholder="admin@example.com"
-              required
-            />
-          </div>
-          <div>
-            <label
-              className="block text-sm font-medium"
-              htmlFor="login-password"
-            >
-              {t("password")}
-            </label>
-            <Input
-              id="login-password"
-              className="mt-2"
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              suppressHydrationWarning
-              value={password}
-              onChange={(event) => {
-                setPassword(event.target.value);
-                if (loginError) {
-                  setLoginError(null);
-                }
-              }}
-              required
-            />
-          </div>
-          <Button className="w-full" disabled={loading} type="submit">
+          <TextInput
+            id="login-email"
+            label={t("email")}
+            size="md"
+            withAsterisk={false}
+            type="email"
+            name="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            suppressHydrationWarning
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (loginError) {
+                setLoginError(null);
+              }
+            }}
+            placeholder="admin@example.com"
+            required
+          />
+          <TextInput
+            id="login-password"
+            label={t("password")}
+            size="md"
+            withAsterisk={false}
+            type="password"
+            name="password"
+            autoComplete="current-password"
+            suppressHydrationWarning
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              if (loginError) {
+                setLoginError(null);
+              }
+            }}
+            required
+          />
+          <Button disabled={loading} fullWidth size="md" type="submit">
             {loading ? t("signingIn") : t("signIn")}
           </Button>
         </Form>

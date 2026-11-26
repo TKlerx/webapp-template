@@ -7,6 +7,33 @@
 - In a production Chromium probe at 1280 px, turning off email wrapping fully clipped the row action. With wrapping enabled, the entire action was visible.
 - The production build, all 13 Users and Audit Trail Playwright tests on disposable PostgreSQL, and targeted lint and formatting passed.
 
+## Project-local Impeccable skill (2026-11-26)
+
+- Added Impeccable 4.10.0 for on-demand UI reviews. The skill package is pinned to upstream commit b49177d32788f2dc585c42831d845dacf1ebed2c and includes the engine 0.1.27 checksum manifest, license, and notices. The Windows launcher resolved the current Mantine Notifications route, and the source detector ran on Notifications, Audit Trail, and the token dialog.
+
+## Production dependency audits in CI (2026-11-26)
+
+- PR #73 keeps the broad pnpm, uv, and Go audits as advisory steps before the blocking production checks. The blocking pnpm audit includes optional production packages because the app build installs them.
+
+## Test design and review skill (2026-11-25)
+
+- Added the project-local test-design-review skill for choosing behavior-focused regression tests and checking whether their assertions catch likely failures.
+
+## Mantine migration implementation (2026-11-25)
+
+- Implemented the saved-theme fix and migrated the remaining controls in Spec 023 on PR #71. The changes cover Notifications, Audit Trail, Users, Jobs, Ops Health, personal and admin tokens, local auth, and Teams. Spec 014 remains open.
+- The opposing-theme test reproduced the baseline bug and passed with the fix. All 375 Vitest tests passed against disposable PostgreSQL. GitHub Validate and Joern passed at implementation commit `f8e7f45`, with 45 Chromium cases passing. The optional live Azure audio test remains opt-in. Teams browser tests use the local app and disposable PostgreSQL.
+
+## Mantine migration draft handoff (2026-11-25)
+
+- The user requested one draft pull request after the open Spec 014 work was raised. [Spec 023](specs/023-mantine-migration/spec.md), its [24 tasks](specs/023-mantine-migration/tasks.md), and the [pickup guide](specs/023-mantine-migration/quickstart.md) are on `codex/mantine-migration-plan`.
+- Start at T001 with the saved-theme fix. Continue with notification save reliability, the Mantine Notifications port, and the remaining workflow checkpoints on the same branch. Spec 014 remains open. Add 023 to `ACTIVE_SPECS.md` when implementation starts.
+
+## Template review and Mantine migration plan (2026-11-24)
+
+- Reviewed `main` at `28de90e`. Start with the saved-theme and OS-theme mismatch, then port Notifications. The findings, migration order, and acceptance checks are in [docs/mantine-migration-plan.md](docs/mantine-migration-plan.md).
+- Constitution 3.1.0 makes Mantine the default for new and migrated interactive UI. Existing components can stay where they preserve behavior. Spec 014 remains open, and no new tracked spec was started.
+
 ## Mantine Audit Trail exports (2026-11-24)
 
 - Converted the CSV and PDF export controls to Mantine buttons after PR #67. The buttons keep keyboard focus during a download and block a second export until the first finishes.

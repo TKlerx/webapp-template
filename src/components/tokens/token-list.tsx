@@ -3,25 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Modal,
+  NativeSelect,
+  Table,
+} from "@mantine/core";
 import { useToast } from "@/components/ui/Toast";
 import { withBasePath } from "@/lib/base-path";
 import { tokenActionResponseSchema } from "@/lib/api-response";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/shadcn/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/shadcn/table";
 import {
   TokenValueDisplay,
   type TokenValuePayload,
@@ -52,6 +44,8 @@ type UserFilterOption = {
   email: string;
 };
 
+type TokenAction = "revoke" | "renew" | "delete";
+
 function formatDate(value: string | Date | null) {
   if (!value) {
     return "—";
@@ -81,6 +75,13 @@ export function TokenList({
   const [loading, setLoading] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<{
+    token: TokenItem;
+    action: TokenAction;
+  } | null>(null);
+  const actionInProgress = useRef(false);
+  const actionTrigger = useRef<HTMLButtonElement>(null);
+  const listHeading = useRef<HTMLHeadingElement>(null);
   const [renewedToken, setRenewedToken] = useState<TokenValuePayload | null>(
     null,
   );
@@ -156,16 +157,12 @@ export function TokenList({
     }
   }
 
-  async function runAction(
-    token: TokenItem,
-    action: "revoke" | "renew" | "delete",
-  ) {
-    const confirmationKey = `${action}Confirm`;
-    if (!window.confirm(sharedT(confirmationKey))) {
-      return;
-    }
-
-    setBusyId(`${token.id}:${action}`);
+  async function runAction(token: TokenItem, action: TokenAction) {
+    if (actionInProgress.current) return;
+    actionInProgress.current = true;
+    setBusyId(token.id);
+    setConfirmation(null);
+    let revealsToken = false;
 
     try {
       const baseUrl = adminMode
@@ -200,11 +197,17 @@ export function TokenList({
         return;
       }
 
-      if (action === "renew" && payload?.token?.tokenValue) {
+      if (action === "renew") {
+        if (!payload?.token?.tokenValue) {
+          pushToast(sharedT("updateFailed"));
+          await refreshTokens();
+          return;
+        }
         setRenewedToken({
           name: payload.token.name ?? token.name,
           tokenValue: payload.token.tokenValue,
         });
+        revealsToken = true;
       }
 
       pushToast(
@@ -215,9 +218,30 @@ export function TokenList({
             : sharedT("deleted"),
       );
       await refreshTokens();
+    } catch {
+      pushToast(sharedT("updateFailed"));
     } finally {
+      actionInProgress.current = false;
       setBusyId(null);
+      if (!revealsToken) restoreActionFocus();
     }
+  }
+
+  function confirmAction(
+    trigger: HTMLButtonElement,
+    token: TokenItem,
+    action: TokenAction,
+  ) {
+    actionTrigger.current = trigger;
+    setConfirmation({ token, action });
+  }
+
+  function restoreActionFocus() {
+    requestAnimationFrame(() => {
+      const trigger = actionTrigger.current;
+      if (trigger?.isConnected && !trigger.disabled) trigger.focus();
+      else listHeading.current?.focus();
+    });
   }
 
   return (
@@ -225,49 +249,46 @@ export function TokenList({
       <section className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="text-xl font-semibold">{t("tableTitle")}</h2>
+            <h2
+              className="text-xl font-semibold"
+              ref={listHeading}
+              tabIndex={-1}
+            >
+              {t("tableTitle")}
+            </h2>
             <p className="mt-1 text-sm text-[var(--muted-foreground)]">
               {t("tableDescription")}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {adminMode ? (
-              <Select
-                onValueChange={(value) => {
+              <NativeSelect
+                aria-label={t("filterByUser")}
+                className="min-w-0 max-w-full"
+                data={[
+                  { value: "all", label: t("allUsers") },
+                  ...users.map((user) => ({
+                    value: user.id,
+                    label: `${user.name} (${user.email})`,
+                  })),
+                ]}
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
                   setUserIdFilter(value);
                   void refreshTokens(showAll, value);
                 }}
                 value={userIdFilter}
-              >
-                <SelectTrigger
-                  aria-label={t("filterByUser")}
-                  className="w-[18rem] rounded-lg border-[var(--border)] bg-white px-3 py-2 shadow-none dark:bg-[var(--panel)]"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg border-[var(--border)]">
-                  <SelectItem value="all">{t("allUsers")}</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name} ({user.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : null}
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                checked={showAll}
-                className="size-4 rounded"
-                onChange={(event) => {
-                  const next = event.target.checked;
-                  setShowAll(next);
-                  void refreshTokens(next);
-                }}
-                type="checkbox"
               />
-              {sharedT("showAll")}
-            </label>
+            ) : null}
+            <Checkbox
+              checked={showAll}
+              label={sharedT("showAll")}
+              onChange={(event) => {
+                const next = event.target.checked;
+                setShowAll(next);
+                void refreshTokens(next);
+              }}
+            />
           </div>
         </div>
 
@@ -277,88 +298,108 @@ export function TokenList({
           </div>
         ) : (
           <>
-            <div className="mt-6 hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {adminMode ? <TableHead>{t("user")}</TableHead> : null}
-                    <TableHead>{sharedT("nameColumn")}</TableHead>
-                    <TableHead>{sharedT("prefixColumn")}</TableHead>
-                    <TableHead>{sharedT("typeColumn")}</TableHead>
-                    <TableHead>{sharedT("statusColumn")}</TableHead>
-                    <TableHead>{sharedT("expiresColumn")}</TableHead>
-                    <TableHead>{sharedT("lastUsedColumn")}</TableHead>
-                    <TableHead>{sharedT("createdColumn")}</TableHead>
-                    <TableHead>{sharedT("actionsColumn")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <Table.ScrollContainer
+              className="mt-6 hidden md:block"
+              minWidth="48rem"
+              type="native"
+            >
+              <Table aria-label={t("tableTitle")}>
+                <Table.Thead>
+                  <Table.Tr>
+                    {adminMode ? <Table.Th>{t("user")}</Table.Th> : null}
+                    <Table.Th>{sharedT("nameColumn")}</Table.Th>
+                    <Table.Th>{sharedT("prefixColumn")}</Table.Th>
+                    <Table.Th>{sharedT("typeColumn")}</Table.Th>
+                    <Table.Th>{sharedT("statusColumn")}</Table.Th>
+                    <Table.Th>{sharedT("expiresColumn")}</Table.Th>
+                    <Table.Th>{sharedT("lastUsedColumn")}</Table.Th>
+                    <Table.Th>{sharedT("createdColumn")}</Table.Th>
+                    <Table.Th>{sharedT("actionsColumn")}</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
                   {tokens.map((token) => (
-                    <TableRow key={token.id}>
+                    <Table.Tr key={token.id}>
                       {adminMode ? (
-                        <TableCell>
+                        <Table.Td>
                           <div className="font-medium">
                             {token.user?.name ?? "—"}
                           </div>
                           <div className="text-xs text-[var(--muted-foreground)]">
                             {token.user?.email ?? "—"}
                           </div>
-                        </TableCell>
+                        </Table.Td>
                       ) : null}
-                      <TableCell className="font-medium">
-                        {token.name}
-                      </TableCell>
-                      <TableCell>{token.tokenPrefix}</TableCell>
-                      <TableCell>{token.type}</TableCell>
-                      <TableCell>
-                        <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold dark:bg-white/10">
+                      <Table.Td className="font-medium">{token.name}</Table.Td>
+                      <Table.Td>{token.tokenPrefix}</Table.Td>
+                      <Table.Td>{token.type}</Table.Td>
+                      <Table.Td>
+                        <Badge className="normal-case" variant="light">
                           {token.isExpired
                             ? sharedT("statusExpired")
                             : sharedT(`status.${token.status}`)}
-                        </span>
-                      </TableCell>
-                      <TableCell>{formatDate(token.expiresAt)}</TableCell>
-                      <TableCell>{formatDate(token.lastUsedAt)}</TableCell>
-                      <TableCell>{formatDate(token.createdAt)}</TableCell>
-                      <TableCell>
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>{formatDate(token.expiresAt)}</Table.Td>
+                      <Table.Td>{formatDate(token.lastUsedAt)}</Table.Td>
+                      <Table.Td>{formatDate(token.createdAt)}</Table.Td>
+                      <Table.Td>
                         <div className="flex flex-wrap gap-2">
                           {!adminMode &&
                           token.status === "ACTIVE" &&
                           !token.isExpired ? (
                             <Button
-                              disabled={busyId === `${token.id}:renew`}
-                              onClick={() => void runAction(token, "renew")}
+                              disabled={busyId !== null}
+                              onClick={(event) =>
+                                confirmAction(
+                                  event.currentTarget,
+                                  token,
+                                  "renew",
+                                )
+                              }
                               type="button"
-                              variant="secondary"
+                              variant="default"
                             >
                               {sharedT("renew")}
                             </Button>
                           ) : null}
                           {token.status === "ACTIVE" && !token.isExpired ? (
                             <Button
-                              disabled={busyId === `${token.id}:revoke`}
-                              onClick={() => void runAction(token, "revoke")}
+                              disabled={busyId !== null}
+                              onClick={(event) =>
+                                confirmAction(
+                                  event.currentTarget,
+                                  token,
+                                  "revoke",
+                                )
+                              }
                               type="button"
-                              variant="secondary"
+                              variant="default"
                             >
                               {sharedT("revoke")}
                             </Button>
                           ) : null}
                           <Button
-                            disabled={busyId === `${token.id}:delete`}
-                            onClick={() => void runAction(token, "delete")}
+                            disabled={busyId !== null}
+                            onClick={(event) =>
+                              confirmAction(
+                                event.currentTarget,
+                                token,
+                                "delete",
+                              )
+                            }
                             type="button"
-                            variant="secondary"
+                            variant="default"
                           >
                             {sharedT("delete")}
                           </Button>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </Table.Td>
+                    </Table.Tr>
                   ))}
-                </TableBody>
+                </Table.Tbody>
               </Table>
-            </div>
+            </Table.ScrollContainer>
 
             <div className="mt-6 grid gap-4 md:hidden">
               {tokens.map((token) => (
@@ -381,11 +422,11 @@ export function TokenList({
                         {sharedT("prefixColumn")}: {token.tokenPrefix}
                       </p>
                     </div>
-                    <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold dark:bg-white/10">
+                    <Badge className="normal-case" variant="light">
                       {token.isExpired
                         ? sharedT("statusExpired")
                         : sharedT(`status.${token.status}`)}
-                    </span>
+                    </Badge>
                   </div>
                   <dl className="mt-4 grid gap-2 text-sm">
                     <div className="flex justify-between gap-3">
@@ -412,26 +453,35 @@ export function TokenList({
                     token.status === "ACTIVE" &&
                     !token.isExpired ? (
                       <Button
-                        onClick={() => void runAction(token, "renew")}
+                        disabled={busyId !== null}
+                        onClick={(event) =>
+                          confirmAction(event.currentTarget, token, "renew")
+                        }
                         type="button"
-                        variant="secondary"
+                        variant="default"
                       >
                         {sharedT("renew")}
                       </Button>
                     ) : null}
                     {token.status === "ACTIVE" && !token.isExpired ? (
                       <Button
-                        onClick={() => void runAction(token, "revoke")}
+                        disabled={busyId !== null}
+                        onClick={(event) =>
+                          confirmAction(event.currentTarget, token, "revoke")
+                        }
                         type="button"
-                        variant="secondary"
+                        variant="default"
                       >
                         {sharedT("revoke")}
                       </Button>
                     ) : null}
                     <Button
-                      onClick={() => void runAction(token, "delete")}
+                      disabled={busyId !== null}
+                      onClick={(event) =>
+                        confirmAction(event.currentTarget, token, "delete")
+                      }
                       type="button"
-                      variant="secondary"
+                      variant="default"
                     >
                       {sharedT("delete")}
                     </Button>
@@ -449,10 +499,42 @@ export function TokenList({
         ) : null}
       </section>
 
+      <Modal
+        opened={confirmation !== null}
+        onClose={() => setConfirmation(null)}
+        title={confirmation ? sharedT(confirmation.action) : undefined}
+        transitionProps={{ duration: 0 }}
+        withCloseButton={false}
+      >
+        {confirmation && (
+          <>
+            <p>{sharedT(`${confirmation.action}Confirm`)}</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button
+                data-autofocus
+                onClick={() => setConfirmation(null)}
+                type="button"
+                variant="default"
+              >
+                {sharedT("cancel")}
+              </Button>
+              <Button
+                onClick={() =>
+                  void runAction(confirmation.token, confirmation.action)
+                }
+                type="button"
+              >
+                {sharedT(confirmation.action)}
+              </Button>
+            </div>
+          </>
+        )}
+      </Modal>
       <TokenValueDisplay
         onOpenChange={(nextOpen) => {
           if (!nextOpen) {
             setRenewedToken(null);
+            restoreActionFocus();
           }
         }}
         open={Boolean(renewedToken)}

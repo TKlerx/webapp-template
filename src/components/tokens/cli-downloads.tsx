@@ -2,7 +2,8 @@
 
 import { Download, ExternalLink, Terminal } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@mantine/core";
+import { useTranslations } from "next-intl";
 import { withBasePath } from "@/lib/base-path";
 
 type CliReleaseAsset = {
@@ -23,6 +24,7 @@ const clientOrigin = () =>
 const serverOrigin = () => "<APP_URL>";
 
 export function CliDownloads() {
+  const t = useTranslations("tokens.downloads");
   const serverUrl = useSyncExternalStore(
     subscribeToOrigin,
     clientOrigin,
@@ -55,9 +57,9 @@ export function CliDownloads() {
       <div className="flex items-start gap-3">
         <Terminal className="mt-1 size-5 shrink-0 text-[var(--muted-foreground)]" />
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold">CLI downloads</h2>
+          <h2 className="text-xl font-semibold">{t("title")}</h2>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Download starterctl, create a token, then configure it for this app.
+            {t("description")}
           </p>
         </div>
       </div>
@@ -73,13 +75,9 @@ starterctl health`}
             <Button
               className="justify-start gap-2"
               key={asset.target}
-              onClick={() => {
-                window.location.href = withBasePath(
-                  `/api/downloads/cli/${asset.target}`,
-                );
-              }}
-              type="button"
-              variant="secondary"
+              component="a"
+              href={withBasePath(`/api/downloads/cli/${asset.target}`)}
+              variant="default"
             >
               <Download className="size-4" />
               {asset.label}
@@ -88,7 +86,7 @@ starterctl health`}
         </div>
       ) : loadError ? (
         <div className="mt-4 space-y-2">
-          <p role="alert">Could not load CLI downloads.</p>
+          <p role="alert">{t("failed")}</p>
           <Button
             type="button"
             onClick={() => {
@@ -96,30 +94,28 @@ starterctl health`}
               setRequest((value) => value + 1);
             }}
           >
-            Retry
+            {t("retry")}
           </Button>
         </div>
       ) : !downloads ? (
         <p className="mt-4 text-sm" role="status">
-          Loading CLI downloads…
+          {t("loading")}
         </p>
       ) : (
         <p className="mt-4 rounded-lg border border-dashed border-[var(--border)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
-          No hosted CLI artifacts are available on this deployment yet.
+          {t("unavailable")}
         </p>
       )}
 
       {downloads?.checksumsAvailable ? (
         <Button
           className="mt-3 gap-2"
-          onClick={() => {
-            window.location.href = withBasePath("/api/downloads/cli/checksums");
-          }}
-          type="button"
-          variant="secondary"
+          component="a"
+          href={withBasePath("/api/downloads/cli/checksums")}
+          variant="default"
         >
           <ExternalLink className="size-4" />
-          Checksums
+          {t("checksums")}
         </Button>
       ) : null}
     </section>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { TokenList } from "@/components/tokens/token-list";
+import "@/components/tokens/tokens.css";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { listAllTokens } from "@/services/api/tokens";
