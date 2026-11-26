@@ -4,6 +4,10 @@
 
 - PR #73 keeps the broad pnpm, uv, and Go audits as advisory steps before the blocking production checks. The blocking pnpm audit includes optional production packages because the app build installs them.
 
+## Test design and review skill (2026-11-25)
+
+- Added the project-local test-design-review skill for choosing behavior-focused regression tests and checking whether their assertions catch likely failures.
+
 ## Mantine migration implementation (2026-11-25)
 
 - Implemented the saved-theme fix and migrated the remaining controls in Spec 023 on PR #71. The changes cover Notifications, Audit Trail, Users, Jobs, Ops Health, personal and admin tokens, local auth, and Teams. Spec 014 remains open.
