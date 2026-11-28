@@ -2206,3 +2206,7 @@ The production build, all 381 Vitest tests and six focused Chromium tests passed
 ## 2026-11-27 — Fix the Assistant overlap on mobile
 
 Moved the Mantine launcher into the shared mobile dashboard header. The Notifications browser test covers pointer access to the event filter at 390 px and keyboard focus after closing the Assistant.
+
+## 2026-11-28 — Fold TDD guidance into test-design-review
+
+Compared the standalone TDD skill with the project’s existing testing guidance. Brought the independent expected-value example, boundary-mocking guidance, and test-first workflow into the existing skill.
