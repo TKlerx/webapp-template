@@ -17,6 +17,8 @@ Ask what would convince you that the test protects the behavior.
 
 - Choose inputs that distinguish correct behavior from the likely failure. Use values at and around a boundary when the rule changes there. Cover invalid inputs or failure paths when the contract defines their outcomes.
 - Assert the relevant output, error, or side effect. Assert an interaction when the interaction itself is part of the contract. Check whether the test would survive a behavior-preserving refactor.
+- Derive expected values from the contract, a worked example, or another independent source. For a cart with line prices of 10 and 5, assert a total of 15. Calculating the expected total with the same logic as the implementation can reproduce the same mistake.
+- Use the interface a real caller uses. When you need to control an external dependency such as a network service or a clock, reuse an available test double at that boundary and exercise the behavior under test directly.
 - Prefer an existing test when it already catches the failure. Add a case when it provides distinct evidence. Review setup cost, determinism, and failure clarity when they affect the suite's purpose.
 
 ## Evidence
@@ -26,5 +28,9 @@ Ask what would convince you that the test protects the behavior.
 - In a review, name the behavior at risk, point to the affected test or missing case, and describe a plausible failure the suite could miss. Report verified evidence and clearly identify inferred gaps.
 
 Example. Free shipping starts at €50. A test that checks free shipping at exactly €50 catches a change from `>=` to `>`. Tests at €20 and €80 could execute both branches and miss that change.
+
+## Test-first development
+
+When the task calls for TDD, take one observable behavior at a time. Confirm the focused test fails for the intended reason, make the smallest change that passes it, and refactor with the tests green. Use what you learned to choose the next case.
 
 Adapted from [Jovanovikj et al., *Context-specific Quality Evaluation of Test Cases* (2018)](https://doi.org/10.5220/0006724405940601). The paper applies its quality plan to industrial system test cases. This workflow applies the same reasoning to automated test design and review.

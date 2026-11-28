@@ -1,5 +1,9 @@
 # Continue
 
+## Test design and TDD guidance (2026-11-28)
+
+- Added guidance to test-design-review on deriving expected values independently, using test doubles at external boundaries, and working through one observable behavior at a time during test-first development.
+
 ## Mobile Assistant launcher (2026-11-27)
 
 - The Mantine Assistant button sits beside the account menu on mobile. The shared dashboard header gives both actions their own space above page controls, and the desktop launcher stays floating.
